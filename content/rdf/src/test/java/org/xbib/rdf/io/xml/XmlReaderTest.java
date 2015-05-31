@@ -67,7 +67,7 @@ public class XmlReaderTest extends StreamTester {
         namespaceContext.addNamespace("oaidc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
 
-        XmlContentParams params = new XmlContentParams(namespaceContext, true);
+        XmlContentParams params = new XmlContentParams(namespaceContext);
         XmlHandler xmlHandler = new AbstractXmlResourceHandler(params) {
 
             @Override
@@ -118,7 +118,7 @@ public class XmlReaderTest extends StreamTester {
             throw new IOException("file " + filename + " not found");
         }
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        XmlContentParams params = new XmlContentParams(namespaceContext, true);
+        XmlContentParams params = new XmlContentParams(namespaceContext);
         AbstractXmlHandler xmlHandler = new AbstractXmlResourceHandler(params) {
 
             @Override
@@ -169,7 +169,7 @@ public class XmlReaderTest extends StreamTester {
             throw new IOException("file " + filename + " not found");
         }
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        XmlContentParams params = new XmlContentParams(namespaceContext, true);
+        XmlContentParams params = new XmlContentParams(namespaceContext);
         AbstractXmlHandler xmlHandler = new AbstractXmlResourceHandler(params) {
             @Override
             public boolean isResourceDelimiter(QName name) {

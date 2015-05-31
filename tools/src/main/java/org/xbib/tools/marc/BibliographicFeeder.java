@@ -16,10 +16,8 @@ import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.entities.support.ValueMaps;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.Feeder;
 import org.xbib.tools.TimewindowFeeder;
 
 import java.io.FileInputStream;
@@ -62,7 +60,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
     }
 
     @Override
-    protected BibliographicFeeder prepare() throws IOException {
+    public BibliographicFeeder prepare() throws IOException {
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -151,7 +149,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
     }
 
     @Override
-    protected BibliographicFeeder cleanup() throws IOException {
+    public BibliographicFeeder cleanup() throws IOException {
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
             updateAliases();
         } else {
@@ -232,7 +230,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     getConcreteIndex(), getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

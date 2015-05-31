@@ -83,7 +83,7 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    protected FromOAI prepare() throws IOException {
+    public FromOAI prepare() throws IOException {
         // open output TAR archive
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
@@ -113,7 +113,7 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    protected void process(URI uri) throws Exception {
+    public void process(URI uri) throws Exception {
         Map<String, String> params = URIUtil.parseQueryString(uri);
         final OAIClient client = OAIClientFactory.newClient().setURL(uri);
         client.setTimeout(settings.getAsInt("timeout", 60000));
@@ -142,6 +142,7 @@ public class FromOAI extends Converter {
         client.close();
     }
 
+    @Override
     public void run() throws Exception {
         super.run();
         if (session != null) {
@@ -153,7 +154,8 @@ public class FromOAI extends Converter {
         }
     }
 
-    protected FromOAI cleanup() {
+    @Override
+    public FromOAI cleanup() {
         try {
             if (client != null) {
                 client.close();

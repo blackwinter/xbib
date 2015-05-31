@@ -32,14 +32,16 @@
 package org.xbib.tools.feed.elasticsearch.freebase;
 
 import org.xbib.io.InputService;
-import org.xbib.iri.IRI;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.io.turtle.TurtleContentParser;
+import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.io.ntriple.NTripleContentParser;
 import org.xbib.tools.Feeder;
 
 import java.io.InputStream;
 import java.net.URI;
+
+import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
 /**
  * Elasticsearch Freebase indexer
@@ -48,87 +50,22 @@ public class Freebase extends Feeder {
 
     @Override
     public String getName() {
-        return "freebase-turtle-elasticsearch";
+        return "freebase-ntriples-elasticsearch";
     }
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new Freebase();
-            }
-        };
+        return Freebase::new;
     }
 
     @Override
     public void process(URI uri) throws Exception {
         InputStream in = InputService.getInputStream(uri);
-        //ElasticBuilder builder = new ElasticBuilder(elasticsearchRdfXContentGenerator);
-        IRI base = IRI.create(settings.get("base"));
-        new TurtleContentParser(in).setBaseIRI(base)
-                .parse();
+        RdfContentBuilder builder = ntripleBuilder();
+        NTripleContentParser reader = new NTripleContentParser(in);
+        reader.setBuilder(builder);
+        reader.parse();
         in.close();
     }
-/*
-    private class ElasticBuilder implements Triple.Builder {
 
-        private final ElasticsearchRdfXContentGenerator elasticsearchRdfXContentGenerator;
-
-        private final Context context = new MemoryContext();
-
-        private Resource resource;
-
-        ElasticBuilder(ElasticsearchRdfXContentGenerator elasticsearchRdfXContentGenerator) throws IOException {
-            this.elasticsearchRdfXContentGenerator = elasticsearchRdfXContentGenerator;
-            resource = context.newResource();
-        }
-
-        public void close() throws IOException {
-            flush();
-        }
-
-        @Override
-        public Triple.Builder startStream() {
-            return this;
-        }
-
-        @Override
-        public Triple.Builder startPrefixMapping(String prefix, String uri) {
-            return this;
-        }
-
-        @Override
-        public Triple.Builder endPrefixMapping(String prefix) {
-            return this;
-        }
-
-        @Override
-        public ElasticBuilder newIdentifier(IRI uri) {
-            flush();
-            resource.id(uri);
-            return this;
-        }
-
-        @Override
-        public ElasticBuilder triple(Triple triple) {
-            resource.add(triple);
-            return this;
-        }
-
-        @Override
-        public Triple.Builder end() {
-            return this;
-        }
-
-        private void flush() {
-            try {
-                elasticsearchRdfXContentGenerator.write(context);
-            } catch (IOException e) {
-                logger.error("flush failed: {}", e.getMessage(), e);
-            }
-        }
-
-    }
-*/
 }

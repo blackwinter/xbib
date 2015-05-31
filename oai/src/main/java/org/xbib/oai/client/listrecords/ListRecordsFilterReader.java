@@ -1,5 +1,7 @@
 package org.xbib.oai.client.listrecords;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.util.ResumptionToken;
@@ -10,6 +12,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class ListRecordsFilterReader extends XMLFilterReader {
+
+    private static final Logger logger = LogManager.getLogger(ListRecordsFilterReader.class);
 
     private final ListRecordsRequest request;
 
@@ -121,6 +125,7 @@ public class ListRecordsFilterReader extends XMLFilterReader {
                         // feedback to request
                         request.setResumptionToken(token);
                     } else {
+                        logger.warn("empty resumption token value");
                         // some servers send a null or an empty token as last token
                         token = null;
                         request.setResumptionToken(null);

@@ -37,7 +37,6 @@ import org.xbib.io.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
@@ -55,37 +54,47 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public class VIAF extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(VIAF.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(VIAF.class);
 
     @Override
     public String getName() {
-        return "viaf-es";
+        return "viaf-to-elasticsearch";
     }
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
         return VIAF::new;
     }
 
+    /**
+     * One RDF/XML per line
+     * @param uri the URI
+     * @throws Exception
+     */
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.getInstance();
+        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         InputStream in = InputService.getInputStream(uri);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String line;
-        long linecounter = 0;
         while ((line = reader.readLine()) != null) {
             RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                     settings.get("index", "viaf"),
                     settings.get("type", "viaf"));
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-            RdfContentBuilder builder = routeRdfXContentBuilder(params);
-            RdfXmlContentParser parser = new RdfXmlContentParser(new StringReader(line));
-            parser.setBuilder(builder);
-            parser.parse();
-            linecounter++;
-            if (linecounter % 10000 == 0) {
-                logger.info("{}", linecounter);
+            params.setHandler((content, p) -> {
+                if (settings.getAsBoolean("mock", false)) {
+                    logger.info("{}/{}/{} {}", p.getIndex(), p.getType(), p.getId(), content);
+                } else {
+                    ingest.index(p.getIndex(), p.getType(), p.getId(), content);
+                }
+            });
+            // lines are not pure XML, they look like "109429104        <rdf:RDF xmlns..."
+            int pos = line.indexOf("<rdf:RDF");
+            if (pos >= 0) {
+                line = line.substring(pos);
             }
+            new RdfXmlContentParser(new StringReader(line))
+               .setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params))
+               .parse();
         }
         in.close();
     }

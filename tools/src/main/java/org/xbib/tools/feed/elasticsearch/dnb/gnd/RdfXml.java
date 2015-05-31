@@ -31,12 +31,15 @@
  */
 package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
-import org.xbib.elasticsearch.support.client.Ingest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.io.InputService;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.Resource;
+import org.xbib.rdf.Triple;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
@@ -53,27 +56,12 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public class RdfXml extends Feeder {
 
-    @Override
-    public String getName() {
-        return "dnb-gnd-rdfxml-elasticsearch";
-    }
+    private final static Logger logger = LogManager.getLogger(RdfXml.class);
 
-    @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
-        return RdfXml::new;
-    }
+    final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
-    @Override
-    public RdfXml beforeIndexCreation(Ingest output) throws IOException {
-        output.setting(getClass().getResourceAsStream("settings.json"));
-        output.mapping(settings.get("type"), getClass().getResourceAsStream("mapping.json"));
-        return this;
-    }
-
-    @Override
-    public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        namespaceContext.add(new HashMap<String,String>() {{
+    static {
+        namespaceContext.add(new HashMap<String, String>() {{
             put("dc", "http://purl.org/dc/elements/1.1/");
             put("geo", "http://rdvocab.info/");
             put("rda", "http://purl.org/dc/elements/1.1/");
@@ -92,19 +80,81 @@ public class RdfXml extends Feeder {
             put("skos", "http://www.w3.org/2004/02/skos/core#");
             put("geosparql", "http://www.opengis.net/ont/geosparql#");
         }});
+    }
 
-        RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                settings.get("index", "gnd"),
-                settings.get("type", "gnd"));
-        params.setIdPredicate("gnd:gndIdentifier");
-        params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-        RdfContentBuilder builder = routeRdfXContentBuilder(params);
+    @Override
+    public String getName() {
+        return "dnb-gnd-rdfxml-elasticsearch";
+    }
+
+    @Override
+    protected PipelineProvider<Pipeline> pipelineProvider() {
+        return RdfXml::new;
+    }
+
+    @Override
+    public void process(URI uri) throws Exception {
+        logger.debug("processing URI {}", uri);
         InputStream in = InputService.getInputStream(uri);
-        RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
+        GNDRdfXmlContentParser reader = new GNDRdfXmlContentParser(in);
         reader.parse();
+        reader.flush();
         in.close();
     }
 
+    /*
+     * For reasons I don't find, a normal routeRdfXContentBuilder did not work.
+     * This is a workaround.
+     */
+
+    class GNDRdfXmlContentParser extends RdfXmlContentParser {
+
+        private Resource lastSubject;
+
+        private RdfContentBuilder builder;
+
+        private RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
+
+        private String id;
+
+        public GNDRdfXmlContentParser(InputStream in) throws IOException {
+            super(in);
+        }
+
+        @Override
+        protected void yield(Triple t) throws IOException {
+            if (lastSubject == null || !t.subject().equals(lastSubject)) {
+                if (builder != null) {
+                    builder.endStream();
+                    if (settings.getAsBoolean("mock", false)) {
+                        logger.info("builder = {}", params.getGenerator().get());
+                    } else {
+                        ingest.index(getIndex(), getType(), id, params.getGenerator().get());
+                    }
+                    builder.close();
+                }
+                builder = routeRdfXContentBuilder(params);
+                builder.startStream();
+                builder.receive(t.subject().id());
+                lastSubject = t.subject();
+            }
+            if (t.predicate().toString().equals("http://d-nb.info/standards/elementset/gnd#gndIdentifier")) {
+                id = t.object().toString();
+            }
+            builder.receive(t);
+        }
+
+        public void flush() throws IOException {
+            if (builder != null && lastSubject != null) {
+                builder.endStream();
+                if (settings.getAsBoolean("mock", false)) {
+                    logger.info("builder = {}", params.getGenerator().get());
+                } else {
+                    ingest.index(getIndex(), getType(), id, params.getGenerator().get());
+                }
+                builder.close();
+            }
+        }
+    }
 }
 

@@ -33,27 +33,52 @@ package org.xbib.rdf.content;
 
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Node;
-import org.xbib.rdf.Resource;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class RouteRdfXContentGenerator<R extends RouteRdfXContentParams> extends RdfXContentGenerator<R> {
 
+    private boolean flushed;
+
     RouteRdfXContentGenerator(OutputStream out) throws IOException {
         super(out);
     }
 
     @Override
-    public RouteRdfXContentGenerator receive(Resource resource)  throws IOException {
-        super.receive(resource);
-        RouteRdfXContent.RouteHandler handler = getParams().getHandler();
-        if (handler != null) {
-            handler.complete(getParams().getGenerator().get(), getParams());
-        }
+    public RdfXContentGenerator startStream() {
+        super.startStream();
+        flushed = false;
         return this;
     }
 
+    @Override
+    public RdfXContentGenerator receive(IRI identifier) throws IOException {
+        super.receive(identifier);
+        flushed = false;
+        return this;
+    }
+
+    @Override
+    public void flush() throws IOException {
+        super.flush();
+        if (flushed) {
+            return;
+        }
+        flushed = true;
+        RouteRdfXContent.RouteHandler handler = getParams().getHandler();
+        if (handler != null) {
+            String s = getParams().getGenerator().get();
+            if (s != null && !s.isEmpty()) {
+                if (resource.id() != null) {
+                    getParams().setId(resource.id().toString());
+                }
+                handler.complete(s, getParams());
+            }
+        }
+    }
+
+    @Override
     public void filter(IRI predicate, Node object) {
         String indexPredicate = getParams().getIndexPredicate();
         if (indexPredicate != null && indexPredicate.equals(predicate.toString())) {

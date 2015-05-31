@@ -40,6 +40,7 @@ public class NatLizOAI extends OAIHarvester {
     protected PipelineProvider<Pipeline> pipelineProvider() {
         return NatLizOAI::new;
     }
+
     @Override
     public String getName() {
         return "oai-natliz";

@@ -33,6 +33,7 @@ package org.xbib.oai.client;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.io.StringPacket;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.util.DateUtil;
@@ -102,7 +103,7 @@ public class NatLizClientTest {
             super.endDocument();
             logger.info("got XML document {}", getIdentifier());
             try {
-                Packet p = session.newPacket();
+                StringPacket p = session.newPacket();
                 p.name(getIdentifier());
                 p.packet(getWriter().toString());
                 session.write(p);

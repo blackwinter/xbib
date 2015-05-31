@@ -1,0 +1,24 @@
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="dc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">Winner-Take-All Network Utilising Pseudoinverse Reconstruction Subnets Demonstrates Robustness on the Handprinted Character Recognition Problem</dc:title>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">J. Körmendy-rácz</dc:creator>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">S. Szabó</dc:creator>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">J. Lörincz</dc:creator>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">G. Antal</dc:creator>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">G. Kovács</dc:creator>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">A. Lörincz</dc:creator>
+    <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">Correspondence and offprint requests to</dc:subject>
+    <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">J. Kormendy-Rácz</dc:subject>
+    <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Wittmeyer’s pseudoinverse iterative algorithm is formulated&#xd;
+        as a dynamic connectionist Data Compression and Reconstruction (DCR) network, and subnets of this type are supplemented by the winner-take-all paradigm. The winner is selected upon the goodness-of-fit of the input reconstruction. The network can be characterised as a competitive-cooperative-competitive architecture by virtue of the contrast enhancing properties of the pseudoinverse subnets. The network is capable of fast learning. The adopted learning method gives rise to increased sampling in the vicinity of dubious boundary regions that resembles the phenomenon of categorical perception. The generalising abilities of the scheme allow one to utilise single bit connection strengths. The network is robust against input noise and contrast levels, shows little sensitivity to imprecise connection strengths, and is promising for mixed VLSI implementation with on-chip learning properties. The features of the DCR network are demonstrated on the NIST database of handprinted characters.</dc:description>
+    <dc:contributor xmlns:dc="http://purl.org/dc/elements/1.1/">The Pennsylvania State University CiteSeerX Archives</dc:contributor>
+    <dc:publisher xmlns:dc="http://purl.org/dc/elements/1.1/">Springer</dc:publisher>
+    <dc:date xmlns:dc="http://purl.org/dc/elements/1.1/">2009-05-24</dc:date>
+    <dc:date xmlns:dc="http://purl.org/dc/elements/1.1/">2007-11-19</dc:date>
+    <dc:date xmlns:dc="http://purl.org/dc/elements/1.1/">1999</dc:date>
+    <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">application/pdf</dc:format>
+    <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/">text</dc:type>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.1484</dc:identifier>
+    <dc:source xmlns:dc="http://purl.org/dc/elements/1.1/">http://people.inf.elte.hu/lorincz/Files/publications/WTA_NCA.pdf</dc:source>
+    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">en</dc:language>
+    <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/">Metadata may be used without restrictions as long as the oai identifier remains attached to it.</dc:rights>
+</oai_dc:dc>

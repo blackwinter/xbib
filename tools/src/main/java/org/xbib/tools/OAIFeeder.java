@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.joda.time.DateTime;
 import org.elasticsearch.common.joda.time.format.DateTimeFormat;
-import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
@@ -70,10 +69,10 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public abstract class OAIFeeder extends TimewindowFeeder {
 
-    private final static Logger logger = LogManager.getLogger(OAIFeeder.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(OAIFeeder.class);
 
     @Override
-    protected OAIFeeder prepare() throws IOException {
+    public OAIFeeder prepare() throws IOException {
         ingest = createIngest();
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
@@ -82,14 +81,12 @@ public abstract class OAIFeeder extends TimewindowFeeder {
         Matcher m = pattern.matcher(getConcreteIndex());
         setIndex(m.matches() ? m.group() : getConcreteIndex());
         logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
-
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                 Runtime.getRuntime().availableProcessors());
         ingest.maxActionsPerBulkRequest(maxbulkactions)
                 .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
         createIndex(getConcreteIndex());
-
         String[] inputs = settings.getAsArray("uri");
         if (inputs == null || inputs.length == 0) {
             throw new IllegalArgumentException("no parameter 'uri' given");
@@ -149,25 +146,29 @@ public abstract class OAIFeeder extends TimewindowFeeder {
     }
 
     protected SimpleMetadataHandler newMetadataHandler() {
-        return new MySimpleMetadataHandler();
+        return new OAISimpleMetadataHandler();
     }
 
-    public class MySimpleMetadataHandler extends SimpleMetadataHandler {
+    protected String map(String id, String content) throws IOException {
+        return content;
+    }
+
+    public class OAISimpleMetadataHandler extends SimpleMetadataHandler {
 
         private final IRINamespaceContext namespaceContext;
 
         private RdfResourceHandler handler;
 
-        public MySimpleMetadataHandler() {
+        public OAISimpleMetadataHandler() {
             namespaceContext = IRINamespaceContext.newInstance();
-            namespaceContext.addNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
+            namespaceContext.addNamespace("", "http://www.openarchives.org/OAI/2.0/oai_dc/");
             namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         }
 
         @Override
         public void startDocument() throws SAXException {
             this.handler = rdfResourceHandler();
-            handler.setDefaultNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
+            handler.setDefaultNamespace("", "http://www.openarchives.org/OAI/2.0/oai_dc/");
             handler.startDocument();
         }
 
@@ -177,12 +178,16 @@ public abstract class OAIFeeder extends TimewindowFeeder {
             try {
                 RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                         getConcreteIndex(), getType());
-                params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), getHeader().getIdentifier(), content));
+                params.setHandler((content, p) -> {
+                    content = map(getHeader().getIdentifier(), content);
+                    if (settings.getAsBoolean("mock", false)) {
+                        logger.info("{}", content);
+                    } else {
+                        ingest.index(p.getIndex(), p.getType(), getHeader().getIdentifier(), content);
+                    }
+                });
                 RdfContentBuilder builder = routeRdfXContentBuilder(params);
                 builder.receive(handler.getResource());
-                if (settings.getAsBoolean("mock", false)) {
-                    logger.info("{}", builder.string());
-                }
                 if (executor != null) {
                     // tell executor we increased document count by one
                     executor.metric().mark();

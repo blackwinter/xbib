@@ -36,7 +36,6 @@ import org.xbib.io.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
@@ -93,12 +92,12 @@ public class RdfXml extends Feeder {
                 settings.get("index", "dnb"),
                 settings.get("type", "title"));
         params.setIdPredicate("gnd:gndIdentifier");
-        params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-        RdfContentBuilder builder = routeRdfXContentBuilder(params);
         InputStream in = InputService.getInputStream(uri);
-        RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
-        reader.parse();
+        RdfXmlContentParser reader = new RdfXmlContentParser(in)
+                .setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params))
+                .setRdfContentBuilderHandler(builder ->
+                        ingest.index(params.getIndex(), params.getType(), params.getId(), builder.string()))
+                .parse();
         in.close();
     }
 

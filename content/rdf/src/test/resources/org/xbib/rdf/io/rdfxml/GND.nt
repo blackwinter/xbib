@@ -1,0 +1,89 @@
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#gndIdentifier> "4000196-9" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber> "(DE-588c)4000196-9" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#variantNameForTheWork> "Abrogans deutsch" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#variantNameForTheWork> "Deutsches Abrogans" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#variantNameForTheWork> "Keronisches Glossar" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#preferredNameForTheWork> "Abrogans" .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#broaderTermInstantial> <http://d-nb.info/gnd/4157654-8> .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#gndSubjectCategory> <http://d-nb.info/vocab/gnd-sc#11.3d> .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#geographicAreaCode> <http://d-nb.info/standards/vocab/gnd/geographic-area-code#XA-DE> .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#languageCode> <http://id.loc.gov/vocabulary/iso639-2/goh> .
+<http://d-nb.info/gnd/4000196-9> <http://d-nb.info/standards/elementset/gnd#definition> "Lateinisch-althochdeutsches Glossar, um 765 entstanden"@de .
+<http://d-nb.info/gnd/4000196-9> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://d-nb.info/standards/elementset/gnd#Work> .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#gndIdentifier> "4001191-4" .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber> "(DE-588c)4001191-4" .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#variantNameForTheWork> "Chanson d'Aliscans" .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#variantNameForTheWork> "La @bataille d'Aliscans" .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#preferredNameForTheWork> "Aliscans" .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#broaderTermPartitive> <http://d-nb.info/gnd/4189913-1> .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#gndSubjectCategory> <http://d-nb.info/vocab/gnd-sc#12.2b> .
+<http://d-nb.info/gnd/4001191-4> <http://d-nb.info/standards/elementset/gnd#geographicAreaCode> <http://d-nb.info/standards/vocab/gnd/geographic-area-code#XA-FR> .
+<http://d-nb.info/gnd/4001191-4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://d-nb.info/standards/elementset/gnd#Work> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#gndIdentifier> "4001270-0" .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber> "(DE-588c)4001270-0" .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#preferredNameForTheWork> "Allgemeine deutsche Bibliothek <Zeitschrift>" .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#broaderTermInstantial> <http://d-nb.info/gnd/4035949-9> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#gndSubjectCategory> <http://d-nb.info/vocab/gnd-sc#12.1b> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#gndSubjectCategory> <http://d-nb.info/vocab/gnd-sc#2.3> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#geographicAreaCode> <http://d-nb.info/standards/vocab/gnd/geographic-area-code#XA-DE> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#languageCode> <http://id.loc.gov/vocabulary/iso639-2/ger> .
+<http://d-nb.info/gnd/4001270-0> <http://d-nb.info/standards/elementset/gnd#relatedPlaceOrGeographicName> <http://d-nb.info/gnd/4011882-4> .
+<http://d-nb.info/gnd/4001270-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://d-nb.info/standards/elementset/gnd#Work> .
+<http://d-nb.info/gnd/100003893> <http://xmlns.com/foaf/0.1/page> <http://de.wikipedia.org/wiki/Adamantios> .
+<http://d-nb.info/gnd/100003893> <http://www.w3.org/2002/07/owl#sameAs> <http://dbpedia.org/resource/Adamantius> .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#gndIdentifier> "100003893" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber> "(DE-588a)100003893" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantius <aus Alexandrien>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b0 .
+_:b0 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b0 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "aus Alexandrien" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantios <Sophista>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b1 .
+_:b1 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantios" .
+_:b1 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Sophista" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantius <Sophista>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b2 .
+_:b2 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b2 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Sophista" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantius <Iudaeus>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b3 .
+_:b3 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b3 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Iudaeus" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantius <Medicus>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b4 .
+_:b4 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b4 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Medicus" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantius <Physiognomonicus>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b5 .
+_:b5 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b5 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Physiognomonicus" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantios <Mediziner>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b6 .
+_:b6 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantios" .
+_:b6 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Mediziner" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantios <Arzt>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b7 .
+_:b7 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantios" .
+_:b7 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Arzt" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantios <von Alexandria>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b8 .
+_:b8 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantios" .
+_:b8 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "von Alexandria" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameForThePerson> "Adamantios <von Alexandreia>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#variantNameEntityForThePerson> _:b9 .
+_:b9 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantios" .
+_:b9 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "von Alexandreia" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson> "Adamantius <Alexandrinus>" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#preferredNameEntityForThePerson> _:b10 .
+_:b10 <http://d-nb.info/standards/elementset/gnd#personalName> "Adamantius" .
+_:b10 <http://d-nb.info/standards/elementset/gnd#epithetGenericNameTitleOrTerritory> "Alexandrinus" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Adamantius <Sophista>: Physiognomonica. - 1540" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Adamantius <Sophista>: Physiognomica. - 1587" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Adamantius <Sophista>: Physiognomonicon. - 1544" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Adamantius <Sophista>: Physionomia. - 1545" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Adamantius <Sophista>: Adamantii Sophistae Physiognomonicon. - 1544" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Aristoteles: Physiognomonica Pseudoaristotelis, graece et latine, Adamantii cum epitomis *" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#publication> "Polemon, Marcus Antonius: Physiognomica" .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#dateOfBirthAndDeath> "4./5. Jh. n. Chr." .
+<http://d-nb.info/gnd/100003893> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://d-nb.info/standards/elementset/gnd#DifferentiatedPerson> .
+<http://d-nb.info/gnd/100003893> <http://d-nb.info/standards/elementset/gnd#gender> <http://d-nb.info/standards/vocab/gnd/Gender#notKnown> .

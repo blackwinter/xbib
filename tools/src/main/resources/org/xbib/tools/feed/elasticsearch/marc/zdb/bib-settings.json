@@ -1,0 +1,64 @@
+{
+  "index" : {
+    "number_of_shards" : 3,
+    "number_of_replicas" : 0,
+    "analysis" : {
+      "filter" : {
+        "snowball_german_umlaut" : {
+          "type" : "snowball",
+          "name" : "German2"
+        }
+      },
+      "analyzer" : {
+        "default" : {
+          "type" : "custom",
+          "tokenizer" : "hyphen",
+          "filter" : [
+            "lowercase",
+            "keyword_repeat",
+            "icu_normalizer",
+            "icu_folding",
+            "hyphen",
+            "snowball_german_umlaut",
+            "unique"
+          ]
+        },
+        "unstemmed" : {
+          "type" : "custom",
+          "tokenizer" : "hyphen",
+          "filter" : [
+            "lowercase",
+            "keyword_repeat",
+            "icu_normalizer",
+            "icu_folding",
+            "hyphen",
+            "german_normalize",
+            "unique"
+          ]
+        },
+        "german_phonebook_with_sortform" : {
+          "type" : "sortform",
+          "language" : "de",
+          "country" : "DE",
+          "strength" : "primary",
+          "alternate" : "shifted",
+          "rules" : "& ae , a\u0308 & AE , A\u0308 & oe , o\u0308 & OE , O\u0308 & ue , u\u0308 & UE , u\u0308 & ss , \u00df",
+          "filter" : [
+            "sortform"
+          ]
+        },
+        "german_phonebook_with_sortform_without_punctuation" : {
+          "type" : "sortform",
+          "language" : "de",
+          "country" : "DE",
+          "strength" : "quaternary",
+          "alternate" : "shifted",
+          "rules" : "& ae , a\u0308 & AE , A\u0308 & oe , o\u0308 & OE , O\u0308 & ue , u\u0308 & UE , u\u0308 & ss , \u00df",
+          "filter" : [
+            "sortform"
+          ]
+        }
+      }
+    }
+  }
+}

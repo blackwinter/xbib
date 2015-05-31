@@ -132,8 +132,9 @@ public abstract class RequestBuilderBase<T extends RequestBuilderBase<T>> {
         }
 
         public URI getURI() {
-            if (uri == null)
+            if (uri == null) {
                 uri = toURI(true);
+            }
             return uri;
         }
 

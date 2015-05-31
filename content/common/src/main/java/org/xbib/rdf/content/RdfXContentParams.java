@@ -43,7 +43,7 @@ public class RdfXContentParams implements RdfContentParams {
     private RdfXContentGenerator generator;
 
     public RdfXContentParams() {
-        this.namespaceContext = IRINamespaceContext.getInstance();
+        this.namespaceContext = IRINamespaceContext.newInstance();
     }
 
     public RdfXContentParams(IRINamespaceContext namespaceContext) {

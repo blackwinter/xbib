@@ -31,32 +31,132 @@
  */
 package org.xbib.tools.convert.oai;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.xbib.io.StringPacket;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.oai.rdf.RdfResourceHandler;
+import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
+import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
+import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.XSDResourceIdentifiers;
 import org.xbib.tools.OAIHarvester;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
+import java.io.IOException;
+import java.text.Normalizer;
+
+import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
  * OAI harvester, write documents to RDF
  */
 public class DOAJ extends OAIHarvester {
 
+    private final static Logger logger = LogManager.getLogger(DOAJ.class);
+
     @Override
     public String getName() {
-        return "oai-doaj-rdf";
+        return "doaj";
     }
 
     protected PipelineProvider<Pipeline> pipelineProvider() {
         return DOAJ::new;
+    }
+
+    protected SimpleMetadataHandler newMetadataHandler() {
+        return new MySimpleMetadataHandler();
+    }
+
+    public class MySimpleMetadataHandler extends SimpleMetadataHandler {
+
+        private final IRINamespaceContext namespaceContext;
+
+        private RdfResourceHandler handler;
+
+        public MySimpleMetadataHandler() {
+            namespaceContext = IRINamespaceContext.newInstance();
+            namespaceContext.addNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
+            namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
+        }
+
+        @Override
+        public void startDocument() throws SAXException {
+            this.handler = rdfResourceHandler();
+            handler.setDefaultNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
+            handler.startDocument();
+        }
+
+        @Override
+        public void endDocument() throws SAXException {
+            handler.endDocument();
+            try {
+                RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
+                params.setHandler((content, p) -> {
+                    if (settings.getAsBoolean("mock", false)) {
+                        logger.info("{}", content);
+                    } else {
+                        StringPacket packet = session.newPacket();
+                        packet.name();
+                        String s = content;
+                        // for Unicode in non-canonical form, normalize it here
+                        s = Normalizer.normalize(s, Normalizer.Form.NFC);
+                        packet.packet(s);
+                        session.write(packet);
+                    }
+                });
+                RdfContentBuilder builder = routeRdfXContentBuilder(params);
+                builder.receive(handler.getResource());
+                if (executor != null) {
+                    // tell executor we increased document count by one
+                    executor.metric().mark();
+                    if (executor.metric().count() % 10000 == 0) {
+                        try {
+                            writeMetrics(executor.metric(), null);
+                        } catch (Exception e) {
+                            throw new IOException("metric failed", e);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+                throw new SAXException(e);
+            }
+        }
+
+        @Override
+        public void startPrefixMapping(String string, String string1) throws SAXException {
+            handler.startPrefixMapping(string, string1);
+        }
+
+        @Override
+        public void endPrefixMapping(String string) throws SAXException {
+            handler.endPrefixMapping(string);
+        }
+
+        @Override
+        public void startElement(String ns, String localname, String string2, Attributes atrbts) throws SAXException {
+            handler.startElement(ns, localname, string2, atrbts);
+        }
+
+        @Override
+        public void endElement(String ns, String localname, String string2) throws SAXException {
+            handler.endElement(ns, localname, string2);
+        }
+
+        @Override
+        public void characters(char[] chars, int i, int i1) throws SAXException {
+            handler.characters(chars, i, i1);
+        }
     }
 
     protected RdfResourceHandler rdfResourceHandler() {
@@ -113,12 +213,6 @@ public class DOAJ extends OAIHarvester {
             return super.toObject(name, content);
         }
 
-        private final static IRI ISSN = IRI.create("urn:ISSN");
-
-        private final static IRI EISSN = IRI.create("urn:EISSN");
-
-        private final static IRI LCCN = IRI.create("urn:LCC");
-
         @Override
         public XmlHandler setNamespaceContext(IRINamespaceContext namespaceContext) {
             return null;
@@ -129,4 +223,11 @@ public class DOAJ extends OAIHarvester {
             return null;
         }
     }
+
+    private final static IRI ISSN = IRI.create("urn:ISSN");
+
+    private final static IRI EISSN = IRI.create("urn:EISSN");
+
+    private final static IRI LCCN = IRI.create("urn:LCC");
+
 }

@@ -85,7 +85,7 @@ public class DefaultSpecification implements Specification {
     @Override
     public Map getEntityMap(ClassLoader cl, String packageName, String... paths) throws Exception {
         if (paths == null || paths.length == 0) {
-            return null;
+            throw new IllegalArgumentException("no path");
         }
         String path = paths[0];
         if (maps.containsKey(path)) {
@@ -241,22 +241,6 @@ public class DefaultSpecification implements Specification {
             return null;
         }
     }
-
-    /*private String getPackageFromPath(String path) {
-        // remove suffix
-        int pos = path.lastIndexOf('.');
-        if (pos > 0) {
-            path = path.substring(0, pos);
-        }
-        String packageName = path.replace('/', '.');
-        if (packageName.charAt(0) == '.') {
-            packageName = packageName.substring(1);
-        }
-        if (packageName.charAt(packageName.length() - 1) != '.') {
-            packageName = packageName + '.';
-        }
-        return packageName;
-    }*/
 
     private String getString(Reader input) throws IOException {
         StringWriter sw = new StringWriter();

@@ -57,11 +57,13 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
 
     private R params;
 
-    private final OutputStream out;
+    protected final OutputStream out;
 
-    private Resource resource;
+    protected Resource resource;
 
-    private XContentBuilder builder;
+    protected XContentBuilder builder;
+
+    private boolean flushed;
 
     RdfXContentGenerator(OutputStream out) throws IOException {
         this.out = out;
@@ -80,7 +82,8 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
 
     @Override
     public RdfXContentGenerator startStream() {
-        resource = new MemoryResource();
+        this.resource = new MemoryResource();
+        flushed = false;
         return this;
     }
 
@@ -103,52 +106,60 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
 
     @Override
     public RdfXContentGenerator receive(IRI identifier) throws IOException {
-        builder = jsonBuilder(out);
-        builder.startObject();
-        build(resource);
-        builder.endObject();
-        logger.info("receive builder={}", builder.string());
-        resource = new MemoryResource().id(identifier);
+        this.resource = new MemoryResource().id(identifier);
+        flushed = false;
         return this;
     }
 
     @Override
     public RdfXContentGenerator receive(Triple triple) {
-        resource.add(triple);
+        this.resource.add(triple);
         return this;
     }
 
     @Override
     public RdfXContentGenerator endStream() throws IOException {
-        if (!resource.isEmpty()) {
-            builder = jsonBuilder(out);
-            builder.startObject();
-            build(resource);
-            builder.endObject();
-            logger.info("endStream {}", builder.string());
+        if (resource != null && !resource.isEmpty()) {
+            flush();
         }
         return this;
     }
 
     @Override
     public void close() throws IOException {
+        flush();
     }
 
     @Override
     public void flush() throws IOException {
+        if (this.resource == null || this.resource.isEmpty() || flushed) {
+            return;
+        }
+        flushed = true;
+        builder = jsonBuilder(out);
+        builder.startObject();
+        build(this.resource);
+        builder.endObject();
     }
 
     @Override
     public RdfXContentGenerator receive(Resource resource)  throws IOException {
-        builder = jsonBuilder(out);
-        builder.startObject();
-        build(resource);
-        builder.endObject();
+        if (resource != null) {
+            this.resource = resource;
+        }
+        flush();
         return this;
     }
 
+    public String string() throws IOException {
+        if (builder != null) {
+            return builder.string();
+        }
+        return null;
+    }
+
     public String get() throws IOException {
-        return builder.string();
+        return string();
     }
 
     public void filter(IRI predicate, Node object) {

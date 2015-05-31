@@ -79,8 +79,7 @@ public class FromSRU extends Converter {
     }
 
     @Override
-    protected FromSRU prepare() throws IOException {
-
+    public FromSRU prepare() throws IOException {
         // open output TAR archive
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
@@ -118,7 +117,7 @@ public class FromSRU extends Converter {
     }
 
     @Override
-    protected void process(URI uri) throws Exception {
+    public void process(URI uri) throws Exception {
         StringWriter w = new StringWriter();
         SearchRetrieveRequest request = client.newSearchRetrieveRequest()
                 .setURI(uri);
@@ -142,7 +141,7 @@ public class FromSRU extends Converter {
         }
     }
 
-    protected FromSRU cleanup() {
+    public FromSRU cleanup() {
         try {
             if (client != null) {
                 client.close();

@@ -76,7 +76,7 @@ public class PublishedJournal implements IdentifiableEndeavor {
                 // ignore
             }
         }
-        shortJournalName.replaceAll("\\s","");
+        shortJournalName = shortJournalName.replaceAll("\\s","");
         sb.append(shortJournalName);
         if (publisherName != null) {
             publisherName = publisherName.replaceAll("\\p{P}", "");
@@ -91,7 +91,7 @@ public class PublishedJournal implements IdentifiableEndeavor {
                     // ignore
                 }
             }
-            shortPublisherName.replaceAll("\\s", "");
+            shortPublisherName = shortPublisherName.replaceAll("\\s", "");
             sb.append(shortPublisherName);
         }
         return sb.toString();

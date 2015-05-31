@@ -8,7 +8,6 @@ import java.util.Arrays;
  * in this class can be used to verify that a character is a valid
  * XML 1.1 character or if the character is a space, name start, or name
  * character.
- * <p>
  * A series of convenience methods are supplied to ease the burden
  * of the developer.  Using the character as an index into the <code>XML11CHARS</code>
  * array and applying the appropriate mask flag (e.g.

@@ -41,6 +41,8 @@ import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.Date;
 
 /**
@@ -48,6 +50,8 @@ import java.util.Date;
  */
 public class ClientOAIRequest<R extends ClientOAIRequest>
         extends NettyHttpRequest implements HttpRequest, OAIRequest<R> {
+
+    private final static Charset UTF8 = Charset.forName("UTF-8");
 
     private ResumptionToken token;
 
@@ -80,15 +84,15 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     }
 
     @Override
-    public R setURL(URI uri) {
+    public R setURL(URI uri) throws URISyntaxException {
         super.setURL(uri);
         return (R) this;
     }
 
     @Override
-    public R addParameter(String name, String value) {
+    public R addParameter(String name, String value, Charset encoding) {
         if (value != null && value.length() > 0) {
-            super.addParameter(name, value);
+            super.addParameter(name, value, encoding);
         }
         return (R) this;
     }
@@ -142,7 +146,7 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     public R setResumptionToken(ResumptionToken token) {
         this.token = token;
         if (token != null) {
-            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, token.toString());
+            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, token.toString(), UTF8);
         }
         return (R) this;
     }

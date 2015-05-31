@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEntity, FieldList, String>
         implements Closeable {
 
-    private final static Logger logger = LogManager.getLogger(MARCEntityQueue.class.getName());
+    private final static Logger logger = LogManager.getLogger(MARCEntityQueue.class);
 
     private final static IRI tempPredicate = IRI.create("tmp");
 

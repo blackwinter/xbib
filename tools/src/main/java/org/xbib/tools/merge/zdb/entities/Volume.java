@@ -52,7 +52,7 @@ public class Volume extends Manifestation {
         makeIdentity();
         makeCorporate();
         makeConference();
-        makeTitle();
+        makeFullTitle();
         makePublisher();
         makeDate();
         makeGenre();
@@ -88,7 +88,7 @@ public class Volume extends Manifestation {
     }
 
     @Override
-    protected void makeTitle() {
+    protected void makeFullTitle() {
         // shorten title (series statement after '/' or ':')
         // but combine with corporate name, meeting name, and part specification
         StringBuilder sb = new StringBuilder();
@@ -116,9 +116,9 @@ public class Volume extends Manifestation {
     }
 
     protected void makePublisher() {
-        this.publisher = getString("PublisherName.publisherName");
-        if (this.publisher == null) {
-            this.publisher = getString("PublisherName.printerName");
+        this.publisherName = getString("PublisherName.publisherName");
+        if (this.publisherName == null) {
+            this.publisherName = getString("PublisherName.printerName");
         }
         this.publisherPlace = getString("PublicationPlace.publisherPlace");
         if (this.publisherPlace == null) {
@@ -133,8 +133,7 @@ public class Volume extends Manifestation {
             l.add((String) o);
             this.country = l;
         } else {
-            List<String> l = newLinkedList();
-            this.country = l;
+            this.country =  newLinkedList();
         }
     }
 
@@ -232,7 +231,7 @@ public class Volume extends Manifestation {
                 .field("@type", "Volume")
                 .array("@parent", parents)
                 .fieldIfNotNull("@tag", tag)
-                .field("title", title())
+                .field("title", getTitle())
                 .field("date", firstDate);
         String s = corporateName();
         if (s != null) {
@@ -251,8 +250,8 @@ public class Volume extends Manifestation {
                 .field("genre", genres)
                 .field("country", country())
                 .field("language", language())
-                .field("publishedat", publisherPlace())
-                .field("publishedby", publisher());
+                .field("publishedat", getPublisherPlace())
+                .field("publishedby", getPublisher());
         if (hasIdentifiers()) {
             builder.field("identifiers", getIdentifiers());
         }

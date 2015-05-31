@@ -49,6 +49,16 @@ public class RouteRdfXContentParams extends RdfXContentParams {
 
     private RouteRdfXContent.RouteHandler handler;
 
+    public RouteRdfXContentParams() {
+        super();
+    }
+
+    public RouteRdfXContentParams(String index, String type) {
+        super();
+        this.index = index;
+        this.type = type;
+    }
+
     public RouteRdfXContentParams(IRINamespaceContext namespaceContext) {
         super(namespaceContext);
     }
@@ -103,6 +113,7 @@ public class RouteRdfXContentParams extends RdfXContentParams {
     public String getTypePredicate() {
         return typePredicate;
     }
+
     public RouteRdfXContentParams setIdPredicate(String idPredicate) {
         this.idPredicate = idPredicate;
         return this;

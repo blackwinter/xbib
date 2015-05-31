@@ -140,7 +140,7 @@ public final class BibdatFromPPXML extends Feeder {
 
         @Override
         public void afterCompletion(PicaEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

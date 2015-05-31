@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.entities.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.entities.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.io.InputService;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.keyvalue.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
@@ -120,7 +119,7 @@ public final class BibdatZDB extends Converter {
 
         @Override
         public void afterCompletion(PicaEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             //params.setIdPredicate("identifierZDB");
             //params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));

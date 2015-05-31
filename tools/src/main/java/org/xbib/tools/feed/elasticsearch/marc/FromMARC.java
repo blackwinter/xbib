@@ -38,7 +38,6 @@ import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.entities.marc.direct.MARCDirectQueue;
 import org.xbib.io.InputService;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.pipeline.Pipeline;
@@ -125,7 +124,7 @@ public final class FromMARC extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
@@ -141,7 +140,7 @@ public final class FromMARC extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

@@ -1,0 +1,14 @@
+{
+  "date_detection": false,
+  "_timestamp": {"enabled": true},
+  "properties": {
+    "xbib": {
+      "properties": {
+        "uid": {
+          "type": "string",
+          "analyzer": "keyword"
+        }
+      }
+    }
+  }
+}

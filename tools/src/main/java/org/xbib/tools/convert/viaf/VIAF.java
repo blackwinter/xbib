@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.io.InputService;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Converter;
 
@@ -53,11 +52,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 
-import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 /**
- * VIAF indexer to Elasticsearch
+ * VIAF converter
  */
 public class VIAF extends Converter {
 
@@ -136,9 +134,8 @@ public class VIAF extends Converter {
                         break;
                     }
                     RdfXmlContentParser parser = new RdfXmlContentParser(new StringReader(line));
-                    RdfContentBuilder builder = settings.getAsBoolean("ntriples", false) ?
-                            ntripleBuilder(out) : turtleBuilder(out);
-                    parser.setBuilder(builder);
+                    //RdfContentBuilder builder = turtleBuilder(out);
+                    parser.setRdfContentBuilderProvider(() ->  turtleBuilder(out));
                     parser.parse();
                 }
             } catch (Exception e) {

@@ -1,0 +1,358 @@
+{
+  "ml:PMID": "22770665",
+  "ml:DateCreated": {
+    "ml:Year": "2012",
+    "ml:Month": "08",
+    "ml:Day": "20"
+  },
+  "ml:DateCompleted": {
+    "ml:Year": "2012",
+    "ml:Month": "11",
+    "ml:Day": "08"
+  },
+  "ml:DateRevised": {
+    "ml:Year": "2014",
+    "ml:Month": "10",
+    "ml:Day": "15"
+  },
+  "ml:Article": {
+    "ml:Journal": {
+      "ml:ISSN": "1525-2191",
+      "ml:JournalIssue": {
+        "ml:Volume": "181",
+        "ml:Issue": "3",
+        "ml:PubDate": {
+          "ml:Year": "2012",
+          "ml:Month": "Sep"
+        }
+      },
+      "ml:Title": "The American journal of pathology",
+      "ml:ISOAbbreviation": "Am. J. Pathol."
+    },
+    "ml:ArticleTitle": "Critical involvement of macrophage infiltration in the development of Sjögren's syndrome-associated dry eye.",
+    "ml:Pagination": {
+      "ml:MedlinePgn": "753-60"
+    },
+    "ml:ELocationID": "10.1016/j.ajpath.2012.05.014",
+    "ml:Abstract": {
+      "ml:AbstractText": "Lymphocytic infiltration of the lacrimal gland and ocular surface in autoimmune diseases such as Sjögren's syndrome (SS) causes an aqueous-deficient dry eye that is associated with significant morbidity. Previous studies from our laboratory and others have established autoimmune regulator (Aire)-deficient mice as a useful model to examine exocrinopathy and ocular surface disease associated with SS. Consistent with human SS, autoreactive CD4(+) T cells play an indispensible role in the development of exocrine and ocular surface disease in Aire knockout mice. We report that in addition to CD4(+) T cells, a large number of macrophages infiltrate the corneal stroma, limbus, and lacrimal glands of diseased mice. Adoptive transfer of autoreactive CD4(+) T cells from Aire knockout mice led to local infiltration of macrophages and ocular surface damage in immunodeficient recipients. Depletion of local macrophages, through subconjunctival injection of clodronate liposome, attenuated lissamine green staining and improved ocular phenotype. Alternatively, systemic depletion of macrophages had no effect on ocular phenotype but led to significant improvements in lacrimal gland exocrinopathy and tear secretion. Our results suggested that autoreactive CD4(+) T cells provoked macrophage infiltration to the eye and lacrimal gland, where they played a functional role in directing the development of autoimmune dry eye.",
+      "ml:CopyrightInformation": "Copyright © 2012 American Society for Investigative Pathology. Published by Elsevier Inc. All rights reserved."
+    },
+    "ml:AuthorList": {
+      "ml:Author": [
+        {
+          "ml:LastName": "Zhou",
+          "ml:ForeName": "Delu",
+          "ml:Initials": "D",
+          "ml:AffiliationInfo": {
+            "ml:Affiliation": "Francis I. Proctor Foundation, University of California, San Francisco, USA."
+          }
+        },
+        {
+          "ml:LastName": "Chen",
+          "ml:ForeName": "Ying-Ting",
+          "ml:Initials": "YT"
+        },
+        {
+          "ml:LastName": "Chen",
+          "ml:ForeName": "Feeling",
+          "ml:Initials": "F"
+        },
+        {
+          "ml:LastName": "Gallup",
+          "ml:ForeName": "Marianne",
+          "ml:Initials": "M"
+        },
+        {
+          "ml:LastName": "Vijmasi",
+          "ml:ForeName": "Trinka",
+          "ml:Initials": "T"
+        },
+        {
+          "ml:LastName": "Bahrami",
+          "ml:ForeName": "Ahmad F",
+          "ml:Initials": "AF"
+        },
+        {
+          "ml:LastName": "Noble",
+          "ml:ForeName": "Lisa B",
+          "ml:Initials": "LB"
+        },
+        {
+          "ml:LastName": "van Rooijen",
+          "ml:ForeName": "Nico",
+          "ml:Initials": "N"
+        },
+        {
+          "ml:LastName": "McNamara",
+          "ml:ForeName": "Nancy A",
+          "ml:Initials": "NA"
+        }
+      ]
+    },
+    "ml:Language": "eng",
+    "ml:GrantList": {
+      "ml:Grant": [
+        {
+          "ml:GrantID": "EY016203",
+          "ml:Acronym": "EY",
+          "ml:Agency": "NEI NIH HHS",
+          "ml:Country": "United States"
+        },
+        {
+          "ml:GrantID": "EY02162",
+          "ml:Acronym": "EY",
+          "ml:Agency": "NEI NIH HHS",
+          "ml:Country": "United States"
+        },
+        {
+          "ml:GrantID": "R01 EY016203",
+          "ml:Acronym": "EY",
+          "ml:Agency": "NEI NIH HHS",
+          "ml:Country": "United States"
+        }
+      ]
+    },
+    "ml:PublicationTypeList": {
+      "ml:PublicationType": [
+        "Journal Article",
+        "Research Support, N.I.H., Extramural"
+      ]
+    },
+    "ml:ArticleDate": {
+      "ml:Year": "2012",
+      "ml:Month": "07",
+      "ml:Day": "04"
+    }
+  },
+  "ml:MedlineJournalInfo": {
+    "ml:Country": "United States",
+    "ml:MedlineTA": "Am J Pathol",
+    "ml:NlmUniqueID": "0370502",
+    "ml:ISSNLinking": "0002-9440"
+  },
+  "ml:ChemicalList": {
+    "ml:Chemical": [
+      {
+        "ml:RegistryNumber": "0",
+        "ml:NameOfSubstance": "APECED protein"
+      },
+      {
+        "ml:RegistryNumber": "0",
+        "ml:NameOfSubstance": "Liposomes"
+      },
+      {
+        "ml:RegistryNumber": "0",
+        "ml:NameOfSubstance": "Transcription Factors"
+      },
+      {
+        "ml:RegistryNumber": "0813BZ6866",
+        "ml:NameOfSubstance": "Clodronic Acid"
+      }
+    ]
+  },
+  "ml:CitationSubset": [
+    "AIM",
+    "IM"
+  ],
+  "ml:CommentsCorrectionsList": {
+    "ml:CommentsCorrections": [
+      {
+        "ml:RefSource": "Mol Vis. 2009;15:563-76",
+        "ml:PMID": "19365590"
+      },
+      {
+        "ml:RefSource": "Eur J Immunol. 2008 Oct;38(10):2636-49",
+        "ml:PMID": "18958872"
+      },
+      {
+        "ml:RefSource": "Optom Vis Sci. 2010 Apr;87(4):233-8",
+        "ml:PMID": "20010137"
+      },
+      {
+        "ml:RefSource": "Br J Dermatol. 2011 Apr;164(4):750-8",
+        "ml:PMID": "21070202"
+      },
+      {
+        "ml:RefSource": "J Immunol. 2011 Oct 1;187(7):3653-62",
+        "ml:PMID": "21880984"
+      },
+      {
+        "ml:RefSource": "Lab Invest. 2012 Apr;92(4):556-70",
+        "ml:PMID": "22231738"
+      },
+      {
+        "ml:RefSource": "J Autoimmun. 2010 Jun;34(4):400-7",
+        "ml:PMID": "19889514"
+      },
+      {
+        "ml:RefSource": "Am J Pathol. 2010 Sep;177(3):1333-43",
+        "ml:PMID": "20696775"
+      },
+      {
+        "ml:RefSource": "Science. 2002 Nov 15;298(5597):1395-401",
+        "ml:PMID": "12376594"
+      },
+      {
+        "ml:RefSource": "J Biol Chem. 2003 Jan 17;278(3):1910-4",
+        "ml:PMID": "12417590"
+      },
+      {
+        "ml:RefSource": "J Liposome Res. 2002 Feb-May;12(1-2):81-94",
+        "ml:PMID": "12604042"
+      },
+      {
+        "ml:RefSource": "Adv Exp Med Biol. 2002;506(Pt A):641-6",
+        "ml:PMID": "12613972"
+      },
+      {
+        "ml:RefSource": "Curr Eye Res. 2003 Feb;26(2):73-9",
+        "ml:PMID": "12815525"
+      },
+      {
+        "ml:RefSource": "Autoimmun Rev. 2003 Jan;2(1):13-8",
+        "ml:PMID": "12848970"
+      },
+      {
+        "ml:RefSource": "FEBS Lett. 1989 Feb 27;244(2):487-93",
+        "ml:PMID": "2465924"
+      },
+      {
+        "ml:RefSource": "Am J Pathol. 1990 Jun;136(6):1229-33",
+        "ml:PMID": "2113354"
+      },
+      {
+        "ml:RefSource": "J Lab Clin Med. 1994 Feb;123(2):282-9",
+        "ml:PMID": "8301205"
+      },
+      {
+        "ml:RefSource": "J Immunol Methods. 1994 Sep 14;174(1-2):5-19",
+        "ml:PMID": "8083537"
+      },
+      {
+        "ml:RefSource": "Exp Eye Res. 1997 Dec;65(6):841-8",
+        "ml:PMID": "9441708"
+      },
+      {
+        "ml:RefSource": "Lab Invest. 2005 Apr;85(4):487-501",
+        "ml:PMID": "15654358"
+      },
+      {
+        "ml:RefSource": "J Clin Invest. 2006 Aug;116(8):2094-104",
+        "ml:PMID": "16886058"
+      },
+      {
+        "ml:RefSource": "J Clin Invest. 2006 Aug;116(8):2105-14",
+        "ml:PMID": "16886059"
+      },
+      {
+        "ml:RefSource": "Exp Eye Res. 2007 Sep;85(3):335-45",
+        "ml:PMID": "17637463"
+      },
+      {
+        "ml:RefSource": "Invest Ophthalmol Vis Sci. 2008 Jan;49(1):34-41",
+        "ml:PMID": "18172072"
+      },
+      {
+        "ml:RefSource": "J Immunol. 2008 Sep 15;181(6):4072-9",
+        "ml:PMID": "18768863"
+      },
+      {
+        "ml:RefSource": "J Immunol. 2010 Apr 15;184(8):4236-46",
+        "ml:PMID": "20237294"
+      }
+    ]
+  },
+  "ml:MeshHeadingList": {
+    "ml:MeshHeading": [
+      {
+        "ml:DescriptorName": "Adoptive Transfer"
+      },
+      {
+        "ml:DescriptorName": "Animals"
+      },
+      {
+        "ml:DescriptorName": "CD4-Positive T-Lymphocytes",
+        "ml:QualifierName": "immunology"
+      },
+      {
+        "ml:DescriptorName": "Cell Movement",
+        "ml:QualifierName": "immunology"
+      },
+      {
+        "ml:DescriptorName": "Clodronic Acid"
+      },
+      {
+        "ml:DescriptorName": "Corneal Stroma",
+        "ml:QualifierName": "pathology"
+      },
+      {
+        "ml:DescriptorName": "Dry Eye Syndromes",
+        "ml:QualifierName": [
+          "complications",
+          "immunology"
+        ]
+      },
+      {
+        "ml:DescriptorName": "Eye",
+        "ml:QualifierName": [
+          "immunology",
+          "pathology"
+        ]
+      },
+      {
+        "ml:DescriptorName": "Humans"
+      },
+      {
+        "ml:DescriptorName": "Limbus Corneae",
+        "ml:QualifierName": "pathology"
+      },
+      {
+        "ml:DescriptorName": "Liposomes"
+      },
+      {
+        "ml:DescriptorName": "Macrophages",
+        "ml:QualifierName": [
+          "immunology",
+          "pathology"
+        ]
+      },
+      {
+        "ml:DescriptorName": "Mice"
+      },
+      {
+        "ml:DescriptorName": "Mice, Inbred BALB C"
+      },
+      {
+        "ml:DescriptorName": "Mice, Inbred NOD"
+      },
+      {
+        "ml:DescriptorName": "Mice, Knockout"
+      },
+      {
+        "ml:DescriptorName": "Phenotype"
+      },
+      {
+        "ml:DescriptorName": "Sjogren's Syndrome",
+        "ml:QualifierName": [
+          "complications",
+          "immunology",
+          "pathology"
+        ]
+      },
+      {
+        "ml:DescriptorName": "Tears",
+        "ml:QualifierName": "secretion"
+      },
+      {
+        "ml:DescriptorName": "Transcription Factors",
+        "ml:QualifierName": [
+          "deficiency",
+          "metabolism"
+        ]
+      }
+    ]
+  },
+  "ml:OtherID": "PMC3432423",
+  "xbib:key": "waCOMphgTDSjdEZDYtFpMvjsTkbAdLBRNy20121813"
+}

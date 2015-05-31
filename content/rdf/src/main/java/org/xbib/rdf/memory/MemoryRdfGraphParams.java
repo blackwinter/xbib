@@ -40,7 +40,12 @@ public class MemoryRdfGraphParams implements RdfGraphParams {
 
     private final boolean writeNamespaceContext;
 
-    public final static MemoryRdfGraphParams DEFAULT_PARAMS = new MemoryRdfGraphParams(IRINamespaceContext.getInstance(), true);
+    public final static MemoryRdfGraphParams DEFAULT_PARAMS = new MemoryRdfGraphParams();
+
+    public MemoryRdfGraphParams() {
+        this.namespaceContext = IRINamespaceContext.newInstance();
+        this.writeNamespaceContext = true;
+    }
 
     public MemoryRdfGraphParams(IRINamespaceContext namespaceContext, boolean writeNamespaceContext) {
         this.namespaceContext = namespaceContext;

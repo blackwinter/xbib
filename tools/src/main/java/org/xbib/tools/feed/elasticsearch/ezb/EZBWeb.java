@@ -95,17 +95,16 @@ public class EZBWeb extends TimewindowFeeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        //String index = settings.get("index", "ezbweb") + timeWindow;
-        //String type = settings.get("type", "ezbweb");
-        IRINamespaceContext namespaceContext = IRINamespaceContext.getInstance();
+        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         namespaceContext.addNamespace("xbib", "http://xbib.org/elements/1.0/");
         Iterator<String> it = searchZDB();
+        URL url;
         while (it.hasNext()) {
             String zdbid = it.next();
             StringBuilder sb = new StringBuilder();
             sb.append(zdbid).insert(sb.length() - 1, '-');
-            URL url = new URL(uri + sb.toString());
+            url = new URL(uri + sb.toString());
             InputStream in = null;
             // EZB API is flaky, retry if "Host is down" is thrown
             for (int tries = 0; tries < 12; tries++) {
@@ -199,9 +198,8 @@ public class EZBWeb extends TimewindowFeeder {
                             }
                         }
                     }
-
                 } catch (NoSuchElementException e) {
-                    logger.error("ZDBID=" + zdbid + " " + e.getMessage(), e);
+                    logger.error(url + " " + e.getMessage(), e);
                 }
             }
             br.close();
@@ -218,12 +216,6 @@ public class EZBWeb extends TimewindowFeeder {
         } else {
             logger.info("not doing alias settings");
         }
-    }
-
-    private Iterator<String> readZDBIDs(Reader reader) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> l = mapper.readValue(reader, List.class);
-        return l.iterator();
     }
 
     private Iterator<String> searchZDB() throws IOException {
@@ -243,7 +235,7 @@ public class EZBWeb extends TimewindowFeeder {
                 .addField("IdentifierZDB.identifierZDB");
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         long total = searchResponse.getHits().getTotalHits();
-        logger.info("hits={}", total);
+        logger.info("zdb identifier hits={}", total);
         while (searchResponse.getScrollId() != null) {
             searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(5000))

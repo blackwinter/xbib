@@ -34,10 +34,11 @@ package org.xbib.tools.merge.zdb.entities;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.collect.ImmutableSet;
-import org.xbib.entities.support.EnumerationAndChronology;
+import org.xbib.entities.support.EnumerationAndChronologyHelper;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
@@ -204,16 +205,20 @@ public class Cluster extends TreeSet<Manifestation> {
                     }
                     list.add(holding);
                     for (Manifestation parent : holding.getManifestations()) {
-                        parent.addRelatedVolume(date, holding);
-                        Set<Manifestation> online;
-                        synchronized (parent.getRelatedManifestations()) {
-                            // copy print holding over to online manifestation if available
-                            online = ImmutableSet.copyOf(parent.getRelatedManifestations().get("hasOnlineEdition"));
-                        }
-                        if (online != null) {
-                            // almost sure we have only one online manifestation...
-                            for (Manifestation m : online) {
-                                m.addRelatedVolume(date, holding);
+                        if (parent.isDateValid(date)) {
+                            parent.addRelatedVolume(date, holding);
+                            Set<Manifestation> online;
+                            synchronized (parent.getRelatedManifestations()) {
+                                // copy print holding over to online manifestation if available
+                                online = ImmutableSet.copyOf(parent.getRelatedManifestations().get("hasOnlineEdition"));
+                            }
+                            if (online != null) {
+                                // almost sure we have only one online manifestation...
+                                for (Manifestation m : online) {
+                                    if (m.isDateValid(date)) {
+                                        m.addRelatedVolume(date, holding);
+                                    }
+                                }
                             }
                         }
                     }
@@ -233,15 +238,19 @@ public class Cluster extends TreeSet<Manifestation> {
                     }
                     list.add(license);
                     for (Manifestation parent : license.getManifestations()) {
-                        parent.addRelatedVolume(date, license);
-                        Set<Manifestation> print;
-                        synchronized (parent.getRelatedManifestations()) {
-                            // copy online license over to print manifestation if available
-                            print = ImmutableSet.copyOf(parent.getRelatedManifestations().get("hasPrintEdition"));
-                        }
-                        if (print != null) {
-                            for (Manifestation m : print) {
-                                m.addRelatedVolume(date, license);
+                        if (parent.isDateValid(date)) {
+                            parent.addRelatedVolume(date, license);
+                            Set<Manifestation> print;
+                            synchronized (parent.getRelatedManifestations()) {
+                                // copy online license over to print manifestation if available
+                                print = ImmutableSet.copyOf(parent.getRelatedManifestations().get("hasPrintEdition"));
+                            }
+                            if (print != null) {
+                                for (Manifestation m : print) {
+                                    if (m.isDateValid(date)) {
+                                        m.addRelatedVolume(date, license);
+                                    }
+                                }
                             }
                         }
                     }
@@ -251,7 +260,7 @@ public class Cluster extends TreeSet<Manifestation> {
     }
 
     private List<Integer> parseDates(List<Map<String, Object>> groups) {
-        EnumerationAndChronology eac = new EnumerationAndChronology();
+        EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
         List<Integer> begin = newLinkedList();
         List<Integer> end = newLinkedList();
         List<String> beginvolume = newLinkedList();
@@ -267,7 +276,7 @@ public class Cluster extends TreeSet<Manifestation> {
                 continue;
             }
             if (!(o instanceof List)) {
-                o = Arrays.asList(o);
+                o = Collections.singletonList(o);
             }
             for (String content : (List<String>) o) {
                 if (content == null) {

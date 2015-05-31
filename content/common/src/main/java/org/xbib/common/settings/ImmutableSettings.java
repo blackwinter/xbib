@@ -110,10 +110,9 @@ public class ImmutableSettings implements Settings {
     @Override
     public Settings getByPrefix(String prefix) {
         Builder builder = new Builder();
-        for (Map.Entry<String, String> entry : getAsMap().entrySet()) {
+        for (Map.Entry<String, String> entry : settings.entrySet()) {
             if (entry.getKey().startsWith(prefix)) {
                 if (entry.getKey().length() < prefix.length()) {
-                    // ignore this one
                     continue;
                 }
                 builder.put(entry.getKey().substring(prefix.length()), entry.getValue());
@@ -121,6 +120,25 @@ public class ImmutableSettings implements Settings {
         }
         return builder.build();
     }
+
+    @Override
+    public Settings getAsSettings(String setting) {
+        return getByPrefix(setting + ".");
+    }
+
+    @Override
+    public boolean containsSetting(String setting) {
+        if (settings.containsKey(setting)) {
+            return true;
+        }
+        for (Map.Entry<String, String> entry : settings.entrySet()) {
+            if (entry.getKey().startsWith(setting)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public String get(String setting) {

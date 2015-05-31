@@ -39,4 +39,5 @@ public class PublicationStatement extends MARCEntity {
     public static PublicationStatement getInstance() {
         return instance;
     }
+
 }

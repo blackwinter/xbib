@@ -68,6 +68,8 @@ public final class EZBXML extends TimewindowFeeder {
 
     private final static Logger logger = LogManager.getLogger(EZBXML.class.getSimpleName());
 
+    private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+
     @Override
     public String getName() {
         return "ezb-xml-elasticsearch";
@@ -89,7 +91,6 @@ public final class EZBXML extends TimewindowFeeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.getInstance();
         RdfContentParams params = new RdfXContentParams(namespaceContext);
         EZBHandler handler = new EZBHandler(params);
         handler.setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
@@ -102,7 +103,7 @@ public final class EZBXML extends TimewindowFeeder {
     }
 
     @Override
-    protected EZBXML cleanup() throws IOException {
+    public EZBXML cleanup() throws IOException {
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
             updateAliases();
         } else {
@@ -255,7 +256,7 @@ public final class EZBXML extends TimewindowFeeder {
 
         @Override
         public IRINamespaceContext getNamespaceContext() {
-            return IRINamespaceContext.getInstance();
+            return namespaceContext;
         }
     }
 

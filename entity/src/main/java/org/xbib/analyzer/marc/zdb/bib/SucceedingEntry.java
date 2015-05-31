@@ -36,6 +36,7 @@ import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
 public class SucceedingEntry extends MARCEntity {
+    
     private final static SucceedingEntry instance = new SucceedingEntry();
     
     public static SucceedingEntry getInstance() {
@@ -45,7 +46,7 @@ public class SucceedingEntry extends MARCEntity {
     @Override
     public String data(MARCEntityQueue.MARCWorker worker,
                        String predicate, Resource resource, String property, String value) {
-        if ("identifier".equals(property)) {
+        if ("id".equals(property)) {
             if (value.startsWith("(DE-600)")) {
                 resource.add("identifierZDB", value.substring(8).replaceAll("\\-","").toLowerCase());
                 return null;
@@ -54,6 +55,8 @@ public class SucceedingEntry extends MARCEntity {
                 return null;
             }
             return value.replaceAll("\\-","").toLowerCase();
+        } else if ("title".equals(property)) {
+            return value.replace('\u0098', '\u00ac').replace('\u009c', '\u00ac');
         }
         return value;
     }

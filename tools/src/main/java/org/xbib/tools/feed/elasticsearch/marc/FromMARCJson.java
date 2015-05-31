@@ -111,7 +111,7 @@ public final class FromMARCJson extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
@@ -127,7 +127,7 @@ public final class FromMARCJson extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     settings.get("index"), settings.get("type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

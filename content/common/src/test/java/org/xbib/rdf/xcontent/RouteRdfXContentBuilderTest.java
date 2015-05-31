@@ -31,19 +31,28 @@
  */
 package org.xbib.rdf.xcontent;
 
-import org.testng.Assert;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
+import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
-public class RouteRdfXContentBuilderTest extends Assert {
+public class RouteRdfXContentBuilderTest extends StreamTester {
+
+    private final static Logger logger = LogManager.getLogger(RouteRdfXContentBuilderTest.class);
 
     @Test
     public void testRoute() throws Exception {
@@ -54,16 +63,35 @@ public class RouteRdfXContentBuilderTest extends Assert {
                 .add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("urn:link", IRI.create("urn:pointer"));
-        RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
-                "index", "type");
+        RouteRdfXContentParams params = new RouteRdfXContentParams("index", "type");
         params.setHandler((content, p) -> assertEquals(p.getIndex() + " " + p.getType() + " 1 " + content,
                 "index type 1 {\"urn:property\":\"Hello World\",\"urn:date\":2013,\"urn:link\":\"urn:pointer\"}"
                 ));
         RdfContentBuilder builder = routeRdfXContentBuilder(params);
         builder.receive(resource);
-        // TODO assert
-
     }
 
-
+    @Test
+    public void testVIAF() throws Exception {
+        InputStream in = getClass().getResource("VIAF.rdf").openStream();
+        if (in == null) {
+            throw new IOException("VIAF.rdf not found");
+        }
+        StringBuilder sb = new StringBuilder();
+        RouteRdfXContentParams params = new RouteRdfXContentParams("index", "type");
+        params.setHandler((content, p) -> {
+            logger.info("handle: {} {} {} {}", p.getIndex(), p.getType(), p.getId(), content);
+        });
+        new RdfXmlContentParser(in)
+                .setRdfContentBuilderProvider(()-> routeRdfXContentBuilder(params))
+                .setRdfContentBuilderHandler(builder -> {
+                    if (sb.length() > 0) {
+                        sb.append("\n");
+                    }
+                    sb.append(builder.string());
+                })
+                .parse();
+        assertStream(new InputStreamReader(getClass().getResource("viaf.json").openStream()),
+                new StringReader(sb.toString()));
+    }
 }

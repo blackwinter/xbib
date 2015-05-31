@@ -38,8 +38,6 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.pipeline.PipelineRequest;
 import org.xbib.util.Strings;
@@ -51,8 +49,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,12 +61,11 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
 public class Manifestation implements Comparable<Manifestation>, PipelineRequest {
-
-    private final static Logger logger = LogManager.getLogger(Manifestation.class);
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
@@ -82,11 +81,13 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     protected String title;
 
+    protected String fulltitle;
+
     protected String corporate;
 
     protected String meeting;
 
-    protected String publisher;
+    protected String publisherName;
 
     protected String publisherPlace;
 
@@ -102,8 +103,6 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     private Set<Integer> greenDates;
 
-    private String description;
-
     protected Map<String, Object> identifiers;
 
     private final SetMultimap<String, Manifestation> relatedManifestations = TreeMultimap.create();
@@ -118,6 +117,8 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     private final SetMultimap<String, String> externalRelations = Multimaps.newSetMultimap(Maps.newTreeMap(), supplier);
 
+    private boolean isCurrentlyPublished;
+
     private boolean isDatabase;
 
     private boolean isPacket;
@@ -131,6 +132,10 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
     private boolean isSubseries;
 
     private boolean isSupplement;
+
+    private boolean oa;
+
+    private String license;
 
     private String printID;
 
@@ -169,9 +174,9 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 || getString("TitleStatement.titlePartNumber") != null;
         makeCorporate();
         makeMeeting();
-        makeTitle();
-        this.publisher = getString("PublicationStatement.publisherName");
-        this.publisherPlace = getPublisherPlace();
+        makeFullTitle();
+        this.publisherName = findPublisherName();
+        this.publisherPlace = findPublisherPlace();
         this.language = getString("Language.value", "unknown");
         findCountry();
         Integer firstDate = getInteger("date1");
@@ -180,41 +185,19 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         this.lastDate = lastDate == null ? null : lastDate == 9999 ? null : lastDate;
         this.dates = getIntegerSet("Dates");
         findLinks();
-        this.description = getString("DatesOfPublication.value");
         findSupplement();
         String genre = getString("OtherCodes.genreSource");
+        String dateType = getString("typeOfDate");
+        this.isCurrentlyPublished = "Continuing resource currently published".equals(dateType);
         String resourceType = getString("typeOfContinuingResource");
         this.isWebsite = "Updating Web site".equals(resourceType);
         this.isDatabase = "Updating database".equals(resourceType);
         this.isPacket = "pt".equals(genre);
         this.isNewspaper = "Newspaper".equals(resourceType);
-        // TODO "Monographic series"
-        // TODO "Updating loose-leaf"
-
-        // first, compute content types
         computeContentTypes();
-        // last, compute key
         this.key = computeKey();
-
-        // ISSN, CODEN, ...
         makeIdentifiers();
-
-        // relations to other manifestations on ID basis
         makeRelations();
-
-        // unique identifier
-        StringBuilder p = new StringBuilder();
-        if (publisher != null) {
-            p.append(publisher);
-        }
-        if (publisherPlace != null && !publisherPlace.isEmpty()) {
-            p.append('-').append(publisherPlace);
-        }
-        /*this.unique = new PublishedJournal()
-                .journalName(title)
-                .publisherName(p.toString())
-                .createIdentifier();*/
-
         this.timelineKey = makeTimelineKey();
     }
 
@@ -265,7 +248,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
     protected Set<Integer> getIntegerSet(String key) {
         Object o = map.get(key);
         if (o instanceof List) {
-            return new HashSet<Integer>((List<Integer>)o);
+            return new HashSet<Integer>((Collection<Integer>)o);
         }
         return null;
     }
@@ -322,8 +305,16 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         this.title = title;
     }
 
-    public String title() {
+    public String getTitle() {
         return title;
+    }
+
+    public void setFullTitle(String fulltitle) {
+        this.fulltitle = fulltitle;
+    }
+
+    public String getFullTitle() {
+        return fulltitle;
     }
 
     public String corporateName() {
@@ -334,11 +325,11 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return meeting;
     }
 
-    public String publisher() {
-        return publisher;
+    public String getPublisher() {
+        return publisherName;
     }
 
-    public String publisherPlace() {
+    public String getPublisherPlace() {
         return publisherPlace;
     }
 
@@ -356,10 +347,6 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     public Integer lastDate() {
         return lastDate;
-    }
-
-    public String description() {
-        return description;
     }
 
     public boolean isSupplement() {
@@ -406,6 +393,24 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return onlineID != null && id.equals(printID);
     }
 
+    public Manifestation setOpenAccess(boolean oa) {
+        this.oa = oa;
+        return this;
+    }
+
+    public boolean isOpenAccess() {
+        return oa;
+    }
+
+    public Manifestation setLicense(String license) {
+        this.license = license;
+        return this;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
     public String getPrintID() {
         return printID;
     }
@@ -446,6 +451,10 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return relations;
     }
 
+    public Set<Integer> getDates() {
+        return dates;
+    }
+
     public Set<Integer> getGreenDates() {
         return greenDates;
     }
@@ -475,6 +484,24 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         }
     }
 
+    public boolean isDateValid(Integer date) {
+        if (firstDate != null && lastDate != null) {
+            if (firstDate <= date && lastDate >= date) {
+                return true;
+            }
+        }
+        if (firstDate != null) {
+            if (isCurrentlyPublished) {
+                if (firstDate <= date) {
+                    return true;
+                }
+            } else if (Objects.equals(firstDate, date)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void findSupplement() {
         // recognize supplement
         this.isSupplement = "isSupplementOf".equals(getString("SupplementParentEntry.relation"));
@@ -483,7 +510,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         }
     }
 
-    protected void makeTitle() {
+    protected void makeFullTitle() {
         // shorten title (series statement after '/' or ':')
         // but combine with corporate name, meeting name, and part specification
         StringBuilder sb = new StringBuilder();
@@ -492,31 +519,38 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         if (titleRemainder != null) {
             sb.append(" ; ").append(titleRemainder);
         }
-        // add part name / part number
-        if (isSubseries) {
-            String partName = clean(getString("TitleStatement.titlePartName"));
-            if (!Strings.isNullOrEmpty(partName)) {
-                sb.append(" ; ").append(partName);
+        Map<String, Object> m = (Map<String, Object>) map.get("TitleStatement");
+        if (m != null) {
+            String medium = getString("titleMedium");
+            if (medium != null) {
+                // delete synthetic title words
+                sb.append(" ; ").append(medium.replaceAll("\\[Elektronische Ressource\\]", ""));
+                if ("[Elektronische Ressource]".equals(medium)) {
+                    m.remove("titleMedium");
+                }
             }
-            String partNumber = clean(getString("TitleStatement.titlePartNumber"));
-            if (!Strings.isNullOrEmpty(partNumber)) {
-                sb.append(" ; ").append(partNumber);
+            // add part name / part number
+            if (m.containsKey("titlePartName")) {
+                String partName = clean(getString("TitleStatement.titlePartName"));
+                if (!Strings.isNullOrEmpty(partName)) {
+                    sb.append(" ; ").append(partName.replaceAll("\\[Elektronische Ressource\\]", ""));
+                }
+            }
+            if (m.containsKey("titlePartNumber")) {
+                String partNumber = clean(getString("TitleStatement.titlePartNumber"));
+                if (!Strings.isNullOrEmpty(partNumber)) {
+                    sb.append(" ; ").append(partNumber);
+                }
             }
         }
+        setTitle(sb.toString());
         if (corporate != null) {
             sb.append(" / ").append(corporate);
         }
         if (meeting != null) {
             sb.append(" / ").append(meeting);
         }
-        setTitle(sb.toString());
-        // delete synthetic title words
-        Map<String, Object> m = (Map<String, Object>) map.get("TitleStatement");
-        if (m != null) {
-            if ("[Elektronische Ressource]".equals(m.get("titleMedium"))) {
-                m.remove("titleMedium");
-            }
-        }
+        setFullTitle(sb.toString());
     }
 
     protected String clean(String title) {
@@ -539,31 +573,74 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         this.meeting = getString("MeetingName.meetingName");
     }
 
-    private String getPublisherPlace() {
+    private String findPublisherName() {
         Object o = map.get("PublicationStatement");
         if (o == null) {
             return "";
         }
         if (!(o instanceof List)) {
-            o = Arrays.asList(o);
+            o = Collections.singletonList(o);
         }
-        StringBuilder sb = new StringBuilder();
-        List<Map<String, Object>> list = (List<Map<String, Object>>) o;
-        for (Map<String, Object> m : list) {
-            o = m.get("placeOfPublication");
+        Set<String> set = new LinkedHashSet();
+        for (Map<String, Object> m : (List<Map<String, Object>>) o) {
+            o = m.get("publisherName");
+            if (o == null) {
+                o = m.get("manufacturerName");
+            }
             if (o == null) {
                 continue;
             }
             if (!(o instanceof List)) {
-                o = Arrays.asList(o);
+                o = Collections.singletonList(o);
             }
-            List<String> l = (List<String>) o;
-            for (String s : l) {
-                if (sb.length() > 0) {
-                    sb.append(", ");
-                }
-                sb.append(s);
+            for (String s : (List<String>) o) {
+                set.add(s);
             }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String s : set) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            s = Strings.unquote(s);
+            s = s.replaceAll("\\[.*\\]", ""); // [u.a.]
+            sb.append(s.trim());
+        }
+        return sb.toString();
+    }
+
+    private String findPublisherPlace() {
+        Object o = map.get("PublicationStatement");
+        if (o == null) {
+            return "";
+        }
+        if (!(o instanceof List)) {
+            o = Collections.singletonList(o);
+        }
+        Set<String> set = new LinkedHashSet();
+        for (Map<String, Object> m : (List<Map<String, Object>>) o) {
+            o = m.get("placeOfPublication");
+            if (o == null) {
+                o = m.get("placeOfManufacture");
+            }
+            if (o == null) {
+                continue;
+            }
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            for (String s : (List<String>) o) {
+                set.add(s);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String s : set) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            s = Strings.unquote(s);
+            s = s.replaceAll("\\[.*\\]", ""); // [u.a.]
+            sb.append(s.trim());
         }
         return sb.toString();
     }
@@ -572,7 +649,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         Object o = map.get("ElectronicLocationAndAccess");
         if (o != null) {
             if (!(o instanceof List)) {
-                o = Arrays.asList(o);
+                o = Collections.singletonList(o);
             }
             this.links = (List) o;
             makeGreenDates(links);
@@ -590,7 +667,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
             if (b) {
                 Object o = link.get("nonpublicnote");
                 if (!(o instanceof List)) {
-                    o = Arrays.asList(o);
+                    o = Collections.singletonList(o);
                 }
                 List l = (List) o;
                 for (Object obj : l) {
@@ -716,27 +793,28 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     protected void makeIdentifiers() {
         Map<String, Object> m = newHashMap();
-        // get and convert all ISSN
+        Set<String> issns = newLinkedHashSet();
+        Set<String> formattedISSNs = newLinkedHashSet();
+        // get and process all ISSN (with and without hyphen)
         Object o = map.get("IdentifierISSN");
         if (o != null) {
             if (!(o instanceof List)) {
-                o = Arrays.asList(o);
+                o = Collections.singletonList(o);
             }
-            List<String> issns = newLinkedList();
             List<Map<String, Object>> l = (List<Map<String, Object>>) o;
             for (Map<String, Object> aL : l) {
                 String s = (String) aL.get("value");
                 if (s != null) {
+                    formattedISSNs.add(s);
                     issns.add(s.replaceAll("\\-", "").toLowerCase());
                 }
             }
-            m.put("issn", issns);
         }
+        m.put("issn", issns);
+        m.put("formattedissn", formattedISSNs);
         // get CODEN for better article matching
         o = map.get("IdentifierCODEN");
-        if (o != null) {
-            m.put("coden", o);
-        }
+        m.put("coden", o);
         // TODO more identifiers?
         this.identifiers = m;
     }
@@ -750,21 +828,18 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         boolean hasSuccessor = false;
         boolean hasPredecessor = false;
         boolean hasTransient = false;
-
         for (String rel : relationEntries) {
-            logger.debug("rel={}", rel);
             Object o = map.get(rel);
             if (o == null) {
                 continue;
             }
             if (!(o instanceof List)) {
-                o = Arrays.asList(o);
+                o = Collections.singletonList(o);
             }
             for (Object obj : (List) o) {
                 Map<String, Object> m = (Map<String, Object>) obj;
                 Object relObj = m.get("relation");
                 if (relObj == null) {
-                    logger.debug("relation=null");
                     continue;
                 }
                 String key = relObj instanceof List ?
@@ -791,7 +866,6 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 synchronized (externalRelations) {
                     externalRelations.put(key, external);
                 }
-                logger.debug("key={}", key);
                 switch (key) {
                     case "succeededBy":
                         hasSuccessor = true;
@@ -896,7 +970,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 .field("@type", "Manifestation")
                 .fieldIfNotNull("@tag", tag)
                 .field("key", getKey())
-                .field("title", title());
+                .field("title", getFullTitle());
         String s = corporateName();
         if (s != null) {
             builder.field("corporateName", s);
@@ -907,8 +981,8 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         }
         builder.field("country", country())
                 .field("language", language())
-                .field("publishedat", publisherPlace())
-                .field("publishedby", publisher())
+                .field("publishedat", getPublisherPlace())
+                .field("publishedby", getPublisher())
                 .field("contenttype", contentType())
                 .field("mediatype", mediaType())
                 .field("carriertype", carrierType())

@@ -1,0 +1,44 @@
+{
+  "RecordFormat": {
+    "values": [
+      "__FORMAT"
+    ]
+  },
+  "RecordType": {
+    "values": [
+      "__TYPE"
+    ]
+  },
+  "RecordSpec": {
+    "indicators": {
+      "A": "RecordCreationDate",
+      "B": "RecordModficationDate",
+      "D": "RecordSubmissionDate",
+      "U": "RecordEncoding",
+      "X": "OwnerMainExtension"
+    },
+    "values": [
+      "001$A$0",
+      "001$B$0t",
+      "001$D$0",
+      "001$U$0",
+      "001$X$0"
+    ],
+    "subfields": {
+      "0": "value",
+      "t": "value"
+    }
+  },
+  "RecordIdentifier": {
+    "values": [
+      "003$@$0"
+    ],
+    "subfields": {
+      "0": "identifierForTheRecord"
+    }
+  },
+  "Skip": {
+    "values": [
+   ]
+  }
+}

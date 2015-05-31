@@ -37,6 +37,8 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.RdfContentBuilderHandler;
+import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfContentParser;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentType;
@@ -72,16 +74,19 @@ import java.util.Stack;
  * arbitrarily large RDF/XML files with minimal memory overhead, since unlike
  * Jena it does not have to store and index all the triples it encounters in a
  * model.
- * <p>
  * Note that the XMLLiteral datatype is not fully supported.
  */
 public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
 
     private final Reader reader;
 
-    private final static Resource resource = new MemoryResource();
+    private final Resource resource = new MemoryResource();
 
     private XmlHandler xmlHandler = new Handler();
+
+    private RdfContentBuilderProvider provider;
+
+    private RdfContentBuilderHandler rdfContentBuilderHandler;
 
     private RdfContentBuilder builder;
 
@@ -101,8 +106,13 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
         return StandardRdfContentType.RDFXML;
     }
 
-    public RdfXmlContentParser setBuilder(RdfContentBuilder builder) {
-        this.builder = builder;
+    public RdfXmlContentParser setRdfContentBuilderProvider(RdfContentBuilderProvider provider) {
+        this.provider = provider;
+        return this;
+    }
+
+    public RdfXmlContentParser setRdfContentBuilderHandler(RdfContentBuilderHandler rdfContentBuilderHandler) {
+        this.rdfContentBuilderHandler = rdfContentBuilderHandler;
         return this;
     }
 
@@ -122,13 +132,18 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
     }
 
     public RdfXmlContentParser parse(XMLReader reader, InputSource source) throws IOException, SAXException {
-        if (builder != null) {
-            xmlHandler.setBuilder(builder);
+        if (provider != null) {
+            builder = provider.newContentBuilder();
             builder.startStream();
         }
-        reader.setContentHandler(xmlHandler);
+        if (xmlHandler != null) {
+            reader.setContentHandler(xmlHandler);
+        }
         reader.parse(source);
         if (builder != null) {
+            if (rdfContentBuilderHandler != null) {
+                rdfContentBuilderHandler.build(builder);
+            }
             builder.endStream();
         }
         return this;
@@ -143,19 +158,18 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
         return xmlHandler;
     }
 
-    private void yield(Object s, Object p, Object o) throws IOException {
+    protected void yield(Object s, Object p, Object o) throws IOException {
         yield(new MemoryTriple(resource.newSubject(s), resource.newPredicate(p), resource.newObject(o)));
     }
 
-    // produce a triple for the listener
-    private void yield(Triple t) throws IOException {
+    protected void yield(Triple t) throws IOException {
         if (builder != null) {
             builder.receive(t);
         }
     }
 
     // produce a (possibly) reified triple
-    private void yield(Object s, IRI p, Object o, IRI reified) throws IOException {
+    protected void yield(Object s, IRI p, Object o, IRI reified) throws IOException {
         yield(s, p, o);
         if (reified != null) {
             yield(reified, RDF_TYPE, RDF_STATEMENT);
@@ -280,6 +294,8 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
                             .replace(">", "%3E")
                             .replace("|", "%7C")
                             .replace("`", "%60")
+                            .replace("\u0098", "") // Unicode "START OF STRING"
+                            .replace("\u009c", "") // Unicode "STRING TERMINATOR"
             );
         }
         if (uri.isAbsolute()) {
@@ -296,8 +312,12 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
         String about = attrs.getValue(RDF_STRING, ABOUT);
         if (about != null) {
             frame.node = resolve(about, stack);
-            if (builder != null) {
+            if (provider != null) {
                 try {
+                    if (rdfContentBuilderHandler != null) {
+                        rdfContentBuilderHandler.build(builder);
+                    }
+                    builder = provider.newContentBuilder();
                     builder.receive(frame.node);
                 } catch (IOException e) {
                     throw new SAXException(e);
@@ -402,13 +422,11 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
 
     class Handler extends DefaultHandler implements XmlHandler {
 
-        private Stack<Frame> stack = new Stack();
+        private Stack<Frame> stack = new Stack<>();
 
         private StringBuilder pcdata = null;
 
         private StringBuilder xmlLiteral = null;
-
-        private RdfContentBuilder builder;
 
         private IRINamespaceContext namespaceContext;
 
@@ -431,8 +449,7 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
         }
 
         @Override
-        public Handler setBuilder(RdfContentBuilder builder) {
-            this.builder = builder;
+        public XmlHandler setBuilder(RdfContentBuilder builder) {
             return this;
         }
 
@@ -530,7 +547,7 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
                                 frame.isSubject = true;
                             } else if (parseType.equals("Collection")) {
                                 frame.isCollection = true;
-                                frame.collection = new LinkedList();
+                                frame.collection = new LinkedList<>();
                                 Resource s = resource.newSubject(ancestorSubject(stack));
                                 IRI p = resource.newPredicate(frame.node);
                                 Node o = resource.newObject(blankNode());

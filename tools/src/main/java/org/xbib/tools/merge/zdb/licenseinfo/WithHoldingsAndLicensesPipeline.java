@@ -61,6 +61,7 @@ import org.xbib.util.ExceptionFormatter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -170,7 +171,6 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         try {
             element = service.queue().poll(60, TimeUnit.SECONDS);
             if (element != null && element.get() != null) {
-                //manifestation = new Manifestation(mapper.readValue(element.get().source(), Map.class));
                 manifestation = new Manifestation(element.get().getSource());
                 manifestation.setForced(element.getForced());
             } else {
@@ -273,8 +273,8 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                 // retrieve all docs that are connected by relationships into the candidate set
                 retrieveCandidates(manifestation, candidates);
             } else {
-                logger.debug("{} skipped candidate retrieval, dirty={} isDatabase={} isNewspaper={} isPacket={}",
-                        manifestation, dirty,
+                logger.debug("{} skipped candidate retrieval isDatabase={} isNewspaper={} isPacket={}",
+                        manifestation,
                         manifestation.isDatabase(),
                         manifestation.isPacket());
             }
@@ -336,7 +336,6 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         }
         service.indexed().add(id);
         String tag = service.settings().get("tag");
-
         // first, index related volumes (conference/proceedings/abstracts/...)
         List<String> vids = newArrayList();
         if (!m.getVolumes().isEmpty()) {
@@ -419,7 +418,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         }
     }
 
-    private void retrieveOtherEdition(Manifestation manifestation, Collection<Manifestation> cluster) throws IOException {
+    /*private void retrieveOtherEdition(Manifestation manifestation, Collection<Manifestation> cluster) throws IOException {
         // only print/online edition. That's it.
         if (!manifestation.hasPrint() && !manifestation.hasOnline()) {
             return;
@@ -453,7 +452,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         if (hits.getHits().length == 0) {
             return;
         }
-        // we expect single hit, but we scroll although.
+        // we expect single hit, but we scroll although
         do {
             for (int i = 0; i < hits.getHits().length; i++) {
                 SearchHit hit = hits.getAt(i);
@@ -467,7 +466,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             service.queryMetric().mark();
             hits = searchResponse.getHits();
         } while (hits.getHits().length > 0);
-    }
+    }*/
 
     private void retrieveCandidates(Manifestation manifestation, Collection<Manifestation> cluster)
             throws IOException {
@@ -538,8 +537,6 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                 Collection<String> rels = findTheRelationsBetween(c.manifestation, m.id());
                 for (String relation : rels) {
                     if (relation == null) {
-                        // shoud not happen
-                        logger.debug("unknown relation {}", relation);
                         continue;
                     }
                     c.manifestation.addRelatedManifestation(relation, m);
@@ -559,7 +556,6 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                 // other direction (missing entries in catalog are possible)
                 for (String relation : rels) {
                     if (relation == null) {
-                        logger.debug("unknown relation {}", relation);
                         continue;
                     }
                     m.addRelatedManifestation(relation, c.manifestation);
@@ -576,12 +572,14 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     carrierRelation = carrierRelation
                             || Manifestation.carrierEditions().contains(relation);
                 }
-                // Look for more candidates for this manifestation iff temporal or carrier relation.
+                // If not database or newspaper:
+                // look for more candidates for this manifestation iff temporal or carrier relation.
                 // Also expand if there are any other print/online editions.
-                logger.debug("id={} temporalRelation={} carrierRelation={} hasCarrierRelations={}",
-                        m.id(), temporalRelation, carrierRelation, m.hasCarrierRelations());
-                if (temporalRelation || carrierRelation || m.hasCarrierRelations()) {
-                    retrieveCandidates(m, cluster);
+                boolean donotexpand = m.isDatabase() || m.isNewspaper();
+                if (!donotexpand) {
+                    if (temporalRelation || carrierRelation || m.hasCarrierRelations()) {
+                        retrieveCandidates(m, cluster);
+                    }
                 }
             }
             searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
@@ -662,7 +660,6 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     break;
                 }
                 for (SearchHit hit : hits) {
-                    //Holding holding = new Holding(mapper.readValue(hit.source(), Map.class));
                     Holding holding = new Holding(hit.getSource());
                     if (holding.isDeleted()) {
                         continue;
@@ -932,7 +929,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             for (SearchHit holdingHit : holdingHits) {
                 Object o = holdingHit.getSource().get("Item");
                 if (!(o instanceof List)) {
-                    o = Arrays.asList(o);
+                    o = Collections.singletonList(o);
                 }
                 for (Map<String,Object> item : (List<Map<String,Object>>)o) {
                     if (item != null && !item.isEmpty()) {
@@ -1068,7 +1065,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             Object o = manifestation.map().get(entry);
             if (o != null) {
                 if (!(o instanceof List)) {
-                    o = Arrays.asList(o);
+                    o = Collections.singletonList(o);
                 }
                 for (Object obj : (List) o) {
                     Map<String, Object> m = (Map<String, Object>) obj;
@@ -1081,7 +1078,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                         Object oo = m.get("relation");
                         if (oo != null) {
                             if (!(oo instanceof List)) {
-                                oo = Arrays.asList(oo);
+                                oo = Collections.singletonList(oo);
                             }
                             for (Object relName : (List) oo) {
                                 relationNames.add(relName.toString());
@@ -1099,7 +1096,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             Object o = manifestation.map().get(relation);
             if (o != null) {
                 if (!(o instanceof List)) {
-                    o = Arrays.asList(o);
+                    o = Collections.singletonList(o);
                 }
                 for (Object s : (List) o) {
                     Map<String, Object> entry = (Map<String, Object>) s;

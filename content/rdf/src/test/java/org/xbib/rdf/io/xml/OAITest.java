@@ -12,7 +12,6 @@ import org.xbib.text.UrlEncoding;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
@@ -27,7 +26,7 @@ public class OAITest extends StreamTester {
         }
 
         IRINamespaceContext context = IRINamespaceContext.newInstance();
-        XmlContentParams params = new XmlContentParams(context, true);
+        XmlContentParams params = new XmlContentParams(context);
         XmlHandler xmlHandler = new AbstractXmlResourceHandler(params) {
 
             @Override

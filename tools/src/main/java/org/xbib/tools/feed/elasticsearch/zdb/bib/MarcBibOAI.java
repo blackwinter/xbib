@@ -195,7 +195,7 @@ public class MarcBibOAI extends OAIFeeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             // write bib resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     getConcreteIndex(), getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

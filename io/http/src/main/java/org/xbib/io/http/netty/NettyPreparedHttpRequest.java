@@ -79,7 +79,7 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
     public HttpFuture execute() throws IOException {
         Request r = bound.build();
         if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getUrl());
+            logger.debug("executing URL {}", r.getRawUrl());
         }
         return new NettyHttpFuture(bound.execute());
     }
@@ -88,7 +88,7 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
     public HttpFuture execute(HttpResponseListener listener) throws IOException {
         Request r = bound.build();
         if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getUrl());
+            logger.debug("executing URL {}", r.getRawUrl());
         }
         return new NettyHttpFuture(bound.execute(new Handler(listener)));
     }

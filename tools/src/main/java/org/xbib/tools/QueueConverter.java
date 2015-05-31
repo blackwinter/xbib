@@ -52,7 +52,8 @@ public abstract class QueueConverter<T, R extends PipelineRequest, P extends Pip
 
     protected MetricQueuePipelineExecutor<T, R, P, E> executor;
 
-    protected QueueConverter<T, R, P, E> prepare() throws IOException {
+    @Override
+    public QueueConverter<T, R, P, E> prepare() throws IOException {
         super.prepare();
         converter = this;
         return this;

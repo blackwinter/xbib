@@ -34,56 +34,49 @@ package org.xbib.tools.convert.dnb.gnd;
 import org.xbib.io.InputService;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Converter;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
-import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 /**
- * Convert GND from RDF/XML to Turtle or Ntriples
+ * Convert GND from RDF/XML to Turtle
  */
 public class RdfXml extends Converter {
 
     @Override
     public String getName() {
-        return "gnd-turtle-ntriples";
+        return "gnd-turtle";
     }
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new RdfXml();
-            }
-        };
+        return RdfXml::new;
     }
 
     @Override
     public void process(URI uri) throws Exception {
         InputStream in = InputService.getInputStream(uri);
-        String outName = settings.get("output") + ".gz";
-        OutputStream out = new FileOutputStream(outName);
-        out = new GZIPOutputStream(out) {
+        final Writer writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(settings.get("output") + ".gz")) {
             {
                 def.setLevel(Deflater.BEST_COMPRESSION);
             }
-        };
-        RdfContentBuilder builder = "turtle".equals(settings.get("format")) ? turtleBuilder(out) : ntripleBuilder(out);
+        });
         RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
+        reader.setRdfContentBuilderProvider(RdfContentFactory::turtleBuilder);
+        reader.setRdfContentBuilderHandler(builder -> writer.write(builder.string()));
         reader.parse();
         in.close();
-        out.close();
+        writer.close();
     }
 }
 

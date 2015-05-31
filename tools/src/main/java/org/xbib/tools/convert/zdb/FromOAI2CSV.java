@@ -71,7 +71,7 @@ public class FromOAI2CSV extends OAIHarvester {
     }
 
     @Override
-    protected FromOAI2CSV prepare() throws IOException {
+    public FromOAI2CSV prepare() throws IOException {
         String[] inputs = settings.getAsArray("input");
         if (inputs == null) {
             throw new IllegalArgumentException("no input given");

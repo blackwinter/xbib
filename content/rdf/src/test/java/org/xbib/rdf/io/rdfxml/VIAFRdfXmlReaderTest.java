@@ -31,18 +31,23 @@
  */
 package org.xbib.rdf.io.rdfxml;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class VIAFRdfXmlReaderTest extends StreamTester {
+
+    private final static Logger logger = LogManager.getLogger(VIAFRdfXmlReaderTest.class);
 
     @Test
     public void testVIAF() throws Exception {
@@ -50,12 +55,13 @@ public class VIAFRdfXmlReaderTest extends StreamTester {
         if (in == null) {
             throw new IOException("VIAF.rdf not found");
         }
-        TurtleContentParams params = new TurtleContentParams(IRINamespaceContext.getInstance(), false);
-        RdfContentBuilder builder = turtleBuilder(params);
-        RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
-        reader.parse();
-        assertStream(getClass().getResource("viaf.ttl").openStream(),
-                builder.streamInput());
+        TurtleContentParams params = new TurtleContentParams(IRINamespaceContext.newInstance(), false);
+        StringBuilder sb = new StringBuilder();
+        new RdfXmlContentParser(in)
+            .setRdfContentBuilderProvider(() -> turtleBuilder(params))
+            .setRdfContentBuilderHandler(builder -> sb.append(builder.string()))
+            .parse();
+        assertStream(new InputStreamReader(getClass().getResource("viaf.ttl").openStream()),
+                new StringReader(sb.toString()));
     }
 }

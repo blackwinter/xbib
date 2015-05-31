@@ -33,22 +33,19 @@ package org.xbib.tools.convert.articles;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.common.settings.Settings;
 import org.xbib.csv.CSVParser;
 import org.xbib.grouping.bibliographic.endeavor.PublishedJournal;
 import org.xbib.io.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.Converter;
 
 import java.io.EOFException;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -61,7 +58,7 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 /**
  * Import serials list
  */
-public class SerialsDB extends Converter {
+public class SerialsDB {
 
     private final static Logger logger = LogManager.getLogger(SerialsDB.class.getSimpleName());
 
@@ -69,40 +66,26 @@ public class SerialsDB extends Converter {
 
     static {
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
-        namespaceContext.addNamespace("prism", "http://prismstandard.org/namespaces/basic/2.1/");
+        namespaceContext.addNamespace("prism", "http://prismstandard.org/namespaces/basic/3.0/");
     }
 
     private final static Map<String, Resource> serials = new ConcurrentHashMap<>();
 
-    @Override
-    public String getName() {
-        return "serials-csv-turtle";
-    }
-
-    @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
-        return SerialsDB::new;
-    }
-
-    @Override
-    protected void process(URI uri) throws Exception {
+    public void process(Settings settings, URI uri) throws Exception {
         logger.info("next URI is {}", uri);
         InputStream in = InputService.getInputStream(uri);
         if (in == null) {
             throw new FileNotFoundException("not found: " + uri);
         }
-        if (settings.get("output") == null) {
-            throw new IllegalArgumentException("no output");
-        }
-
-        String fileName = settings.get("output") + ".ttl";
-        FileOutputStream out = new FileOutputStream(fileName);
         CSVParser parser = new CSVParser(new InputStreamReader(in, "UTF-8"));
         try {
             int i = 0;
             while (true) {
                 String journalTitle = parser.nextToken().trim();
-                logger.debug("{}", journalTitle);
+                journalTitle = journalTitle
+                        .replaceAll("\\p{C}","")
+                        .replaceAll("\\p{Space}","")
+                        .replaceAll("\\p{Punct}","");
                 String publisher = parser.nextToken().trim();
                 String subjects = parser.nextToken();
                 String issn = parser.nextToken().trim();
@@ -114,7 +97,7 @@ public class SerialsDB extends Converter {
                     continue;
                 }
                 if (i++ == 0) {
-                    // head line
+                    // skip head line
                     continue;
                 }
                 Resource resource = new MemoryResource();
@@ -127,7 +110,6 @@ public class SerialsDB extends Converter {
                         .journalName(journalTitle)
                         .publisherName(publisher)
                         .createIdentifier();
-                // journals are not "works", maybe "serials (not time-lined)", so they are "endeavors"
                 IRI id = IRI.builder().scheme("http")
                         .host("xbib.info")
                         .path("/endeavors/" + key + "/")
@@ -139,9 +121,10 @@ public class SerialsDB extends Converter {
                         .add("prism:issn", issn1)
                         .add("prism:issn", issn2)
                         .add("prism:doi", doi.isEmpty() ? null : doi);
+
                 if (!serials.containsKey(journalTitle)) {
                     TurtleContentParams params = new TurtleContentParams(namespaceContext, false);
-                    RdfContentBuilder builder = turtleBuilder(out, params);
+                    RdfContentBuilder builder = turtleBuilder(params);
                     builder.receive(resource);
                     serials.put(journalTitle, resource);
                 } else {
@@ -153,14 +136,16 @@ public class SerialsDB extends Converter {
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         }
-        FileWriter txt = new FileWriter(settings.get("output") + ".txt");
-        for (String j : serials.keySet()) {
-            txt.write(j + "|" + serials.get(j));
-            txt.write("\n");
+        if (settings.get("output") != null) {
+            FileWriter txt = new FileWriter(settings.get("output") + ".txt");
+            for (String j : serials.keySet()) {
+                txt.write(j + "|" + serials.get(j));
+                txt.write("\n");
+            }
+            txt.close();
         }
-        txt.close();
 
-        logger.info("{} {}", this, getMap().size());
+        logger.info("{} size={}", this, getMap().size());
     }
 
     public Map<String, Resource> getMap() {

@@ -59,18 +59,13 @@ public class GeonamesFromZIP extends Converter {
     }
 
     @Override
-    protected Converter prepare() throws IOException {
+    public Converter prepare() throws IOException {
         super.prepare();
         return this;
     }
 
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new GeonamesFromZIP();
-            }
-        };
+        return GeonamesFromZIP::new;
     }
 
     @Override

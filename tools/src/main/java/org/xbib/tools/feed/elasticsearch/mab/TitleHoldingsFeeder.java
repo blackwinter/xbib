@@ -16,7 +16,6 @@ import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.entities.support.ValueMaps;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -77,7 +76,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     }
 
     @Override
-    protected TitleHoldingsFeeder prepare() throws IOException {
+    public TitleHoldingsFeeder prepare() throws IOException {
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -306,7 +305,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         public void afterCompletion(MABEntityBuilderState state) throws IOException {
             int docs = 0;
             // write title resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     getConcreteIndex(), settings.get("title-type"));
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getIdentifier(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
@@ -325,7 +324,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 if (resource.equals(state.getResource())) {
                     continue;
                 }
-                params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+                params = new RouteRdfXContentParams(
                         getConcreteHoldingsIndex(), settings.get("holdings-type"));
                 params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(),
                         state.getIdentifier() + "." + resource.id(), content));

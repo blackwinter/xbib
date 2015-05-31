@@ -72,18 +72,19 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
     }
 
     @Override
-    public NettyHttpRequest setURL(URI uri) {
+    public String getQuery() {
+        return uri != null ?  uri.toString() : null;
+    }
+
+    @Override
+    public NettyHttpRequest setURL(URI uri) throws URISyntaxException {
         if (uri.getUserInfo() != null) {
             String[] userInfo = uri.getUserInfo().split(":");
             realmBuilder = realmBuilder.setPrincipal(userInfo[0]).setPassword(userInfo[1]).setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC);
         }
         String authority = uri.getHost() + (uri.getPort() > 0 ? ":" + uri.getPort() : "");
-        try {
-            // add authority, drop all query parameters (use the RequestBuilder for that)
-            this.uri = new URI(uri.getScheme(), authority, uri.getPath(), null, uri.getFragment());
-        } catch (URISyntaxException ex) {
-            // ignore
-        }
+        // add authority, drop all query parameters (use the RequestBuilder for that)
+        this.uri = new URI(uri.getScheme(), authority, uri.getPath(), null, uri.getFragment());
         return this;
     }
 

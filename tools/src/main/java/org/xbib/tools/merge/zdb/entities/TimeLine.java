@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.collect.ImmutableSet;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.entities.support.EnumerationAndChronology;
+import org.xbib.entities.support.EnumerationAndChronologyHelper;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -245,7 +245,7 @@ public class TimeLine extends TreeSet<Manifestation> implements Comparable<TimeL
     }
 
     private List<Integer> parseDates(List<Map<String, Object>> groups) {
-        EnumerationAndChronology eac = new EnumerationAndChronology();
+        EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
         List<Integer> begin = newLinkedList();
         List<Integer> end = newLinkedList();
         List<String> beginvolume = newLinkedList();
@@ -434,7 +434,7 @@ public class TimeLine extends TreeSet<Manifestation> implements Comparable<TimeL
 
     private Set<String> makeTitles() {
         Set<String> set = newLinkedHashSet();
-        set.addAll(this.stream().map(Manifestation::title).collect(Collectors.toList()));
+        set.addAll(this.stream().map(Manifestation::getFullTitle).collect(Collectors.toList()));
         return set;
     }
 

@@ -35,6 +35,7 @@ import org.xbib.io.Request;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 /**
@@ -42,7 +43,7 @@ import java.nio.charset.Charset;
  */
 public interface HttpRequest extends Request {
 
-    HttpRequest setURL(URI uri);
+    HttpRequest setURL(URI uri) throws URISyntaxException;
 
     URI getURL();
 

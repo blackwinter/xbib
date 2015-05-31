@@ -61,11 +61,18 @@ public interface Settings {
     Settings getByPrefix(String prefix);
 
     /**
+     * Returns the settings mapped to the given setting name.
+     */
+    Settings getAsSettings(String setting);
+
+    /**
      * The settings as a {@link com.google.common.collect.ImmutableMap}.
      */
     ImmutableMap<String, String> getAsMap();
 
     StringReader getAsReader();
+
+    boolean containsSetting(String setting);
 
     /**
      * Returns the setting value associated with the setting key.

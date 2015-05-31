@@ -191,12 +191,13 @@ public class WithHoldingsAndLicenses
                         .put("host", settings.get("elasticsearch.host"))
                         .put("port", settings.getAsInt("elasticsearch.port", 9300))
                         .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                        .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                         .build()
         );
         this.service = this;
         this.client = search.client();
-        this.size = settings.getAsInt("scrollSize", 10);
-        this.millis = settings.getAsTime("scrollTimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
+        this.size = settings.getAsInt("scrollsize", 10);
+        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         this.identifier = settings.get("identifier");
 
         this.ingest = settings.getAsBoolean("mock", false) ?
@@ -205,8 +206,8 @@ public class WithHoldingsAndLicenses
                         new IngestTransportClient() :
                         new BulkTransportClient();
 
-        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxBulkActions", 100))
-                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentBulkRequests", Runtime.getRuntime().availableProcessors()));
+        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxbulkactions", 100))
+                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
 
         InputStream clientSettings = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
         ingest.setting(clientSettings);
@@ -216,6 +217,7 @@ public class WithHoldingsAndLicenses
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.setting(WithHoldingsAndLicenses.class.getResourceAsStream("index-settings.json"));

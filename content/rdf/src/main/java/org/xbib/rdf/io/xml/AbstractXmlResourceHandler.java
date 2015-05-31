@@ -46,7 +46,7 @@ import java.util.Stack;
 public abstract class AbstractXmlResourceHandler
         extends AbstractXmlHandler implements XmlResourceHandler {
 
-    private final Stack<Resource> stack = new Stack<Resource>();
+    protected final Stack<Resource> stack = new Stack<Resource>();
 
     public AbstractXmlResourceHandler(RdfContentParams params) {
         super(params);
@@ -74,8 +74,7 @@ public abstract class AbstractXmlResourceHandler
      */
     @Override
     public void openPredicate(QName parent, QName name, int level) {
-        String prefix = makePrefix(name.getPrefix());
-        String elementName = prefix + ":" + name.getLocalPart();
+        String elementName = makePrefix(name.getPrefix(), name.getLocalPart());
         IRI p = toProperty(getResource().newPredicate(elementName));
         stack.push(stack.peek().newResource(p));
     }
@@ -87,8 +86,7 @@ public abstract class AbstractXmlResourceHandler
     @Override
     public void closePredicate(QName parent, QName name, int level) {
         Resource r = stack.pop();
-        String prefix = makePrefix(name.getPrefix());
-        String elementName = prefix + ":" + name.getLocalPart();
+        String elementName = makePrefix(name.getPrefix(), name.getLocalPart());
         if (level < 0) {
             // it's a resource
             if (!stack.isEmpty()) {

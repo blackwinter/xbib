@@ -72,17 +72,12 @@ public class EZBXML extends Converter {
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new EZBXML();
-            }
-        };
+        return EZBXML::new;
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.getInstance();
+        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         FileOutputStream out = new FileOutputStream(settings.get("output"));
         TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
         RdfContentBuilder builder = turtleBuilder(out, params);

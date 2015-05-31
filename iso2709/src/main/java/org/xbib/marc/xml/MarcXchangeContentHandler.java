@@ -405,7 +405,6 @@ public class MarcXchangeContentHandler
             case DATAFIELD: {
                 Field field = stack.pop();
                 if (field.isControlField()) {
-                    //endControlField(new Field(field).data(content.toString()));
                     endControlField(field);
                     inControl = false;
                 } else {

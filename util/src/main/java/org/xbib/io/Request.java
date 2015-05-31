@@ -33,4 +33,5 @@ package org.xbib.io;
 
 public interface Request {
 
+    String getQuery();
 }

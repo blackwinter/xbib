@@ -26,7 +26,6 @@ public class RdfXContentJsonLdTest {
 
     private final static Logger logger = LogManager.getLogger(RdfXContentJsonLdTest.class);
 
-    @Test
     public void jsonld() throws Exception {
         InputStream in = getClass().getResourceAsStream("/org/xbib/rdf/xcontent/Vcard.jsonld");
         if (in != null) {

@@ -34,15 +34,12 @@ package org.xbib.tools.feed.elasticsearch.geonames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.io.InputService;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.Feeder;
 import org.xbib.util.Strings;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Scanner;
@@ -53,14 +50,15 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Import geonames, UTF-8 tab-separated in ZIP
+ * Example: cities1000.zip
  */
 public class GeonamesFromZIP extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
 
     @Override
     public String getName() {
-        return "geonames-zip";
+        return "geonames-zip-to-elasticsearch";
     }
 
     @Override
@@ -69,24 +67,11 @@ public class GeonamesFromZIP extends Feeder {
     }
 
     @Override
-    protected Ingest createIngest() {
-        return new BulkTransportClient();
-    }
-
-    @Override
-    protected GeonamesFromZIP beforeIndexCreation(Ingest output) throws IOException {
-        output.mapping(settings.get("type"),
-                "{ \"" + settings.get("type") + "\": { \"properties\" : { \"location\" : { \"type\" : \"geo_point\" } } } }");
-        return this;
-    }
-
-    @Override
     public void process(URI uri) throws Exception {
         logger.info("start of processing {}", uri);
         InputStream in = InputService.getInputStream(uri);
         ZipInputStream zin = new ZipInputStream(in);
-        for (ZipEntry zipEntry; (zipEntry = zin.getNextEntry()) != null; ) {
-            logger.info("reading zip entry {}", zipEntry.getName());
+        while (zin.getNextEntry() != null) {
             Scanner sc = new Scanner(zin);
             while (sc.hasNextLine()) {
                 int i = 0;

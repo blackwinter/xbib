@@ -1,0 +1,12 @@
+{
+  "date_detection": false,
+  "_timestamp": {
+    "enabled": true,
+    "store": true
+  },
+  "properties" : {
+    "location" : {
+      "type" : "geo_point"
+    }
+  }
+}

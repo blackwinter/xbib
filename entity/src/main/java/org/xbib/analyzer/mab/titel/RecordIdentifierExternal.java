@@ -31,6 +31,8 @@
  */
 package org.xbib.analyzer.mab.titel;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.entities.marc.dialects.mab.MABEntity;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
 import org.xbib.marc.Field;
@@ -42,6 +44,8 @@ import java.util.Map;
 public class RecordIdentifierExternal extends MABEntity {
 
     private final static RecordIdentifierExternal element = new RecordIdentifierExternal();
+
+    private final static Logger logger = LogManager.getLogger(RecordIdentifierExternal.class);
 
     public static RecordIdentifierExternal getInstance() {
         return element;

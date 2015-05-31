@@ -66,7 +66,7 @@ public class TurtleContentParser implements RdfContentParser {
 
     private final static Resource resource = new MemoryResource();
 
-    private final HashMap<String, Node> bnodes = new HashMap();
+    private final HashMap<String, Node> bnodes = new HashMap<String, Node>();
 
     /**
      * The base IRI

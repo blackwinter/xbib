@@ -79,18 +79,11 @@ public final class Strings {
         return target == null || EMPTY.equals(target);
     }
 
-
-    /**
-     * <p>Gives a string consisting of a given string prepended and appended with
-     * surrounding characters.</p>
-     *
-     * @param target a string
-     * @param begin  character to prepend
-     * @param end    character to append
-     * @return the surrounded string
-     */
-    public static String surround(String target, char begin, char end) {
-        return begin + target + end;
+    public static String unquote(String s) {
+        if (s != null && ((s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'")))) {
+            s = s.substring(1, s.length() - 1);
+        }
+        return s;
     }
 
     /**

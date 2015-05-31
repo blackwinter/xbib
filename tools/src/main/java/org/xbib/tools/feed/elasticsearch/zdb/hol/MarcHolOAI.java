@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeReader;
 import org.xbib.oai.OAIConstants;
@@ -121,6 +120,10 @@ public class MarcHolOAI extends OAIFeeder {
         String verb = oaiparams.get("verb");
         String metadataPrefix = oaiparams.get("metadataPrefix");
         String set = oaiparams.get("set");
+        // we accept only ISO format in Zulu timezone, e.g.
+        // d=`date +%Y-%m-%d`
+        // from=`date -d "${d} -1 days" +"%Y-%m-%dT%H:%M:%SZ"`
+        // until=`date -d "${d}" +"%Y-%m-%dT%H:%M:%SZ"`
         Date from = Date.from(Instant.parse(oaiparams.get("from")));
         Date until = Date.from(Instant.parse(oaiparams.get("until")));
         // compute interval
@@ -193,7 +196,7 @@ public class MarcHolOAI extends OAIFeeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             // write bib resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     getConcreteIndex(), getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

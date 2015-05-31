@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MedlineCitationSet PUBLIC "-//NLM//DTD Medline Citation, 1st January, 2015//EN"
+        "http://www.nlm.nih.gov/databases/dtd/nlmmedlinecitationset_150101.dtd">
+<MedlineCitationSet>
+    <MedlineCitation Owner="PIP" Status="MEDLINE">
+        <PMID Version="1">12307896</PMID>
+        <DateCreated>
+            <Year>1980</Year>
+            <Month>01</Month>
+            <Day>08</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>1980</Year>
+            <Month>01</Month>
+            <Day>08</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2003</Year>
+            <Month>11</Month>
+            <Day>14</Day>
+        </DateRevised>
+        <Article PubModel="Print">
+            <Journal>
+                <ISSN IssnType="Print">0099-4642</ISSN>
+                <JournalIssue CitedMedium="Print">
+                    <Volume>12</Volume>
+                    <Issue>1</Issue>
+                    <PubDate>
+                        <Year>1947</Year>
+                        <Month>Mar</Month>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Human fertility</Title>
+                <ISOAbbreviation>Hum Fertil</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Conception control and the medical profession. The attitude of 3381 physicians toward contraception and the contraceptives they prescribe.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>1-10</MedlinePgn>
+            </Pagination>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Guttmacher</LastName>
+                    <ForeName>A F</ForeName>
+                    <Initials>AF</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+            </PublicationTypeList>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Hum Fertil</MedlineTA>
+            <NlmUniqueID>17440180R</NlmUniqueID>
+            <ISSNLinking>0099-4642</ISSNLinking>
+        </MedlineJournalInfo>
+        <CitationSubset>J</CitationSubset>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" Type="Geographic" UI="D000569">Americas</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D001290">Attitude</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D001519">Behavior</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D001721">Birth Intervals</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D003267">Contraception</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D003625">Data Collection</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D003695">Delivery of Health Care</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D019049">Developed Countries</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D005193">Family Planning Services</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006262">Health</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006282">Health Personnel</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" Type="Geographic" UI="D009656">North America</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D010820">Physicians</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D011584">Psychology</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012106">Research</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012494">Sampling Studies</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" Type="Geographic" UI="D014481">United States</DescriptorName>
+            </MeshHeading>
+        </MeshHeadingList>
+        <OtherID Source="PIP">470003</OtherID>
+        <OtherID Source="POP">00033293</OtherID>
+        <OtherAbstract Type="PIP" Language="eng">
+            <AbstractText>A questionnaire was sent in October 1944 to 15,000 physicians to determine their attitudes and practices toward contraception.  Of these 6000 were gynecological and obstetri
+                cal specialists and 9000 were general practitioners from a geographical cross section.  3381 questionnaires were returned, and after careful study it was concluded that the sample was rep
+                resentative. 90% of the graduates before 1920 had no teaching in contraception;  27% of those who graduated in 1935 or later had some instruction. 93% of the physicians were requested by
+                patients for contraceptive advice, 62.2% frequently and 30.5% occasionally. The 3 main reasons the patients requested contraceptive  advice were: child spacing, economic, and family limit
+                ation. 98% of the doctors approved of contraception for at least some medical reason. More than 80% approved for child spacing. The average minimum interval between children considered  s
+                afe was 23 months. The physicians approved of economic reasons for contraception as much as for medical reasons. 51.5% of the respondents frequently prescribe contraceptive methods and an
+                other 31.7 prescribe them occasionally.  The 1st choice method was diaphragm with jelly or cream, and the condom was 2nd choice. The method prescribed is a compromise between patient acce
+                ptability and trustworthiness.</AbstractText>
+        </OtherAbstract>
+        <KeywordList Owner="PIP">
+            <Keyword MajorTopicYN="N">Americas</Keyword>
+            <Keyword MajorTopicYN="Y">Attitude</Keyword>
+            <Keyword MajorTopicYN="N">Behavior</Keyword>
+            <Keyword MajorTopicYN="N">Birth Intervals</Keyword>
+            <Keyword MajorTopicYN="Y">Contraception</Keyword>
+            <Keyword MajorTopicYN="N">Delivery Of Health Care</Keyword>
+            <Keyword MajorTopicYN="N">Developed Countries</Keyword>
+            <Keyword MajorTopicYN="N">Family Planning</Keyword>
+            <Keyword MajorTopicYN="N">Health</Keyword>
+            <Keyword MajorTopicYN="N">Health Personnel</Keyword>
+            <Keyword MajorTopicYN="N">North America</Keyword>
+            <Keyword MajorTopicYN="N">Northern America</Keyword>
+            <Keyword MajorTopicYN="Y">Physicians</Keyword>
+            <Keyword MajorTopicYN="N">Psychological Factors</Keyword>
+            <Keyword MajorTopicYN="N">Research Methodology</Keyword>
+            <Keyword MajorTopicYN="N">Sampling Studies</Keyword>
+            <Keyword MajorTopicYN="N">Studies</Keyword>
+            <Keyword MajorTopicYN="Y">Surveys</Keyword>
+            <Keyword MajorTopicYN="N">United States</Keyword>
+        </KeywordList>
+    </MedlineCitation>
+</MedlineCitationSet>

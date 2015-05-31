@@ -79,8 +79,8 @@ public class DOAJArticleClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("http://doaj.org/oai.article");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom( DateUtil.parseDateISO("2014-04-16T00:00:00Z"), OAIDateResolution.DAY)
-                    .setUntil(DateUtil.parseDateISO("2014-04-17T00:00:00Z"), OAIDateResolution.DAY)
+                    .setFrom( DateUtil.parseDateISO("2015-04-16T00:00:00Z"), OAIDateResolution.DAY)
+                    .setUntil(DateUtil.parseDateISO("2015-04-17T00:00:00Z"), OAIDateResolution.DAY)
                     .setMetadataPrefix("oai_dc"); // doajArticle format no longer there!
 
             do {

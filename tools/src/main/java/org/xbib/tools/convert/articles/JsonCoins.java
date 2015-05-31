@@ -123,14 +123,14 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    protected Converter prepare() throws IOException {
+    public Converter prepare() throws IOException {
         logger.info("parsing initial set of serials...");
 
         try {
             Queue<URI> input = new Finder(settings.get("serials"))
                     .find(settings.get("path"))
                     .getURIs();
-            serialsdb.run(settings, input);
+            serialsdb.process(settings, input.poll());
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
@@ -174,7 +174,8 @@ public class JsonCoins extends Converter {
         return this;
     }
 
-    protected JsonCoins cleanup() {
+    @Override
+    public JsonCoins cleanup() {
         try {
             gzout.close();
             noserialgzout.close();
@@ -196,7 +197,7 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    protected void process(URI uri) throws Exception {
+    public void process(URI uri) throws Exception {
         InputStream in = InputService.getInputStream(uri);
         if (in == null) {
             throw new IOException("unable to open " + uri);
@@ -367,11 +368,14 @@ public class JsonCoins extends Converter {
                     }
                     case "rft.jtitle": {
                         v = Entities.HTML40.unescape(v);
+                        String cleanTitle = v.replaceAll("\\p{C}","")
+                                .replaceAll("\\p{Space}","")
+                                .replaceAll("\\p{Punct}","");
                         Resource j = r.newResource(FRBR_PARTOF)
                                 .a(FABIO_JOURNAL)
                                 .add("prism:publicationName", v);
-                        if (serialsdb.getMap().containsKey(v)) {
-                            Resource serial = serialsdb.getMap().get(v);
+                        if (serialsdb.getMap().containsKey(cleanTitle)) {
+                            Resource serial = serialsdb.getMap().get(cleanTitle);
                             issns = serial.objects("prism:issn");
                             while (issns.hasNext()) {
                                 Node issn  = issns.next();
@@ -460,6 +464,10 @@ public class JsonCoins extends Converter {
                             spage = null;
                             epage = null;
                         } else {
+                            // pagination: skip leading "p" or "P"
+                            if (v.startsWith("p") || v.startsWith("P")) {
+                                v = v.substring(1);
+                            }
                             spage = v;
                         }
                         break;
@@ -473,6 +481,10 @@ public class JsonCoins extends Converter {
                             spage = null;
                             epage = null;
                         } else {
+                            // pagination: skip leading "p" or "P"
+                            if (v.startsWith("p") || v.startsWith("P")) {
+                                v = v.substring(1);
+                            }
                             epage = v;
                         }
                         break;

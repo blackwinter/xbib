@@ -36,6 +36,7 @@ import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
 public class LinkingEntry extends MARCEntity {
+
     private final static LinkingEntry instance = new LinkingEntry();
     
     public static LinkingEntry getInstance() {
@@ -45,7 +46,7 @@ public class LinkingEntry extends MARCEntity {
     @Override
     public String data(MARCEntityQueue.MARCWorker worker,
                        String predicate, Resource resource, String property, String value) {
-        if ("id".equals(property)) {
+        if ("id".equals(property) ) {
             if (value.startsWith("(DE-600)")) {
                 resource.add("identifierZDB", value.substring(8).replaceAll("\\-","").toLowerCase());
                 return null;

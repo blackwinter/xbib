@@ -43,12 +43,7 @@ public class MacsOAI extends OAIHarvester {
     }
 
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new MacsOAI();
-            }
-        };
+        return MacsOAI::new;
     }
 
 }

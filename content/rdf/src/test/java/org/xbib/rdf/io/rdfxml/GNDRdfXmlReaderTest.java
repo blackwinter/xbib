@@ -34,13 +34,14 @@ package org.xbib.rdf.io.rdfxml;
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 
-import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class GNDRdfXmlReaderTest extends StreamTester {
@@ -52,13 +53,14 @@ public class GNDRdfXmlReaderTest extends StreamTester {
         if (in == null) {
             throw new IOException("file " + filename + " not found");
         }
-        TurtleContentParams params = new TurtleContentParams(IRINamespaceContext.getInstance(), false);
-        RdfContentBuilder builder = turtleBuilder(params);
+        TurtleContentParams params = new TurtleContentParams(IRINamespaceContext.newInstance(), false);
         RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
+        StringBuilder sb = new StringBuilder();
+        reader.setRdfContentBuilderProvider(() -> turtleBuilder(params));
+        reader.setRdfContentBuilderHandler(builder -> sb.append(builder.string()));
         reader.parse();
-        assertStream(getClass().getResource("gnd.ttl").openStream(),
-                builder.streamInput());
+        assertStream(new InputStreamReader(getClass().getResource("GND.ttl").openStream()),
+                new StringReader(sb.toString()));
     }
 
     @Test
@@ -68,11 +70,13 @@ public class GNDRdfXmlReaderTest extends StreamTester {
         if (in == null) {
             throw new IOException("file " + filename + " not found");
         }
-        RdfContentBuilder builder = ntripleBuilder();
         RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setBuilder(builder);
+        StringBuilder sb = new StringBuilder();
+        reader.setRdfContentBuilderProvider(RdfContentFactory::ntripleBuilder);
+        reader.setRdfContentBuilderHandler(builder -> sb.append(builder.string()));
         reader.parse();
-
+        assertStream(new InputStreamReader(getClass().getResource("GND.nt").openStream()),
+                new StringReader(sb.toString()));
     }
 
 }

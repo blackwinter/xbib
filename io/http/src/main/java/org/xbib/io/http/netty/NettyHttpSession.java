@@ -87,14 +87,19 @@ public class NettyHttpSession implements HttpSession {
     public void open(Mode mode) throws IOException {
         if (!isOpen()) {
             // some reasonable defaults...
+            int timeout = 120 * 1000; // for slow DNB OAI
             config.setAllowPoolingConnection(true)
                     .setAllowSslConnectionPool(true)
                     .setMaximumConnectionsPerHost(16)
                     .setMaximumConnectionsTotal(16)
                     .setFollowRedirects(true)
-                    .setMaxRequestRetry(1)
-                    .setUseRawUrl(false)
-                    .setCompressionEnabled(true);
+                    .setMaxRequestRetry(3) // for slow DNB OAI
+                    .setUseRawUrl(true) // do not auto-encode HTTP GET params
+                    .setCompressionEnabled(true)
+                    .setConnectionTimeoutInMs(timeout)
+                    .setRequestTimeoutInMs(timeout)
+                    .setIdleConnectionTimeoutInMs(timeout)
+                    .setIdleConnectionInPoolTimeoutInMs(timeout);
             this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config.build()));
             this.isOpen = true;
         }

@@ -89,8 +89,6 @@ public class TurtleContentGenerator
 
     private Resource resource;
 
-    private String sortLangTag;
-
     private boolean closed;
 
     private TurtleContentParams params = TurtleContentParams.DEFAULT_PARAMS;
@@ -133,11 +131,6 @@ public class TurtleContentGenerator
             writer.close();
             closed = true;
         }
-    }
-
-    public TurtleContentGenerator setSortLanguageTag(String languageTag) {
-        this.sortLangTag = languageTag;
-        return this;
     }
 
     @Override
@@ -379,7 +372,6 @@ public class TurtleContentGenerator
     }
 
     private void writeLiteral(Literal literal) throws IOException {
-        literal = processSortLanguage(literal);
         String value = literal.object().toString();
         if (value.indexOf('\n') > 0 || value.indexOf('\r') > 0 || value.indexOf('\t') > 0) {
             sb.append("\"\"\"")
@@ -447,30 +439,4 @@ public class TurtleContentGenerator
         return buf.toString();
     }
 
-    /**
-     * Process a literal according to given sort language (e.g. mechanical word order, sort area).
-     * <p>
-     * see http://www.w3.org/International/articles/language-tags/
-     *
-     * @param literal the literal
-     * @return the process literal
-     */
-    private Literal processSortLanguage(Literal literal) {
-        if (literal == null) {
-            return null;
-        }
-        if (sortLangTag == null) {
-            return literal;
-        }
-        // we assume we have only one sort language. Search for '@' symbol.
-        String value = literal.object().toString();
-        // ignore if on position 0
-        int pos = value.indexOf(" @");
-        if (pos == 0) {
-            literal.object(value.substring(1));
-        } else if (pos > 0) {
-            literal.object('\u0098' + value.substring(0, pos + 1) + '\u009c' + value.substring(pos + 2)).language(sortLangTag);
-        }
-        return literal;
-    }
 }

@@ -51,30 +51,32 @@ import java.io.StringWriter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static org.testng.Assert.assertTrue;
+
 /**
  * DOAJ client test
  */
 public class DOAJClientTest {
 
-    private final static Logger logger = LogManager.getLogger(DOAJClientTest.class.getName());
+    private final static Logger logger = LogManager.getLogger(DOAJClientTest.class);
 
     @Test
     public void testListRecordsDOAJ() {
 
-        RdfContentParams params = IRINamespaceContext::getInstance;
+        RdfContentParams params = IRINamespaceContext::newInstance;
 
         final RdfSimpleMetadataHandler metadataHandler = new RdfSimpleMetadataHandler(params);
         final RdfResourceHandler resourceHandler = new DOAJResourceHandler(params);
 
         metadataHandler.setHandler(resourceHandler);
 
+        int count = 0;
         try {
             OAIClient client = OAIClientFactory.newClient("DOAJ");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom( DateUtil.parseDateISO("2014-04-16T00:00:00Z"), OAIDateResolution.DAY)
-                    .setUntil(DateUtil.parseDateISO("2014-04-17T00:00:00Z"), OAIDateResolution.DAY)
+                    .setFrom( DateUtil.parseDateISO("2015-04-01T00:00:00Z"), OAIDateResolution.DAY)
+                    .setUntil(DateUtil.parseDateISO("2015-05-01T00:00:00Z"), OAIDateResolution.DAY)
                     .setMetadataPrefix("oai_dc");
-
             do {
                 ListRecordsListener listener = new ListRecordsListener(request);
                 request.addHandler(metadataHandler);
@@ -82,7 +84,8 @@ public class DOAJClientTest {
                 if (listener.getResponse() != null) {
                     StringWriter sw = new StringWriter();
                     listener.getResponse().to(sw);
-                    logger.info("response  = {}", sw);
+                    logger.debug("response  = {}", sw);
+                    count++;
                 }
                 request = client.resume(request, listener.getResumptionToken());
             } while (request != null);
@@ -90,6 +93,7 @@ public class DOAJClientTest {
         } catch (IOException | InterruptedException | TimeoutException | ExecutionException e) {
             logger.error(e.getMessage(), e);
         }
+        assertTrue(count > 0);
     }
 
     private final IRI ISSN = IRI.create("urn:ISSN");
@@ -123,25 +127,4 @@ public class DOAJClientTest {
             return content;
         }
     }
-
-    /*class MyOutput extends RdfOutput {
-
-        TurtleWriter writer;
-
-        MyOutput(IRINamespaceContext context) throws IOException{
-            this.writer = new TurtleWriter()
-                    .setContext(context)
-                    .writeNamespaces();
-        }
-
-        @Override
-        public RdfOutput output(ResourceContext resourceContext) throws IOException {
-            StringWriter sw = new StringWriter();
-            writer.output(sw);
-            writer.write(resourceContext.getResource());
-            logger.info("out = {}", sw);
-            return this;
-        }
-    }*/
-
 }

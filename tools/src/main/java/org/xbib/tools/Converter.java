@@ -34,7 +34,12 @@ package org.xbib.tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
+import org.xbib.io.Connection;
+import org.xbib.io.Session;
+import org.xbib.io.StringPacket;
 import org.xbib.io.archive.file.Finder;
+import org.xbib.io.archive.tar2.TarConnectionFactory;
+import org.xbib.io.archive.tar2.TarSession;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.AbstractPipeline;
 import org.xbib.pipeline.Pipeline;
@@ -75,6 +80,8 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
 
     protected static Queue<URI> input;
 
+    protected static Session<StringPacket> session;
+
     protected MetricSimplePipelineExecutor<T, R, P> executor;
 
     private boolean done = false;
@@ -82,7 +89,7 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
     @Override
     public Converter<T, R, P> reader(Reader reader) {
         this.reader = reader;
-        settings = settingsBuilder().loadFromReader(reader).build();
+        setSettings(settingsBuilder().loadFromReader(reader).build());
         return this;
     }
 
@@ -92,7 +99,11 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
         return this;
     }
 
-    protected Converter<T, R, P> prepare() throws IOException {
+    public void setSettings(Settings newSettings) {
+        settings = newSettings;
+    }
+
+    public Converter<T, R, P> prepare() throws IOException {
         // check if running is allowed only on a configured host
         if (settings.get("runhost") != null) {
             boolean found = false;
@@ -110,8 +121,8 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
                 System.exit(1);
             }
         }
+        input = new ConcurrentLinkedQueue<URI>();
         if (settings.get("uri") != null) {
-            input = new ConcurrentLinkedQueue<URI>();
             input.add(URI.create(settings.get("uri")));
             // parallel URI connection possible?
             if (settings.getAsBoolean("parallel", false)) {
@@ -119,14 +130,20 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
                     input.add(URI.create(settings.get("uri")));
                 }
             }
-        } else {
+        } else if (settings.get("path") != null) {
             input = new Finder(settings.get("pattern"))
                     .find(settings.get("path"))
                     .pathSorted(settings.getAsBoolean("isPathSorted", false))
                     .chronologicallySorted(settings.getAsBoolean("isChronologicallySorted", false))
                     .getURIs();
+            logger.debug("input size = {}", input.size());
+        } else if (settings.get("archive") != null) {
+            input.add(URI.create(settings.get("archive")));
+            TarConnectionFactory factory = new TarConnectionFactory();
+            Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
+            session = connection.createSession();
+            session.open(Session.Mode.READ);
         }
-        logger.info("input = {}", input);
         return this;
     }
 
@@ -135,11 +152,12 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
         try {
             logger.info("preparing with settings {}", settings.getAsMap());
             prepare();
-            logger.info("executing");
+            int concurrency = settings.getAsInt("concurrency", 1);
+            logger.info("executing with concurrency={}", concurrency);
             //metric pipeline setExecutor only uses concurrency over different URIs
             // in the input queue, not with a single URI input
             executor = new MetricSimplePipelineExecutor<T, R, P>()
-                    .setConcurrency(settings.getAsInt("concurrency", 1))
+                    .setConcurrency(concurrency)
                     .setPipelineProvider(pipelineProvider())
                     .prepare()
                     .execute()
@@ -159,7 +177,7 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
         try {
             settings = newSettings;
             input = newInput;
-            logger.info("executing with settings {} and input {}", settings, input);
+            logger.info("executing with settings {} and input {}", settings.getAsMap(), input);
             executor = new MetricSimplePipelineExecutor<T, R, P>()
                     .setConcurrency(settings.getAsInt("concurrency", 1))
                     .setPipelineProvider(pipelineProvider())
@@ -183,7 +201,10 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
         return this;
     }
 
-    protected Converter<T, R, P> cleanup() throws IOException {
+    public Converter<T, R, P> cleanup() throws IOException {
+        if (session != null) {
+            session.close();
+        }
         return this;
     }
 
@@ -276,6 +297,6 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
 
     protected abstract PipelineProvider<P> pipelineProvider();
 
-    protected abstract void process(URI uri) throws Exception;
+    public abstract void process(URI uri) throws Exception;
 
 }

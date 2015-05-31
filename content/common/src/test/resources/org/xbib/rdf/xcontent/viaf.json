@@ -1,0 +1,5 @@
+{"rdf:type":"http://xmlns.com/foaf/0.1/Document","void:inDataset":"http://viaf.org/viaf/data","foaf:primaryTopic":"http://viaf.org/viaf/100002684"}
+{"rdf:type":["http://xmlns.com/foaf/0.1/Person","http://rdvocab.info/uri/schema/FRBRentitiesRDA/Person"],"foaf:name":["Dias, Manuel Madureira, 1936-","Dias, Manuel Madureira","  "],"rdaGr2:dateOfBirth":"1936"}
+{"rdf:type":"http://www.w3.org/2004/02/skos/core#Concept","skos:inScheme":"http://viaf.org/authorityScheme/PTBNP","skos:prefLabel":"Dias, Manuel Madureira, 1936-","skos:altLabel":"Dias, Manuel Madureira","foaf:focus":"http://viaf.org/viaf/100002684"}
+{"rdfs:comment":"This concept identifier is deprecated. See the foaf:focus link for the primary entity.","foaf:focus":"http://viaf.org/viaf/100002684"}
+{"rdfs:comment":"This primary entity identifier is deprecated. See the owl:sameAs link for the new identifier.","owl:sameAs":"http://viaf.org/viaf/100002684"}

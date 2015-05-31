@@ -33,7 +33,7 @@ package org.xbib.analyzer.marc.zdb.hol;
 
 import org.xbib.entities.marc.MARCEntity;
 import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.entities.support.EnumerationAndChronology;
+import org.xbib.entities.support.EnumerationAndChronologyHelper;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.rdf.Resource;
@@ -80,7 +80,7 @@ public class TextualHoldings extends MARCEntity {
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker,
                           FieldList fields, String value) throws IOException {
-        EnumerationAndChronology eac = new EnumerationAndChronology();
+        EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
         for (Field field : fields) {
             String data = field.data();
             if (data == null || data.isEmpty()) {

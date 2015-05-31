@@ -35,11 +35,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.elasticsearch.support.client.Ingest;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
+import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineRequest;
@@ -47,8 +49,10 @@ import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URL;
 import java.text.NumberFormat;
 
 public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T, R>>
@@ -86,7 +90,7 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
     }
 
     @Override
-    protected Feeder<T, R, P> prepare() throws IOException {
+    public Feeder<T, R, P> prepare() throws IOException {
         super.prepare();
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
@@ -101,7 +105,7 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
     }
 
     @Override
-    protected Feeder<T, R, P> cleanup() throws IOException {
+    public Feeder<T, R, P> cleanup() throws IOException {
         super.cleanup();
         if (ingest != null) {
             try {
@@ -127,7 +131,8 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
         double oneminute = metric.oneMinuteRate();
         double fiveminute = metric.fiveMinuteRate();
         double fifteenminute = metric.fifteenMinuteRate();
-        long bytes = ingest.getMetric().getTotalIngestSizeInBytes().count();
+        long bytes = ingest != null && ingest.getMetric() != null ?
+                ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
         long elapsed = metric.elapsed() / 1000000;
         String elapsedhuman = DurationFormatUtil.formatDurationWords(elapsed, true, true);
         double avg = bytes / (docs + 1); // avoid div by zero
@@ -162,16 +167,34 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
     }
 
     protected Feeder createIndex(String index) throws IOException {
-        ingest.newClient(ImmutableSettings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .build());
+        if (ingest == null) {
+            return this;
+        }
+        if (settings.get("elasticsearch.cluster") != null) {
+            Settings clientSettings = ImmutableSettings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build();
+            ingest.newClient(clientSettings);
+        }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {
+            String indexSettings = settings.get("index-settings",
+                    "classpath:org/xbib/tools/feed/elasticsearch/settings.json");
+            InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
+                    new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
+                    new URL(indexSettings)).openStream();
+            String indexMappings = settings.get("index-mapping",
+                    "classpath:org/xbib/tools/feed/elasticsearch/mapping.json");
+            InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
+                    new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
+                    new URL(indexMappings)).openStream();
+            ingest.newIndex(getIndex(), getType(),
+                    indexSettingsInput, indexMappingsInput);
             beforeIndexCreation(ingest);
-            ingest.newIndex(index);
         } catch (Exception e) {
             if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
                 throw e;

@@ -161,7 +161,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
 
     @Override
     public void onError(Request request, CharSequence errorMessage) throws IOException {
-        logger.error("received error {}", errorMessage);
+        logger.error("request {} received error {}", request.getQuery(), errorMessage);
     }
 
     public ResumptionToken getResumptionToken() {

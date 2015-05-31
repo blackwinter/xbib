@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.entities.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.entities.marc.dialects.pica.PicaEntityQueue;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.oai.OAIConstants;
@@ -195,7 +194,7 @@ public final class BibdatOAI extends OAIFeeder {
 
         @Override
         public void afterCompletion(PicaEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
                     getConcreteIndex(), getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

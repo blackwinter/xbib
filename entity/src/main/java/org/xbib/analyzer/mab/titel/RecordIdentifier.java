@@ -72,6 +72,9 @@ public class RecordIdentifier extends MABEntity {
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
         MABEntityBuilderState state = worker.state();
         String v = prefix + value.trim();
         worker.state().setIdentifier(v);

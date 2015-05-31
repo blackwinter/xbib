@@ -88,7 +88,8 @@ public class MarcSRU extends Feeder {
         return "zdb-sru-elasticsearch";
     }
 
-    protected MarcSRU prepare() throws IOException {
+    @Override
+    public MarcSRU prepare() throws IOException {
         prepareInput();
         prepareOutput();
         return this;
@@ -138,8 +139,7 @@ public class MarcSRU extends Feeder {
     }
 
     @Override
-    protected void process(URI uri) throws Exception {
-
+    public void process(URI uri) throws Exception {
         final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<String>());
         final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1));
         bibqueue.setUnmappedKeyListener((id,key) -> {
@@ -243,7 +243,8 @@ public class MarcSRU extends Feeder {
 
     }
 
-    protected MarcSRU cleanup() {
+    @Override
+    public MarcSRU cleanup() {
         try {
             if (client != null) {
                 client.close();
@@ -262,9 +263,9 @@ public class MarcSRU extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
-                    settings.get("bibIndex", "zdb"),
-                    settings.get("bibType", "title"));
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
+                    settings.get("bib-index", "zdb"),
+                    settings.get("bib-type", "title"));
             params.setIdPredicate("identifierZDB");
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
@@ -280,9 +281,9 @@ public class MarcSRU extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(IRINamespaceContext.getInstance(),
-                    settings.get("holIndex", "zdbholdings"),
-                    settings.get("holType", "holdings"));
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
+                    settings.get("hol-index", "zdbholdings"),
+                    settings.get("hol-type", "holdings"));
             params.setIdPredicate("identifierZDB");
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);

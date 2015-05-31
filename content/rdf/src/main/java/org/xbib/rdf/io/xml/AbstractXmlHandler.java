@@ -50,13 +50,13 @@ import java.util.Stack;
  */
 public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHandler {
 
-    private final RdfContentParams params;
+    protected final RdfContentParams params;
 
-    private final StringBuilder content = new StringBuilder();
+    protected final StringBuilder content = new StringBuilder();
 
-    private final Stack<QName> parents = new Stack<QName>();
+    protected final Stack<QName> parents = new Stack<QName>();
 
-    private Resource resource;
+    protected Resource resource;
 
     private RdfContentBuilder builder;
 
@@ -134,11 +134,12 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
                 for (int i = 0; i < atts.getLength(); i++) {
                     String attrValue = atts.getValue(i);
                     if (attrValue != null && !attrValue.isEmpty()) {
-                        String attrName = '@' + atts.getLocalName(i);
-                        if (!skip(new QName(atts.getURI(i), attrName, atts.getQName(i)))) {
-                            startElement(atts.getURI(i), attrName, atts.getQName(i), null);
+                        String newAttrname = '@' + atts.getLocalName(i);
+                        QName attrQName = new QName(atts.getURI(i), newAttrname, atts.getQName(i));
+                        if (!skip(attrQName)) {
+                            startElement(atts.getURI(i), newAttrname, atts.getQName(i), null);
                             characters(attrValue.toCharArray(), 0, attrValue.length());
-                            endElement(atts.getURI(i), attrName, atts.getQName(i));
+                            endElement(atts.getURI(i), newAttrname, atts.getQName(i));
                         }
                     }
                 }
@@ -189,8 +190,13 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
         //resourceContext.getNamespaceContext().removeNamespace(prefix);
     }
 
-    protected String makePrefix(String name) {
-        return name.replaceAll("[^a-zA-Z]+", "");
+    protected String makePrefix(String prefix) {
+        return prefix.replaceAll("[^a-zA-Z]+", "");
+    }
+
+    protected String makePrefix(String prefix, String localname) {
+        String s =  prefix.replaceAll("[^a-zA-Z]+", "");
+        return s.length() > 0 ? s + ":" + localname : localname;
     }
 
     protected QName makeQName(String nsURI, String localname, String qname) {
@@ -217,9 +223,6 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
         if (builder != null) {
             builder.receive(resource.id());
             builder.receive(resource);
-            /*for (Triple triple : resource.triples()) {
-                builder.triple(triple);
-            }*/
         }
     }
 

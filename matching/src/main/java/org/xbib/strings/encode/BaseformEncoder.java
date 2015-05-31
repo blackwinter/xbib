@@ -31,8 +31,6 @@
  */
 package org.xbib.strings.encode;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Locale;
@@ -40,36 +38,24 @@ import java.util.regex.Pattern;
 
 /**
  * A base form encoder
- *
  */
 public class BaseformEncoder {
 
-    private static final Pattern p = Pattern.compile("[^\\p{IsWord}\\p{IsSpace}]");
+    private static final Pattern p = Pattern.compile("[^\\p{L}\\p{Space}]");
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private static final Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     public static String normalizedFromUTF8(String name) {
-        String s;
-        try {
-            s = URLDecoder.decode(name, "UTF-8"); // URIUtil.decode(name, UTF8);
-        } catch (UnsupportedEncodingException | StringIndexOutOfBoundsException e) {
-            //ignore
-        }
-        s = Normalizer.normalize(name, Normalizer.Form.NFC);
-        s = p.matcher(s).replaceAll("");
+        String s = Normalizer.normalize(name, Normalizer.Form.NFD);
+        s = p.matcher(s).replaceAll(""); // remove diacritics, accents, etc.
         s = s.toLowerCase(Locale.ENGLISH); // just english lowercase rules (JVM independent)
         return s;
     }
 
     public static String normalizedFromISO88591(String name) {
         String s;
-        try {
-            s = URLDecoder.decode(name, "UTF-8"); //URIUtil.decode(name, UTF8);
-        } catch (UnsupportedEncodingException | StringIndexOutOfBoundsException e) {
-            // ignore
-        }
         s = Normalizer.normalize(new String(name.getBytes(ISO88591), UTF8), Normalizer.Form.NFC);
         s = p.matcher(s).replaceAll("");
         s = s.toLowerCase(Locale.ENGLISH);

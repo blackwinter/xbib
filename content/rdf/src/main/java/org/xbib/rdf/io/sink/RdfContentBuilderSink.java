@@ -152,18 +152,15 @@ public class RdfContentBuilderSink implements QuadSink {
     public void endStream() throws IOException {
         if (graph.getResources() != null) {
             if (provider != null) {
-                graph.getResources().forEachRemaining(new Consumer<Resource>() {
-                    @Override
-                    public void accept(Resource resource) {
-                        RdfContentBuilder rdfContentBuilder;
-                        try {
-                            rdfContentBuilder = provider.newContentBuilder();
-                            rdfContentBuilder.startStream();
-                            rdfContentBuilder.receive(resource);
-                            rdfContentBuilder.endStream();
-                        } catch (IOException e) {
-                           logger.error(e.getMessage(), e);
-                        }
+                graph.getResources().forEachRemaining(resource -> {
+                    RdfContentBuilder rdfContentBuilder;
+                    try {
+                        rdfContentBuilder = provider.newContentBuilder();
+                        rdfContentBuilder.startStream();
+                        rdfContentBuilder.receive(resource);
+                        rdfContentBuilder.endStream();
+                    } catch (IOException e) {
+                       logger.error(e.getMessage(), e);
                     }
                 });
             } else {

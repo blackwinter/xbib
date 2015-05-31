@@ -62,7 +62,7 @@ public class JsonReaderTest extends StreamTester {
         namespaceContext.addNamespace("xbib", "http://xbib.org/");
         namespaceContext.addNamespace("lia", "http://xbib.org/lia/");
 
-        JsonContentParams params = new JsonContentParams(namespaceContext, true);
+        JsonContentParams params = new JsonContentParams(namespaceContext);
         JsonResourceHandler jsonHandler = new JsonResourceHandler(params) {
 
             @Override

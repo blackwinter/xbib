@@ -44,7 +44,6 @@ import org.xbib.rdf.io.ntriple.NTripleContent;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryRdfGraphParams;
 import org.xbib.rdf.memory.MemoryTriple;
 
 import java.io.IOException;
@@ -62,14 +61,10 @@ public class EuropeanaEDMReaderTest extends StreamTester {
         if (in == null) {
             throw new IOException("file " + filename + " not found");
         }
-
         MemoryRdfGraph graph = new MemoryRdfGraph();
-
         RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        GeoJSONFilter filter = new GeoJSONFilter(NTripleContent.nTripleContent, NTripleContentParams.DEFAULT_PARAMS, graph);
-        reader.setBuilder(filter);
+        reader.setRdfContentBuilderProvider(() -> new GeoJSONFilter(NTripleContent.nTripleContent, NTripleContentParams.DEFAULT_PARAMS, graph));
         reader.parse();
-
         RdfContentBuilder builder = ntripleBuilder();
         Iterator<Resource> resourceIterator = graph.getResources();
         while (resourceIterator.hasNext()) {

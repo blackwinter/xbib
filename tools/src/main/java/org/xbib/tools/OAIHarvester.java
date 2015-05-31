@@ -34,11 +34,11 @@ package org.xbib.tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.io.Connection;
-import org.xbib.io.NullWriter;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
-import org.xbib.io.archive.tar.TarConnectionFactory;
-import org.xbib.io.archive.tar.TarSession;
+import org.xbib.io.archive.tar2.TarConnectionFactory;
+import org.xbib.io.archive.tar2.TarSession;
+import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
@@ -64,17 +64,14 @@ import static com.google.common.collect.Queues.newConcurrentLinkedQueue;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
-/**
- * Harvest from OAI
- */
 public abstract class OAIHarvester extends Converter {
 
     private final static Logger logger = LogManager.getLogger(OAIHarvester.class.getSimpleName());
 
-    private static Session<StringPacket> session;
+    protected static Session<StringPacket> session;
 
     @Override
-    protected OAIHarvester prepare() throws IOException {
+    public OAIHarvester prepare() throws IOException {
         String[] inputs = settings.getAsArray("input");
         if (inputs == null) {
             throw new IllegalArgumentException("no input given");
@@ -84,28 +81,28 @@ public abstract class OAIHarvester extends Converter {
             input.offer(URI.create(uri));
         }
         String output = settings.get("output");
-        try {
-            TarConnectionFactory factory = new TarConnectionFactory();
-            Connection<TarSession> connection = factory.getConnection(URI.create(output));
-            session = connection.createSession();
-            session.open(Session.Mode.WRITE);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
+        TarConnectionFactory factory = new TarConnectionFactory();
+        Connection<TarSession> connection = factory.getConnection(URI.create(output));
+        session = connection.createSession();
+        session.open(Session.Mode.WRITE);
         return this;
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        logger.info("uri={}", uri);
         Map<String, String> params = URIUtil.parseQueryString(uri);
         String server = uri.toString();
+        String verb = params.get("verb");
         String metadataPrefix = params.get("metadataPrefix");
         String set = params.get("set");
         Date from = DateUtil.parseDateISO(params.get("from"));
         Date until = DateUtil.parseDateISO(params.get("until"));
         final OAIClient client = OAIClientFactory.newClient(server);
         client.setTimeout(settings.getAsInt("timeout", 60000));
+        if (!verb.equals(OAIConstants.LIST_RECORDS)) {
+            logger.warn("no verb {}, returning", OAIConstants.LIST_RECORDS);
+            return;
+        }
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(metadataPrefix)
                 .setSet(set)
@@ -113,21 +110,17 @@ public abstract class OAIHarvester extends Converter {
                 .setUntil(until, OAIDateResolution.DAY);
         do {
             try {
-                if ("xml".equals(settings.get("handler"))) {
-                    request.addHandler(xmlMetadataHandler());
-                } else if ("turtle".equals(settings.get("handler"))) {
-                    request.addHandler(turtleMetadataHandler());
-                } else if ("ntriples".equals(settings.get("handler"))) {
-                    request.addHandler(ntripleMetadataHandler());
-                } else {
-                    logger.warn("no handler defined? (xml, turtle, ntriples)");
-                }
+                request.addHandler(newMetadataHandler());
                 ListRecordsListener listener = new ListRecordsListener(request);
                 request.prepare().execute(listener).waitFor();
                 if (listener.getResponse() != null) {
-                    NullWriter w = new NullWriter();
+                    logger.debug("got OAI response");
+                    StringWriter w = new StringWriter();
                     listener.getResponse().to(w);
+                    logger.debug("{}", w);
                     request = client.resume(request, listener.getResumptionToken());
+                } else {
+                    logger.debug("no valid OAI response");
                 }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
@@ -135,6 +128,22 @@ public abstract class OAIHarvester extends Converter {
             }
         } while (request != null);
         client.close();
+    }
+
+    @Override
+    public OAIHarvester cleanup() throws IOException {
+        super.cleanup();
+        session.close();
+        return this;
+    }
+
+    protected SimpleMetadataHandler newMetadataHandler() throws IOException {
+        switch (settings.get("handler", "xml")) {
+            case "xml" : return xmlMetadataHandler();
+            case "turtle" : return turtleMetadataHandler();
+            case "ntriples" : return ntripleMetadataHandler();
+        }
+        return xmlMetadataHandler();
     }
 
     protected SimpleMetadataHandler xmlMetadataHandler() {
@@ -166,7 +175,7 @@ public abstract class OAIHarvester extends Converter {
 
         public void endDocument() throws SAXException {
             super.endDocument();
-            logger.info("got XML document {}", getIdentifier());
+            logger.debug("got XML document {}", getIdentifier());
             try {
                 StringPacket p = session.newPacket();
                 p.name(getIdentifier());
@@ -182,58 +191,4 @@ public abstract class OAIHarvester extends Converter {
         }
     }
 
-   /* protected class TurtleWriterOutput extends TurtleWriter {
-
-        TurtleWriterOutput(Writer writer, IRINamespaceContext namespaceContext) {
-            super(writer);
-            try {
-                setContext(namespaceContext);
-                writeNamespaces();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public TurtleWriterOutput write(ResourceContext resourceContext) throws IOException {
-            super.write(resourceContext);
-            StringPacket p = session.newPacket();
-            p.name(resourceContext.getResource().id().getASCIIAuthority());
-            String s = getContentBuilder().toString();
-            // for Unicode in non-canonical form, normalize it here
-            s = Normalizer.normalize(s, Normalizer.Form.NFC);
-            p.packet(s);
-            session.write(p);
-            sw = new StringWriter();
-            writer.write(sw);
-            return this;
-        }
-    }*/
-
-    /*protected class NTripleOutput extends RdfOutput {
-
-        StringWriter sw;
-
-        NTripleWriter writer;
-
-        NTripleOutput() {
-            this.writer = new NTripleWriter()
-                    .output(sw);
-        }
-
-        @Override
-        public RdfOutput output(ResourceContext resourceContext) throws IOException {
-            writer.write(resourceContext.getResource());
-            StringPacket p = session.newPacket();
-            p.name(resourceContext.getResource().id().getASCIIAuthority());
-            String s = sw.toString();
-            // for Unicode in non-canonical form, normalize it here
-            s = Normalizer.normalize(s, Normalizer.Form.NFC);
-            p.packet(s);
-            session.write(p);
-            sw = new StringWriter();
-            writer.output(sw);
-            return this;
-        }
-    }*/
 }

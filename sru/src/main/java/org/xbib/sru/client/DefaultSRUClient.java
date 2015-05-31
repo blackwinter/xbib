@@ -43,6 +43,7 @@ import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -133,22 +134,26 @@ public class DefaultSRUClient implements SRUClient {
         }
         final SearchRetrieveResponse response = new SearchRetrieveResponse(request);
 
-        HttpRequest req = session.newRequest()
-                .setMethod("GET")
-                .setURL(request.getURI())
-                .addParameter(SRUConstants.OPERATION_PARAMETER, "searchRetrieve")
-                .addParameter(SRUConstants.VERSION_PARAMETER, request.getVersion())
-                .addParameter(SRUConstants.QUERY_PARAMETER, request.getQuery())
-                .addParameter(SRUConstants.START_RECORD_PARAMETER, Integer.toString(request.getStartRecord()))
-                .addParameter(SRUConstants.MAXIMUM_RECORDS_PARAMETER, Integer.toString(request.getMaximumRecords()));
+        try {
+            HttpRequest req = session.newRequest()
+                    .setMethod("GET")
+                    .setURL(request.getURI())
+                    .addParameter(SRUConstants.OPERATION_PARAMETER, "searchRetrieve")
+                    .addParameter(SRUConstants.VERSION_PARAMETER, request.getVersion())
+                    .addParameter(SRUConstants.QUERY_PARAMETER, request.getQuery())
+                    .addParameter(SRUConstants.START_RECORD_PARAMETER, Integer.toString(request.getStartRecord()))
+                    .addParameter(SRUConstants.MAXIMUM_RECORDS_PARAMETER, Integer.toString(request.getMaximumRecords()));
 
-        if (request.getRecordPacking() != null && !request.getRecordPacking().isEmpty()) {
-            req.addParameter(SRUConstants.RECORD_PACKING_PARAMETER, request.getRecordPacking());
+            if (request.getRecordPacking() != null && !request.getRecordPacking().isEmpty()) {
+                req.addParameter(SRUConstants.RECORD_PACKING_PARAMETER, request.getRecordPacking());
+            }
+            if (request.getRecordSchema() != null && !request.getRecordSchema().isEmpty()) {
+                req.addParameter(SRUConstants.RECORD_SCHEMA_PARAMETER, request.getRecordSchema());
+            }
+            req.prepare().execute(response).waitFor();
+        } catch (URISyntaxException e) {
+            // TODO
         }
-        if (request.getRecordSchema() != null && !request.getRecordSchema().isEmpty()) {
-            req.addParameter(SRUConstants.RECORD_SCHEMA_PARAMETER, request.getRecordSchema());
-        }
-        req.prepare().execute(response).waitFor();
         return response;
     }
 

@@ -1,0 +1,317 @@
+<http://d-nb.info/gnd/118540238> gnd:variantNameForThePerson "Gete, Volʹfgang", [
+		gnd:foreName "...";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Yohan Wolfgang";
+		gnd:surname "Gyot'e";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Jochan Volfgang";
+		gnd:surname "G'ote";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Johann Wolfgang von", [
+		gnd:foreName "...";
+		gnd:surname "Göte";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "Juan Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Gete, Johan Volfgang", "Gēte, ...", [
+		gnd:foreName "Yôhan Wolfgang";
+		gnd:surname "Gête";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Juan W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Göte, Iogann V.", [
+		gnd:foreName "Wolfgango";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "J. Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "Johann W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "fun";
+		gnd:foreName "Yūhān Wulfgāng";
+		gnd:surname "Gūta";
+		gnd:usedRules "RAK-WB"
+	],"Koet'e, ...", "G'ote, ...", "Goethe, Johan Wolfgang von", "Goethe, J. W. v.", "Goethe, Iohan Wolphgang", "Goet'e, ...", [
+		gnd:foreName "Iohan Volp'gang";
+		gnd:surname "Goet'e";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Iohan Volfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Iohan Wolphgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Jan Wolfgang", "Gūta, ...", [
+		gnd:foreName "Y. W.";
+		gnd:surname "Gêtê";
+		gnd:usedRules "RAK-WB"
+	],"Göthe, J. W. von", [
+		gnd:foreName "Iogann Vol'fgang";
+		gnd:surname "Ge͏̈te";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Ioannes W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Wolfango", [
+		gnd:foreName "Yohann Volfqanq";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],"Gėtė, Johanas Volfgangas", [
+		gnd:foreName "Johan Volfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "Jean Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "fôn";
+		gnd:foreName "Yôhân Wôlfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],"Ge͏̈te, Iogann Vol'fgang", [
+		gnd:prefixName "v.";
+		gnd:foreName "Johann Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "v.";
+		gnd:foreName "J. W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Johann W.", [
+		gnd:foreName "Iogann Volʹfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "fon";
+		gnd:foreName "Jogann Vol'fgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "J. W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"G'ote, Jochan Volfgang", "Goethe, Joh. Wolfg. v.", "Gūta, Yūhān Wulfgāng fun", [
+		gnd:foreName "Iogann W.";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "G'ote";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Iogann V.";
+		gnd:surname "Göte";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Johann W. von", "Goethe, Juan Wolfgang von", [
+		gnd:prefixName "fūn";
+		gnd:foreName "Yūhān Vūlfġanġ";
+		gnd:surname "Ġūtih";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "Gót";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "von";
+		gnd:foreName "J. W.";
+		gnd:surname "Göthe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "Gě'ṭe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "Koet'e";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Jean Wolfgang von", "Gkaite, ...", "Gete, Yohann Volfqanq", [
+		gnd:prefixName "von";
+		gnd:foreName "Johann Wolfgang";
+		gnd:surname "Göthe";
+		gnd:usedRules "RAK-WB"
+	],"Gete, I. V.", [
+		gnd:foreName "Volfgango";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Gete, J. V.", "Gě'ṭe, ...", "Gkaite, Giochan B. phon", [
+		gnd:foreName "...";
+		gnd:surname "Goethius";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "E͏̈han Vol'fhanh";
+		gnd:surname "He͏̈te";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Johann Wolfgang v.", [
+		gnd:foreName "...";
+		gnd:surname "Gūta";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:prefixName "phon";
+		gnd:foreName "Giochan B.";
+		gnd:surname "Gkaite";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "J. V.";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],"Göthe, Johann Wolfgang von", "Goethe, Wolfgang von", "Goethe, Volfgango", [
+		gnd:foreName "Johann Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, J. Wolfgang", "Goet'e, Iohan Volp'gang", "Gete, Jogann Vol'fgang fon", [
+		gnd:prefixName "fūn";
+		gnd:foreName "Yūhān Wulfgāng";
+		gnd:surname "Gūta";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Johann Wolfgang", [
+		gnd:prefixName "v.";
+		gnd:foreName "Joh. Wolfg.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, J. W. von", "Gete, Iohan Volfgang", [
+		gnd:prefixName "phon";
+		gnd:foreName "Giochan Bolphnkannk";
+		gnd:surname "Gkaite";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Juan W.", "Hete, Johann-Vol'fhanh", "Gete, ...", [
+		gnd:foreName "Volʹfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "Gkaite";
+		gnd:usedRules "RAK-WB"
+	],"Gete, Iogann W.", [
+		gnd:locQualifier "$d1749-1832";
+		gnd:foreName "Johann Wolfgang von";
+		gnd:surname "Goethe";
+		gnd:usedRules "AACR"
+	],"Goethius, ...", [
+		gnd:foreName "I. V.";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],"Gete, Iogann Volʹfgang", [
+		gnd:foreName "Jan Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Gyot'e, Yohan Wolfgang", "Gêtê, Y. W.", "Gkaite, Giochan Bolphnkannk phon", "Gete, Yôhân Wôlfgang fôn", [
+		gnd:prefixName "fon";
+		gnd:foreName "Yohan Ṿolfgang";
+		gnd:surname "Geteh";
+		gnd:usedRules "RAK-WB"
+	],"Ġūtih, Yūhān Vūlfġanġ fūn", "Goethe, Wolfgang", "Goethe, João Wolfgang von", [
+		gnd:foreName "Johann Volʹfgang";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Johanas Volfgangas";
+		gnd:surname "Gėtė";
+		gnd:usedRules "RAK-WB"
+	],"Geteh, Yohan Ṿolfgang fon", [
+		gnd:foreName "...";
+		gnd:surname "Gete";
+		gnd:usedRules "RAK-WB"
+	],"Gót, ...", "Goethe, Wolfgango", "Göte, ...", [
+		gnd:prefixName "von";
+		gnd:foreName "Johan Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Wolfango";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Gūta, Yūhān Wulfgāng fūn", [
+		gnd:prefixName "p'on";
+		gnd:foreName "Yohan Polp'ŭgang";
+		gnd:surname "Koet'e";
+		gnd:usedRules "RAK-WB"
+	],"He͏̈te, E͏̈han Vol'fhanh", "Goethe, J. W.", [
+		gnd:prefixName "von";
+		gnd:foreName "João Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Gête, Yôhan Wolfgang", [
+		gnd:foreName "...";
+		gnd:surname "Gēte";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Johann-Vol'fhanh";
+		gnd:surname "Hete";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "J. W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "...";
+		gnd:surname "Goet'e";
+		gnd:usedRules "RAK-WB"
+	],"Goethe, Volfango", [
+		gnd:foreName "...";
+		gnd:surname "Gede";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Volfango";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],[
+		gnd:foreName "Johann W.";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	],"Koet'e, Yohan Polp'ŭgang p'on", "Goethe, ...", "Goethe, Ioannes W.", "Gete, Johann Volʹfgang", "Gede, ...";
+	rdaRelGr2:relatedPersonPerson gnd:118617222, gnd:118795163, gnd:118633252, gnd:118638076, gnd:119277387, gnd:118540254, gnd:11687256X;
+	rdaGr2:placeOfResidence "Weimar"@de;
+	gnd:invalidIdentifierForThePerson "(DE-101c)310270162", "(DE-588a)1014123208";
+	rdaGr2:professionOrOccupation gnd:4037215-7, gnd:4029050-5, gnd:4041423-1, "Theaterleiter"@de, gnd:4053309-8, gnd:4046517-2, gnd:4200345-3;
+	gnd:preferredNameForThePerson "Goethe, Johann Wolfgang von", [
+		gnd:prefixName "von";
+		gnd:foreName "Johann Wolfgang";
+		gnd:surname "Goethe";
+		gnd:usedRules "RAK-WB"
+	];
+	rdaGr2:biographicalInformation "Geheimrat; Italienreise 1786-1788 und 1790"@de;
+	rdaGr2:placeOfDeath "Weimar"@de;
+	foaf:page <http://de.wikipedia.org/wiki/Johann_Wolfgang_von_Goethe>;
+	rel:spouseOf gnd:118628011;
+	rel:siblingOf gnd:11871791X;
+	rel:childOf gnd:118695940, gnd:118540246;
+	rdaGr2:gender <http://RDVocab.info/termList/gender/1002>;
+	rdaGr2:dateOfBirth "1749";
+	rdaGr2:identifierForThePerson "(DE-588)118540238", "(DE-588c)4021455-2", "(DLC)n 79003362";
+	rdaGr2:dateOfDeath "1832";
+	owl:sameAs <http://dbpedia.org/resource/Johann_Wolfgang_von_Goethe>, <http://viaf.org/viaf/24602065>;
+	rdaGr2:placeOfBirth "Frankfurt <Main>"@de;
+	rel:parentOf gnd:11854022X;
+	rdaGr2:languageOfThePerson <http://marccodes.heroku.com/languages/ger>;
+	gnd:functionOfThePerson "Textverfasser", "s";
+	gnd:countryCodeForThePerson "XA-DE".

@@ -33,7 +33,10 @@ package org.xbib.oai.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.io.http.netty.NettyHttpSession;
 import org.xbib.oai.client.getrecord.GetRecordRequest;
 import org.xbib.oai.client.identify.IdentifyRequest;
@@ -47,6 +50,8 @@ import org.xbib.oai.util.ResumptionToken;
  * Default OAI client
  */
 public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
+
+    private final static Logger logger = LogManager.getLogger(DefaultOAIClient.class);
 
     private URI uri;
 
@@ -76,7 +81,11 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public IdentifyRequest newIdentifyRequest() {
         ensureOpen();
         IdentifyRequest request = new IdentifyRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+        }
         return request;
     }
 
@@ -84,7 +93,11 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public ListMetadataFormatsRequest newListMetadataFormatsRequest() {
         ensureOpen();
         ListMetadataFormatsRequest request = new ListMetadataFormatsRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+        }
         return request;
     }
 
@@ -92,7 +105,11 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public ListSetsRequest newListSetsRequest() {
         ensureOpen();
         ListSetsRequest request = new ListSetsRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+        }
         return request;
     }
 
@@ -100,7 +117,11 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public ListIdentifiersRequest newListIdentifiersRequest() {
         ensureOpen();
         ListIdentifiersRequest request = new ListIdentifiersRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+        }
         return request;
     }
 
@@ -108,7 +129,12 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public GetRecordRequest newGetRecordRequest() {
         ensureOpen();
         GetRecordRequest request = new GetRecordRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+
+        }
         return request;
     }
 
@@ -116,7 +142,12 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     public ListRecordsRequest newListRecordsRequest() {
         ensureOpen();
         ListRecordsRequest request = new ListRecordsRequest(this);
-        request.setURL(getURL());
+        try {
+            request.setURL(getURL());
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+
+        }
         return request;
     }
 

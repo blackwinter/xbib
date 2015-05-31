@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
+import org.xbib.oai.exceptions.OAIException;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
@@ -53,6 +54,7 @@ import org.xml.sax.helpers.AttributesImpl;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.ConnectException;
 
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
@@ -62,15 +64,13 @@ public class LOMClientTest {
 
     @Test
     public void testListRecordsLOM() throws Exception {
-
-        OAIClient client = OAIClientFactory.newClient("http://www.melt.fwu.de/oai2.php");
-        ListRecordsRequest request = client.newListRecordsRequest()
-                .setFrom(DateUtil.parseDateISO("2008-04-04T00:00:00Z"), OAIDateResolution.DAY)
-                .setUntil(DateUtil.parseDateISO("2014-04-05T00:00:00Z"), OAIDateResolution.DAY)
-                .setMetadataPrefix("oai_lom");
-
-        do {
-            try {
+        try {
+            OAIClient client = OAIClientFactory.newClient("http://www.melt.fwu.de/oai2.php");
+            ListRecordsRequest request = client.newListRecordsRequest()
+                    .setFrom(DateUtil.parseDateISO("2014-04-04T00:00:00Z"), OAIDateResolution.DAY)
+                    .setUntil(DateUtil.parseDateISO("2015-04-05T00:00:00Z"), OAIDateResolution.DAY)
+                    .setMetadataPrefix("oai_lom");
+            do {
                 ListRecordsListener listener = new ListRecordsListener(request);
                 request.addHandler(xmlMetadataHandler());
                 request.prepare().execute(listener).waitFor();
@@ -81,15 +81,17 @@ public class LOMClientTest {
                     logger.warn("no response");
                 }
                 request = client.resume(request, listener.getResumptionToken());
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        } while (request != null);
-        client.close();
+            } while (request != null);
+            client.close();
+        } catch (OAIException e) {
+            logger.error(e.getMessage(), e);
+        } catch (ConnectException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     protected SimpleMetadataHandler xmlMetadataHandler() {
-        RdfContentParams params = IRINamespaceContext::getInstance;
+        RdfContentParams params = IRINamespaceContext::newInstance;
         RdfResourceHandler handler = new RdfResourceHandler(params);
         return new LOMHandlerSimple(params).setHandler(handler);
     }

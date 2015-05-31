@@ -5,22 +5,18 @@ import org.xbib.rdf.RdfContentParams;
 
 public class XmlContentParams implements RdfContentParams {
 
+    protected final static IRINamespaceContext defaultNamespaceContext = IRINamespaceContext.newInstance();
+
     private final IRINamespaceContext namespaceContext;
 
-    private final boolean writeNamespaceContext;
+    public final static XmlContentParams DEFAULT_PARAMS = new XmlContentParams(defaultNamespaceContext);
 
-    public final static XmlContentParams DEFAULT_PARAMS = new XmlContentParams(IRINamespaceContext.getInstance(), true);
-
-    public XmlContentParams(IRINamespaceContext namespaceContext, boolean writeNamespaceContext) {
+    public XmlContentParams(IRINamespaceContext namespaceContext) {
         this.namespaceContext = namespaceContext;
-        this.writeNamespaceContext = writeNamespaceContext;
     }
 
     public IRINamespaceContext getNamespaceContext() {
         return namespaceContext;
     }
 
-    public boolean isWriteNamespaceContext() {
-        return writeNamespaceContext;
-    }
 }
