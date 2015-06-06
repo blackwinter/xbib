@@ -42,7 +42,6 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
@@ -52,8 +51,8 @@ import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -65,36 +64,36 @@ import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
-public class ZDB implements CommandLineInterpreter {
+public class PublisherFile implements CommandLineInterpreter {
 
-    private final static Logger logger = LogManager.getLogger(ZDB.class.getName());
+    private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
     private final static Map<String,Collection<Object>> publishers = newTreeMap();
 
     private static Settings settings;
 
-    public ZDB reader(Reader reader) {
+    public PublisherFile reader(Reader reader) {
         settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
-    public ZDB settings(Settings newSettings) {
+    public PublisherFile settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public ZDB writer(Writer writer) {
+    public PublisherFile writer(Writer writer) {
         return this;
     }
 
     @Override
     public void run() throws Exception {
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
-                .put("cluster.name", settings.get("source.cluster"))
-                .put("host", settings.get("source.host"))
-                .put("port", settings.getAsInt("source.port", 9300))
-                .put("sniff", settings.getAsBoolean("source.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
+                .put("cluster.name", settings.get("elasticsearch.cluster"))
+                .put("host", settings.get("elasticsearch.host"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
         Client client = search.client();
         try {
@@ -106,8 +105,8 @@ public class ZDB implements CommandLineInterpreter {
                     .setScroll(TimeValue.timeValueMillis(1000));
 
             QueryBuilder queryBuilder = matchAllQuery();
+            // default: filter all manifestations that have a service
             FilterBuilder filterBuilder = existsFilter("dates");
-            // filter ISSN
             if (settings.getAsBoolean("issnonly", false)) {
                 filterBuilder = boolFilter()
                         .must(existsFilter("dates"))
@@ -132,24 +131,33 @@ public class ZDB implements CommandLineInterpreter {
                     break;
                 }
                 for (SearchHit hit : hits) {
-                    List<Object> l3 = hit.getFields().get("identifiers.issn").getValues();
-                    List<Object> l1 = hit.getFields().get("publishedby").getValues();
-                    List<Object> l2 = hit.getFields().get("publishedat").getValues();
-                    // combine publisher statement to one string, ignore all entries with [s.n.]
-                    StringBuilder sb = new StringBuilder();
-                    if (l1 != null) {
-                        String name = join(l1, "; ");
-                        name = name.replaceAll("\\[.*\\]","")
-                                .replaceAll("<<","")
-                                .replaceAll(">>", "");
-                        boolean valid = !name.isEmpty() && !name.contains("[s.n.]");
-                        if (valid) {
+                    List<Object> names = hit.getFields().containsKey("publishedby") ?
+                            hit.getFields().get("publishedby").getValues() : Collections.emptyList();
+                    List<Object> places = hit.getFields().containsKey("publishedat") ?
+                            hit.getFields().get("publishedat").getValues() : Collections.emptyList();
+                    // for all publisher names (plus place), create an entry
+                    for (int i = 0; i < names.size(); i++) {
+                        StringBuilder sb = new StringBuilder();
+                        String name = names.get(i).toString();
+                        // remove comments and sort order rules
+                        name = name.replaceAll("\\[.*\\]", "")
+                                .replaceAll("<<", "")
+                                .replaceAll(">>", "")
+                                .replaceAll("\u0098", "")
+                                .replaceAll("\u009b", "")
+                                .trim();
+                        if (!name.isEmpty()) {
                             sb.append(name);
-                            String location = join(l2, "; ");
+                            String location = i < places.size() ? places.get(i).toString() : "";
                             location = location.replaceAll("\\[.*\\]", "").trim(); // [s.l.], [S.l.]
-                            sb.append(": ").append(location);
+                            if (!location.isEmpty()) {
+                                sb.append(": ").append(location);
+                            }
                             String key = sb.toString();
-                            Collection<Object> c = new HashSet(l3);
+                            // attach the list of ISSNs to the publisher
+                            List<Object> issns = hit.getFields().containsKey("identifiers.issn") ?
+                                    hit.getFields().get("identifiers.issn").getValues() : Collections.emptyList();
+                            Collection<Object> c = new HashSet<Object>(issns);
                             if (publishers.containsKey(key)) {
                                 c.addAll(publishers.get(key));
                             }
@@ -173,23 +181,6 @@ public class ZDB implements CommandLineInterpreter {
             writer.write("\n");
         }
         writer.close();
-    }
-
-    public static String join(List<Object> pieces, String separator) {
-        if (pieces == null) {
-            return "";
-        }
-        StringBuilder buffer = new StringBuilder();
-        for (Iterator<Object> iter = pieces.iterator(); iter.hasNext(); ) {
-            Object o = iter.next();
-            if (!o.toString().isEmpty()) {
-                buffer.append(o);
-                if (iter.hasNext()) {
-                    buffer.append(separator);
-                }
-            }
-        }
-        return buffer.toString();
     }
 
 }

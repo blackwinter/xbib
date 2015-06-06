@@ -71,7 +71,7 @@ public class NatLizMapper implements ArticleVocabulary {
         }
         String key = wa.createIdentifier();
         r.add(XBIB_KEY, key);
-        r.id(IRI.create("http://xbib.info/key/"+key));
+        r.id(IRI.create("http://xbib.info/key/" + key));
         return r;
     }
 
@@ -111,13 +111,13 @@ public class NatLizMapper implements ArticleVocabulary {
                 title = value;
                 break;
             }
-            case "PersonCreator.personName" : {
+            case "PersonCreator.personName" :{
                 if (value.indexOf(',') > 0) {
                     // switch lastname, forename
                     String[] s = value.split(", ");
                     Author author = new Author();
                     author.lastName = s[0];
-                    author.foreName = s.length > 0 ? s[1] : null;
+                    author.foreName = s.length > 1 ? s[1] : null;
                     authors.add(author);
                     r.newResource(DC_CREATOR)
                             .a(FOAF_AGENT)
@@ -133,10 +133,20 @@ public class NatLizMapper implements ArticleVocabulary {
                 }
                 break;
             }
+            case "CorporateBody.corporateBodyName" : {
+                r.newResource(DC_CONTRIBUTOR)
+                        .a(FOAF_AGENT)
+                        .add(FOAF_NAME, value);
+
+                break;
+            }
             case "CreatorStatement.creatorStatement" : {
                 r.newResource(DC_CREATOR)
                         .a(FOAF_AGENT)
                         .add(FOAF_NAME, value);
+                Author author = new Author();
+                author.lastName = value;
+                authors.add(author);
                 break;
             }
             case "SourceIdentifierISSN.identifierOfTheSource" : {

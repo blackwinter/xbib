@@ -983,6 +983,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 .field("language", language())
                 .field("publishedat", getPublisherPlace())
                 .field("publishedby", getPublisher())
+                .field("openaccess", isOpenAccess())
                 .field("contenttype", contentType())
                 .field("mediatype", mediaType())
                 .field("carriertype", carrierType())

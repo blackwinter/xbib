@@ -43,8 +43,6 @@ import java.util.Map;
 
 public class DOAJMapper implements ArticleVocabulary {
 
-    private final static Logger logger = LogManager.getLogger(DOAJMapper.class);
-
     public Resource map(Map<String, Object> map) throws IOException {
         Resource r = new MemoryResource();
         map(r, null, map);

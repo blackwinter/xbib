@@ -235,7 +235,7 @@ public abstract class Converter<T, R extends PipelineRequest, P extends Pipeline
         try {
             process(request.get());
         } catch (Exception ex) {
-            logger.error("error while getting next input: " + ex.getMessage(), ex);
+            logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
         }
     }
 

@@ -105,7 +105,9 @@ public class WorkAuthor implements IdentifiableEndeavor {
         }
         StringBuilder sb = new StringBuilder();
         for (String s : foreName.split("\\s+")) {
-            sb.append(s.charAt(0));
+            if (s.length() > 0) {
+                sb.append(s.charAt(0));
+            }
         }
         if (lastName != null) {
             if (this.authorName == null) {

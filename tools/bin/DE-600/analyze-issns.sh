@@ -18,18 +18,15 @@ java="java"
 
 echo '
 {
-    "source" : {
+    "elasticsearch" : {
         "cluster" : "zbn-1.5",
         "host" : "zephyros",
         "port" : 19300,
         "autodiscover" : true
-    },
-    "ezdb-index" : "ezdb",
-    "ezdb-type" : "Manifestation",
-    "issnonly" : true
+    }
 }
 ' | ${java} \
     -cp ${lib}/\*:${bin}/\* \
     -Dlog4j.configurationFile=${bin}/log4j2.xml \
     org.xbib.tools.Runner \
-    org.xbib.tools.analyze.ZDB
+    org.xbib.tools.analyze.ISSNsOfZDB

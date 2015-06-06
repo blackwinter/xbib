@@ -58,7 +58,7 @@ public class TypeMedia extends MABEntity {
 
     private String predicate;
 
-    private Map<Pattern,String> patterns;
+    private final Map<Pattern,String> patterns = new HashMap<Pattern,String>();
 
     @Override
     public MABEntity setSettings(Map params) {
@@ -72,9 +72,10 @@ public class TypeMedia extends MABEntity {
         }
         Map<String, Object> regexes = (Map<String, Object>) getSettings().get("regexes");
         if (regexes != null) {
-            patterns = new HashMap<Pattern,String>();
-            for (String key : regexes.keySet()) {
-                patterns.put(Pattern.compile(Pattern.quote(key), Pattern.CASE_INSENSITIVE), (String) regexes.get(key));
+            synchronized (patterns) {
+                for (String key : regexes.keySet()) {
+                    patterns.put(Pattern.compile(Pattern.quote(key), Pattern.CASE_INSENSITIVE), (String) regexes.get(key));
+                }
             }
         }
         return this;
@@ -105,7 +106,7 @@ public class TypeMedia extends MABEntity {
             list.add((String) rak.get(value));
             isRAK = true;
         }
-        if (patterns != null) {
+        synchronized (patterns) {
             // pattern matching
             for (Pattern p : patterns.keySet()) {
                 Matcher m = p.matcher(value);

@@ -13,6 +13,7 @@ import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
 
@@ -93,7 +94,6 @@ public class NatLiz extends Feeder {
         @Override
         public void afterCompletion(MABEntityBuilderState state) throws IOException {
             RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext, settings.get("index"), settings.get("type"));
-            //params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));
@@ -106,9 +106,12 @@ public class NatLiz extends Feeder {
             NatLizMapper natLizMapper = new NatLizMapper();
             params = new RouteRdfXContentParams(namespaceContext, settings.get("index"), settings.get("type"));
             builder = routeRdfXContentBuilder(params);
+            Resource resource = natLizMapper.map(map);
             builder.receive(natLizMapper.map(map));
             if (settings.getAsBoolean("mock", false)) {
                 logger.info("mapper: {}", params.getGenerator().get());
+            } else {
+                ingest.index(params.getIndex(), params.getType(), resource.id().toString(), params.getGenerator().get());
             }
         }
     }

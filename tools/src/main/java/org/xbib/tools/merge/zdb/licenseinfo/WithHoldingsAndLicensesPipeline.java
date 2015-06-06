@@ -330,11 +330,18 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             return;
         }
         visited.add(id);
-        // make sure at other threads that we do never index a manifestation twice
+        // make sure that we do never index a manifestation twice
         if (service.indexed().contains(id)) {
             return;
         }
         service.indexed().add(id);
+        // find open access
+        Collection<String> issns = (Collection<String>) m.getIdentifiers().get("formattedissn");
+        boolean found = false;
+        for (String issn : issns) {
+            found = found || service.findOpenAccess(issn);
+        }
+        m.setOpenAccess(found);
         String tag = service.settings().get("tag");
         // first, index related volumes (conference/proceedings/abstracts/...)
         List<String> vids = newArrayList();

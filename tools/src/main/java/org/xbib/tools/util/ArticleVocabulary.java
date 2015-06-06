@@ -34,6 +34,8 @@ public interface ArticleVocabulary {
 
     IRI DC_CREATOR = IRI.create("dc:creator");
 
+    IRI DC_CONTRIBUTOR = IRI.create("dc:contributor");
+
     IRI DC_TITLE = IRI.create("dc:title");
 
     IRI DC_IDENTIFIER = IRI.create("dc:identifier");

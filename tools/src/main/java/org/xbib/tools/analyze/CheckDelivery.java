@@ -102,7 +102,7 @@ public class CheckDelivery implements CommandLineInterpreter {
                 logger.warn("invalid line: {}", line);
                 continue;
             }
-            String zdbid = s[0].replaceAll("\\-", "");
+            String zdbid = s[0].replaceAll("\\-", "").toLowerCase();
             String year = s[1];
             if (year.length() != 4) {
                 logger.warn("invalid line: {}", line);
@@ -154,7 +154,7 @@ public class CheckDelivery implements CommandLineInterpreter {
                         notfound += count;
                     }
                 } else {
-                    notfound += count;
+                    logger.warn("not found: {}", zdbid);
                 }
             }
         }

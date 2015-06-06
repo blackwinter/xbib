@@ -34,6 +34,8 @@ package org.xbib.tools.merge.zdb.licenseinfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.action.count.CountRequestBuilder;
+import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -381,7 +383,7 @@ public class WithHoldingsAndLicenses
                         logger.error("no more pipelines left to receive, aborting");
                         return this;
                     }
-                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(force), 60, TimeUnit.SECONDS);
+                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(true), 60, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     logger.error("interrupted, queue no longer active");
@@ -412,6 +414,14 @@ public class WithHoldingsAndLicenses
         scheduleThread.interrupt();
 
         return this;
+    }
+
+    public boolean findOpenAccess(String issn) {
+        CountRequestBuilder countRequestBuilder = client.prepareCount()
+                .setIndices(settings.get("doaj-index", "doaj"))
+                .setQuery(termQuery("dc:identifier", issn));
+        CountResponse countResponse = countRequestBuilder.execute().actionGet();
+        return countResponse.getCount() > 0;
     }
 
     public Set<String> processed() {

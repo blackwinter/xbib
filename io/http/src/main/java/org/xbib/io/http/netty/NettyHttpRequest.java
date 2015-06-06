@@ -151,8 +151,13 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
             throw new IOException("no URL set");
         }
         if (request == null) {
-            this.request = requestBuilder
-                    .setUrl(uri.toString())
+            if (requestBuilder == null) {
+                if (method == null) {
+                    this.method = "GET";
+                }
+                this.requestBuilder = new RequestBuilder(method, true);
+            }
+            this.request = requestBuilder.setUrl(uri.toString())
                     .setRealm(realmBuilder.build())
                     .build();
             logger.debug("prepared " + toString());

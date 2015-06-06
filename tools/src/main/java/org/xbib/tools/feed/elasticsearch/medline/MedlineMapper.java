@@ -51,17 +51,27 @@ public class MedlineMapper implements ArticleVocabulary {
 
     private final static Logger logger = LogManager.getLogger(MedlineMapper.class);
 
-    Set<Author> authors = new LinkedHashSet<>();
-    Author author;
-    Datestamp pubdate, articledate, creationdate;
-    String medlinedate;
-    String title;
-    String volume;
-    String issue;
-    String pagination;
-    String journal;
-    String issn;
-    String shortTitle;
+    private Set<Author> authors = new LinkedHashSet<>();
+
+    private Author author;
+
+    private Datestamp pubdate, articledate, creationdate;
+
+    private String medlinedate;
+
+    private String title;
+
+    private String volume;
+
+    private String issue;
+
+    private String pagination;
+
+    private String journal;
+
+    private String issn;
+
+    private String shortTitle;
 
     MedlineMapper() {
     }
