@@ -904,8 +904,6 @@
         
         <module>tools</module>
 
-        <!-- <module>storage/objectstorage</module> -->
-
     </modules>
 
 </project>
