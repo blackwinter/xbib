@@ -59,7 +59,7 @@ public class GNDRdfXmlReaderTest extends StreamTester {
         reader.setRdfContentBuilderProvider(() -> turtleBuilder(params));
         reader.setRdfContentBuilderHandler(builder -> sb.append(builder.string()));
         reader.parse();
-        assertStream(new InputStreamReader(getClass().getResource("GND.ttl").openStream()),
+        assertStream(new InputStreamReader(getClass().getResource("gnd.ttl").openStream()),
                 new StringReader(sb.toString()));
     }
 
