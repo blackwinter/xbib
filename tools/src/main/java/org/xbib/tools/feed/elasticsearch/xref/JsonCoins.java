@@ -112,7 +112,7 @@ public class JsonCoins extends Feeder {
     }
 
     @Override
-    public JsonCoins prepare() throws IOException {
+    public void prepareSource() throws IOException {
         try {
             Queue<URI> input = new Finder(settings.get("serials"))
                     .find(settings.get("path"))
@@ -130,8 +130,7 @@ public class JsonCoins extends Feeder {
         if (serialsdb.getMap().isEmpty()) {
             throw new IllegalArgumentException("no serials?");
         }
-        super.prepare();
-        return this;
+        super.prepareSource();
     }
 
     @Override

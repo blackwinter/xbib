@@ -186,7 +186,7 @@ public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<Long
         }
     }
 
-    @Override
+    /*@Override
     public boolean hasNext() {
         try {
             return prepareRead();
@@ -205,7 +205,7 @@ public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<Long
     public void remove() {
         throw new UnsupportedOperationException("Not supported");
     }
-
+*/
     @Override
     public void newRequest(Pipeline<MeterMetric, LongPipelineElement> pipeline, LongPipelineElement request) {
         try {

@@ -57,21 +57,23 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Sets.newTreeSet;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-public class WithArticlesPipeline implements Pipeline<Boolean, SerialItem> {
+public class WithArticlesPipeline
+        implements Pipeline<Boolean, SerialItemPipelineElement> {
 
     private final WithArticles service;
 
@@ -83,9 +85,11 @@ public class WithArticlesPipeline implements Pipeline<Boolean, SerialItem> {
 
     private final Logger logger;
 
+    private BlockingQueue<SerialItemPipelineElement> queue;
+
     private SerialItem serialItem;
 
-    private SerialItemPipelineElement element;
+    //private SerialItemPipelineElement element;
 
     private MeterMetric metric;
 
@@ -108,14 +112,28 @@ public class WithArticlesPipeline implements Pipeline<Boolean, SerialItem> {
     }
 
     @Override
+    public WithArticlesPipeline setQueue(BlockingQueue<SerialItemPipelineElement> queue) {
+        this.queue = queue;
+        return this;
+    }
+
+    @Override
     public Boolean call() throws Exception {
         logger.info("pipeline starting");
         try {
             this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
-            while (hasNext()) {
+            /*while (hasNext()) {
                 serialItem = next();
                 process(serialItem);
                 metric.mark();
+            }*/
+            SerialItemPipelineElement element = queue.poll();
+            serialItem = element.get();
+            while (serialItem != null) {
+                process(serialItem);
+                metric.mark();
+                element = queue.poll();
+                serialItem = element.get();
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
@@ -129,7 +147,7 @@ public class WithArticlesPipeline implements Pipeline<Boolean, SerialItem> {
         return true;
     }
 
-    @Override
+   /* @Override
     public boolean hasNext() {
         try {
             element = service.queue().poll(60, TimeUnit.SECONDS);
@@ -144,18 +162,13 @@ public class WithArticlesPipeline implements Pipeline<Boolean, SerialItem> {
     @Override
     public SerialItem next() {
         return element.get();
-    }
+    }*/
 
     @Override
     public void close() throws IOException {
-        if (!service.queue().isEmpty()) {
+        if (!service.getQueue().isEmpty()) {
             logger.error("service queue not empty?");
         }
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

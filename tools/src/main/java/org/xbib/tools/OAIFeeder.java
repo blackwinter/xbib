@@ -44,6 +44,7 @@ import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -72,7 +73,7 @@ public abstract class OAIFeeder extends TimewindowFeeder {
     private final static Logger logger = LogManager.getLogger(OAIFeeder.class);
 
     @Override
-    public OAIFeeder prepare() throws IOException {
+    public void prepareSink() throws IOException {
         ingest = createIngest();
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
@@ -91,11 +92,11 @@ public abstract class OAIFeeder extends TimewindowFeeder {
         if (inputs == null || inputs.length == 0) {
             throw new IllegalArgumentException("no parameter 'uri' given");
         }
-        input = newConcurrentLinkedQueue();
         for (String uri : inputs) {
-            input.offer(URI.create(uri));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(uri));
+            queue.add(element);
         }
-        return this;
     }
 
     @Override

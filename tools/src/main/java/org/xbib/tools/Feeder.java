@@ -43,8 +43,6 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineRequest;
 import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
 
@@ -55,21 +53,20 @@ import java.io.Writer;
 import java.net.URL;
 import java.text.NumberFormat;
 
-public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T, R>>
-        extends Converter<T, R, P> {
+public abstract class Feeder extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(Feeder.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(Feeder.class);
 
     protected static Ingest ingest;
 
     @Override
-    public Feeder<T, R, P> reader(Reader reader) {
+    public Feeder reader(Reader reader) {
         super.reader(reader);
         return this;
     }
 
     @Override
-    public Feeder<T, R, P> writer(Writer writer) {
+    public Feeder writer(Writer writer) {
         super.writer(writer);
         return this;
     }
@@ -90,8 +87,8 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
     }
 
     @Override
-    public Feeder<T, R, P> prepare() throws IOException {
-        super.prepare();
+    public void prepareSink() throws IOException {
+        logger.info("preparing ingest");
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -100,12 +97,14 @@ public abstract class Feeder<T, R extends PipelineRequest, P extends Pipeline<T,
             ingest.maxActionsPerBulkRequest(maxbulkactions)
                     .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
         }
+        if (ingest == null){
+            logger.warn("ingest is null");
+        }
         createIndex(getIndex());
-        return this;
     }
 
     @Override
-    public Feeder<T, R, P> cleanup() throws IOException {
+    public Feeder cleanup() throws IOException {
         super.cleanup();
         if (ingest != null) {
             try {

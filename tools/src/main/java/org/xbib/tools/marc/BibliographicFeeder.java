@@ -60,7 +60,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
     }
 
     @Override
-    public BibliographicFeeder prepare() throws IOException {
+    public void prepareSink() throws IOException {
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -78,8 +78,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
         concreteIndex = resolveAlias(getIndex() + timeWindow);
         logger.info("base index name = {}, concrete index name = {}",
                 getIndex(), getConcreteIndex());
-        super.prepare();
-        return this;
+        super.prepareSink();
     }
 
     @Override

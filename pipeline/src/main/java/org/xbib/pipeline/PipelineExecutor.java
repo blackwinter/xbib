@@ -3,6 +3,8 @@ package org.xbib.pipeline;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -28,6 +30,8 @@ public interface PipelineExecutor<T,R extends PipelineRequest,P extends Pipeline
      * @return this setExecutor
      */
     PipelineExecutor<T,R,P> setPipelineProvider(PipelineProvider<P> provider);
+
+    PipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue);
 
     /**
      * Set pipeline sink
@@ -69,5 +73,5 @@ public interface PipelineExecutor<T,R extends PipelineRequest,P extends Pipeline
      * Return pipelines
      * @return the pipelines
      */
-    Collection<P> getPipelines();
+    Collection<Pipeline<T,R>> getPipelines();
 }

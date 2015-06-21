@@ -55,8 +55,8 @@ import org.xbib.tools.merge.zdb.entities.Indicator;
 import org.xbib.tools.merge.zdb.entities.License;
 import org.xbib.tools.merge.zdb.entities.Manifestation;
 import org.xbib.tools.merge.zdb.entities.TimeLine;
+import org.xbib.tools.merge.zdb.licenseinfo.ManifestationPipelineElement;
 import org.xbib.tools.merge.zdb.licenseinfo.WithHoldingsAndLicenses;
-import org.xbib.tools.util.SearchHitPipelineElement;
 import org.xbib.util.ExceptionFormatter;
 
 import java.io.IOException;
@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +81,8 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
-public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boolean, Manifestation> {
+public class WithHoldingsAndLicensesInTimelinePipeline
+        implements Pipeline<Boolean, ManifestationPipelineElement> {
 
     private final int number;
 
@@ -91,6 +93,8 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
     private final ObjectMapper mapper;
 
     private final Queue<ClusterBuildContinuation> buildQueue;
+
+    private BlockingQueue<ManifestationPipelineElement> queue;
 
     private Map<String, PipelineRequestListener> listeners;
 
@@ -161,7 +165,7 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
         return candidates;
     }
 
-    @Override
+    /*@Override
     public boolean hasNext() {
         SearchHitPipelineElement element;
         try {
@@ -186,7 +190,7 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
     @Override
     public Manifestation next() {
         return manifestation;
-    }
+    }*/
 
     @Override
     public Boolean call() throws Exception {
@@ -194,8 +198,9 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
         try {
             this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
             this.serviceMetric = new MeterMetric(5L, TimeUnit.SECONDS);
-            while (hasNext()) {
-                manifestation = next();
+            ManifestationPipelineElement element = queue.poll();
+            manifestation = element.get();
+            while (manifestation != null) {
                 if ("simple".equals(service.settings().get("mode", "standard"))) {
                     if (simpleCheck(manifestation)) {
                         simpleProcess(manifestation);
@@ -209,6 +214,8 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
                     }
                 }
                 metric.mark();
+                element = queue.poll();
+                manifestation = element.get();
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
@@ -227,13 +234,8 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
     }
 
     @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void close() throws IOException {
-        if (!service.queue().isEmpty()) {
+        if (!queue.isEmpty()) {
             logger.error("service queue not empty?");
         }
         if (!buildQueue.isEmpty()) {
@@ -247,7 +249,7 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
         return WithHoldingsAndLicenses.class.getSimpleName() + "." + number;
     }
 
-    public Pipeline<Boolean, Manifestation> add(String name, PipelineRequestListener listener) {
+    public Pipeline<Boolean, ManifestationPipelineElement> add(String name, PipelineRequestListener listener) {
         this.listeners.put(name, listener);
         return this;
     }
@@ -647,14 +649,15 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
 
     private boolean detectCollisionAndTransfer(Manifestation manifestation,
                                                ClusterBuildContinuation c, int pos) {
-        for (WithHoldingsAndLicensesInTimelinePipeline pipeline : service.getPipelines()) {
+        for (Pipeline pipeline : service.getPipelines()) {
             if (this == pipeline) {
                 continue;
             }
-            if (pipeline.getCluster() != null && pipeline.getCluster().contains(manifestation)) {
+            WithHoldingsAndLicensesInTimelinePipeline p = (WithHoldingsAndLicensesInTimelinePipeline)pipeline;
+            if (p.getCluster() != null && p.getCluster().contains(manifestation)) {
                 logger.warn("collision detected for {} with {} ", manifestation, pipeline);
                 c.pos = pos;
-                pipeline.getBuildQueue().offer(c);
+                p.getBuildQueue().offer(c);
                 return true;
             }
         }
@@ -994,6 +997,12 @@ public class WithHoldingsAndLicensesInTimelinePipeline implements Pipeline<Boole
                 }
             }
         }
+    }
+
+    @Override
+    public Pipeline<Boolean, ManifestationPipelineElement> setQueue(BlockingQueue<ManifestationPipelineElement> queue) {
+        this.queue = queue;
+        return this;
     }
 
     private class ClusterBuildContinuation {

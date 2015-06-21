@@ -51,6 +51,7 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.queue.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
@@ -85,7 +86,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
  * Merge serial manifestations with articles
  */
 public class WithArticles
-        extends QueuePipelineExecutor<Boolean, SerialItem, WithArticlesPipeline, SerialItemPipelineElement>
+        extends QueuePipelineExecutor<Boolean, SerialItemPipelineElement, WithArticlesPipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithArticles.class.getName());
@@ -186,7 +187,8 @@ public class WithArticles
             shutdown(new SerialItemPipelineElement().set(null));
 
             long total = 0L;
-            for (WithArticlesPipeline p : getPipelines()) {
+            for (Pipeline pipeline : getPipelines()) {
+                WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
                 logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
                         p,
                         p.getMetric().count(),
@@ -320,14 +322,15 @@ public class WithArticles
                             }
                         }
                         if (!serialItem.getManifestations().isEmpty()) {
-                            queue().offer(new SerialItemPipelineElement().set(serialItem), 60, TimeUnit.SECONDS);
+                            getQueue().offer(new SerialItemPipelineElement().set(serialItem));
                         }
                     }
                     count++;
                     long percent = count * 100 / total;
                     if (percent != lastpercent && logger.isInfoEnabled()) {
                         logger.info("{}/{} {}%", count, total, percent);
-                        for (WithArticlesPipeline p : getPipelines()) {
+                        for (Pipeline pipeline : getPipelines()) {
+                            WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
                             logger.info("{} throughput={} {} {} mean={} mldup={} xrefdup={}",
                                     p.toString(),
                                     p.getMetric().oneMinuteRate(),
@@ -340,11 +343,6 @@ public class WithArticles
                         }
                     }
                     lastpercent = percent;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logger.error("interrupted, queue no longer active");
-                    failure = true;
-                    break;
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));

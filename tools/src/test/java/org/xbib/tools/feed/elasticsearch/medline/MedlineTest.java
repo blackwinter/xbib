@@ -65,7 +65,9 @@ public class MedlineTest {
                     .put("mock", true)
                     .build();
             medline.setSettings(settings);
-            medline.prepare().process(url.toURI());
+            medline.prepareSink();
+            medline.prepareSource();
+            medline.process(url.toURI());
             medline.cleanup();
         } else {
             logger.warn("not found");

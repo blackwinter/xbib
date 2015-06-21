@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +82,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
-public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manifestation> {
+public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, ManifestationPipelineElement> {
 
     enum State {
         COLLECTING, PROCESSING, INDEXING
@@ -96,6 +97,8 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
     private final Logger logger;
 
     private final Queue<ClusterBuildContinuation> buildQueue;
+
+    private BlockingQueue<ManifestationPipelineElement> queue;
 
     private Map<String, PipelineRequestListener> listeners;
 
@@ -157,6 +160,13 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return null;
     }
 
+
+    @Override
+    public Pipeline<Boolean, ManifestationPipelineElement> setQueue(BlockingQueue<ManifestationPipelineElement> queue) {
+        this.queue = queue;
+        return this;
+    }
+
     public Queue<ClusterBuildContinuation> getBuildQueue() {
         return buildQueue;
     }
@@ -165,11 +175,11 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return candidates;
     }
 
-    @Override
+    /*@Override
     public boolean hasNext() {
         SearchHitPipelineElement element;
         try {
-            element = service.queue().poll(60, TimeUnit.SECONDS);
+            element = service.getQueue().poll(60, TimeUnit.SECONDS);
             if (element != null && element.get() != null) {
                 manifestation = new Manifestation(element.get().getSource());
                 manifestation.setForced(element.getForced());
@@ -182,18 +192,31 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             logger.error("pipeline processing interrupted, queue inactive", e);
         }
         return manifestation != null;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public Manifestation next() {
         return manifestation;
     }
+    */
 
     @Override
     public Boolean call() throws Exception {
         logger.info("pipeline starting");
         try {
-            while (hasNext()) {
+            ManifestationPipelineElement element = queue.poll();
+            manifestation = element.get();
+            while (manifestation != null) {
+                if (check(manifestation)) {
+                    processWork(manifestation);
+                }
+                for (PipelineRequestListener listener : listeners.values()) {
+                    listener.newRequest(this, manifestation);
+                }
+                element = queue.poll();
+                manifestation = element.get();
+            }
+            /*while (hasNext()) {
                 manifestation = next();
                 if (check(manifestation)) {
                     processWork(manifestation);
@@ -201,7 +224,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                 for (PipelineRequestListener listener : listeners.values()) {
                     listener.newRequest(this, manifestation);
                 }
-            }
+            }*/
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             logger.error(ExceptionFormatter.format(e));
@@ -213,14 +236,14 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return true;
     }
 
-    @Override
+    /*@Override
     public void remove() {
         throw new UnsupportedOperationException();
-    }
+    }*/
 
     @Override
     public void close() throws IOException {
-        if (!service.queue().isEmpty()) {
+        if (!service.getQueue().isEmpty()) {
             logger.error("service queue not empty?");
         }
         if (!buildQueue.isEmpty()) {
@@ -234,7 +257,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return WithHoldingsAndLicenses.class.getSimpleName() + "." + number;
     }
 
-    public Pipeline<Boolean, Manifestation> add(String name, PipelineRequestListener listener) {
+    public Pipeline<Boolean, ManifestationPipelineElement> add(String name, PipelineRequestListener listener) {
         this.listeners.put(name, listener);
         return this;
     }
@@ -599,10 +622,11 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
 
     private boolean detectCollisionAndTransfer(Manifestation manifestation,
                                                ClusterBuildContinuation c, int pos) {
-        for (WithHoldingsAndLicensesPipeline pipeline : service.getPipelines()) {
-            if (this == pipeline) {
+        for (Pipeline p : service.getPipelines()) {
+            if (this == p) {
                 continue;
             }
+            WithHoldingsAndLicensesPipeline pipeline = (WithHoldingsAndLicensesPipeline)p;
             if (pipeline.getCluster() != null && pipeline.getCluster().contains(manifestation)) {
                 logger.warn("collision detected for {} with {} state={} cluster={} other cluster={}",
                         manifestation, pipeline, pipeline.state.name(),

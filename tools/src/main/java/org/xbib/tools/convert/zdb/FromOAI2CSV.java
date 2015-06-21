@@ -41,6 +41,7 @@ import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
@@ -54,7 +55,6 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.net.URI;
 
-import static com.google.common.collect.Queues.newConcurrentLinkedQueue;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
 /**
@@ -71,24 +71,24 @@ public class FromOAI2CSV extends OAIHarvester {
     }
 
     @Override
-    public FromOAI2CSV prepare() throws IOException {
+    public void prepareSource() throws IOException {
         String[] inputs = settings.getAsArray("input");
         if (inputs == null) {
             throw new IllegalArgumentException("no input given");
         }
-        input = newConcurrentLinkedQueue();
         for (String uri : inputs) {
-            input.offer(URI.create(uri));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(uri));
+            queue.offer(element);
         }
-        try {
+    }
+
+    @Override
+    public void prepareSink() throws IOException {
             URI outputURI = URI.create(settings.get("output"));
             FileOutputStream out = new FileOutputStream(outputURI.getPath());
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
             CSVGenerator generator = new CSVGenerator(writer);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return this;
     }
 
     @Override

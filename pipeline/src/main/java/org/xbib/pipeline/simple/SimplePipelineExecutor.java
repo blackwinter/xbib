@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +31,9 @@ public class SimplePipelineExecutor<T, R extends PipelineRequest, P extends Pipe
 
     private ExecutorService executorService;
 
-    private Collection<P> pipelines;
+    private BlockingQueue<R> queue;
+
+    private Collection<Pipeline<T,R>> pipelines;
 
     private Collection<Future<T>> futures;
 
@@ -54,6 +58,12 @@ public class SimplePipelineExecutor<T, R extends PipelineRequest, P extends Pipe
     }
 
     @Override
+    public SimplePipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue) {
+        this.queue = queue;
+        return this;
+    }
+
+    @Override
     public SimplePipelineExecutor<T,R,P> setSink(PipelineSink<T> sink) {
         this.sink = sink;
         return this;
@@ -67,12 +77,12 @@ public class SimplePipelineExecutor<T, R extends PipelineRequest, P extends Pipe
         if (executorService == null) {
             this.executorService = Executors.newFixedThreadPool(concurrency);
         }
-        this.pipelines = new LinkedList<P>();
+        this.pipelines = new LinkedList<Pipeline<T, R>>();
         if (concurrency < 1) {
             concurrency = 1;
         }
         for (int i = 0; i < Math.min(concurrency, 256); i++) {
-            pipelines.add(provider.get());
+            pipelines.add(provider.get().setQueue(queue));
         }
         return this;
     }
@@ -145,7 +155,7 @@ public class SimplePipelineExecutor<T, R extends PipelineRequest, P extends Pipe
      * @return the pipelines
      */
     @Override
-    public Collection<P> getPipelines() {
+    public Collection<Pipeline<T,R>> getPipelines() {
         return pipelines;
     }
 

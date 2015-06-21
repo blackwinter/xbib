@@ -51,17 +51,11 @@ import java.util.zip.ZipInputStream;
  */
 public class GeonamesFromZIP extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
 
     @Override
     public String getName() {
         return "geonames-tsv";
-    }
-
-    @Override
-    public Converter prepare() throws IOException {
-        super.prepare();
-        return this;
     }
 
     protected PipelineProvider<Pipeline> pipelineProvider() {

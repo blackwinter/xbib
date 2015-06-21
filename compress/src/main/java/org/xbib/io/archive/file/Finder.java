@@ -43,13 +43,16 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A finder for traversing PathFiles
@@ -58,9 +61,9 @@ public class Finder extends SimpleFileVisitor<Path> {
 
     private final PathMatcher matcher;
 
-    private final LinkedList<PathFile> input = new LinkedList();
+    private final EnumSet<FileVisitOption> opts;
 
-    private final EnumSet opts;
+    private Collection<PathFile> input = new LinkedHashSet<PathFile>();
 
     private FileTime modifiedSince;
 
@@ -71,46 +74,37 @@ public class Finder extends SimpleFileVisitor<Path> {
         this.opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
     }
 
-    public Finder(PathMatcher matcher, EnumSet opts) {
+    public Finder(PathMatcher matcher, EnumSet<FileVisitOption> opts) {
         this.matcher = matcher;
         this.opts = opts;
     }
 
     public Finder chronologicallySorted(Boolean sorted) {
         if (sorted) {
-            this.comparator = new Comparator<PathFile>() {
-                public int compare(PathFile p1, PathFile p2) {
-                    return p1.getAttributes().lastModifiedTime().compareTo(p2.getAttributes().lastModifiedTime());
-                }
-            };
+            this.comparator = (p1, p2) -> p1.getAttributes().lastModifiedTime().compareTo(p2.getAttributes().lastModifiedTime());
         }
         return this;
     }
 
     public Finder pathSorted(Boolean sorted) {
         if (sorted) {
-            this.comparator = new Comparator<PathFile>() {
-                public int compare(PathFile p1, PathFile p2) {
-                    return p1.getPath().toUri().compareTo(p2.getPath().toUri());
-                }
-            };
+            this.comparator = (p1, p2) -> p1.getPath().toUri().compareTo(p2.getPath().toUri());
         }
         return this;
     }
 
     public Queue<PathFile> getPathFiles() {
-        if (comparator != null) {
-            Collections.sort(input, comparator);
+        LinkedList<PathFile> list = new LinkedList<PathFile>(input);
+        if (comparator == null) {
+            return list;
+        } else {
+            Collections.sort(list, comparator);
+            return list;
         }
-        return input;
     }
 
     public Queue<URI> getURIs() {
-        Queue<URI> uris = new ConcurrentLinkedQueue<URI>();
-        for (PathFile p : getPathFiles()) {
-            uris.add(p.getPath().toAbsolutePath().toUri());
-        }
-        return uris;
+        return getPathFiles().stream().map(p -> p.getPath().toAbsolutePath().toUri()).collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
     }
 
     public Finder modifiedSince(long modifiedSince, TimeUnit tu) {

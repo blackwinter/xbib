@@ -39,10 +39,10 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.io.Request;
-import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.pipeline.PipelineProvider;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.sru.client.SRUClient;
@@ -65,7 +65,6 @@ import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -89,27 +88,33 @@ public class MarcSRU extends Feeder {
     }
 
     @Override
-    public MarcSRU prepare() throws IOException {
-        prepareInput();
+    public void prepareSource() throws IOException {
+        try {
+            prepareInput();
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        }
         prepareOutput();
-        return this;
     }
 
-    protected void prepareInput() throws IOException {
+    protected void prepareInput() throws IOException, InterruptedException {
         // define input: fetch from SRU by number file, each line is an ID
-        input = new ConcurrentLinkedQueue<>();
         if (settings.get("numbers") != null) {
             FileInputStream in = new FileInputStream(settings.get("numbers"));
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = r.readLine()) != null) {
-                input.add(URI.create(String.format(settings.get("uri"), line)));
+                URIPipelineElement element = new URIPipelineElement();
+                element.set(URI.create(String.format(settings.get("uri"), line)));
+                queue.put(element);
             }
             in.close();
         } else {
-            input.add(URI.create(settings.get("uri")));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(settings.get("uri")));
+            queue.put(element);
         }
-        logger.info("uris = {}", input.size());
+        logger.info("uris = {}", queue.size());
     }
 
     protected void prepareOutput() throws IOException {

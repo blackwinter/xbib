@@ -76,7 +76,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     }
 
     @Override
-    public TitleHoldingsFeeder prepare() throws IOException {
+    public void prepareSink() throws IOException {
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -95,8 +95,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         concreteHoldingsIndex = resolveAlias(getHoldingsIndex() + timeWindow);
         logger.info("base index name = {}, concrete index name = {}, concrete holdings index name",
                 getIndex(), getConcreteIndex(), getConcreteHoldingsIndex());
-        super.prepare();
-        return this;
+        super.prepareSink();
     }
 
     @Override

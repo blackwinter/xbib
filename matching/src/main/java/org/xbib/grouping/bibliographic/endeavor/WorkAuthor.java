@@ -79,22 +79,26 @@ public class WorkAuthor implements IdentifiableEndeavor {
             return this;
         }
         // check if this is the work name
-        if (workName != null && authorName.equals(workName.toString())) {
+        if (workName != null && !authorName.isEmpty() && authorName.equals(workName.toString())) {
             logger.warn("work name is equal to author name: {}", authorName);
             return this;
         }
         // get last author name part first
         String[] s = authorName.split("\\s+");
-        String lastName = s[s.length-1];
-        if (this.authorName == null) {
-            this.authorName = new StringBuilder();
-        }
-        this.authorName.append(lastName);
-        if (s.length > 1) {
-            this.authorName.append(' ');
-        }
-        for (int i = 0; i < s.length-1; i++) {
-            this.authorName.append(s[i].charAt(0));
+        if (s.length > 0) {
+            String lastName = s[s.length - 1];
+            if (this.authorName == null) {
+                this.authorName = new StringBuilder();
+            }
+            this.authorName.append(lastName);
+            if (s.length > 1) {
+                this.authorName.append(' ');
+            }
+            for (int i = 0; i < s.length - 1; i++) {
+                if (s[i].length() > 0) {
+                    this.authorName.append(s[i].charAt(0));
+                }
+            }
         }
         return this;
     }

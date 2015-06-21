@@ -48,12 +48,14 @@ import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.queue.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.zdb.entities.BibdatLookup;
 import org.xbib.tools.merge.zdb.entities.BlackListedISIL;
 import org.xbib.tools.merge.zdb.entities.Manifestation;
+import org.xbib.tools.merge.zdb.licenseinfo.ManifestationPipelineElement;
 import org.xbib.tools.util.SearchHitPipelineElement;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
@@ -77,7 +79,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicensesInTimeline
-        extends QueuePipelineExecutor<Boolean, Manifestation, WithHoldingsAndLicensesInTimelinePipeline, SearchHitPipelineElement>
+        extends QueuePipelineExecutor<Boolean, ManifestationPipelineElement, WithHoldingsAndLicensesInTimelinePipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicensesInTimeline.class.getSimpleName());
@@ -219,10 +221,10 @@ public class WithHoldingsAndLicensesInTimeline
         this.execute();
 
         logger.info("shutdown in progress");
-        shutdown(new SearchHitPipelineElement().set(null));
+        shutdown(new ManifestationPipelineElement().set(null));
 
         long total = 0L;
-        for (WithHoldingsAndLicensesInTimelinePipeline p : getPipelines()) {
+        /*for (Pipeline p : getPipelines()) {
             logger.info("pipeline {}, started {}, ended {}, took {}, count = {}, service count = {}",
                     p,
                     DateUtil.formatDateISO(p.getMetric().startedAt()),
@@ -231,7 +233,7 @@ public class WithHoldingsAndLicensesInTimeline
                     p.getMetric().count(),
                     p.getServiceMetric().count());
             total += p.getMetric().count();
-        }
+        }*/
         logger.info("total={}", total);
 
         logger.info("ingest shutdown in progress");
@@ -292,14 +294,15 @@ public class WithHoldingsAndLicensesInTimeline
                         complete = true;
                         break;
                     }
-                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(force), 60, TimeUnit.SECONDS);
+                    Manifestation manifestation = new Manifestation(hit.getSource());
+                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
                     count++;
                     long percent = count * 100 / total;
                     if (percent != lastpercent && logger.isInfoEnabled()) {
                         logger.info("{}/{} {}% processed={} timelines={} indexed={} skipped={}",
                                 count, total, percent,
                                 processed.size(), timelines.size(), indexed.size(), skipped.size());
-                        for (WithHoldingsAndLicensesInTimelinePipeline p : getPipelines()) {
+                        /*for (WithHoldingsAndLicensesInTimelinePipeline p : getPipelines()) {
                             logger.info("{} throughput={} {} {} mean={}",
                                     p.toString(),
                                     p.getMetric().oneMinuteRate(),
@@ -307,14 +310,9 @@ public class WithHoldingsAndLicensesInTimeline
                                     p.getMetric().fifteenMinuteRate(),
                                     p.getMetric().meanRate()
                             );
-                        }
+                        }*/
                     }
                     lastpercent = percent;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logger.error("interrupted, queue no longer active");
-                    failure = true;
-                    break;
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
@@ -368,11 +366,8 @@ public class WithHoldingsAndLicensesInTimeline
                         logger.error("no more pipelines left to receive, aborting");
                         break;
                     }
-                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(force), 60, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logger.error("interrupted, queue no longer active");
-                    break;
+                    Manifestation manifestation = new Manifestation(hit.getSource());
+                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
@@ -395,6 +390,10 @@ public class WithHoldingsAndLicensesInTimeline
         }
 
         return this;
+    }
+
+    public Set<Pipeline<Boolean, ManifestationPipelineElement>> getPipelines() {
+        return super.getPipelines();
     }
 
     public Set<String> processed() {

@@ -45,6 +45,7 @@ import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.tools.Converter;
 import org.xbib.util.DateUtil;
 import org.xbib.util.URIUtil;
@@ -53,7 +54,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -83,7 +83,7 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    public FromOAI prepare() throws IOException {
+    public void prepareSink() throws IOException {
         // open output TAR archive
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
@@ -92,14 +92,16 @@ public class FromOAI extends Converter {
             throw new IOException("can not open " + settings.get("output") + " for output");
         }
         session.open(Session.Mode.WRITE);
+    }
 
-        // create input URLs
-        input = new ConcurrentLinkedQueue<>();
+    @Override
+    public void prepareSource() throws IOException {
         for (String uri : settings.getAsArray("input")) {
-            input.add(URI.create(uri));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(uri));
+            queue.add(element);
         }
-        logger.info("uris = {}", input.size());
-        return this;
+        logger.info("uris = {}", queue.size());
     }
 
     @Override

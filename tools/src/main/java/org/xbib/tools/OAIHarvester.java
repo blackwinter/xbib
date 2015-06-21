@@ -48,6 +48,7 @@ import org.xbib.oai.rdf.RdfSimpleMetadataHandler;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.util.DateUtil;
 import org.xbib.util.URIUtil;
@@ -60,7 +61,6 @@ import java.text.Normalizer;
 import java.util.Date;
 import java.util.Map;
 
-import static com.google.common.collect.Queues.newConcurrentLinkedQueue;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
@@ -71,21 +71,21 @@ public abstract class OAIHarvester extends Converter {
     protected static Session<StringPacket> session;
 
     @Override
-    public OAIHarvester prepare() throws IOException {
+    public void prepareSink() throws IOException {
         String[] inputs = settings.getAsArray("input");
         if (inputs == null) {
             throw new IllegalArgumentException("no input given");
         }
-        input = newConcurrentLinkedQueue();
         for (String uri : inputs) {
-            input.offer(URI.create(uri));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(uri));
+            queue.offer(element);
         }
         String output = settings.get("output");
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(output));
         session = connection.createSession();
         session.open(Session.Mode.WRITE);
-        return this;
     }
 
     @Override

@@ -38,8 +38,8 @@ import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
-import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
+import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.client.SRUClientFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -79,7 +78,7 @@ public class FromSRU extends Converter {
     }
 
     @Override
-    public FromSRU prepare() throws IOException {
+    public void prepareSink() throws IOException {
         // open output TAR archive
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
@@ -88,32 +87,32 @@ public class FromSRU extends Converter {
             throw new IOException("can not open " + settings.get("output") + " for output");
         }
         session.open(Session.Mode.WRITE);
+    }
 
+    @Override
+    public void prepareSource() throws IOException {
         // create input URLs
-        input = new ConcurrentLinkedQueue<>();
         if (settings.get("numbers") != null) {
             FileInputStream in = new FileInputStream(settings.get("numbers"));
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = r.readLine()) != null) {
-                input.add(URI.create(String.format(settings.get("uri"), line)));
+                URIPipelineElement element = new URIPipelineElement();
+                element.set(URI.create(String.format(settings.get("uri"), line)));
+                queue.add(element);
             }
             in.close();
         } else {
-            input.add(URI.create(settings.get("uri")));
+            URIPipelineElement element = new URIPipelineElement();
+            element.set(URI.create(settings.get("uri")));
+            queue.add(element);
         }
-        logger.info("uris = {}", input.size());
-        return this;
+        logger.info("uris = {}", queue.size());
     }
 
     @Override
     protected PipelineProvider pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new FromSRU(true);
-            }
-        };
+        return () -> new FromSRU(true);
     }
 
     @Override

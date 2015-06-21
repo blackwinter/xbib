@@ -53,9 +53,9 @@ public class NatLizMapper implements ArticleVocabulary {
 
     private Resource journal;
 
-    private String title;
+    private Set<Author> authors = new LinkedHashSet<>();
 
-    Set<Author> authors = new LinkedHashSet<>();
+    private String title;
 
     private String year;
 

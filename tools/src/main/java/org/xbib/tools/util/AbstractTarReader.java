@@ -47,7 +47,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineEle
         return this;
     }
 
-    @Override
+    /*@Override
     public boolean hasNext() {
         try {
             return prepareRead();
@@ -66,7 +66,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineEle
     public void remove() {
         throw new UnsupportedOperationException("Not supported");
     }
-
+*/
     @Override
     public void newRequest(Pipeline<MeterMetric, LongPipelineElement> pipeline, LongPipelineElement request) {
 

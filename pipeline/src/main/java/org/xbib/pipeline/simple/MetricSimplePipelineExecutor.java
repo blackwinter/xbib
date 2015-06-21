@@ -7,6 +7,7 @@ import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.PipelineRequest;
 import org.xbib.pipeline.PipelineSink;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,12 @@ public class MetricSimplePipelineExecutor<T, R extends PipelineRequest, P extend
     @Override
     public MetricSimplePipelineExecutor<T,R,P> setPipelineProvider(PipelineProvider<P> provider) {
         super.setPipelineProvider(provider);
+        return this;
+    }
+
+    @Override
+    public MetricSimplePipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue) {
+        super.setQueue(queue);
         return this;
     }
 

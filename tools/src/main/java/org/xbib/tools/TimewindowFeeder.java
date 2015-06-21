@@ -48,7 +48,7 @@ public abstract class TimewindowFeeder extends Feeder {
     }
 
     @Override
-    public TimewindowFeeder prepare() throws IOException {
+    public void prepareSink() throws IOException {
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -64,8 +64,7 @@ public abstract class TimewindowFeeder extends Feeder {
         Matcher m = pattern.matcher(getConcreteIndex());
         setIndex(m.matches() ? m.group(1) : getConcreteIndex());
         logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
-        super.prepare();
-        return this;
+        super.prepareSink();
     }
 
     @Override

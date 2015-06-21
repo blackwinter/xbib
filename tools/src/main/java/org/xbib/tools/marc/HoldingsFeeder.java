@@ -55,7 +55,7 @@ public abstract class HoldingsFeeder extends Feeder {
     }
 
     @Override
-    public HoldingsFeeder prepare() throws IOException {
+    public void prepareSink() throws IOException {
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -72,8 +72,7 @@ public abstract class HoldingsFeeder extends Feeder {
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
         concreteIndex = resolveAlias(getIndex() + timeWindow);
         logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
-        super.prepare();
-        return this;
+        super.prepareSink();
     }
 
     @Override

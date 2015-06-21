@@ -123,7 +123,7 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    public Converter prepare() throws IOException {
+    public void prepareSource() throws IOException {
         logger.info("parsing initial set of serials...");
 
         try {
@@ -139,10 +139,12 @@ public class JsonCoins extends Converter {
         if (serialsdb.getMap().isEmpty()) {
             throw new IllegalArgumentException("serials are empty?");
         }
-
         // now parse our files
-        super.prepare();
+        super.prepareSource();
+    }
 
+    @Override
+    public void prepareSink() throws IOException {
         String outputFilename = settings.get("output");
         FileOutputStream fout = new FileOutputStream(outputFilename + ".ttl.gz");
         gzout = new GZIPOutputStream(fout) {
@@ -171,7 +173,6 @@ public class JsonCoins extends Converter {
 
         // extra text file for missing serials
         missingserials = new FileWriter("missingserials.txt");
-        return this;
     }
 
     @Override

@@ -31,15 +31,18 @@
  */
 package org.xbib.pipeline;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.metric.MeterMetric;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Basic pipeline for pressing pipeline requests.
+ * Basic pipeline for pipeline requests.
  * This abstract class can be used for creating custom Pipeline classes.
  *
  * @param <R> the pipeline request type
@@ -48,6 +51,10 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractPipeline<R extends PipelineRequest, E extends PipelineException>
         implements Pipeline<MeterMetric,R>, PipelineRequestListener<MeterMetric,R>,
         PipelineErrorListener<MeterMetric,R,E> {
+
+    private final static Logger logger = LogManager.getLogger(AbstractPipeline.class);
+
+    protected BlockingQueue<R> queue = new SynchronousQueue<>(true);
 
     private MeterMetric metric;
 
@@ -62,6 +69,12 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
      */
     private Map<String,PipelineErrorListener<MeterMetric,R,E>> errorListeners =
             new LinkedHashMap<String,PipelineErrorListener<MeterMetric,R,E>>();
+
+    @Override
+    public Pipeline<MeterMetric,R> setQueue(BlockingQueue<R> queue) {
+        this.queue = queue;
+        return this;
+    }
 
     /**
      * Add a pipeline request listener to the pipeline. The listener is called each time
@@ -92,7 +105,7 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
     }
 
     /**
-     * Call this thread. Iterate over all request and pass them to request listeners.
+     * Call this thread. Take next request and pass them to request listeners.
      * At least, this pipeline itself can listen to requests and handle errors.
      * Only PipelineExceptions are handled for each listener. Other execptions will quit the
      * pipeline request executions.
@@ -103,9 +116,8 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
     public MeterMetric call() throws Exception {
         try {
             metric = new MeterMetric(5L, TimeUnit.SECONDS);
-            Iterator<R> it = this;
-            while (it.hasNext()) {
-                R r = it.next();
+            R r = queue.poll(5L, TimeUnit.SECONDS);
+            while (r != null) {
                 // add ourselves if not already done
                 requestListeners.put(null, this);
                 errorListeners.put(null, this);
@@ -119,21 +131,15 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
                     }
                 }
                 metric.mark();
+                r = queue.poll(5L, TimeUnit.SECONDS);
             }
             close();
+        } catch (InterruptedException e) {
+            logger.warn("interrupted");
         } finally {
             metric.stop();
         }
         return getMetric();
-    }
-
-
-    /**
-     * Removing pipeline requests is not supported.
-     */
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException("remove not supported");
     }
 
     /**

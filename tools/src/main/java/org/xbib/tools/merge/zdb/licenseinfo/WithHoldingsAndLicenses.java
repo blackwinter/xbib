@@ -60,7 +60,6 @@ import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.zdb.entities.BibdatLookup;
 import org.xbib.tools.merge.zdb.entities.BlackListedISIL;
 import org.xbib.tools.merge.zdb.entities.Manifestation;
-import org.xbib.tools.util.SearchHitPipelineElement;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
@@ -87,7 +86,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
  * Merge ZDB title and holdings and EZB licenses (without timeline)
  */
 public class WithHoldingsAndLicenses
-        extends QueuePipelineExecutor<Boolean, Manifestation, WithHoldingsAndLicensesPipeline, SearchHitPipelineElement>
+        extends QueuePipelineExecutor<Boolean, ManifestationPipelineElement, WithHoldingsAndLicensesPipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
@@ -256,7 +255,7 @@ public class WithHoldingsAndLicenses
         this.execute();
 
         logger.info("shutdown in progress");
-        shutdown(new SearchHitPipelineElement().set(null));
+        shutdown(new ManifestationPipelineElement().set(null));
 
         logger.info("query: started {}, ended {}, took {}, count = {}",
                 DateUtil.formatDateISO(queryMetric.startedAt()),
@@ -325,13 +324,9 @@ public class WithHoldingsAndLicenses
                         logger.error("no more pipelines left to receive, aborting feed");
                         return this;
                     }
-                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(force), 60, TimeUnit.SECONDS);
+                    Manifestation manifestation = new Manifestation(hit.getSource());
+                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
                     count++;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logger.error("interrupted, queue no longer active");
-                    failure = true;
-                    break;
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
@@ -383,11 +378,8 @@ public class WithHoldingsAndLicenses
                         logger.error("no more pipelines left to receive, aborting");
                         return this;
                     }
-                    queue().offer(new SearchHitPipelineElement().set(hit).setForced(true), 60, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logger.error("interrupted, queue no longer active");
-                    break;
+                    Manifestation manifestation = new Manifestation(hit.getSource());
+                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
