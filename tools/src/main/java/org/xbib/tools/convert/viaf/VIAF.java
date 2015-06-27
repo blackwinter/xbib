@@ -92,12 +92,7 @@ public class VIAF extends Converter {
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new VIAF();
-            }
-        };
+        return VIAF::new;
     }
 
     @Override

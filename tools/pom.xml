@@ -80,10 +80,12 @@
         <dependency>
             <groupId>org.xbib</groupId>
             <artifactId>xbib-compress</artifactId>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
             <artifactId>xbib-sru</artifactId>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>

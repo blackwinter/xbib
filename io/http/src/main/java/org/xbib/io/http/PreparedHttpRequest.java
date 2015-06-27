@@ -32,6 +32,7 @@
 package org.xbib.io.http;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  *
@@ -39,6 +40,8 @@ import java.io.IOException;
 public interface PreparedHttpRequest {
 
     PreparedHttpRequest setEncoding(String encoding);
+
+    PreparedHttpRequest setOutputStream(OutputStream out);
 
     HttpFuture execute() throws IOException;
 

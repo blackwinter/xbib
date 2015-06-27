@@ -128,6 +128,7 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
         return this;
     }
 
+    @Override
     public NettyHttpRequest setBody(String body) {
         if (requestBuilder != null) {
             requestBuilder.setBody(body);
@@ -135,11 +136,13 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
         return this;
     }
 
+    @Override
     public NettyHttpRequest setUser(String user) {
         realmBuilder = realmBuilder.setPrincipal(user);
         return this;
     }
 
+    @Override
     public NettyHttpRequest setPassword(String password) {
         realmBuilder = realmBuilder.setPassword(password);
         return this;

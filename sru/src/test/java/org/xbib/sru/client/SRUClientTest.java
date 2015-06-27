@@ -33,10 +33,14 @@ package org.xbib.sru.client;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.ConnectException;
 import java.text.Normalizer;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import javax.xml.stream.util.XMLEventConsumer;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,60 +58,25 @@ import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xbib.xml.stream.SaxEventConsumer;
+import org.xbib.xml.transform.StylesheetTransformer;
 
 public class SRUClientTest {
 
     private static final Logger logger = LogManager.getLogger(SRUClientTest.class.getName());
 
     @Test
-    public void testServiceSearchRetrieve() throws Exception {
+    public void testClient() throws IOException, TimeoutException, ExecutionException, InterruptedException {
+        try {
+            SRUClient client = SRUClientFactory.newClient("Bielefeld");
+            SearchRetrieveRequest request = client
+                    .newSearchRetrieveRequest()
+                    .setQuery("title=linux")
+                    .setStartRecord(0)
+                    .setMaximumRecords(10);
 
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(new StringTransformer() {
-                    @Override
-                    public String transform(String value) {
-                        return Normalizer.normalize(value, Normalizer.Form.NFC);
-                    }
-                })
-                .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> begin() {
-                        logger.debug("start object");
-                        return this;
-                    }
-
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                        logger.debug("start");
-                        for (Field f : key) {
-                            logger.debug("tag={} ind={} subf={} data={}",
-                                    f.tag(), f.indicator(), f.subfieldId(), f.data());
-                        }
-                        if (value != null) {
-                            logger.debug("value={}", value);
-
-                        }
-                        logger.debug("end");
-                        return this;
-                    }
-
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> end() {
-                        logger.debug("end object");
-                        return this;
-                    }
-                });
-
-        final MarcXchangeContentHandler marcXmlHandler = new MarcXchangeContentHandler()
-                .addListener("Bibliographic", kv);
-
-        for (String clientName : Arrays.asList("Gent", "Lund", "Bielefeld")) {
-            String query = "title=linux";
-            int from = 1;
-            int size = 10;
-            File file = File.createTempFile("sru-service-" +clientName + ".",".xml");
+            File file = File.createTempFile("sru-client-bielefeld", ".xml");
             FileOutputStream out = new FileOutputStream(file);
-            Writer w = new OutputStreamWriter(out, "UTF-8");
+            Writer writer = new OutputStreamWriter(out, "UTF-8");
             SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
                 @Override
@@ -127,7 +96,7 @@ public class SRUClientTest {
 
                 @Override
                 public void beginRecord() {
-                    logger.info("startStream record");
+                    logger.info("start record");
                 }
 
                 @Override
@@ -139,6 +108,7 @@ public class SRUClientTest {
                 public void recordPacking(String recordPacking) {
                     logger.info("got recordPacking: " + recordPacking);
                 }
+
                 @Override
                 public void recordIdentifier(String recordIdentifier) {
                     logger.info("got recordIdentifier=" + recordIdentifier);
@@ -151,11 +121,13 @@ public class SRUClientTest {
 
                 @Override
                 public XMLEventConsumer recordData() {
-                    return new SaxEventConsumer(marcXmlHandler);
+                    //logger.info("recordData = " + record.size() + " events");
+                    return null;
                 }
 
                 @Override
                 public XMLEventConsumer extraRecordData() {
+                    //logger.info("extraRecordData = " + record.size() + " events");
                     return null;
                 }
 
@@ -169,17 +141,149 @@ public class SRUClientTest {
                     logger.info("disconnect, request = " + request);
                 }
             };
-            SRUClient client = SRUClientFactory.newClient(clientName);
-            SearchRetrieveRequest request = client.newSearchRetrieveRequest()
-                    .addListener(listener)
-                    .setQuery(query)
-                    .setStartRecord(from)
-                    .setMaximumRecords(size);
-            SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
-            logger.info("http status = {}", response.httpStatus());
+            request.addListener(listener);
+            StylesheetTransformer transformer = new StylesheetTransformer("src/test/resources/xsl");
+            client.searchRetrieve(request)
+                    .setStylesheetTransformer(transformer)
+                    .to(writer);
+            transformer.close();
             client.close();
-            w.close();
+            writer.close();
             out.close();
+        } catch (ConnectException| ExecutionException e) {
+            logger.warn("skipped, can not connect");
+        } catch (TimeoutException | InterruptedException  | IOException e) {
+            throw e;
+        }
+    }
+
+    @Test
+    public void testServiceSearchRetrieve() throws IOException, TimeoutException, ExecutionException, InterruptedException {
+        try {
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .setStringTransformer(new StringTransformer() {
+                        @Override
+                        public String transform(String value) {
+                            return Normalizer.normalize(value, Normalizer.Form.NFC);
+                        }
+                    })
+                    .addListener(new KeyValueStreamAdapter<FieldList, String>() {
+                        @Override
+                        public KeyValueStreamAdapter<FieldList, String> begin() {
+                            logger.debug("start object");
+                            return this;
+                        }
+
+                        @Override
+                        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
+                            logger.debug("start");
+                            for (Field f : key) {
+                                logger.debug("tag={} ind={} subf={} data={}",
+                                        f.tag(), f.indicator(), f.subfieldId(), f.data());
+                            }
+                            if (value != null) {
+                                logger.debug("value={}", value);
+
+                            }
+                            logger.debug("end");
+                            return this;
+                        }
+
+                        @Override
+                        public KeyValueStreamAdapter<FieldList, String> end() {
+                            logger.debug("end object");
+                            return this;
+                        }
+                    });
+
+            final MarcXchangeContentHandler marcXmlHandler = new MarcXchangeContentHandler()
+                    .addListener("Bibliographic", kv);
+
+            for (String clientName : Arrays.asList("Gent", "Lund", "Bielefeld")) {
+                String query = "title=linux";
+                int from = 1;
+                int size = 10;
+                File file = File.createTempFile("sru-service-" + clientName + ".", ".xml");
+                FileOutputStream out = new FileOutputStream(file);
+                Writer w = new OutputStreamWriter(out, "UTF-8");
+                SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
+
+                    @Override
+                    public void onConnect(Request request) {
+                        logger.info("connect, request = " + request);
+                    }
+
+                    @Override
+                    public void version(String version) {
+                        logger.info("version = " + version);
+                    }
+
+                    @Override
+                    public void numberOfRecords(long numberOfRecords) {
+                        logger.info("numberOfRecords = " + numberOfRecords);
+                    }
+
+                    @Override
+                    public void beginRecord() {
+                        logger.info("startStream record");
+                    }
+
+                    @Override
+                    public void recordSchema(String recordSchema) {
+                        logger.info("got record scheme:" + recordSchema);
+                    }
+
+                    @Override
+                    public void recordPacking(String recordPacking) {
+                        logger.info("got recordPacking: " + recordPacking);
+                    }
+
+                    @Override
+                    public void recordIdentifier(String recordIdentifier) {
+                        logger.info("got recordIdentifier=" + recordIdentifier);
+                    }
+
+                    @Override
+                    public void recordPosition(int recordPosition) {
+                        logger.info("got recordPosition=" + recordPosition);
+                    }
+
+                    @Override
+                    public XMLEventConsumer recordData() {
+                        return new SaxEventConsumer(marcXmlHandler);
+                    }
+
+                    @Override
+                    public XMLEventConsumer extraRecordData() {
+                        return null;
+                    }
+
+                    @Override
+                    public void endRecord() {
+                        logger.info("end record");
+                    }
+
+                    @Override
+                    public void onDisconnect(Request request) {
+                        logger.info("disconnect, request = " + request);
+                    }
+                };
+                SRUClient client = SRUClientFactory.newClient(clientName);
+                SearchRetrieveRequest request = client.newSearchRetrieveRequest()
+                        .addListener(listener)
+                        .setQuery(query)
+                        .setStartRecord(from)
+                        .setMaximumRecords(size);
+                SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
+                logger.info("http status = {}", response.httpStatus());
+                client.close();
+                w.close();
+                out.close();
+            }
+        } catch (ConnectException | ExecutionException e) {
+            logger.warn("skipped, can not connect");
+        } catch (TimeoutException | InterruptedException | IOException e) {
+            throw e;
         }
     }
 }

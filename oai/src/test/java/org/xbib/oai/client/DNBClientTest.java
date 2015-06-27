@@ -34,6 +34,9 @@ package org.xbib.oai.client;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.ConnectException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,77 +57,88 @@ public class DNBClientTest {
     private final static Logger logger = LogManager.getLogger(DNBClientTest.class.getName());
 
     @Test
-    public void testIdentify() throws Exception {
-        OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
-        IdentifyRequest request = client.newIdentifyRequest();
-        request.prepare().execute(new IdentifyResponseListener() {}).waitFor();
+    public void testIdentify() throws InterruptedException, IOException, TimeoutException {
+        try {
+            OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
+            IdentifyRequest request = client.newIdentifyRequest();
+            request.prepare().execute(new IdentifyResponseListener() {
+            }).waitFor();
+        } catch (ConnectException | ExecutionException e) {
+            logger.warn("skipped, can not connect");
+        } catch (TimeoutException | InterruptedException | IOException e) {
+            throw e;
+        }
     }
 
     @Test
-    public void testListRecordsDNB() throws Exception {
-        OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
-        ListRecordsRequest request =  client.newListRecordsRequest()
-                .setFrom(DateUtil.parseDateISO("2013-01-01T00:00:00Z"), OAIDateResolution.SECOND)
-                .setUntil(DateUtil.parseDateISO("2013-01-10T00:00:00Z"), OAIDateResolution.SECOND)
-                .setSet("bib")
-                .setMetadataPrefix("PicaPlus-xml");
-        //final XmlContentParser reader = new XmlContentParser();
-        final AtomicLong count = new AtomicLong(0L);
-        SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
-            @Override
-            public void startDocument() throws SAXException {
-                logger.debug("startDocument");
-            }
-
-            @Override
-            public void endDocument() throws SAXException {
-                count.incrementAndGet();
-                logger.debug("endDocument");
-            }
-
-            @Override
-            public void startPrefixMapping(String prefix, String uri) throws SAXException {
-            }
-
-            @Override
-            public void endPrefixMapping(String prefix) throws SAXException {
-            }
-
-            @Override
-            public void startElement(String ns, String localname, String qname, Attributes atrbts) throws SAXException {
-            }
-
-            @Override
-            public void endElement(String ns, String localname, String qname) throws SAXException {
-            }
-
-            @Override
-            public void characters(char[] chars, int pos, int len) throws SAXException {
-            }
-
-        };
-        File file = File.createTempFile("dnb-bib-pica.",".xml");
-        FileWriter sw = new FileWriter(file);
-        do {
-            try {
-                request.addHandler(simpleMetadataHandler);
-                ListRecordsListener listener = new ListRecordsListener(request);
-                request.prepare().execute(listener).waitFor();
-                if (listener.getResponse() != null) {
-                    listener.getResponse().to(sw);
-                } else {
-                    logger.warn("no response in listener");
+    public void testListRecordsDNB() throws InterruptedException, TimeoutException, IOException {
+        try {
+            OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
+            ListRecordsRequest request = client.newListRecordsRequest()
+                    .setFrom(DateUtil.parseDateISO("2013-01-01T00:00:00Z"), OAIDateResolution.SECOND)
+                    .setUntil(DateUtil.parseDateISO("2013-01-10T00:00:00Z"), OAIDateResolution.SECOND)
+                    .setSet("bib")
+                    .setMetadataPrefix("PicaPlus-xml");
+            final AtomicLong count = new AtomicLong(0L);
+            SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
+                @Override
+                public void startDocument() throws SAXException {
+                    logger.debug("startDocument");
                 }
-                request = client.resume(request, listener.getResumptionToken());
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-                request  = null;
-            }
-        } while (request != null);
-        sw.close();
-        client.close();
 
-        logger.info("count={}", count.get());
+                @Override
+                public void endDocument() throws SAXException {
+                    count.incrementAndGet();
+                    logger.debug("endDocument");
+                }
+
+                @Override
+                public void startPrefixMapping(String prefix, String uri) throws SAXException {
+                }
+
+                @Override
+                public void endPrefixMapping(String prefix) throws SAXException {
+                }
+
+                @Override
+                public void startElement(String ns, String localname, String qname, Attributes atrbts) throws SAXException {
+                }
+
+                @Override
+                public void endElement(String ns, String localname, String qname) throws SAXException {
+                }
+
+                @Override
+                public void characters(char[] chars, int pos, int len) throws SAXException {
+                }
+
+            };
+            File file = File.createTempFile("dnb-bib-pica.", ".xml");
+            FileWriter sw = new FileWriter(file);
+            do {
+                try {
+                    request.addHandler(simpleMetadataHandler);
+                    ListRecordsListener listener = new ListRecordsListener(request);
+                    request.prepare().execute(listener).waitFor();
+                    if (listener.getResponse() != null) {
+                        listener.getResponse().to(sw);
+                    } else {
+                        logger.warn("no response in listener");
+                    }
+                    request = client.resume(request, listener.getResumptionToken());
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                    request = null;
+                }
+            } while (request != null);
+            sw.close();
+            client.close();
+            logger.info("count={}", count.get());
+        } catch (ConnectException | ExecutionException e) {
+            logger.warn("skipped, can not connect");
+        } catch (TimeoutException | InterruptedException | IOException e) {
+            throw e;
+        }
     }
 
 }

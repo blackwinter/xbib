@@ -46,10 +46,8 @@ import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.PreparedHttpRequest;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
-/**
- *
- */
 public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
     private final static Logger logger = LogManager.getLogger(NettyPreparedHttpRequest.class.getName());
@@ -59,6 +57,8 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
     private final AsyncHttpClient.BoundRequestBuilder bound;
 
     private String encoding = System.getProperty("file.encoding");
+
+    private OutputStream out;
 
     NettyPreparedHttpRequest(HttpRequest request, AsyncHttpClient.BoundRequestBuilder bound) {
         this.request = request;
@@ -73,6 +73,16 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
     public String getEncoding() {
         return encoding;
+    }
+
+    @Override
+    public NettyPreparedHttpRequest setOutputStream(OutputStream out) {
+        this.out = out;
+        return this;
+    }
+
+    public OutputStream getOutputStream() {
+        return out;
     }
 
     @Override
@@ -118,9 +128,13 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
         @Override
         public STATE onBodyPartReceived(HttpResponseBodyPart hrbp) throws Exception {
-            String s = new String(hrbp.getBodyPartBytes(), encoding);
-            if (listener != null) {
-                listener.onReceive(request, s);
+            if (out != null) {
+                hrbp.writeTo(out);
+            } else {
+                String s = new String(hrbp.getBodyPartBytes(), encoding);
+                if (listener != null) {
+                    listener.onReceive(request, s);
+                }
             }
             return STATE.CONTINUE;
         }

@@ -60,6 +60,10 @@ public class NettyHttpSession implements HttpSession {
         return new NettyPreparedHttpRequest(request, client.prepareRequest(request.getRequest()));
     }
 
+    public AsyncHttpClientConfig.Builder getConfig() {
+        return config;
+    }
+
     @Override
     public HttpSession setProxy(String host, int port) {
         if (host == null) {
@@ -85,29 +89,53 @@ public class NettyHttpSession implements HttpSession {
 
     @Override
     public void open(Mode mode) throws IOException {
-        if (!isOpen()) {
-            // some reasonable defaults...
-            int timeout = 120 * 1000; // for slow DNB OAI
-            config.setAllowPoolingConnection(true)
-                    .setAllowSslConnectionPool(true)
-                    .setMaximumConnectionsPerHost(16)
-                    .setMaximumConnectionsTotal(16)
-                    .setFollowRedirects(true)
-                    .setMaxRequestRetry(3) // for slow DNB OAI
-                    .setUseRawUrl(true) // do not auto-encode HTTP GET params
-                    .setCompressionEnabled(true)
-                    .setConnectionTimeoutInMs(timeout)
-                    .setRequestTimeoutInMs(timeout)
-                    .setIdleConnectionTimeoutInMs(timeout)
-                    .setIdleConnectionInPoolTimeoutInMs(timeout);
+        open(mode, 120 * 1000);
+    }
+
+    public synchronized void open(Mode mode, int timeout) throws IOException {
+        if (!isOpen) {
+            switch (mode) {
+                case READ: {
+                    // some reasonable defaults for web browsing
+                    config.setAllowPoolingConnection(true)
+                            .setAllowSslConnectionPool(true)
+                            .setMaximumConnectionsPerHost(16)
+                            .setMaximumConnectionsTotal(16)
+                            .setFollowRedirects(true)
+                            .setMaxRequestRetry(3) // for slow DNB OAI
+                            .setUseRawUrl(true) // do not auto-encode HTTP GET params
+                            .setCompressionEnabled(true)
+                            .setConnectionTimeoutInMs(timeout)
+                            .setRequestTimeoutInMs(timeout)
+                            .setIdleConnectionTimeoutInMs(timeout)
+                            .setIdleConnectionInPoolTimeoutInMs(timeout);
+                    break;
+                }
+                case CONTROL: {
+                    // for crawling
+                    config.setAllowPoolingConnection(true)
+                            .setAllowSslConnectionPool(true)
+                            .setMaximumConnectionsPerHost(16)
+                            .setMaximumConnectionsTotal(16)
+                            .setFollowRedirects(false) // do not follow HTTP code 302
+                            .setMaxRequestRetry(3) // for slow DNB OAI
+                            .setUseRawUrl(true) // do not auto-encode HTTP GET params
+                            .setCompressionEnabled(true)
+                            .setConnectionTimeoutInMs(timeout)
+                            .setRequestTimeoutInMs(timeout)
+                            .setIdleConnectionTimeoutInMs(timeout)
+                            .setIdleConnectionInPoolTimeoutInMs(timeout);
+                    break;
+                }
+            }
             this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config.build()));
             this.isOpen = true;
         }
     }
 
     @Override
-    public void close() throws IOException {
-        if (isOpen()) {
+    public synchronized void close() throws IOException {
+        if (isOpen) {
             this.isOpen = false;
             client.close();
         }

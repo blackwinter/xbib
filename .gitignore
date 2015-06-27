@@ -47,3 +47,5 @@ KOBV.properties
 LCDB.properties
 SWB.properties
 ZDB.properties
+
+tools/bin/natliz/licensecrawler.sh

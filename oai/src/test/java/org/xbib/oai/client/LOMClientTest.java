@@ -55,6 +55,8 @@ import org.xml.sax.helpers.AttributesImpl;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.ConnectException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
@@ -63,7 +65,7 @@ public class LOMClientTest {
     private final static Logger logger = LogManager.getLogger(LOMClientTest.class.getName());
 
     @Test
-    public void testListRecordsLOM() throws Exception {
+    public void testListRecordsLOM() throws InterruptedException, IOException, TimeoutException {
         try {
             OAIClient client = OAIClientFactory.newClient("http://www.melt.fwu.de/oai2.php");
             ListRecordsRequest request = client.newListRecordsRequest()
@@ -83,10 +85,10 @@ public class LOMClientTest {
                 request = client.resume(request, listener.getResumptionToken());
             } while (request != null);
             client.close();
-        } catch (OAIException e) {
-            logger.error(e.getMessage(), e);
-        } catch (ConnectException e) {
-            logger.error(e.getMessage(), e);
+        } catch (OAIException | ConnectException | ExecutionException e) {
+            logger.error("skipping");
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            throw e;
         }
     }
 

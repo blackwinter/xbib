@@ -36,9 +36,9 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.io.StringPacket;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
+import org.xbib.oai.exceptions.OAIException;
 import org.xbib.util.DateUtil;
 import org.xbib.io.Connection;
-import org.xbib.io.Packet;
 import org.xbib.io.Session;
 import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
@@ -48,7 +48,10 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.ConnectException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * NatLiz client test
@@ -60,41 +63,46 @@ public class NatLizClientTest {
 
     private TarSession session;
 
-    public void testListRecordsNatLiz() throws Exception {
+    public void testListRecordsNatLiz() throws InterruptedException, TimeoutException, IOException {
+        try {
+            OAIClient client = OAIClientFactory.newClient("http://dl380-47.gbv.de/oai/natliz/");
+            ListRecordsRequest request = client.newListRecordsRequest()
+                    .setFrom(DateUtil.parseDateISO("2000-01-01T00:00:00Z"), OAIDateResolution.SECOND)
+                    .setUntil(DateUtil.parseDateISO("2014-01-01T00:00:00Z"), OAIDateResolution.SECOND)
+                    .setMetadataPrefix("extpp2"); // extpp, extpp2, oai_dc, mods, marcxml, telap, mab, mab_opc
 
-        OAIClient client = OAIClientFactory.newClient("http://dl380-47.gbv.de/oai/natliz/");
-        ListRecordsRequest request = client.newListRecordsRequest()
-                .setFrom(DateUtil.parseDateISO("2000-01-01T00:00:00Z"), OAIDateResolution.SECOND)
-                .setUntil(DateUtil.parseDateISO("2014-01-01T00:00:00Z"), OAIDateResolution.SECOND)
-                .setMetadataPrefix("extpp2"); // extpp, extpp2, oai_dc, mods, marcxml, telap, mab, mab_opc
+            TarConnectionFactory factory = new TarConnectionFactory();
+            Connection<TarSession> connection = factory.getConnection(URI.create("targz:natliz-extpp2"));
+            session = connection.createSession();
+            session.open(Session.Mode.WRITE);
 
-        TarConnectionFactory factory = new TarConnectionFactory();
-        Connection<TarSession> connection = factory.getConnection(URI.create("targz:natliz-extpp2"));
-        session = connection.createSession();
-        session.open(Session.Mode.WRITE);
+            final XmlSimpleMetadataHandler metadataHandler = new NatLizHandlerSimple()
+                    .setWriter(new StringWriter());
 
-        final XmlSimpleMetadataHandler metadataHandler = new NatLizHandlerSimple()
-                .setWriter(new StringWriter());
-
-        do {
-            try {
-                ListRecordsListener listener = new ListRecordsListener(request);
-                request.addHandler(metadataHandler);
-                request.prepare().execute(listener).waitFor();
-                if (listener.getResponse() != null) {
-                    StringWriter sw = new StringWriter();
-                    listener.getResponse().to(sw);
-                    //logger.info("response from NatLiz = {}", sw);
-                } else {
-                    logger.warn("no response");
+            do {
+                try {
+                    ListRecordsListener listener = new ListRecordsListener(request);
+                    request.addHandler(metadataHandler);
+                    request.prepare().execute(listener).waitFor();
+                    if (listener.getResponse() != null) {
+                        StringWriter sw = new StringWriter();
+                        listener.getResponse().to(sw);
+                        //logger.info("response from NatLiz = {}", sw);
+                    } else {
+                        logger.warn("no response");
+                    }
+                    request = client.resume(request, listener.getResumptionToken());
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
                 }
-                request = client.resume(request, listener.getResumptionToken());
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        } while (request != null);
-        session.close();
-        client.close();
+            } while (request != null);
+            session.close();
+            client.close();
+        } catch (OAIException | ConnectException | ExecutionException e) {
+            logger.error("skipping");
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            throw e;
+        }
     }
 
     class NatLizHandlerSimple extends XmlSimpleMetadataHandler {
@@ -116,5 +124,4 @@ public class NatLizClientTest {
             setWriter(new StringWriter());
         }
     }
-
 }

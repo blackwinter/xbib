@@ -59,6 +59,8 @@ public interface HttpRequest extends Request {
 
     HttpRequest addHeader(String name, String value);
 
+    HttpRequest setBody(String body);
+
     PreparedHttpRequest prepare() throws IOException;
 
 }

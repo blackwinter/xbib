@@ -31,7 +31,6 @@
  */
 package org.xbib.tools.feed.elasticsearch.ezb;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -56,7 +55,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
