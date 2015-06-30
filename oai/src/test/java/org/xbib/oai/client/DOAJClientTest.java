@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
+import org.xbib.oai.exceptions.NoRecordsMatchException;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.util.DateUtil;
@@ -70,8 +71,8 @@ public class DOAJClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("DOAJ");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom( DateUtil.parseDateISO("2015-04-01T00:00:00Z"), OAIDateResolution.DAY)
-                    .setUntil(DateUtil.parseDateISO("2015-05-01T00:00:00Z"), OAIDateResolution.DAY)
+                    .setFrom( DateUtil.parseDateISO("2015-05-01T00:00:00Z"), OAIDateResolution.DAY)
+                    .setUntil(DateUtil.parseDateISO("2015-06-01T00:00:00Z"), OAIDateResolution.DAY)
                     .setMetadataPrefix("oai_dc");
             do {
                 ListRecordsListener listener = new ListRecordsListener(request);
@@ -85,7 +86,7 @@ public class DOAJClientTest {
                 request = client.resume(request, listener.getResumptionToken());
             } while (request != null);
             client.close();
-        } catch (ConnectException | ExecutionException e) {
+        } catch (ConnectException | ExecutionException | NoRecordsMatchException e) {
             logger.error("skipping");
         } catch (IOException | InterruptedException | TimeoutException e) {
             throw e;

@@ -18,8 +18,8 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 
 public class BenchTest extends AbstractBenchmark {
 
+    //@Test
     @BenchmarkOptions(benchmarkRounds = 20, warmupRounds = 5)
-    @Test
     public void test() throws Exception {
         deserialize(serialize());
     }
@@ -46,10 +46,6 @@ public class BenchTest extends AbstractBenchmark {
 
     class MyHandler extends MarcXchangeContentHandler {
         int count;
-
-        public int getCount() {
-            return count;
-        }
 
         @Override
         public void beginCollection() {
