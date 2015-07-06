@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 
 import static com.google.common.io.ByteStreams.copy;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 import static org.xbib.common.xcontent.XContentFactory.xmlBuilder;
 
 public class XContentXmlBuilderTest extends Assert {
@@ -187,13 +187,15 @@ public class XContentXmlBuilderTest extends Assert {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         copy(in, out);
         byte[] buf = out.toByteArray();
+        assertTrue(buf.length > 0);
     }
 
     @Test
     public void testParseReader() throws Exception {
         StringReader sr = new StringReader("{\"name\":\"value\"}");
         Settings settings = settingsBuilder()
-                .loadFromReader(sr).build();
+                .loadFrom(sr).build();
+        assertTrue(!settings.getAsMap().isEmpty());
     }
 
     @Test
@@ -201,8 +203,7 @@ public class XContentXmlBuilderTest extends Assert {
         QName root = new QName("root");
         XContentBuilder builder = xmlBuilder(new XmlXParams(root));
         builder.startObject().field("Hello", "World\u001b").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World�</Hello></root>"
+        assertEquals(builder.string(), "<root><Hello>World�</Hello></root>"
         );
     }
 

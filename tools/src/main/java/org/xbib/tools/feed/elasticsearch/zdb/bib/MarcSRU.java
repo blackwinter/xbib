@@ -34,7 +34,6 @@ package org.xbib.tools.feed.elasticsearch.zdb.bib;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
@@ -66,6 +65,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.xbib.common.settings.Settings.settingsBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class MarcSRU extends Feeder {
@@ -126,16 +126,16 @@ public class MarcSRU extends Feeder {
                 Runtime.getRuntime().availableProcessors());
         ingest = createIngest();
         beforeIndexCreation(ingest);
-        ingest.maxActionsPerBulkRequest(maxbulkactions)
-                .maxConcurrentBulkRequests(maxconcurrentbulkrequests)
-                .newClient(ImmutableSettings.settingsBuilder()
+        ingest.maxActionsPerRequest(maxbulkactions)
+                .maxConcurrentRequests(maxconcurrentbulkrequests)
+                .init(settingsBuilder()
                         .put("cluster.name", settings.get("elasticsearch.cluster"))
                         .put("host", settings.get("elasticsearch.host"))
                         .put("port", settings.getAsInt("elasticsearch.port", 9300))
                         .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                        .build());
+                        .build().getAsMap());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        ingest.shards(shards).replica(replica).newIndex(index);
+        ingest.newIndex(index);
     }
 
     @Override

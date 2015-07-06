@@ -34,7 +34,6 @@ package org.xbib.tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.elasticsearch.support.client.Ingest;
@@ -94,8 +93,8 @@ public abstract class Feeder extends Converter {
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                     Runtime.getRuntime().availableProcessors());
             ingest = createIngest();
-            ingest.maxActionsPerBulkRequest(maxbulkactions)
-                    .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
+            ingest.maxActionsPerRequest(maxbulkactions)
+                    .maxConcurrentRequests(maxconcurrentbulkrequests);
         }
         if (ingest == null){
             logger.warn("ingest is null");
@@ -170,14 +169,14 @@ public abstract class Feeder extends Converter {
             return this;
         }
         if (settings.get("elasticsearch.cluster") != null) {
-            Settings clientSettings = ImmutableSettings.settingsBuilder()
+            Settings clientSettings = Settings.settingsBuilder()
                     .put("cluster.name", settings.get("elasticsearch.cluster"))
                     .put("host", settings.get("elasticsearch.host"))
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                     .build();
-            ingest.newClient(clientSettings);
+            ingest.init(clientSettings);
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {

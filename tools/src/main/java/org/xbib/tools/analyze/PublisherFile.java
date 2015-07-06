@@ -37,9 +37,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -57,12 +55,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newTreeMap;
-import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
-import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
-import static org.elasticsearch.index.query.FilterBuilders.termFilter;
-import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class PublisherFile implements CommandLineInterpreter {
 
@@ -73,7 +70,7 @@ public class PublisherFile implements CommandLineInterpreter {
     private static Settings settings;
 
     public PublisherFile reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder().loadFrom(reader).build();
         return this;
     }
 
@@ -88,13 +85,13 @@ public class PublisherFile implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchClient search = new SearchClient().init(settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build());
+                .build().getAsMap());
         Client client = search.client();
         try {
             SearchRequestBuilder searchRequest = client.prepareSearch()
@@ -106,18 +103,19 @@ public class PublisherFile implements CommandLineInterpreter {
 
             QueryBuilder queryBuilder = matchAllQuery();
             // default: filter all manifestations that have a service
-            FilterBuilder filterBuilder = existsFilter("dates");
+            QueryBuilder filterBuilder = existsQuery("dates");
             if (settings.getAsBoolean("issnonly", false)) {
-                filterBuilder = boolFilter()
-                        .must(existsFilter("dates"))
-                        .must(existsFilter("identifiers.issn"));
+                filterBuilder = boolQuery()
+                        .must(existsQuery("dates"))
+                        .must(existsQuery("identifiers.issn"));
             }
             if (settings.getAsBoolean("eonly", false)) {
-                filterBuilder = boolFilter()
-                        .must(existsFilter("dates"))
-                        .must(termFilter("mediatype", "computer"));
+                filterBuilder = boolQuery()
+                        .must(existsQuery("dates"))
+                        .must(termQuery("mediatype", "computer"));
             }
-            queryBuilder = filterBuilder != null ? filteredQuery(queryBuilder, filterBuilder) : queryBuilder;
+            queryBuilder = filterBuilder != null ?
+                    boolQuery().must(queryBuilder).filter(filterBuilder) : queryBuilder;
             searchRequest.setQuery(queryBuilder)
                     .addFields("publishedby", "publishedat", "identifiers.issn");
 

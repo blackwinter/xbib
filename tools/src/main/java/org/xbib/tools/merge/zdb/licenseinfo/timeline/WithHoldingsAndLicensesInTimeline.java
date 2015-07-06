@@ -38,7 +38,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -56,8 +55,6 @@ import org.xbib.tools.merge.zdb.entities.BibdatLookup;
 import org.xbib.tools.merge.zdb.entities.BlackListedISIL;
 import org.xbib.tools.merge.zdb.entities.Manifestation;
 import org.xbib.tools.merge.zdb.licenseinfo.ManifestationPipelineElement;
-import org.xbib.tools.util.SearchHitPipelineElement;
-import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 
@@ -69,11 +66,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Sets.newSetFromMap;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses
@@ -115,7 +111,7 @@ public class WithHoldingsAndLicensesInTimeline
     private static BlackListedISIL isilbl;
 
     public WithHoldingsAndLicensesInTimeline reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder().loadFrom(reader).build();
         return this;
     }
 
@@ -164,12 +160,12 @@ public class WithHoldingsAndLicensesInTimeline
         if (Strings.isNullOrEmpty(sourceTitleType)) {
             throw new IllegalArgumentException("no bib-type parameter given");
         }
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
-                .build());
+                .build().getAsMap());
         this.service = this;
         this.client = search.client();
         this.size = settings.getAsInt("scrollSize", 10);
@@ -182,16 +178,16 @@ public class WithHoldingsAndLicensesInTimeline
                         new IngestTransportClient() :
                         new BulkTransportClient();
 
-        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxBulkActions", 100))
-                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentBulkRequests",
+        ingest.maxActionsPerRequest(settings.getAsInt("maxBulkActions", 100))
+                .maxConcurrentRequests(settings.getAsInt("maxConcurrentBulkRequests",
                         Runtime.getRuntime().availableProcessors()));
         ingest.setting(WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("transport-client-settings.json"));
-        ingest.newClient(ImmutableSettings.settingsBuilder()
+        ingest.init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("target.cluster"))
                 .put("host", settings.get("target.host"))
                 .put("port", settings.getAsInt("target.port", 9300))
                 .put("sniff", settings.getAsBoolean("target.sniff", false))
-                .build());
+                .build().getAsMap());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.setting(WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("index-settings.json"));
         ingest.mapping("Work", WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("mapping-Work.json"));
@@ -200,8 +196,6 @@ public class WithHoldingsAndLicensesInTimeline
         ingest.mapping("Holding", WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("mapping-Holding.json"));
 
         String index = settings.get("index");
-        ingest.shards(settings.getAsInt("shards", 3));
-        ingest.replica(settings.getAsInt("replica", 0));
         ingest.newIndex(index);
         ingest.startBulk(index, -1, 1000);
 

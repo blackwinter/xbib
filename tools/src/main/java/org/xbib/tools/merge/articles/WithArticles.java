@@ -38,9 +38,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -70,17 +68,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
-import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
-import static org.elasticsearch.index.query.FilterBuilders.termFilter;
-import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge serial manifestations with articles
@@ -108,7 +103,7 @@ public class WithArticles
     private String identifier;
 
     public WithArticles reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder().loadFrom(reader).build();
         return this;
     }
 
@@ -128,13 +123,13 @@ public class WithArticles
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build());
+                .build().getAsMap());
         try {
             this.service = this;
             this.client = search.client();
@@ -147,17 +142,17 @@ public class WithArticles
                     "ingest".equals(settings.get("client")) ?
                             new IngestTransportClient() :
                             new BulkTransportClient();
-            ingest.maxActionsPerBulkRequest(settings.getAsInt("maxbulkactions", 1000))
-                    .maxConcurrentBulkRequests(settings.getAsInt("maxconcurrentbulkrequests",
+            ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
+                    .maxConcurrentRequests(settings.getAsInt("maxconcurrentbulkrequests",
                             2 * Runtime.getRuntime().availableProcessors()));
 
-            ingest.newClient(ImmutableSettings.settingsBuilder()
+            ingest.init(Settings.settingsBuilder()
                     .put("cluster.name", settings.get("target.cluster"))
                     .put("host", settings.get("target.host"))
                     .put("port", settings.getAsInt("target.port", 9300))
                     .put("sniff", settings.getAsBoolean("target.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("target.autodiscover", false))
-                    .build());
+                    .build().getAsMap());
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             String indexSettings = settings.get("target-index-settings",
                     "classpath:org/xbib/tools/merge/articles/settings.json");
@@ -222,26 +217,26 @@ public class WithArticles
                 .setSize(size)
                 .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(millis));
-
         QueryBuilder queryBuilder = matchAllQuery();
-        FilterBuilder filterBuilder = existsFilter("dates");
+        QueryBuilder existsQuery = existsQuery("dates");
         if (identifier != null) {
             // execute on a single ID
-            filterBuilder = null;
+            existsQuery = null;
             queryBuilder = termQuery("_id", identifier);
         }
         // filter ISSN
         if (settings().getAsBoolean("issnonly", false)) {
-            filterBuilder = boolFilter()
-                    .must(existsFilter("dates"))
-                    .must(existsFilter("identifiers.issn"));
+            existsQuery = boolQuery()
+                    .must(existsQuery("dates"))
+                    .must(existsQuery("identifiers.issn"));
         }
         if (settings().getAsBoolean("eonly", false)) {
-            filterBuilder = boolFilter()
-                    .must(existsFilter("dates"))
-                    .must(termFilter("mediatype", "computer"));
+            existsQuery = boolQuery()
+                    .must(existsQuery("dates"))
+                    .must(termQuery("mediatype", "computer"));
         }
-        queryBuilder = filterBuilder != null ? filteredQuery(queryBuilder, filterBuilder) : queryBuilder;
+        queryBuilder = existsQuery != null ?
+                boolQuery().must(queryBuilder).filter(existsQuery) : queryBuilder;
         searchRequest.setQuery(queryBuilder);
 
         SearchResponse searchResponse = searchRequest.execute().actionGet();

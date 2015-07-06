@@ -40,7 +40,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.search.SearchHit;
@@ -80,7 +79,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.collect.Sets.newSetFromMap;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses (without timeline)
@@ -132,7 +131,7 @@ public class WithHoldingsAndLicenses
     private StatusCodeMapper statusCodeMapper;
 
     public WithHoldingsAndLicenses reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder().loadFrom(reader).build();
         return this;
     }
 
@@ -187,14 +186,13 @@ public class WithHoldingsAndLicenses
         if (Strings.isNullOrEmpty(sourceTitleIndex)) {
             throw new IllegalArgumentException("no bib-index parameter given");
         }
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
-                        .put("cluster.name", settings.get("elasticsearch.cluster"))
-                        .put("host", settings.get("elasticsearch.host"))
-                        .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                        .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                        .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                        .build()
-        );
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster"))
+                .put("host", settings.get("elasticsearch.host"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build().getAsMap());
         this.service = this;
         this.client = search.client();
         this.size = settings.getAsInt("scrollsize", 10);
@@ -207,19 +205,19 @@ public class WithHoldingsAndLicenses
                         new IngestTransportClient() :
                         new BulkTransportClient();
 
-        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxbulkactions", 100))
-                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
+        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 100))
+                .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
 
         InputStream clientSettings = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
         ingest.setting(clientSettings);
         clientSettings.close();
-        ingest.newClient(ImmutableSettings.settingsBuilder()
+        ingest.init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build());
+                .build().getAsMap());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.setting(WithHoldingsAndLicenses.class.getResourceAsStream("index-settings.json"));
         ingest.mapping("Work", WithHoldingsAndLicenses.class.getResourceAsStream("mapping-Work.json"));

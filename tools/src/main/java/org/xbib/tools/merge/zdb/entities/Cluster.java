@@ -31,9 +31,9 @@
  */
 package org.xbib.tools.merge.zdb.entities;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.collect.ImmutableSet;
 import org.xbib.entities.support.EnumerationAndChronologyHelper;
 
 import java.util.Arrays;

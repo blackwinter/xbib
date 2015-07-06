@@ -39,9 +39,6 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
-import org.elasticsearch.index.query.FilteredQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -57,7 +54,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +64,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -190,8 +186,9 @@ public class WithArticlesPipeline
             issnQuery.should(matchPhraseQuery("prism:issn", s));
         }
         queryBuilder.must(dateQuery).must(issnQuery);
-        FilterBuilder existsKey = FilterBuilders.existsFilter("xbib:key");
-        FilteredQueryBuilder filteredQueryBuilder = filteredQuery(queryBuilder, existsKey);
+        QueryBuilder filteredQueryBuilder = boolQuery()
+                .must(queryBuilder)
+                .filter(existsQuery("xbib:key"));
         Map<String,Map<String,Object>> docs = newHashMap();
         if (service.settings().get("medline-index") != null) {
             fetchMedline(filteredQueryBuilder, docs);

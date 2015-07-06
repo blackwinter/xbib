@@ -22,8 +22,8 @@ public class ApplicationContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            searchSupport = new SearchSupport().newClient();
-            logger.info("Elasticsearch client initiated");
+            searchSupport = new SearchSupport().init();
+            logger.info("Elasticsearch search initiated");
             dispatcher = new Dispatcher();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -34,7 +34,7 @@ public class ApplicationContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         if (searchSupport != null) {
             searchSupport.shutdown();
-            logger.info("Elasticsearch client shutdown");
+            logger.info("Elasticsearch search shutdown");
         }
     }
 

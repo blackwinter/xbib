@@ -61,7 +61,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Queue;
 
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
         extends AbstractPipeline<URIPipelineElement, PipelineException> implements Provider {
@@ -81,7 +81,7 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     @Override
     public Converter<T, P> reader(Reader reader) {
         this.reader = reader;
-        setSettings(settingsBuilder().loadFromReader(reader).build());
+        setSettings(settingsBuilder().loadFrom(reader).build());
         return this;
     }
 

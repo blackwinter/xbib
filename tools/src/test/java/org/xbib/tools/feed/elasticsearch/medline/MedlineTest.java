@@ -34,7 +34,6 @@ package org.xbib.tools.feed.elasticsearch.medline;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
-import org.xbib.common.settings.ImmutableSettings;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -48,8 +47,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.xbib.common.settings.Settings.settingsBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
-import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class MedlineTest {
 
@@ -61,7 +60,7 @@ public class MedlineTest {
         if (url != null) {
             logger.info("{}", url.toURI());
             Medline medline = new Medline();
-            Settings settings = ImmutableSettings.settingsBuilder()
+            Settings settings = settingsBuilder()
                     .put("mock", true)
                     .build();
             medline.setSettings(settings);

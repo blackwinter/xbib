@@ -37,7 +37,7 @@ import org.elasticsearch.common.xcontent.json.JsonXContent;
 
 import org.xbib.elasticsearch.action.search.support.BasicGetResponse;
 import org.xbib.elasticsearch.xml.ES;
-import org.xbib.io.StreamUtil;
+import org.xbib.io.stream.Streams;
 import org.xbib.io.stream.StreamByteBuffer;
 import org.xbib.json.xml.JsonXmlStreamer;
 import org.xbib.json.transform.JsonStylesheet;
@@ -97,7 +97,7 @@ public class GetResponse extends BasicGetResponse {
     public void to(Writer writer) throws IOException, XMLStreamException {
         InputStream in = bytes().getInputStream();
         if (getStylesheets() == null || "application/json".equals(mimeType)) {
-            StreamUtil.copy(new InputStreamReader(in, "UTF-8"), writer);
+            Streams.copy(new InputStreamReader(in, "UTF-8"), writer);
         } else if ("application/xml".equals(mimeType)) {
             new JsonStylesheet().root(root)
                     .toXML(in, writer);

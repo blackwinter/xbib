@@ -29,15 +29,16 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io;
+package org.xbib.io.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 
-public final class StreamUtil {
+public final class Streams {
 
     public final static int BUFSIZE = 8192;
 
@@ -57,4 +58,9 @@ public final class StreamUtil {
         }
     }
 
+    public static String copyToString(Reader in) throws IOException {
+        StringWriter out = new StringWriter();
+        copy(in, out);
+        return out.toString();
+    }
 }

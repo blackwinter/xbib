@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
 @Path("/router/v1")
 public class RoutingService {
@@ -124,8 +123,7 @@ public class RoutingService {
     ) throws IOException {
 
         if (in != null) {
-            Settings settings = settingsBuilder()
-                    .loadFromReader(new InputStreamReader(in, "UTF-8")).build();
+            Settings settings = Settings.settingsBuilder().loadFrom(new InputStreamReader(in, "UTF-8")).build();
             logger.info("got settings from POST body {}", settings.getAsMap());
         }
 

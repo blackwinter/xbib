@@ -31,7 +31,6 @@
  */
 package org.xbib.elasticsearch.search;
 
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 
@@ -42,14 +41,13 @@ import java.io.IOException;
  */
 public class SearchSupport extends SearchClient {
 
-    public SearchSupport newClient() throws IOException {
-        this.newClient(findSettings());
+    public SearchSupport init() throws IOException {
+        this.init(findSettings());
         return this;
     }
 
-    public SearchSupport newClient(Settings settings) throws IOException {
-        super.newClient(ImmutableSettings.settingsBuilder()
-                .put(settings.getAsMap()).build());
+    public SearchSupport init(Settings settings) throws IOException {
+        super.init(settings.getAsMap());
         return this;
     }
 
