@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.entities.marc.MARCEntityQueue;
 import org.xbib.io.InputService;
-import org.xbib.keyvalue.KeyValueStreamAdapter;
+import org.xbib.io.keyvalue.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;

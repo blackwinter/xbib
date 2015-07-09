@@ -44,10 +44,10 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.queue.QueuePipelineExecutor;
@@ -56,8 +56,6 @@ import org.xbib.tools.merge.zdb.entities.BibdatLookup;
 import org.xbib.tools.merge.zdb.entities.BlackListedISIL;
 import org.xbib.tools.merge.zdb.entities.Manifestation;
 import org.xbib.tools.merge.zdb.licenseinfo.ManifestationPipelineElement;
-import org.xbib.tools.util.SearchHitPipelineElement;
-import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 
@@ -69,7 +67,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Sets.newSetFromMap;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -182,11 +179,11 @@ public class WithHoldingsAndLicensesInTimeline
                         new IngestTransportClient() :
                         new BulkTransportClient();
 
-        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxBulkActions", 100))
-                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentBulkRequests",
+        ingest.maxActionsPerRequest(settings.getAsInt("maxBulkActions", 100))
+                .maxConcurrentRequests(settings.getAsInt("maxConcurrentBulkRequests",
                         Runtime.getRuntime().availableProcessors()));
         ingest.setting(WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("transport-client-settings.json"));
-        ingest.newClient(ImmutableSettings.settingsBuilder()
+        ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("target.cluster"))
                 .put("host", settings.get("target.host"))
                 .put("port", settings.getAsInt("target.port", 9300))
@@ -200,10 +197,8 @@ public class WithHoldingsAndLicensesInTimeline
         ingest.mapping("Holding", WithHoldingsAndLicensesInTimeline.class.getResourceAsStream("mapping-Holding.json"));
 
         String index = settings.get("index");
-        ingest.shards(settings.getAsInt("shards", 3));
-        ingest.replica(settings.getAsInt("replica", 0));
         ingest.newIndex(index);
-        ingest.startBulk(index, -1, 1000);
+        ingest.startBulk(index);
 
         super.setPipelineProvider(new PipelineProvider<WithHoldingsAndLicensesInTimelinePipeline>() {
             int i = 0;

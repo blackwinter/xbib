@@ -46,10 +46,10 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
@@ -70,7 +70,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -147,11 +146,11 @@ public class WithArticles
                     "ingest".equals(settings.get("client")) ?
                             new IngestTransportClient() :
                             new BulkTransportClient();
-            ingest.maxActionsPerBulkRequest(settings.getAsInt("maxbulkactions", 1000))
-                    .maxConcurrentBulkRequests(settings.getAsInt("maxconcurrentbulkrequests",
+            ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
+                    .maxConcurrentRequests(settings.getAsInt("maxconcurrentbulkrequests",
                             2 * Runtime.getRuntime().availableProcessors()));
 
-            ingest.newClient(ImmutableSettings.settingsBuilder()
+            ingest.init(ImmutableSettings.settingsBuilder()
                     .put("cluster.name", settings.get("target.cluster"))
                     .put("host", settings.get("target.host"))
                     .put("port", settings.getAsInt("target.port", 9300))
@@ -171,7 +170,7 @@ public class WithArticles
                     new URL(indexMappings)).openStream();
             ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                     indexSettingsInput, indexMappingsInput);
-            ingest.startBulk(settings.get("target-index"), -1, 1000);
+            ingest.startBulk(settings.get("target-index"));
             super.setPipelineProvider(new PipelineProvider<WithArticlesPipeline>() {
                 int i = 0;
 

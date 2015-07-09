@@ -84,7 +84,7 @@
         <maven.build.timestamp.format>dd.MM.yyyy HH:mm</maven.build.timestamp.format>
         <java.compiler.source>1.8</java.compiler.source>
         <xbib.version>${project.version}</xbib.version>
-        <xbib.elasticsearch.support.plugin.version>1.5.2.1</xbib.elasticsearch.support.plugin.version>
+        <xbib.elasticsearch.support.plugin.version>1.5.2.3</xbib.elasticsearch.support.plugin.version>
         <antlr.version>4.5</antlr.version>
         <jackson.version>2.5.2</jackson.version>
         <netty.version>4.1.0.Beta4</netty.version>
@@ -536,26 +536,6 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-keyvalue</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-date</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-syslog</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-rule</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
                 <artifactId>xbib-elasticsearch-search</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -878,7 +858,6 @@
         <module>charset</module>
         <module>compress</module>
         <module>util</module>
-        <module>keyvalue</module>
         <module>iso2709</module>
         <module>jacc</module>
         <module>dict</module>
@@ -891,8 +870,6 @@
         <module>sru</module>
         <module>oai</module>
         <module>iso23950</module>
-        <module>syslog</module>
-        <module>rule</module>
 
         <module>elasticsearch/search</module>
 

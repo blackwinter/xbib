@@ -38,9 +38,9 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
@@ -94,8 +94,8 @@ public abstract class Feeder extends Converter {
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                     Runtime.getRuntime().availableProcessors());
             ingest = createIngest();
-            ingest.maxActionsPerBulkRequest(maxbulkactions)
-                    .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
+            ingest.maxActionsPerRequest(maxbulkactions)
+                    .maxConcurrentRequests(maxconcurrentbulkrequests);
         }
         if (ingest == null){
             logger.warn("ingest is null");
@@ -130,8 +130,9 @@ public abstract class Feeder extends Converter {
         double oneminute = metric.oneMinuteRate();
         double fiveminute = metric.fiveMinuteRate();
         double fifteenminute = metric.fifteenMinuteRate();
-        long bytes = ingest != null && ingest.getMetric() != null ?
-                ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
+        //long bytes = ingest != null && ingest.getMetric() != null ?
+        //        ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
+        long bytes = 0;
         long elapsed = metric.elapsed() / 1000000;
         String elapsedhuman = DurationFormatUtil.formatDurationWords(elapsed, true, true);
         double avg = bytes / (docs + 1); // avoid div by zero
@@ -177,7 +178,7 @@ public abstract class Feeder extends Converter {
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                     .build();
-            ingest.newClient(clientSettings);
+            ingest.init(clientSettings);
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {

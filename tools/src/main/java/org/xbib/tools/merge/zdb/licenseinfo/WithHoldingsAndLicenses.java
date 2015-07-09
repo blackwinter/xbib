@@ -47,10 +47,10 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.entities.support.StatusCodeMapper;
 import org.xbib.entities.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
@@ -207,13 +207,13 @@ public class WithHoldingsAndLicenses
                         new IngestTransportClient() :
                         new BulkTransportClient();
 
-        ingest.maxActionsPerBulkRequest(settings.getAsInt("maxbulkactions", 100))
-                .maxConcurrentBulkRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
+        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 100))
+                .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
 
         InputStream clientSettings = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
         ingest.setting(clientSettings);
         clientSettings.close();
-        ingest.newClient(ImmutableSettings.settingsBuilder()
+        ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -234,7 +234,7 @@ public class WithHoldingsAndLicenses
             logger.warn(e.getMessage(), e);
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        ingest.startBulk(index, -1, 1000);
+        ingest.startBulk(index);
 
         queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);

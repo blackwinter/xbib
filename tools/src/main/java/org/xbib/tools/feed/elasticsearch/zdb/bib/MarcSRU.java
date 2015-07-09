@@ -119,23 +119,21 @@ public class MarcSRU extends Feeder {
 
     protected void prepareOutput() throws IOException {
         String index = settings.get("index");
-        Integer shards = settings.getAsInt("shards", 1);
-        Integer replica = settings.getAsInt("replica", 0);
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 100);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                 Runtime.getRuntime().availableProcessors());
         ingest = createIngest();
         beforeIndexCreation(ingest);
-        ingest.maxActionsPerBulkRequest(maxbulkactions)
-                .maxConcurrentBulkRequests(maxconcurrentbulkrequests)
-                .newClient(ImmutableSettings.settingsBuilder()
+        ingest.maxActionsPerRequest(maxbulkactions)
+                .maxConcurrentRequests(maxconcurrentbulkrequests)
+                .init(ImmutableSettings.settingsBuilder()
                         .put("cluster.name", settings.get("elasticsearch.cluster"))
                         .put("host", settings.get("elasticsearch.host"))
                         .put("port", settings.getAsInt("elasticsearch.port", 9300))
                         .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                         .build());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        ingest.shards(shards).replica(replica).newIndex(index);
+        ingest.newIndex(index);
     }
 
     @Override

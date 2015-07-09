@@ -54,8 +54,8 @@ public abstract class TimewindowFeeder extends Feeder {
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                     Runtime.getRuntime().availableProcessors());
             ingest = createIngest();
-            ingest.maxActionsPerBulkRequest(maxbulkactions)
-                    .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
+            ingest.maxActionsPerRequest(maxbulkactions)
+                    .maxConcurrentRequests(maxconcurrentbulkrequests);
         }
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
@@ -69,7 +69,7 @@ public abstract class TimewindowFeeder extends Feeder {
 
     @Override
     protected TimewindowFeeder createIndex(String index) throws IOException {
-        ingest.newClient(ImmutableSettings.settingsBuilder()
+        ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -96,7 +96,7 @@ public abstract class TimewindowFeeder extends Feeder {
                         indexSettingsInput, indexMappingsInput);
                 indexSettingsInput.close();
                 indexMappingsInput.close();
-                ingest.startBulk(getConcreteIndex(), -1, 1000);
+                ingest.startBulk(getConcreteIndex());
             } catch (Exception e) {
                 if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
                     throw e;

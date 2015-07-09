@@ -47,7 +47,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 import org.xbib.io.Request;
-import org.xbib.keyvalue.KeyValueStreamAdapter;
+import org.xbib.io.keyvalue.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;

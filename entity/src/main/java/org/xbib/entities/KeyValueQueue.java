@@ -33,8 +33,8 @@ package org.xbib.entities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.keyvalue.KeyValue;
-import org.xbib.keyvalue.KeyValueStreamListener;
+import org.xbib.io.keyvalue.KeyValue;
+import org.xbib.io.keyvalue.KeyValueStreamListener;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.util.JobQueue;
 

@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.collect.Queues.newConcurrentLinkedQueue;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -85,8 +84,8 @@ public abstract class OAIFeeder extends TimewindowFeeder {
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                 Runtime.getRuntime().availableProcessors());
-        ingest.maxActionsPerBulkRequest(maxbulkactions)
-                .maxConcurrentBulkRequests(maxconcurrentbulkrequests);
+        ingest.maxActionsPerRequest(maxbulkactions)
+                .maxConcurrentRequests(maxconcurrentbulkrequests);
         createIndex(getConcreteIndex());
         String[] inputs = settings.getAsArray("uri");
         if (inputs == null || inputs.length == 0) {
