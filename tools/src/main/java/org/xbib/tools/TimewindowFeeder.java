@@ -74,10 +74,11 @@ public abstract class TimewindowFeeder extends Feeder {
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
                 .build());
         if (ingest.client() != null) {
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-            if (settings.getAsBoolean("onlyalias", false)) {
+            if (settings.getAsBoolean("onlyaliases", false)) {
                 updateAliases();
                 return this;
             }

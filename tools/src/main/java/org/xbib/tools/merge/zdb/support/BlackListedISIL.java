@@ -29,33 +29,33 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.articles;
+package org.xbib.tools.merge.zdb.support;
 
-import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.element.PipelineElement;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Set;
 
-public class SerialItemPipelineElement implements PipelineElement<SerialItem>, PipelineRequest {
+import static com.google.common.collect.Sets.newHashSet;
 
-    private SerialItem serialItem;
+public class BlackListedISIL {
 
-    private boolean forced;
+    private Set<String> lookup = newHashSet();
 
-    public SerialItemPipelineElement set(SerialItem serialItem) {
-        this.serialItem = serialItem;
-        return this;
+    public void buildLookup(InputStream in) throws IOException {
+        if (in == null) {
+            return;
+        }
+        BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+        String line;
+        while ((line = r.readLine()) != null) {
+            lookup.add(line);
+        }
+        r.close();
     }
 
-    public SerialItem get() {
-        return serialItem;
+    public Set<String> lookup() {
+        return lookup;
     }
-
-    public SerialItemPipelineElement setForced(boolean forced) {
-        this.forced = forced;
-        return this;
-    }
-
-    public boolean getForced() {
-        return forced;
-    }
-
 }

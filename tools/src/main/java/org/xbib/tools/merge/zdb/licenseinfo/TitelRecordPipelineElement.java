@@ -29,33 +29,23 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.articles;
+package org.xbib.tools.merge.zdb.licenseinfo;
 
 import org.xbib.pipeline.PipelineRequest;
 import org.xbib.pipeline.element.PipelineElement;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
 
-public class SerialItemPipelineElement implements PipelineElement<SerialItem>, PipelineRequest {
+public class TitelRecordPipelineElement implements PipelineElement<TitleRecord>, PipelineRequest {
 
-    private SerialItem serialItem;
+    private TitleRecord titleRecord;
 
-    private boolean forced;
-
-    public SerialItemPipelineElement set(SerialItem serialItem) {
-        this.serialItem = serialItem;
+    public TitelRecordPipelineElement set(TitleRecord titleRecord) {
+        this.titleRecord = titleRecord;
         return this;
     }
 
-    public SerialItem get() {
-        return serialItem;
-    }
-
-    public SerialItemPipelineElement setForced(boolean forced) {
-        this.forced = forced;
-        return this;
-    }
-
-    public boolean getForced() {
-        return forced;
+    public TitleRecord get() {
+        return titleRecord;
     }
 
 }

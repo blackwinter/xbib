@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -23,10 +22,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An Queue Pipeline setExecutor. This setExecutor can execute pipelines in parallel
+ * An Queue Pipeline executor. This executor can execute pipelines in parallel
  * and manage a queue that have to be processed by the pipelines.
- *
- * By doing this, the concurrency works on archive entry level, not URI level.
  *
  * Pipelines are created by a pipeline provider.
  * The maximum number of concurrent pipelines is 256.
@@ -74,6 +71,14 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
     public QueuePipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue) {
         this.queue = queue;
         return this;
+    }
+
+    /**
+     * Get queue
+     * @return the queue
+     */
+    public BlockingQueue<R> getQueue() {
+        return queue;
     }
 
     @Override
@@ -161,14 +166,6 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
         }
         waitFor();
         shutdown();
-    }
-
-    /**
-     * Get queue
-     * @return the queue
-     */
-    public Queue<R> getQueue() {
-        return queue;
     }
 
     /**

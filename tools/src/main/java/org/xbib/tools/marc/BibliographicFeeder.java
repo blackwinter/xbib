@@ -72,6 +72,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
@@ -87,18 +88,20 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
             return this;
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        if (settings.getAsBoolean("onlyalias", false)) {
+        if (settings.getAsBoolean("alias", false)) {
             updateAliases();
             return this;
         }
         try {
             String indexSettings = settings.get("bib-index-settings",
                     "classpath:org/xbib/tools/feed/elasticsearch/marc/bib-settings.json");
+            logger.info("using bib-index settings from {}", indexSettings);
             InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
                     new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
                     new URL(indexSettings)).openStream();
             String indexMappings = settings.get("bib-index-mapping",
                     "classpath:org/xbib/tools/feed/elasticsearch/marc/bib-mapping.json");
+            logger.info("using bib-index mappings from {}", indexMappings);
             InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
                     new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
                     new URL(indexMappings)).openStream();
@@ -118,13 +121,13 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        if (settings.getAsBoolean("onlyalias", false)) {
+        if (settings.getAsBoolean("onlyaliases", false)) {
             return;
         }
         // set identifier prefix (ISIL)
         Map<String,Object> params = newHashMap();
-        params.put("identifier", settings.get("identifier", "DE-605"));
-        params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
+        params.put("catalogid", settings.get("catalogid", "DE-605"));
+        params.put("_prefix", "(" + settings.get("catalogid", "DE-605") + ")");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         final MARCEntityQueue queue = createQueue(params);
         queue.setUnmappedKeyListener((id,key) -> {

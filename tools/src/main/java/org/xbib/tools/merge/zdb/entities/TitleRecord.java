@@ -32,56 +32,57 @@
 package org.xbib.tools.merge.zdb.entities;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.pipeline.PipelineRequest;
+import org.xbib.tools.merge.zdb.support.NaturalOrderComparator;
+import org.xbib.tools.merge.zdb.support.StatCounter;
 import org.xbib.util.Strings;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Multimaps.newSetMultimap;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
-public class Manifestation implements Comparable<Manifestation>, PipelineRequest {
+@SuppressWarnings("unchecked")
+public class TitleRecord implements Comparable<TitleRecord>, PipelineRequest {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
     protected final Map<String, Object> map;
 
-    private boolean forced;
-
-    protected String id;
+    protected String identifier;
 
     protected String externalID;
 
-    private String key;
+    //private String key;
 
     protected String title;
 
-    protected String fulltitle;
+    protected String extendedTitle;
+
+    protected Set<String> titleComponents = newLinkedHashSet();
 
     protected String corporate;
 
@@ -105,19 +106,15 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     protected Map<String, Object> identifiers;
 
-    private final SetMultimap<String, Manifestation> relatedManifestations = TreeMultimap.create();
+    private final SetMultimap<String, TitleRecord> related = TreeMultimap.create();
 
     private final SetMultimap<String, Holding> relatedHoldings = TreeMultimap.create();
 
-    private final SetMultimap<Integer, Holding> relatedVolumes = TreeMultimap.create();
-
     private final static Supplier<Set<String>> supplier = Sets::newLinkedHashSet;
 
-    private final SetMultimap<String, String> relations = Multimaps.newSetMultimap(Maps.newTreeMap(), supplier);
+    private final SetMultimap<String, String> relations = newSetMultimap(Maps.newTreeMap(), supplier);
 
-    private final SetMultimap<String, String> externalRelations = Multimaps.newSetMultimap(Maps.newTreeMap(), supplier);
-
-    private boolean isCurrentlyPublished;
+    private final SetMultimap<String, String> externalRelations = newSetMultimap(Maps.newTreeMap(), supplier);
 
     private boolean isDatabase;
 
@@ -127,13 +124,19 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     private boolean isWebsite;
 
-    private boolean isInTimeline;
-
     private boolean isSubseries;
 
     private boolean isSupplement;
 
-    private boolean oa;
+    private boolean isBibliography;
+
+    private boolean isAggregate;
+
+    private boolean openAccess;
+
+    private String resourceType;
+
+    private String genre;
 
     private String license;
 
@@ -151,15 +154,11 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     private String carrierType;
 
-    private String timelineKey;
-
     private List<Map<String, Object>> links;
 
-    private final List<Volume> volumes = newArrayList();
+    private final Collection<MonographVolume> monographVolumes = newTreeSet(new NaturalOrderComparator<MonographVolume>());
 
-    private final List<String> volumeIDs = newArrayList();
-
-    public Manifestation(Map<String, Object> map) {
+    public TitleRecord(Map<String, Object> map) {
         this.map = map;
         build();
     }
@@ -167,17 +166,17 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
     protected void build() {
         // we use DNB ID. ZDB ID collides with GND ID. Example: 21573803
         String s = getString("IdentifierDNB.identifierDNB");
-        this.id = s != null ? s : "undefined";
+        this.identifier = s != null ? s : "undefined";
         s = getString("IdentifierZDB.identifierZDB");
         this.externalID = s != null ? s : "undefined";
         this.isSubseries = getString("TitleStatement.titlePartName") != null
                 || getString("TitleStatement.titlePartNumber") != null;
         makeCorporate();
         makeMeeting();
-        makeFullTitle();
+        makeTitle();
         this.publisherName = findPublisherName();
         this.publisherPlace = findPublisherPlace();
-        this.language = getString("Language.value", "unknown");
+        this.language = getString("Language.valueSource");
         findCountry();
         Integer firstDate = getInteger("date1");
         this.firstDate = firstDate == null ? null : firstDate == 9999 ? null : firstDate;
@@ -186,19 +185,23 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         this.dates = getIntegerSet("Dates");
         findLinks();
         findSupplement();
-        String genre = getString("OtherCodes.genreSource");
-        String dateType = getString("typeOfDate");
-        this.isCurrentlyPublished = "Continuing resource currently published".equals(dateType);
-        String resourceType = getString("typeOfContinuingResource");
+        this.genre = getString("OtherCodes.genre");
+        String genreCode = getString("OtherCodes.genreSource");
+        //String dateType = getString("typeOfDate");
+        //this.isCurrentlyPublished = "Continuing resource currently published".equals(dateType);
+        this.resourceType = getString("typeOfContinuingResource");
         this.isWebsite = "Updating Web site".equals(resourceType);
         this.isDatabase = "Updating database".equals(resourceType);
-        this.isPacket = "pt".equals(genre);
+        this.isPacket = "pt".equals(genreCode);
         this.isNewspaper = "Newspaper".equals(resourceType);
+        String natureOfContent = getString("natureOfContent");
+        this.isBibliography = "Bibliographies".equals(natureOfContent);
+        boolean isAgg = "ag".equals(genreCode);
+        this.isAggregate = isWebsite || isDatabase || isPacket || isNewspaper || isBibliography || isAgg;
         computeContentTypes();
-        this.key = computeKey();
+        //this.key = computeKey();
         makeIdentifiers();
         makeRelations();
-        this.timelineKey = makeTimelineKey();
     }
 
     private <T> T get(String key) {
@@ -257,44 +260,20 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return map;
     }
 
-    public Manifestation setForced(boolean forced) {
-        this.forced = forced;
-        return this;
-    }
-
-    public boolean getForced() {
-        return forced;
-    }
-
     public String id() {
-        return id;
+        return identifier;
     }
 
     public String externalID() {
         return externalID;
     }
 
-    public Manifestation contentType(String contentType) {
-        this.contentType = contentType;
-        return this;
-    }
-
     public String contentType() {
         return contentType;
     }
 
-    public Manifestation mediaType(String mediaType) {
-        this.mediaType = mediaType;
-        return this;
-    }
-
     public String mediaType() {
         return mediaType;
-    }
-
-    public Manifestation carrierType(String carrierType) {
-        this.carrierType = carrierType;
-        return this;
     }
 
     public String carrierType() {
@@ -309,12 +288,16 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return title;
     }
 
-    public void setFullTitle(String fulltitle) {
-        this.fulltitle = fulltitle;
+    public void setExtendedTitle(String extendedTitle) {
+        this.extendedTitle = extendedTitle;
     }
 
-    public String getFullTitle() {
-        return fulltitle;
+    public String getExtendedTitle() {
+        return extendedTitle;
+    }
+
+    public Collection<String> getTitleComponents() {
+        return titleComponents;
     }
 
     public String corporateName() {
@@ -369,40 +352,48 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return isWebsite;
     }
 
+    public boolean isBibliography() {
+        return isBibliography;
+    }
+
+    public boolean isAggregate() {
+        return isAggregate;
+    }
+
     public boolean isSubseries() {
         return isSubseries;
     }
 
-    public boolean isInTimeline() {
-        return isInTimeline;
-    }
-
     public boolean isPrint() {
-        return printID != null && id.equals(printID);
+        return printID != null;
     }
 
     public boolean hasPrint() {
-        return printID != null && id.equals(onlineID);
+        return printID != null && identifier.equals(onlineID);
     }
 
     public boolean isOnline() {
-        return onlineID != null && id.equals(onlineID);
+        return onlineID != null && identifier.equals(onlineID);
     }
 
     public boolean hasOnline() {
-        return onlineID != null && id.equals(printID);
+        return onlineID != null;
     }
 
-    public Manifestation setOpenAccess(boolean oa) {
-        this.oa = oa;
+    public boolean isMonographic() {
+        return false;
+    }
+
+    public TitleRecord setOpenAccess(boolean openAccess) {
+        this.openAccess = openAccess;
         return this;
     }
 
     public boolean isOpenAccess() {
-        return oa;
+        return openAccess;
     }
 
-    public Manifestation setLicense(String license) {
+    public TitleRecord setLicense(String license) {
         this.license = license;
         return this;
     }
@@ -447,6 +438,9 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return links;
     }
 
+    /*
+     * relation key, id
+     */
     public SetMultimap<String, String> getRelations() {
         return relations;
     }
@@ -459,98 +453,98 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         return greenDates;
     }
 
-    public void addVolume(Volume volume) {
-        synchronized (volumes) {
-            volumes.add(volume);
+    public void addVolume(MonographVolume volume) {
+        synchronized (monographVolumes) {
+            monographVolumes.add(volume);
+            // copy monograph volume holdings to this holdings
+            relatedHoldings.putAll(volume.getRelatedHoldings());
         }
     }
 
-    public List<Volume> getVolumes() {
-        return volumes;
-    }
-
-    public void addVolumeIDs(List<String> volumeIDs) {
-        this.volumeIDs.addAll(volumeIDs);
-    }
-
-    public boolean hasCarrierRelations() {
-        synchronized (relations) {
-            for (String key : relations.keys()) {
-                if (carrierEditions.contains(key)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    public boolean isDateValid(Integer date) {
-        if (firstDate != null && lastDate != null) {
-            if (firstDate <= date && lastDate >= date) {
-                return true;
-            }
-        }
-        if (firstDate != null) {
-            if (isCurrentlyPublished) {
-                if (firstDate <= date) {
-                    return true;
-                }
-            } else if (Objects.equals(firstDate, date)) {
-                return true;
-            }
-        }
-        return false;
+    public Collection<MonographVolume> getMonographVolumes() {
+        return monographVolumes;
     }
 
     private void findSupplement() {
-        // recognize supplement
         this.isSupplement = "isSupplementOf".equals(getString("SupplementParentEntry.relation"));
         if (!isSupplement) {
             this.isSupplement = "isSupplementOf".equals(getString("SupplementSpecialEditionEntry.relation"));
         }
     }
 
-    protected void makeFullTitle() {
-        // shorten title (series statement after '/' or ':')
-        // but combine with corporate name, meeting name, and part specification
+    protected void makeTitle() {
         StringBuilder sb = new StringBuilder();
-        sb.append(clean(getString("TitleStatement.titleMain")));
+        String titleMain = getString("TitleStatement.titleMain");
+        sb.append(clean(titleMain));
+        titleComponents.addAll(split(titleMain));
         String titleRemainder = getString("TitleStatement.titleRemainder");
-        if (titleRemainder != null) {
+        if (!Strings.isNullOrEmpty(titleRemainder)) {
             sb.append(" ; ").append(titleRemainder);
+            titleComponents.addAll(split(titleRemainder));
         }
         Map<String, Object> m = (Map<String, Object>) map.get("TitleStatement");
         if (m != null) {
             String medium = getString("titleMedium");
             if (medium != null) {
-                // delete synthetic title words
-                sb.append(" ; ").append(medium.replaceAll("\\[Elektronische Ressource\\]", ""));
+                // delete synthetic medium titles
                 if ("[Elektronische Ressource]".equals(medium)) {
                     m.remove("titleMedium");
+                }
+                medium = medium.replaceAll("\\[Elektronische Ressource\\]", "");
+                if (!Strings.isNullOrEmpty(medium)) {
+                    sb.append(" ; ").append(medium);
+                    titleComponents.addAll(split(medium));
                 }
             }
             // add part name / part number
             if (m.containsKey("titlePartName")) {
-                String partName = clean(getString("TitleStatement.titlePartName"));
+                String partName = getString("TitleStatement.titlePartName");
                 if (!Strings.isNullOrEmpty(partName)) {
-                    sb.append(" ; ").append(partName.replaceAll("\\[Elektronische Ressource\\]", ""));
+                    partName = partName.replaceAll("\\[Elektronische Ressource\\]", "");
+                    if (!Strings.isNullOrEmpty(partName)) {
+                        sb.append(" ; ").append(clean(partName));
+                        titleComponents.addAll(split(partName));
+                    }
                 }
             }
             if (m.containsKey("titlePartNumber")) {
-                String partNumber = clean(getString("TitleStatement.titlePartNumber"));
+                String partNumber = getString("TitleStatement.titlePartNumber");
                 if (!Strings.isNullOrEmpty(partNumber)) {
-                    sb.append(" ; ").append(partNumber);
+                    sb.append(" ; ").append(clean(partNumber));
+                    titleComponents.addAll(split(partNumber));
                 }
             }
         }
         setTitle(sb.toString());
-        if (corporate != null) {
+        // extended title: combine with corporate name and/or meeting name
+        // more titles for title components
+        String varyingTitle = getString("VaryingTitle.titleMain");
+        if (!Strings.isNullOrEmpty(varyingTitle)) {
+            titleComponents.addAll(split(varyingTitle));
+        }
+        // former titles
+        Object o = get("FormerTitle");
+        if (o != null) {
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            List<Map<String,Object>> list = (List<Map<String, Object>>) o;
+            for (Map<String,Object> map : list) {
+                String s = (String)map.get("titleMain");
+                if (!Strings.isNullOrEmpty(s)) {
+                    titleComponents.addAll(split(s));
+                }
+            }
+        }
+        if (!Strings.isNullOrEmpty(corporate)) {
             sb.append(" / ").append(corporate);
+            titleComponents.add(corporate);
         }
-        if (meeting != null) {
+        if (!Strings.isNullOrEmpty(meeting)) {
             sb.append(" / ").append(meeting);
+            titleComponents.add(meeting);
         }
-        setFullTitle(sb.toString());
+        setExtendedTitle(sb.toString());
     }
 
     protected String clean(String title) {
@@ -563,6 +557,26 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         }
         title = title.replaceAll("\\[.*?\\]", "").trim();
         return title;
+    }
+
+    protected List<String> split(String title) {
+        List<String> list = newArrayList();
+        if (title != null) {
+            title = title.replaceAll(" ; ", "\n").replaceAll(" / ", "\n").replaceAll(" = ", "\n");
+            for (String s : title.split("\n")) {
+                if (s != null) {
+                    if (s.equals("[...]")) {
+                        continue;
+                    }
+                    // transliteration?
+                    if (s.startsWith("= ")) {
+                        s = s.substring(2);
+                    }
+                    list.add(s.trim());
+                }
+            }
+        }
+        return list;
     }
 
     protected void makeCorporate() {
@@ -810,11 +824,23 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 }
             }
         }
-        m.put("issn", issns);
-        m.put("formattedissn", formattedISSNs);
+        if (!issns.isEmpty()) {
+            m.put("issn", issns);
+        }
+        if (!formattedISSNs.isEmpty()) {
+            m.put("formattedissn", formattedISSNs);
+        }
         // get CODEN for better article matching
         o = map.get("IdentifierCODEN");
-        m.put("coden", o);
+        if (o != null) {
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            List list = (List)o;
+            if (!list.isEmpty()) {
+                m.put("coden", o);
+            }
+        }
         // TODO more identifiers?
         this.identifiers = m;
     }
@@ -824,10 +850,13 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
      * Check for ZDB IDs and remember as external IDs.
      */
     private void makeRelations() {
-        this.isInTimeline = false;
-        boolean hasSuccessor = false;
-        boolean hasPredecessor = false;
-        boolean hasTransient = false;
+        //this.isInTimeline = false;
+        //boolean hasSuccessor = false;
+        //boolean hasPredecessor = false;
+        //boolean hasTransient = false;
+        // default is print
+        this.printID = identifier;
+        this.printExternalID = externalID;
         for (String rel : relationEntries) {
             Object o = map.get(rel);
             if (o == null) {
@@ -867,26 +896,16 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                     externalRelations.put(key, external);
                 }
                 switch (key) {
-                    case "succeededBy":
-                        hasSuccessor = true;
-                        break;
-                    case "precededBy":
-                        hasPredecessor = true;
-                        break;
-                    case "hasTransientEdition":
-                        hasTransient = true;
-                        break;
-                    case "isTransientEditionOf":
-                        hasTransient = true;
-                        break;
-                    case "hasOnlineEdition":
-                        this.printID = id;
+                    case "hasDigitizedEdition" :
+                    case "hasOnlineEdition": {
+                        this.printID = identifier;
                         this.printExternalID = externalID;
                         this.onlineID = internal;
                         this.onlineExternalID = external;
                         break;
+                    }
                     case "hasPrintEdition":
-                        this.onlineID = id;
+                        this.onlineID = identifier;
                         this.onlineExternalID = externalID;
                         this.printID = internal;
                         this.printExternalID = external;
@@ -894,112 +913,95 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 }
             }
         }
-        // this manifestation is in the time line iff it has a successor AND a predecessor,
-        // but if there is a transient edition, the chance is there is no successor/predecessor
-        // Example: ZDB ID 570215x
-        this.isInTimeline = hasSuccessor && hasPredecessor && !hasTransient;
     }
 
-    private final static Set<String> relationEntries = newHashSet(
-            "PrecedingEntry",
-            "SucceedingEntry",
-            "OtherEditionEntry",
-            "OtherRelationshipEntry",
-            "SupplementSpecialIssueEntry",
-            "SupplementParentEntry"
-    );
-
-    public static Set<String> relationEntries() {
-        return relationEntries;
-    }
-
-    private final static Set<String> carrierEditions = newHashSet(
-            "hasPrintEdition",
-            "hasOnlineEdition",
-            "hasBrailleEdition",
-            "hasCDEdition",
-            "hasDVDEdition",
-            "hasMicroformEdition",
-            "hasDigitizedEdition"
-    );
-
-    public static Set<String> carrierEditions() {
-        return carrierEditions;
-    }
-
-    public void addRelatedManifestation(String relation, Manifestation manifestation) {
-        synchronized (relatedManifestations) {
-            relatedManifestations.put(relation, manifestation);
+    public void addRelated(String relation, TitleRecord titleRecord) {
+        synchronized (related) {
+            related.put(relation, titleRecord);
         }
     }
 
     public void addRelatedHolding(String relation, Holding holding) {
+        if (relatedHoldings.get(relation).contains(holding)) {
+            return;
+        }
         synchronized (relatedHoldings) {
             relatedHoldings.put(relation, holding);
         }
+        holding.addParent(this.externalID());
+        holding.addParent(this.getPrintExternalID());
+        holding.addParent(this.getOnlineExternalID());
+
+        Set<TitleRecord> set = newHashSet();
+        set.addAll(related.get("hasPrintEdition"));
+        set.addAll(related.get("hasOnlineEdition"));
+        set.addAll(related.get("hasDigitizedEdition"));
+        set.stream().forEach(tr -> {
+            tr.addRelatedHolding(holding.getISIL(), holding);
+        });
     }
 
-    public void addRelatedVolume(Integer date, Holding holding) {
-        synchronized (relatedVolumes) {
-            relatedVolumes.put(date, holding);
-        }
+    public SetMultimap<String, TitleRecord> getRelated() {
+        return related;
     }
 
-    public SetMultimap<String, Manifestation> getRelatedManifestations() {
-        return relatedManifestations;
-    }
-
-    public SetMultimap<String, Holding> getVolumesByHolder() {
+    public SetMultimap<String, Holding> getRelatedHoldings() {
         return relatedHoldings;
     }
 
-    public SetMultimap<Integer, Holding> getVolumesByDate() {
-        return relatedVolumes;
+    public Set<Holding> findHoldingsByDate(Integer date) {
+        Set<Holding> set = newHashSet();
+        synchronized (relatedHoldings) {
+            set.addAll(relatedHoldings.entries()
+                    .stream()
+                    .filter(entry -> entry.getValue().dates().contains(date))
+                    .map(Map.Entry<String, Holding>::getValue)
+                    .collect(Collectors.toList()));
+        }
+        return set;
     }
 
-    public String build(XContentBuilder builder, String tag, Set<String> visited) throws IOException {
-        if (visited != null) {
-            if (visited.contains(externalID)) {
-                return null;
+    public Set<Integer> findDatesOfHoldings() {
+        Set<Integer> holdingdates = newHashSet();
+        synchronized (relatedHoldings) {
+            for (Map.Entry<String, Holding> entry : relatedHoldings.entries()) {
+                holdingdates.addAll(entry.getValue().dates());
             }
-            visited.add(externalID);
         }
-        String id = tag != null ? tag + "." + externalID : externalID;
+        return holdingdates;
+    }
+
+    public void toXContent(XContentBuilder builder, XContentBuilder.Params params, StatCounter statCounter) throws IOException {
         builder.startObject();
-        builder.field("@id", id)
-                .field("@type", "Manifestation")
-                .fieldIfNotNull("@tag", tag)
-                .field("key", getKey())
-                .field("title", getFullTitle());
+        builder.field("identifierForTheManifestation", externalID)
+                .field("title", getExtendedTitle())
+                .field("titlecomponents", getTitleComponents());
         String s = corporateName();
         if (s != null) {
-            builder.field("corporateName", s);
+            builder.field("corporatename", s);
         }
         s = meetingName();
         if (s != null) {
-            builder.field("meetingName", s);
+            builder.field("meetingname", s);
         }
         builder.field("country", country())
-                .field("language", language())
+                .fieldIfNotNull("language", language())
                 .field("publishedat", getPublisherPlace())
                 .field("publishedby", getPublisher())
-                .field("openaccess", isOpenAccess())
+                .field("monographic", isMonographic())
+                .field("openaccess", openAccess)
+                .fieldIfNotNull("license", getLicense())
                 .field("contenttype", contentType())
                 .field("mediatype", mediaType())
                 .field("carriertype", carrierType())
                 .field("firstdate", firstDate())
                 .field("lastdate", lastDate());
-        // dates with holdings and missing dates
-        synchronized (relatedVolumes) {
-            Set<Integer> volumeDates = relatedVolumes.keySet();
-            if (!volumeDates.isEmpty()) {
-                builder.array("dates", volumeDates);
-                if (dates != null && !dates.isEmpty()) {
-                    // difference set = missing
-                    dates.removeAll(volumeDates);
-                    builder.array("missingdates", dates);
-                }
-            }
+        if (dates != null && !dates.isEmpty()) {
+            Set<Integer> missing = Sets.newCopyOnWriteArraySet(dates);
+            Set<Integer> set = findDatesOfHoldings();
+            builder.array("dates", set);
+            missing.removeAll(set);
+            builder.array("missingdates", missing);
         }
         if (greenDates != null && !greenDates.isEmpty()) {
             builder.field("greendate", greenDates);
@@ -1010,8 +1012,29 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
         if (isSubseries()) {
             builder.field("subseries", isSubseries());
         }
+        if (isAggregate()) {
+            builder.field("aggregate", isAggregate());
+        }
         if (isSupplement()) {
             builder.field("supplement", isSupplement());
+        }
+        builder.fieldIfNotNull("resourcetype", resourceType);
+        builder.fieldIfNotNull("genre", genre);
+        // list relations
+        synchronized (related) {
+            SetMultimap<String, TitleRecord> map = related;
+            if (!map.isEmpty()) {
+                builder.startArray("relations");
+                for (String rel : map.keySet()) {
+                    for (TitleRecord tr : map.get(rel)) {
+                        builder.startObject()
+                                .field("identifierForTheRelated", tr.externalID())
+                                .field("label", rel)
+                                .endObject();
+                    }
+                }
+                builder.endArray();
+            }
         }
         // list external relations for linking
         synchronized (externalRelations) {
@@ -1021,179 +1044,54 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
                 for (String rel : map.keySet()) {
                     for (String relid : map.get(rel)) {
                         builder.startObject()
-                                .field("@id", relid)
-                                .field("@type", "Manifestation")
-                                .field("@label", rel)
+                                .field("identifierForTheRelated", relid)
+                                .field("label", rel)
                                 .endObject();
                     }
                 }
                 builder.endArray();
             }
         }
+        // links in catalog
         if (hasLinks()) {
             builder.array("links", getLinks());
         }
-        // list monographic volumes
-        if (!volumeIDs.isEmpty()) {
-            builder.array("volumeids", volumeIDs);
-        }
-        if (!volumes.isEmpty()) {
-            synchronized (volumes) {
-                builder.startArray("volumes");
-                int count = 0;
-                for (Volume volume : volumes) {
-                    volume.build(builder, tag, null);
-                    count++;
+        // monograph volumes
+        /*if (!monographVolumes.isEmpty()) {
+            synchronized (monographVolumes) {
+                builder.field("monographvolumescount", monographVolumes.size());
+                builder.startArray("monographvolumes");
+                for (MonographVolume monographVolume : monographVolumes) {
+                    builder.value(monographVolume.getIdentifier());
                 }
                 builder.endArray();
-                builder.field("volumescount", count);
+            }
+        }*/
+        // holdings
+        if (!relatedHoldings.isEmpty()) {
+            synchronized (relatedHoldings) {
+                builder.field("servicecount", relatedHoldings.size());
+                builder.startArray("service");
+                for (Map.Entry<String, Holding> me : relatedHoldings.entries()) {
+                    builder.startObject()
+                            .field("isil", me.getKey())
+                            .field("identifierForTheService", "(" + me.getKey() + ")" + me.getValue().identifier())
+                            .field("dates", me.getValue().dates())
+                            .endObject();
+                }
+                builder.endArray();
             }
         }
         builder.endObject();
-        return id;
-    }
-
-    public String buildHoldingsByDate(XContentBuilder builder, String tag, String parentIdentifier,
-                                      Integer date, Set<Holding> holdings)
-            throws IOException {
-        String id = tag != null ? tag + "." + parentIdentifier : parentIdentifier;
-        builder.startObject()
-                .field("@id", id)
-                .field("@type", "DateHoldings")
-                .fieldIfNotNull("@tag", tag);
-        if (date != -1) {
-            builder.field("date", date);
+        for (String country : country()) {
+            statCounter.increase("country", country, 1);
         }
-        if (hasLinks()) {
-            builder.field("links", getLinks());
-        }
-        SetMultimap<String, Holding> institutions = HashMultimap.create();
-        for (Holding holding : unique(holdings)) {
-            institutions.put(holding.getISIL(), holding);
-        }
-        builder.field("institutioncount", institutions.size())
-                .startArray("institution");
-        List<XContentBuilder> instBuilders = newLinkedList();
-        for (String institution : institutions.keySet()) {
-            Set<Holding> holdingsPerInstitution = institutions.get(institution);
-            XContentBuilder institutionBuilder = jsonBuilder();
-            Holding h = holdingsPerInstitution.iterator().next();
-            institutionBuilder.startObject()
-                    .field("@id", institution)
-                    .field("region", h.getRegion())
-                    .field("organization", h.getOrganization())
-                    .field("servicecount", holdingsPerInstitution.size())
-                    .startArray("service");
-            List<XContentBuilder> list = newLinkedList();
-            for (Holding holding : holdingsPerInstitution) {
-                XContentBuilder serviceBuilder = jsonBuilder();
-                serviceBuilder.startObject()
-                        .field("@id", holding.identifier())
-                        .field("@type", "Service")
-                        .startArray("@parent");
-                for (Manifestation m : holding.getManifestations()) {
-                    serviceBuilder.value(m.externalID());
-                }
-                serviceBuilder.endArray()
-                        .field("mediatype", holding.mediaType())
-                        .field("carriertype", holding.carrierType())
-                        .field("region", holding.getRegion())
-                        .field("organization", holding.getOrganization())
-                        .field("isil", institution)
-                        .field("serviceisil", holding.getServiceISIL())
-                        .field("priority", holding.getPriority())
-                        .fieldIfNotNull("type", holding.getServiceType())
-                        .fieldIfNotNull("mode", holding.getServiceMode())
-                        .fieldIfNotNull("distribution", holding.getServiceDistribution())
-                        .fieldIfNotNull("comment", holding.getServiceComment())
-                        .field("info", holding.getInfo())
-                        .endObject();
-                serviceBuilder.close();
-                list.add(serviceBuilder);
-                map.put(holding.identifier(), serviceBuilder);
-            }
-            institutionBuilder.copy(list);
-            institutionBuilder.endArray().endObject();
-            institutionBuilder.close();
-            instBuilders.add(institutionBuilder);
-        }
-        builder.copy(instBuilders);
-        builder.endArray().endObject();
-        return id;
-    }
-
-    public String buildHoldingsByISIL(XContentBuilder builder, String tag, String parentIdentifier,
-                                      String isil, Set<Holding> holdings)
-            throws IOException {
-        if (holdings == null || holdings.isEmpty()) {
-            return null;
-        }
-        String id = tag != null ? tag + "." + parentIdentifier : parentIdentifier;
-        builder.startObject()
-                .field("@id", id)
-                .field("@type", "Holdings")
-                .fieldIfNotNull("@tag", tag)
-                .field("isil", isil);
-        if (hasLinks()) {
-            builder.field("links", getLinks());
-        }
-        builder.field("servicecount", holdings.size())
-                .startArray("service");
-        for (Holding holding : unique(holdings)) {
-            builder.startObject()
-                    .field("@id", holding.identifier())
-                    .field("@type", "Service")
-                    .field("@parent", parentIdentifier)
-                    .field("mediatype", holding.mediaType())
-                    .field("carriertype", holding.carrierType())
-                    .field("region", holding.getRegion())
-                    .field("organization", holding.getOrganization())
-                    .field("isil", holding.getServiceISIL())
-                    .field("priority", holding.getPriority())
-                    .fieldIfNotNull("type", holding.getServiceType())
-                    .fieldIfNotNull("mode", holding.getServiceMode())
-                    .fieldIfNotNull("distribution", holding.getServiceDistribution())
-                    .fieldIfNotNull("comment", holding.getServiceComment())
-                    .field("info", holding.getInfo())
-                    .endObject();
-        }
-        builder.endArray().endObject();
-        return id;
-    }
-
-    /**
-     * Iterate through holdings and complete a new list that contains
-     * unified holdings, with the most recent service settings.
-     *
-     * @param holdings the holdings
-     * @return the unified holdings
-     */
-    private Set<Holding> unique(Set<Holding> holdings) {
-        Set<Holding> newHoldings = newTreeSet();
-        for (Holding holding : holdings) {
-            if (holding instanceof Indicator) {
-                // check if there are other licenses that match indicator
-                Collection<Holding> other = holding.getSame(holdings);
-                if (other.isEmpty() || other.size() == 1) {
-                    newHoldings.add(holding);
-                } else {
-                    // move most recent license info
-                    for (Holding h : other) {
-                        h.servicetype = holding.servicetype;
-                        h.servicemode = holding.servicemode;
-                        h.servicedistribution = holding.servicedistribution;
-                        h.servicecomment = holding.servicecomment;
-                    }
-                }
-            } else {
-                newHoldings.add(holding);
-            }
-        }
-        return newHoldings;
-    }
-
-    public String getKey() {
-        return key;
+        statCounter.increase("language", language, 1);
+        statCounter.increase("contenttype", contentType, 1);
+        statCounter.increase("mediatype", mediaType, 1);
+        statCounter.increase("carriertype", carrierType, 1);
+        statCounter.increase("resourcetype", resourceType, 1);
+        statCounter.increase("genre", genre, 1);
     }
 
     public String toString() {
@@ -1202,22 +1100,16 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof Manifestation && toString().equals(other.toString());
+        return other instanceof TitleRecord && toString().equals(other.toString());
     }
 
-
-    private String makeTimelineKey() {
+    /*private String makeTimelineKey() {
         Integer d1 = firstDate() == null ? currentYear : firstDate();
         Integer c1 = findCarrierTypeKey();
-        return new StringBuilder()
-                .append(country())
-                .append(Integer.toString(d1))
-                .append(Integer.toString(c1))
-                .append(id())
-                .toString();
-    }
+        return String.valueOf(country()) + Integer.toString(d1) + Integer.toString(c1) + id();
+    }*/
 
-    public Integer findCarrierTypeKey() {
+    /*public Integer findCarrierTypeKey() {
         switch (carrierType()) {
             case "online resource":
                 return 2;
@@ -1238,7 +1130,7 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
             default:
                 throw new IllegalArgumentException("unknown carrier: " + carrierType() + " in " + externalID());
         }
-    }
+    }*/
 
     @Override
     public int hashCode() {
@@ -1246,16 +1138,130 @@ public class Manifestation implements Comparable<Manifestation>, PipelineRequest
     }
 
     @Override
-    public int compareTo(Manifestation m) {
+    public int compareTo(TitleRecord m) {
         return externalID.compareTo(m.externalID());
     }
 
-    public static Comparator<Manifestation> getKeyComparator() {
+    /*public static Comparator<TitleRecord> getKeyComparator() {
         return (m1, m2) -> m2.getKey().compareTo(m1.getKey());
     }
 
-    public static Comparator<Manifestation> getTimeComparator() {
+    public static Comparator<TitleRecord> getTimeComparator() {
         return (m1, m2) -> m1.timelineKey.compareTo(m2.timelineKey);
+    }*/
+
+
+    private final static Set<String> temporalRelations = newHashSet(
+            "succeededBy",
+            "precededBy",
+            "hasTransientEdition",
+            "isTransientEditionOf"
+    );
+
+    public static Set<String> getTemporalRelations() {
+        return temporalRelations;
     }
+
+    private final static Set<String> carrierRelations = newHashSet(
+            "hasPrintEdition",
+            "hasOnlineEdition",
+            "hasBrailleEdition",
+            "hasCDEdition",
+            "hasDVDEdition",
+            "hasMicroformEdition",
+            "hasDigitizedEdition"
+    );
+
+    public static Set<String> getCarrierRelations() {
+        return carrierRelations;
+    }
+
+    private final static Set<String> supplementalRelations = newHashSet(
+            "hasSupplement",
+            "isSupplementOf"
+    );
+
+    public static Set<String> getSupplementalRelations() {
+        return supplementalRelations;
+    }
+
+    private final static Set<String> relationEntries = newHashSet(
+            "PrecedingEntry",
+            "SucceedingEntry",
+            "OtherEditionEntry",
+            "OtherRelationshipEntry",
+            "SupplementSpecialIssueEntry",
+            "SupplementParentEntry"
+    );
+
+    public static Set<String> relationEntries() {
+        return relationEntries;
+    }
+
+    public static Map<String, String> getInverseRelations() {
+        return inverseRelations;
+    }
+
+    private final static Map<String, String> inverseRelations = new HashMap<String, String>() {{
+
+        put("hasPart", "isPartOf");
+        put("hasSupplement", "isSupplementOf");
+        put("isPartOf", "hasPart");
+        put("isSupplementOf", "hasSupplement");
+
+        put("precededBy", "succeededBy");
+        put("succeededBy", "precededBy");
+
+        put("hasLanguageEdition", "isLanguageEditionOf");
+        put("hasTranslation", "isTranslationOf");
+        put("isLanguageEditionOf", "hasLanguageEdition");
+        put("isTranslationOf", "hasTranslation");
+
+        put("hasOriginalEdition", "isOriginalEditionOf");
+        put("hasPrintEdition", "isPrintEditionOf");
+        put("hasOnlineEdition", "isOnlineEditionOf");
+        put("hasBrailleEdition", "isBrailleEditionOf");
+        put("hasDVDEdition", "isDVDEditionOf");
+        put("hasCDEdition", "isCDEditionOf");
+        put("hasDiskEdition", "isDiskEditionOf");
+        put("hasMicroformEdition", "isMicroformEditionOf");
+        put("hasDigitizedEdition", "isDigitizedEditionOf");
+
+        put("hasSpatialEdition", "isSpatialEditionOf");
+        put("hasTemporalEdition", "isTemporalEditionOf");
+        put("hasPartialEdition", "isPartialEditionOf");
+        put("hasTransientEdition", "isTransientEditionOf");
+        put("hasLocalEdition", "isLocalEditionOf");
+        put("hasAdditionalEdition", "isAdditionalEditionOf");
+        put("hasAlternativeEdition", "isAdditionalEditionOf");
+        put("hasDerivedEdition", "isDerivedEditionOf");
+        put("hasHardcoverEdition", "isHardcoverEditionOf");
+        put("hasManuscriptEdition", "isManuscriptEditionOf");
+        put("hasBoxedEdition", "isBoxedEditionOf");
+        put("hasReproduction", "isReproductionOf");
+        put("hasSummary", "isSummaryOf");
+
+        put("isOriginalEditionOf", "hasOriginalEdition");
+        put("isPrintEditionOf", "hasPrintEdition");
+        put("isOnlineEditionOf", "hasOnlineEdition");
+        put("isBrailleEditionOf", "hasBrailleEdition");
+        put("isDVDEditionOf", "hasDVDEdition");
+        put("isCDEditionOf", "hasCDEdition");
+        put("isDiskEditionOf", "hasDiskEdition");
+        put("isMicroformEditionOf", "hasMicroformEdition");
+        put("isDigitizedEditionOf", "hasMicroformEdition");
+        put("isSpatialEditionOf", "hasSpatialEdition");
+        put("isTemporalEditionOf", "hasTemporalEdition");
+        put("isPartialEditionOf", "hasPartialEdition");
+        put("isTransientEditionOf", "hasTransientEdition");
+        put("isLocalEditionOf", "hasLocalEdition");
+        put("isAdditionalEditionOf", "hasAdditionalEdition");
+        put("isDerivedEditionOf", "hasDerivedEdition");
+        put("isHardcoverEditionOf", "hasHardcoverEdition");
+        put("isManuscriptEditionOf", "hasManuscriptEdition");
+        put("isBoxedEditionOf", "hasBoxedEdition");
+        put("isReproductionOf", "hasReproduction");
+        put("isSummaryOf", "hasSummary");
+    }};
 }
 

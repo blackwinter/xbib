@@ -43,7 +43,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.Manifestation;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -127,7 +127,7 @@ public class CheckDelivery implements CommandLineInterpreter {
                         .setSize(1);
                 SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
                 if (searchResponse.getHits().getTotalHits() > 0) {
-                    Manifestation m = new Manifestation(searchResponse.getHits().getAt(0).getSource());
+                    TitleRecord m = new TitleRecord(searchResponse.getHits().getAt(0).getSource());
                     zdbid = m.getOnlineExternalID();
                     if (zdbid != null) {
                         queryBuilder = boolQuery()

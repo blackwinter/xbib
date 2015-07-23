@@ -61,7 +61,7 @@ public class ESFacetFilterGeneratorTest extends Assert {
                 .cqlFacetFilter(cqlFilter)
                 .facet("10:dc.format", null, null)
                 ;
-        assertEquals("{\"from\":0,\"size\":10, \"query\" : {\"match\":{\"_all\":{\"query\":\"Köln\"}}}, \"filter\" : {\"query\":{\"bool\":{\"must\":{\"term\":{\"dc:format.dcterms:medium\":\"online\"}},\"must\":{\"term\":{\"dc:date.xbib:date\":\"2012\"}}}}}}", cqlRequest.toString());
+        assertEquals("{\"from\":0,\"size\":10,\"query\":{\"match\":{\"_all\":{\"query\":\"Köln\"}}},\"filter\":{\"query\":{\"bool\":{\"must\":{\"term\":{\"dc:format.dcterms:medium\":\"online\"}},\"must\":{\"term\":{\"dc:date.xbib:date\":\"2012\"}}}}}}", cqlRequest.toString());
     }
 
 }

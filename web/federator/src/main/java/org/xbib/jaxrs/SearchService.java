@@ -44,7 +44,7 @@ public class SearchService {
                             .setFrom(from)
                             .setSize(size);
                     ZSearchRetrieveResponse response = request.execute();
-                    StylesheetTransformer transformer = new StylesheetTransformer("xsl");
+                    StylesheetTransformer transformer = new StylesheetTransformer().setPath("xsl");
                     response.setStylesheetTransformer(transformer)
                             .setOutputFormat("html")
                             .to(new OutputStreamWriter(output, "UTF-8"));

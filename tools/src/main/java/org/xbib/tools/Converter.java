@@ -179,34 +179,6 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
         }
     }
 
-    /*public Converter<T, R, P> run(Settings newSettings, Queue<URI> newInput) throws Exception {
-        Thread metricThread = null;
-        try {
-            settings = newSettings;
-            input = newInput;
-            logger.info("executing with settings {} and input {}", settings.getAsMap(), input);
-            executor = new MetricSimplePipelineExecutor<T, R, P>()
-                    .setConcurrency(settings.getAsInt("concurrency", 1))
-                    .setPipelineProvider(pipelineProvider())
-                    .prepare();
-            metricThread = new MetricThread();
-            metricThread.setDaemon(true);
-            metricThread.start();
-            executor.execute()
-                    .waitFor();
-            logger.info("execution completed");
-        } finally {
-            cleanup();
-            if (metricThread != null) {
-                metricThread.interrupt();
-            }
-            if (executor != null) {
-                executor.shutdown();
-                writeMetrics(executor.metric(), writer);
-            }
-        }
-        return this;
-    }*/
 
     public Converter<T, P> cleanup() throws IOException {
         if (session != null) {
@@ -219,23 +191,6 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     public void close() throws IOException {
         logger.info("pipeline close (no op)");
     }
-
-    //@Override
-    //public boolean hasNext() {
-    //    return !done && !input.isEmpty();
-   // }
-
-    /*@Override
-    public URIPipelineElement next() {
-        URI uri = input.poll();
-        done = uri == null;
-        uriPipelineElement.set(uri);
-        if (done) {
-            logger.info("done is true");
-            return uriPipelineElement;
-        }
-        return uriPipelineElement;
-    }*/
 
     @Override
     public void newRequest(Pipeline<MeterMetric, URIPipelineElement> pipeline, URIPipelineElement request) {
@@ -250,22 +205,6 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     public void error(Pipeline<MeterMetric, URIPipelineElement> pipeline, URIPipelineElement request, PipelineException error) {
         logger.error(error.getMessage(), error);
     }
-
-    /*class MetricThread extends Thread {
-
-        public void run() {
-            while (!interrupted()) {
-                try {
-                    if (executor != null) {
-                        writeMetrics(executor.metric(), null);
-                    }
-                    Thread.sleep(10000L);
-                } catch (Exception e) {
-                    //
-                }
-            }
-        }
-    }*/
 
     protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
         long docs = metric.count();

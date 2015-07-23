@@ -42,7 +42,6 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
@@ -51,51 +50,48 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
+import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.entities.support.StatusCodeMapper;
 import org.xbib.entities.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.queue.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.BibdatLookup;
-import org.xbib.tools.merge.zdb.entities.BlackListedISIL;
-import org.xbib.tools.merge.zdb.entities.Manifestation;
+import org.xbib.tools.merge.zdb.support.BibdatLookup;
+import org.xbib.tools.merge.zdb.support.BlackListedISIL;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Calendar;
-import java.util.Date;
+import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.collect.Sets.newSetFromMap;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
 /**
- * Merge ZDB title and holdings and EZB licenses (without timeline)
+ * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicenses
-        extends QueuePipelineExecutor<Boolean, ManifestationPipelineElement, WithHoldingsAndLicensesPipeline>
+        extends QueuePipelineExecutor<Boolean, TitelRecordPipelineElement, WithHoldingsAndLicensesPipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
 
-    private static Set<String> processed;
-
     private static Set<String> indexed;
 
-    private static Set<String> skipped;
+    //private static Set<String> skipped;
 
     private WithHoldingsAndLicenses service;
 
@@ -123,8 +119,6 @@ public class WithHoldingsAndLicenses
 
     private static MeterMetric indexMetric;
 
-    private final static AtomicLong extraCounter = new AtomicLong();
-
     private long total;
 
     private long count;
@@ -151,7 +145,8 @@ public class WithHoldingsAndLicenses
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
-        logger.info("bibdat prepared, {} in organization lookup, {} in region lookup, {} in other",
+        logger.info("bibdat prepared, {} names, {} organizations, {} regions, {} other",
+                bibdatLookup.lookupName().size(),
                 bibdatLookup.lookupOrganization().size(),
                 bibdatLookup.lookupRegion().size(),
                 bibdatLookup.lookupOther().size());
@@ -172,9 +167,8 @@ public class WithHoldingsAndLicenses
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared");
 
-        processed = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
         indexed = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
-        skipped = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
+        //skipped = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
 
         return this;
     }
@@ -210,9 +204,9 @@ public class WithHoldingsAndLicenses
         ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 100))
                 .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
 
-        InputStream clientSettings = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
-        ingest.setting(clientSettings);
-        clientSettings.close();
+        InputStream clientSettingsInputStream = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
+        ingest.setting(clientSettingsInputStream);
+        clientSettingsInputStream.close();
         ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -220,18 +214,39 @@ public class WithHoldingsAndLicenses
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        ingest.setting(WithHoldingsAndLicenses.class.getResourceAsStream("index-settings.json"));
-        ingest.mapping("Work", WithHoldingsAndLicenses.class.getResourceAsStream("mapping-Work.json"));
-        ingest.mapping("Manifestation", WithHoldingsAndLicenses.class.getResourceAsStream("mapping-Manifestation.json"));
-        ingest.mapping("Holdings", WithHoldingsAndLicenses.class.getResourceAsStream("mapping-Holdings.json"));
-        ingest.mapping("DateHoldings", WithHoldingsAndLicenses.class.getResourceAsStream("mapping-DateHoldings.json"));
 
         String index = settings.get("index");
         try {
-            ingest.newIndex(index);
-        } catch (IndexAlreadyExistsException e) {
-            logger.warn(e.getMessage(), e);
+            String indexSettingsLocation = settings.get("index-settings",
+                    "classpath:org/xbib/tools/merge/zdb/licenseinfo/settings.json");
+            logger.info("using index settings from {}", indexSettingsLocation);
+            URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
+                    new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
+                    new URL(indexSettingsLocation));
+            org.elasticsearch.common.settings.Settings indexSettings = ImmutableSettings.settingsBuilder()
+                    .loadFromUrl(indexSettingsUrl).build();
+            logger.info("creating index {}", index);
+            ingest.newIndex(index, indexSettings, null);
+
+            // add mappings
+            String indexMappingsLocation = settings.get("index-mapping",
+                    "classpath:org/xbib/tools/merge/zdb/licenseinfo/mapping.json");
+            logger.info("using index mappings from {}", indexMappingsLocation);
+            URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
+                    new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
+                    new URL(indexMappingsLocation));
+            Map<String,Object> indexMappings = ImmutableSettings.settingsBuilder()
+                    .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
+            for (String type : indexMappings.keySet()) {
+                logger.info("creating mapping for type {}", type);
+                ingest.newMapping(index, type, (Map<String, Object>) indexMappings.get(type));
+            }
+        } catch (Exception e) {
+            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
+                throw e;
+            } else {
+                logger.warn("index creation error, but configured to ignore", e);
+            }
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.startBulk(index);
@@ -244,7 +259,9 @@ public class WithHoldingsAndLicenses
 
             @Override
             public WithHoldingsAndLicensesPipeline get() {
-                return new WithHoldingsAndLicensesPipeline(service, i++);
+                WithHoldingsAndLicensesPipeline pipeline = new WithHoldingsAndLicensesPipeline(service, i++);
+                pipeline.setQueue(getQueue());
+                return pipeline;
             }
         });
         super.setConcurrency(settings.getAsInt("concurrency", 1));
@@ -255,7 +272,7 @@ public class WithHoldingsAndLicenses
         this.execute();
 
         logger.info("shutdown in progress");
-        shutdown(new ManifestationPipelineElement().set(null));
+        shutdown(new TitelRecordPipelineElement().set(null));
 
         logger.info("query: started {}, ended {}, took {}, count = {}",
                 DateUtil.formatDateISO(queryMetric.startedAt()),
@@ -284,9 +301,8 @@ public class WithHoldingsAndLicenses
         // execute pipelines
         super.execute();
         logger.debug("executing");
-        // enter loop over all manifestations, issue SCAN request
+        // enter loop over all title records
         boolean failure = false;
-        boolean force = false;
         SearchRequestBuilder searchRequest = client.prepareSearch()
                 .setSize(size)
                 .setSearchType(SearchType.SCAN)
@@ -298,18 +314,14 @@ public class WithHoldingsAndLicenses
         // single identifier?
         if (identifier != null) {
             searchRequest.setQuery(termQuery("IdentifierZDB.identifierZDB", identifier));
-            force = true;
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("aggregate search request = {}", searchRequest.toString());
         }
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         total = searchResponse.getHits().getTotalHits();
         count = 0L;
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         ScheduleThread scheduleThread = new ScheduleThread();
-        Executors.newSingleThreadExecutor().execute(scheduleThread);
-
-        logger.debug("hits={}", searchResponse.getHits().getTotalHits());
+        scheduledExecutorService.scheduleAtFixedRate(scheduleThread, 0, 10, TimeUnit.SECONDS);
+        //logger.debug("hits={}", searchResponse.getHits().getTotalHits());
         while (!failure && searchResponse.getScrollId() != null) {
             searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(millis))
@@ -324,8 +336,8 @@ public class WithHoldingsAndLicenses
                         logger.error("no more pipelines left to receive, aborting feed");
                         return this;
                     }
-                    Manifestation manifestation = new Manifestation(hit.getSource());
-                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
+                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
+                    getQueue().put(new TitelRecordPipelineElement().set(titleRecord));
                     count++;
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
@@ -335,11 +347,8 @@ public class WithHoldingsAndLicenses
                 }
             }
         }
-
-        // post phase: add all "skipped" docs one by one. We do not know why they have been skipped.
-
-        skipped.removeAll(indexed);
-        logger.info("before indexing skipped: {}", skipped.size());
+        /*skipped.removeAll(indexed);
+        logger.info("skipped: {}", skipped.size());
 
         // log skipped IDs file for analysis
         Calendar calendar = Calendar.getInstance();
@@ -356,10 +365,9 @@ public class WithHoldingsAndLicenses
             w.close();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        }
-        // post process, try to index the skipped IDs. Now with force.
-        force = true;
-        for (String skippedIdentifier : skipped) {
+        }*/
+        // post process, try to index the skipped IDs
+        /*for (String skippedIdentifier : skipped) {
             searchRequest = client.prepareSearch()
                     .setIndices(sourceTitleIndex)
                     .setQuery(termQuery("IdentifierZDB.identifierZDB", skippedIdentifier));
@@ -378,18 +386,18 @@ public class WithHoldingsAndLicenses
                         logger.error("no more pipelines left to receive, aborting");
                         return this;
                     }
-                    Manifestation manifestation = new Manifestation(hit.getSource());
-                    getQueue().offer(new ManifestationPipelineElement().set(manifestation).setForced(force));
+                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
+                    getQueue().offer(new TitelRecordPipelineElement().set(titleRecord).setCheck(false));
                 } catch (Throwable e) {
                     logger.error("error passing data to merge pipelines, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
                     break;
                 }
             }
-        }
+        }*/
 
-        skipped.removeAll(indexed);
-        logger.info("after indexing skipped: skipped = {}", skipped.size());
+        //skipped.removeAll(indexed);
+        /*logger.info("after indexing skipped: skipped = {}", skipped.size());
         filename = String.format("notindexed-%04d%02d%02d-2.txt", year, month + 1, day);
         try {
             FileWriter w = new FileWriter(filename);
@@ -399,12 +407,8 @@ public class WithHoldingsAndLicenses
             w.close();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        }
-
-        logger.info("extra counter = {}", extraCounter);
-
-        scheduleThread.interrupt();
-
+        }*/
+        scheduledExecutorService.shutdownNow();
         return this;
     }
 
@@ -416,17 +420,13 @@ public class WithHoldingsAndLicenses
         return countResponse.getCount() > 0;
     }
 
-    public Set<String> processed() {
-        return processed;
-    }
-
     public Set<String> indexed() {
         return indexed;
     }
 
-    public Set<String> skipped() {
+    /*public Set<String> skipped() {
         return skipped;
-    }
+    }*/
 
     public Client client() {
         return client;
@@ -460,10 +460,6 @@ public class WithHoldingsAndLicenses
         return statusCodeMapper;
     }
 
-    public void count(long delta) {
-        extraCounter.addAndGet(delta);
-    }
-
     public MeterMetric queryMetric() {
         return queryMetric;
     }
@@ -472,31 +468,24 @@ public class WithHoldingsAndLicenses
         return indexMetric;
     }
 
-    class ScheduleThread extends Thread {
+    class ScheduleThread implements Runnable {
 
         public void run() {
-            while (!interrupted()) {
-                long percent = count * 100 / total;
-                logger.info("=====> {}/{} {}% processed={} indexed={} skipped={} extracounter={}",
-                        count, total, percent,
-                        processed.size(), indexed.size(), skipped.size(),
-                        extraCounter);
-                logger.info("query metric={} ({} {} {})",
-                        queryMetric.meanRate(),
-                        queryMetric.oneMinuteRate(),
-                        queryMetric.fiveMinuteRate(),
-                        queryMetric.fifteenMinuteRate());
-                logger.info("index metric={} ({} {} {})",
-                        indexMetric.meanRate(),
-                        indexMetric.oneMinuteRate(),
-                        indexMetric.fiveMinuteRate(),
-                        indexMetric.fifteenMinuteRate());
-                try {
-                    Thread.sleep(10000L);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
+            long percent = count * 100 / total;
+            logger.info("=====> {}/{} {}%",
+                    count,
+                    total,
+                    percent);
+            logger.info("=====> query metric={} ({} {} {})",
+                    queryMetric.meanRate(),
+                    queryMetric.oneMinuteRate(),
+                    queryMetric.fiveMinuteRate(),
+                    queryMetric.fifteenMinuteRate());
+            logger.info("=====> index metric={} ({} {} {})",
+                    indexMetric.meanRate(),
+                    indexMetric.oneMinuteRate(),
+                    indexMetric.fiveMinuteRate(),
+                    indexMetric.fifteenMinuteRate());
         }
     }
 

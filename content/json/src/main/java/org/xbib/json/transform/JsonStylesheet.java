@@ -114,7 +114,7 @@ public class JsonStylesheet {
     }
 
     public JsonStylesheet toXML(InputStream in, OutputStream out) throws IOException {
-        return toXML(in, new OutputStreamWriter(out, "Utf-8"));
+        return toXML(in, new OutputStreamWriter(out, "UTF-8"));
     }
 
     public JsonStylesheet toXML(InputStream in, Writer out) throws IOException {

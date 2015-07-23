@@ -94,7 +94,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
         }
         // activate XSLT only if XML content type
         if (result.getContentType().endsWith("xml")) {
-            StylesheetTransformer transformer = new StylesheetTransformer("xsl");
+            StylesheetTransformer transformer = new StylesheetTransformer().setPath("xsl");
             this.filterreader = new ListRecordsFilterReader(request, response);
             String s = !scrubCharacters ? body.toString() : XMLUtil.sanitize(body.toString());
             InputSource source = new InputSource(new StringReader(s));

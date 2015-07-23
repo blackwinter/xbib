@@ -61,7 +61,7 @@ public class ZServiceTest {
                 String query = "@attr 1=4 test";
                 int from = 1;
                 int size = 10;
-                try (StylesheetTransformer transformer = new StylesheetTransformer("src/main/resources")) {
+                try (StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/main/resources")) {
                     ZSearchRetrieveRequest request = client.newPQFSearchRetrieveRequest();
                     request.setQuery(query)
                             .setFrom(from)

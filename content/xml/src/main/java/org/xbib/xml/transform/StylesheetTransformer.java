@@ -42,6 +42,7 @@ import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -64,30 +65,32 @@ import java.util.Map;
  */
 public class StylesheetTransformer implements Closeable {
 
-    private final SAXTransformerFactory transformerFactory;
-
     private final static StylesheetPool pool = new StylesheetPool();
 
     private final Map<String, Object> parameters = new HashMap<String, Object>();
 
-    private TransformerURIResolver resolver;
+    private SAXTransformerFactory transformerFactory;
+
+    private URIResolver resolver;
 
     private Source source;
 
     private Result result;
 
-    public StylesheetTransformer() {
-        this((String[]) null);
-    }
-
-    public StylesheetTransformer(String... path) {
-        transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
+    public StylesheetTransformer setPath(String... path) {
+        if (transformerFactory == null) {
+            transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
+        }
         transformerFactory.setErrorListener(new StylesheetErrorListener());
         setResolver(path == null ? new TransformerURIResolver() : new TransformerURIResolver(path));
+        return this;
     }
 
-    public StylesheetTransformer setResolver(TransformerURIResolver resolver) {
+    public StylesheetTransformer setResolver(URIResolver resolver) {
         this.resolver = resolver;
+        if (transformerFactory == null) {
+            transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
+        }
         transformerFactory.setURIResolver(resolver);
         return this;
     }
@@ -123,6 +126,9 @@ public class StylesheetTransformer implements Closeable {
 
     public StylesheetTransformer setSource(XMLReader reader, InputSource in, String xsl, ContentHandler handler)
             throws TransformerException {
+        if (transformerFactory == null) {
+            transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
+        }
         XMLFilter filter = transformerFactory.newXMLFilter(resolver.resolve(xsl, null));
         filter.setParent(reader);
         filter.setContentHandler(handler);
@@ -151,6 +157,9 @@ public class StylesheetTransformer implements Closeable {
         }
         if (result == null) {
             return;
+        }
+        if (transformerFactory == null) {
+            transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
         }
         Transformer transformer = transformerFactory.newTransformer();
         transformer.transform(source, result);
@@ -182,6 +191,9 @@ public class StylesheetTransformer implements Closeable {
         if (xsl == null) {
             return;
         }
+        if (transformerFactory == null) {
+            transformerFactory = (SAXTransformerFactory) TransformerFactory.newInstance();
+        }
         Transformer transformer = transformerFactory.newTransformer();
         List<TransformerHandler> handlers = new LinkedList<TransformerHandler>();
         for (String s : xsl) {
@@ -206,8 +218,9 @@ public class StylesheetTransformer implements Closeable {
 
     @Override
     public void close() throws IOException {
-        if (resolver != null) {
-            resolver.close();
+        if (resolver != null && resolver instanceof TransformerURIResolver) {
+            TransformerURIResolver transformerURIResolver = (TransformerURIResolver)resolver;
+            transformerURIResolver.close();
         }
     }
 

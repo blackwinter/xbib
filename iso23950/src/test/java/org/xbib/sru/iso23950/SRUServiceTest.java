@@ -135,7 +135,7 @@ public class SRUServiceTest {
                             .setQuery(query)
                             .setStartRecord(from)
                             .setMaximumRecords(size);
-                    StylesheetTransformer transformer = new StylesheetTransformer("src/main/resources/xsl");
+                    StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/main/resources/xsl");
                     client.searchRetrieve(request)
                             .setStylesheetTransformer(transformer)
                             .to(w);

@@ -148,7 +148,7 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
                     .setFrom(from)
                     .setSize(size)
                     .execute();
-            StylesheetTransformer transformer = new StylesheetTransformer("/xsl");
+            StylesheetTransformer transformer = new StylesheetTransformer().setPath("/xsl");
             transformer.addParameter("version", getVersion());
             transformer.addParameter("format", getVersion());
             transformer.addParameter("type", getType());
@@ -199,7 +199,7 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
                     .setFrom(from)
                     .setSize(size)
                     .execute();
-            StylesheetTransformer transformer = new StylesheetTransformer("/xsl");
+            StylesheetTransformer transformer = new StylesheetTransformer().setPath("/xsl");
             transformer.addParameter("version", getVersion());
             transformer.addParameter("format", getFormat());
             transformer.addParameter("type", getType());

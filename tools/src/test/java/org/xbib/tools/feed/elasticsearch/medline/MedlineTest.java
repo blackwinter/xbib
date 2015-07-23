@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
-import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class MedlineTest {
 

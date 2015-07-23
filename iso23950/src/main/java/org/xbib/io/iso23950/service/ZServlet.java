@@ -34,6 +34,7 @@ package org.xbib.io.iso23950.service;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletConfig;
@@ -113,7 +114,7 @@ public class ZServlet extends HttpServlet {
         ZClient client = session.newZClient();
         try {
             ZSearchRetrieveRequest searchRetrieve = client.newPQFSearchRetrieveRequest();
-            searchRetrieve.setDatabase(Arrays.asList(database))
+            searchRetrieve.setDatabase(Collections.singletonList(database))
                     .setQuery(query)
                     .setResultSetName(resultSetName)
                     .setElementSetName(elementSetName)
@@ -121,7 +122,7 @@ public class ZServlet extends HttpServlet {
                     .setFrom(from)
                     .setSize(size);
             ZSearchRetrieveResponse zResponse = searchRetrieve.execute();
-            StylesheetTransformer transformer = new StylesheetTransformer("/xsl");
+            StylesheetTransformer transformer = new StylesheetTransformer().setPath("/xsl");
             response.setContentType(mediaType);
             response.setHeader("Server", "Java");
             response.setHeader("X-Powered-By", getClass().getName());

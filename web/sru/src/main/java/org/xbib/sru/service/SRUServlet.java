@@ -140,7 +140,7 @@ public class SRUServlet extends HttpServlet implements SRUConstants {
                 String s = config.getInitParameter(version.name().toLowerCase());
                 String[] stylesheets = s != null ? s.split(",") : null;
 
-                StylesheetTransformer transformer = new StylesheetTransformer("/xsl");
+                StylesheetTransformer transformer = new StylesheetTransformer().setPath("/xsl");
                 sruResponse.setOutputFormat("sru")
                         .setStylesheetTransformer(transformer)
                         .setStylesheets(version, stylesheets)

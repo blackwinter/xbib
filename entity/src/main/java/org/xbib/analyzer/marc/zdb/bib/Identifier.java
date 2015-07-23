@@ -55,10 +55,11 @@ public class Identifier extends MARCEntity {
                     resource.add("identifierOCLC", value.substring(7).replaceAll("\\-", "").toLowerCase());
                     return null;
                 } else {
-                    int pos = value.indexOf(')');
+                    /*int pos = value.indexOf(')');
                     String prefix = pos > 0 ? value.substring(1,pos).replaceAll("\\-", "").toUpperCase() : "";
                     value = pos > 0 ? value.substring(pos + 1) : value;
-                    resource.add("identifier" + prefix, value.replaceAll("\\-", "").toLowerCase());
+                    resource.add("identifier" + prefix, value.replaceAll("\\-", "").toLowerCase());*/
+                    logger.warn("unprocessed identifier: {}", value);
                     return null;
                 }
             }

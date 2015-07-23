@@ -96,9 +96,13 @@ public abstract class Feeder extends Converter {
             ingest = createIngest();
             ingest.maxActionsPerRequest(maxbulkactions)
                     .maxConcurrentRequests(maxconcurrentbulkrequests);
-        }
-        if (ingest == null){
-            logger.warn("ingest is null");
+            ingest.init(ImmutableSettings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                    .put("host", settings.get("elasticsearch.host", "localhost"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build());
         }
         createIndex(getIndex());
     }

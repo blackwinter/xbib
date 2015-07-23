@@ -142,7 +142,7 @@ public class SRUClientTest {
                 }
             };
             request.addListener(listener);
-            StylesheetTransformer transformer = new StylesheetTransformer("src/test/resources/xsl");
+            StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/test/resources/xsl");
             client.searchRetrieve(request)
                     .setStylesheetTransformer(transformer)
                     .to(writer);
