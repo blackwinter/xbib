@@ -5,9 +5,6 @@
              "store" : true
         },
         "properties" : {
-          "boost" : {
-            "type" : "double"
-          },
           "collection" : {
             "type" : "string",
             "analyzer" : "keyword",
@@ -70,8 +67,8 @@
           },
           "CorporateName" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
+              "corporateIdentifier": {
+                "type": "string"
               },
               "corporateName" : {
                 "type" : "string"
@@ -86,12 +83,6 @@
                 "type" : "string"
               },
               "formatted" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
                 "type" : "string"
               },
               "roleTerm" : {
@@ -134,9 +125,6 @@
           },
           "ElectronicLocationAndAccess" : {
             "properties" : {
-              "contact" : {
-                "type" : "string"
-              },
               "format" : {
                 "type" : "string"
               },
@@ -156,9 +144,6 @@
                 "type" : "string"
               },
               "relatedto" : {
-                "type" : "string"
-              },
-              "size" : {
                 "type" : "string"
               },
               "uri" : {
@@ -203,28 +188,16 @@
               "dimensions" : {
                 "type" : "string"
               },
-              "i" : {
-                "type" : "string"
-              },
               "physicalDetails" : {
                 "type" : "string"
               },
-              "t" : {
-                "type" : "string"
-              },
               "value" : {
-                "type" : "string"
-              },
-              "w" : {
                 "type" : "string"
               }
             }
           },
           "FormerTitle" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "titleDatesOrSequentialDesignation" : {
                 "type" : "string"
               },
@@ -322,9 +295,6 @@
               "identifierEKI" : {
                 "type" : "string"
               },
-              "identifierNL-LISWE" : {
-                "type" : "string"
-              },
               "identifierOCLC" : {
                 "type" : "string"
               },
@@ -345,9 +315,6 @@
           },
           "IssuingBodyNote" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "value" : {
                 "type" : "string"
               }
@@ -365,9 +332,6 @@
           },
           "Language" : {
             "properties" : {
-              "h" : {
-                "type" : "string"
-              },
               "value" : {
                 "type" : "string"
               },
@@ -393,12 +357,6 @@
           "MeetingName" : {
             "properties" : {
               "dateOfMeeting" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
                 "type" : "string"
               },
               "linkage" : {
@@ -555,15 +513,6 @@
           },
           "PersonalName" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
-                "type" : "string"
-              },
               "personalDate" : {
                 "type" : "string"
               },
@@ -586,9 +535,6 @@
           },
           "PrecedingEntry" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "author" : {
                 "type" : "string"
               },
@@ -633,9 +579,6 @@
           },
           "PublicationStatement" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "dateOfPublication" : {
                 "type" : "string"
               },
@@ -655,9 +598,6 @@
           },
           "Subject" : {
             "properties" : {
-              "9" : {
-                "type" : "string"
-              },
               "dateOfaWork" : {
                 "type" : "string"
               },
@@ -665,12 +605,6 @@
                 "type" : "string"
               },
               "geographicSubdivision" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
                 "type" : "string"
               },
               "miscInfo" : {
@@ -695,9 +629,6 @@
           },
           "SucceedingEntry" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "author" : {
                 "type" : "string"
               },
@@ -727,9 +658,6 @@
           },
           "SupplementParentEntry" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "author" : {
                 "type" : "string"
               },
@@ -752,9 +680,6 @@
           },
           "SupplementSpecialIssueEntry" : {
             "properties" : {
-              "6" : {
-                "type" : "string"
-              },
               "author" : {
                 "type" : "string"
               },
@@ -846,40 +771,6 @@
           "leader" : {
             "type" : "string"
           },
-          "meetingName" : {
-            "properties" : {
-              "9" : {
-                "type" : "string"
-              },
-              "dates" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
-                "type" : "string"
-              },
-              "number" : {
-                "type" : "string"
-              },
-              "relatorTerm" : {
-                "type" : "string"
-              },
-              "source" : {
-                "type" : "string"
-              },
-              "titleOfAWork" : {
-                "type" : "string"
-              },
-              "titles" : {
-                "type" : "string"
-              },
-              "value" : {
-                "type" : "string"
-              }
-            }
-          },
           "OtherCodes" : {
             "properties" : {
               "genre" : {
@@ -905,96 +796,8 @@
           "physicalDescriptionText" : {
             "type" : "string"
           },
-          "publicationstatus" : {
-            "type" : "string"
-          },
-          "publicationstatusText" : {
-            "type" : "string"
-          },
-          "publishingCountry" : {
-            "properties" : {
-              "isoCountryCodes" : {
-                "type" : "string"
-              },
-              "isoCountryCodesSource" : {
-                "type" : "string"
-              }
-            }
-          },
-          "subjectCorporateName" : {
-            "properties" : {
-              "9" : {
-                "type" : "string"
-              },
-              "dateOfaWork" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
-                "type" : "string"
-              },
-              "number" : {
-                "type" : "string"
-              },
-              "numeration" : {
-                "type" : "string"
-              },
-              "part" : {
-                "type" : "string"
-              },
-              "source" : {
-                "type" : "string"
-              },
-              "titleOfAWork" : {
-                "type" : "string"
-              },
-              "value" : {
-                "type" : "string"
-              }
-            }
-          },
-          "subjectPersonalName" : {
-            "properties" : {
-              "dates" : {
-                "type" : "string"
-              },
-              "generalSubdivision" : {
-                "type" : "string"
-              },
-              "identifierDNB" : {
-                "type" : "string"
-              },
-              "identifierGND" : {
-                "type" : "string"
-              },
-              "numeration" : {
-                "type" : "string"
-              },
-              "source" : {
-                "type" : "string"
-              },
-              "titleOfAWork" : {
-                "type" : "string"
-              },
-              "titles" : {
-                "type" : "string"
-              },
-              "value" : {
-                "type" : "string"
-              }
-            }
-          },
           "type" : {
             "type" : "string"
-          },
-          "xbib:id" : {
-            "type" : "string"
-          },
-          "xbib:timestamp" : {
-            "type" : "date",
-            "format" : "dateOptionalTime"
           }
         }
 

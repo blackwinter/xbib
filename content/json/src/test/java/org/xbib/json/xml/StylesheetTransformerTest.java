@@ -33,7 +33,7 @@ public class StylesheetTransformerTest {
                 .context(context);
         File file = File.createTempFile("dc.", ".xml");
         FileWriter out = new FileWriter(file);
-        StylesheetTransformer transformer = new StylesheetTransformer(
+        StylesheetTransformer transformer = new StylesheetTransformer().setPath(
                 "src/main/resources",
                 "src/main/resources/xsl");
         // no style sheet, just a simple copy

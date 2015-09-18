@@ -31,7 +31,6 @@
  */
 package org.xbib.tools.merge.zdb.licenseinfo;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import org.apache.logging.log4j.LogManager;
@@ -45,24 +44,24 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineRequestListener;
-import org.xbib.tools.merge.zdb.entities.Cluster;
+import org.xbib.tools.merge.zdb.entities.Expression;
+import org.xbib.tools.merge.zdb.support.StatCounter;
+import org.xbib.tools.merge.zdb.entities.TitleRecordCluster;
 import org.xbib.tools.merge.zdb.entities.Holding;
 import org.xbib.tools.merge.zdb.entities.Indicator;
 import org.xbib.tools.merge.zdb.entities.License;
-import org.xbib.tools.merge.zdb.entities.Manifestation;
-import org.xbib.tools.merge.zdb.entities.Volume;
-import org.xbib.tools.merge.zdb.entities.VolumeHolding;
-import org.xbib.tools.util.SearchHitPipelineElement;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.zdb.entities.MonographVolume;
+import org.xbib.tools.merge.zdb.entities.MonographVolumeHolding;
+import org.xbib.tools.merge.zdb.entities.WorkSet;
 import org.xbib.util.ExceptionFormatter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,38 +72,34 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newSetFromMap;
+import static com.google.common.collect.Sets.newTreeSet;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
-public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, ManifestationPipelineElement> {
+public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelRecordPipelineElement> {
 
     enum State {
-        COLLECTING, PROCESSING, INDEXING
+        COLLECTING_CANDIDATES, PROCESSING, INDEXING
     }
 
     private final int number;
 
-    private State state;
-
-    private final WithHoldingsAndLicenses service;
+    private final WithHoldingsAndLicenses withHoldingsAndLicenses;
 
     private final Logger logger;
 
     private final Queue<ClusterBuildContinuation> buildQueue;
 
-    private BlockingQueue<ManifestationPipelineElement> queue;
+    private State state;
 
-    private Map<String, PipelineRequestListener> listeners;
+    private BlockingQueue<TitelRecordPipelineElement> queue;
 
-    private Set<Manifestation> candidates;
-
-    private Manifestation manifestation;
+    private Set<TitleRecord> candidates;
 
     private String sourceTitleIndex;
     private String sourceTitleType;
@@ -114,25 +109,29 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
     private String sourceLicenseType;
     private String sourceIndicatorIndex;
     private String sourceIndicatorType;
-    private String sourceVolumeIndex;
-    private String sourceVolumeHoldingsIndex;
+    private String sourceMonographicIndex;
+    private String sourceMonographicHoldingsIndex;
 
+    private final String workIndex;
+    private final String workIndexType;
+    private final String expressionIndex;
+    private final String expressionIndexType;
     private final String manifestationsIndex;
     private final String manifestationsIndexType;
     private final String holdingsIndex;
     private final String holdingsIndexType;
-    private final String dateHoldingsIndex;
-    private final String dateHoldingsIndexType;
+    private final String volumesIndex;
+    private final String volumesIndexType;
+    private final String serviceIndex;
+    private final String serviceIndexType;
 
-
-    public WithHoldingsAndLicensesPipeline(WithHoldingsAndLicenses service, int number) {
+    public WithHoldingsAndLicensesPipeline(WithHoldingsAndLicenses withHoldingsAndLicenses, int number) {
         this.number = number;
-        this.service = service;
-        this.listeners = newHashMap();
+        this.withHoldingsAndLicenses = withHoldingsAndLicenses;
         this.buildQueue = new ConcurrentLinkedQueue<ClusterBuildContinuation>();
         this.logger = LogManager.getLogger(toString());
 
-        Settings settings = service.settings();
+        Settings settings = withHoldingsAndLicenses.settings();
         this.sourceTitleIndex = settings.get("bib-index");
         this.sourceTitleType = settings.get("bib-type");
         this.sourceHoldingsIndex = settings.get("hol-index");
@@ -141,28 +140,29 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         this.sourceLicenseType = settings.get("xml-license-type");
         this.sourceIndicatorIndex = settings.get("web-license-index");
         this.sourceIndicatorType = settings.get("web-license-type");
-        this.sourceVolumeIndex = settings.get("volume-index");
-        this.sourceVolumeHoldingsIndex = settings.get("volume-hol-index");
+        this.sourceMonographicIndex = settings.get("monographic-index");
+        this.sourceMonographicHoldingsIndex = settings.get("monographic-hol-index");
 
         String index = settings.get("index");
         if (index == null) {
             throw new IllegalArgumentException("no index given");
         }
+        this.workIndex = settings.get("work-index", index);
+        this.workIndexType = settings.get("work-type", "Works");
+        this.expressionIndex = settings.get("expression-index", index);
+        this.expressionIndexType = settings.get("expression-type", "Expressions");
         this.manifestationsIndex = settings.get("manifestations-index", index);
-        this.manifestationsIndexType = settings.get("manifestations-type", "Manifestation");
+        this.manifestationsIndexType = settings.get("manifestations-type", "Manifestations");
         this.holdingsIndex = settings.get("holdings-index", index);
         this.holdingsIndexType = settings.get("holdings-type", "Holdings");
-        this.dateHoldingsIndex = settings.get("date-holdings-index", index);
-        this.dateHoldingsIndexType = settings.get("date-holdings-type", "DateHoldings");
+        this.volumesIndex = settings.get("volumes-index", index);
+        this.volumesIndexType = settings.get("volumes-type", "Volumes");
+        this.serviceIndex = settings.get("service-index", index);
+        this.serviceIndexType = settings.get("service-type", "Services");
     }
-
-    public MeterMetric getMetric() {
-        return null;
-    }
-
 
     @Override
-    public Pipeline<Boolean, ManifestationPipelineElement> setQueue(BlockingQueue<ManifestationPipelineElement> queue) {
+    public Pipeline<Boolean, TitelRecordPipelineElement> setQueue(BlockingQueue<TitelRecordPipelineElement> queue) {
         this.queue = queue;
         return this;
     }
@@ -171,79 +171,38 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return buildQueue;
     }
 
-    public Collection<Manifestation> getCluster() {
+    public Collection<TitleRecord> getCandidates() {
         return candidates;
     }
-
-    /*@Override
-    public boolean hasNext() {
-        SearchHitPipelineElement element;
-        try {
-            element = service.getQueue().poll(60, TimeUnit.SECONDS);
-            if (element != null && element.get() != null) {
-                manifestation = new Manifestation(element.get().getSource());
-                manifestation.setForced(element.getForced());
-            } else {
-                manifestation = null;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            manifestation = null;
-            logger.error("pipeline processing interrupted, queue inactive", e);
-        }
-        return manifestation != null;
-    }*/
-
-    /*@Override
-    public Manifestation next() {
-        return manifestation;
-    }
-    */
 
     @Override
     public Boolean call() throws Exception {
         logger.info("pipeline starting");
+        TitleRecord titleRecord = null;
         try {
-            ManifestationPipelineElement element = queue.poll();
-            manifestation = element.get();
-            while (manifestation != null) {
-                if (check(manifestation)) {
-                    processWork(manifestation);
-                }
-                for (PipelineRequestListener listener : listeners.values()) {
-                    listener.newRequest(this, manifestation);
-                }
-                element = queue.poll();
-                manifestation = element.get();
+            TitelRecordPipelineElement element = queue.poll(10, TimeUnit.SECONDS);
+            titleRecord = element != null ? element.get() : null;
+            while (titleRecord != null) {
+                process(titleRecord);
+                element = queue.poll(10, TimeUnit.SECONDS);
+                titleRecord = element != null ? element.get() : null;
             }
-            /*while (hasNext()) {
-                manifestation = next();
-                if (check(manifestation)) {
-                    processWork(manifestation);
-                }
-                for (PipelineRequestListener listener : listeners.values()) {
-                    listener.newRequest(this, manifestation);
-                }
-            }*/
+        } catch (InterruptedException e) {
+            logger.warn("timeout while waiting for element");
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             logger.error(ExceptionFormatter.format(e));
-            logger.error("exiting, exception while processing {}", manifestation);
+            logger.error("exiting, exception while processing {}", titleRecord);
         } finally {
-            service.countDown();
+            withHoldingsAndLicenses.countDown();
         }
         logger.info("pipeline terminating");
         return true;
     }
 
-    /*@Override
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }*/
-
     @Override
     public void close() throws IOException {
-        if (!service.getQueue().isEmpty()) {
+        if (!withHoldingsAndLicenses.getQueue().isEmpty()) {
             logger.error("service queue not empty?");
         }
         if (!buildQueue.isEmpty()) {
@@ -257,284 +216,127 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return WithHoldingsAndLicenses.class.getSimpleName() + "." + number;
     }
 
-    public Pipeline<Boolean, ManifestationPipelineElement> add(String name, PipelineRequestListener listener) {
-        this.listeners.put(name, listener);
-        return this;
+    private boolean check(TitleRecord titleRecord) {
+        return !titleRecord.isSupplement() && !titleRecord.isAggregate();
     }
 
-    private boolean check(Manifestation manifestation) {
-        if (manifestation.getForced()) {
-            return true;
+    private void process(TitleRecord titleRecord) throws IOException {
+        // deny processing of supplements / database / bibliographies
+        if (titleRecord.isSupplement() || titleRecord.isAggregate()) {
+            //withHoldingsAndLicenses.skipped().add(titleRecord.externalID());
+            return;
         }
-        String id = manifestation.externalID();
-        // Skip supplements and manifestations with "succeededBy" relation (= in timeline) here.
-        // All of them are referenced by another manifestation.
-        // We pull them in while cluster construction.
-        // Note: we also check online/CD manifestations here. They may continue
-        // print manifestations but without correct "succeededBy/precededBy" pair
-        // maybe "OtherEditionEntry" see ZDB 20679373.
-        if (manifestation.isInTimeline() || manifestation.isSupplement()) {
-            service.skipped().add(id);
-            return false;
+        // Candidates are unstructured, no timeline organization,
+        // no relationship analysis, not ordered by ID
+        this.candidates = newSetFromMap(new ConcurrentHashMap<TitleRecord, Boolean>());
+        candidates.add(titleRecord);
+        state = State.COLLECTING_CANDIDATES;
+        // there are certain serial genres which are not fitting into our model of candidates
+        if (check(titleRecord)) {
+            retrieveCandidates(titleRecord, candidates);
+            // here, build queue is filled
         }
-        // if we had this seen, skip
-        return !service.processed().contains(id);
-    }
-
-    private void processWork(Manifestation manifestation) throws IOException {
-        boolean dirty = false;
-        Cluster cluster;
+        // process build queue to get all candidates
+        ClusterBuildContinuation cont;
+        while ((cont = buildQueue.poll()) != null) {
+            candidates.addAll(cont.cluster);
+            continueClusterBuild(candidates, cont);
+        }
+        boolean retry;
         do {
-            // Work set algorithm
-            // Candidates are unstructured, no timeline organization,
-            // no relationship analysis, not ordered by ID
-            this.candidates = newSetFromMap(new ConcurrentHashMap<Manifestation, Boolean>());
-            candidates.add(manifestation);
-            state = State.COLLECTING;
-            // there are certain serial genres which are not fitting into our model of timelines
-            if (dirty || (!manifestation.isDatabase() && !manifestation.isPacket())) {
-                // retrieve all docs that are connected by relationships into the candidate set
-                retrieveCandidates(manifestation, candidates);
-            } else {
-                logger.debug("{} skipped candidate retrieval isDatabase={} isNewspaper={} isPacket={}",
-                        manifestation,
-                        manifestation.isDatabase(),
-                        manifestation.isPacket());
-            }
+            // Ensure all relationships in the candidate set
             state = State.PROCESSING;
-
-            if (candidates.size() > 100) {
-                logger.warn("large list of candidates for {} ({})", manifestation, candidates.size());
-            }
-
-            // microforms et al?
-            //candidates.addAll(extractOtherEditions(candidates));
-
-            // Ensure all relationships in the cluster.
-            for (Manifestation m : candidates) {
+            for (TitleRecord m : candidates) {
                 setAllRelationsBetween(m, candidates);
             }
-
-            cluster = new Cluster(candidates);
-
             // Now, this is expensive. Find holdings, licenses, indicators of candidates
-            Set<Holding> holdings = searchHoldings(candidates);
-            if (holdings.size() > 5000) {
-                logger.warn("large list of holdings for {} ({})", manifestation, holdings.size());
+            Set<Holding> holdings = newHashSet();
+            searchHoldings(candidates, holdings);
+            Set<License> licenses = newHashSet();
+            searchLicensesAndIndicators(candidates, licenses);
+            searchMonographs(candidates);
+            // before indexing, fetch build queue again
+            retry = false;
+            int before = candidates.size();
+            while ((cont = buildQueue.poll()) != null) {
+                candidates.addAll(cont.cluster);
+                int after = candidates.size();
+                retry = after > before;
+                continueClusterBuild(candidates, cont);
             }
-            cluster.setHoldings(holdings);
-            Set<License> licenses = searchLicensesAndIndicators(candidates);
-            if (licenses.size() > 5000) {
-                logger.warn("large list of licenses for {} ({})", manifestation, licenses.size());
+            if (retry) {
+                logger.info("{} {}: retrying before indexing", this, titleRecord);
+                continue;
             }
-            // search monographic volumes
-            searchVolumes(cluster);
-            for (Manifestation m : cluster) {
-                service.count(m.getVolumes().size());
+            // build title record cluster, but split between "work candidate records" and other non-work records
+            final Set<TitleRecord> workCandidates = newHashSet();
+            final Set<TitleRecord> other = newHashSet();
+            candidates.stream().forEach(tr -> {
+                if (tr.isSupplement() || tr.isAggregate()) {
+                    other.add(tr);
+                } else {
+                    workCandidates.add(tr);
+                }
+            });
+            TitleRecordCluster titleRecordCluster = new TitleRecordCluster();
+            titleRecordCluster.addMain(workCandidates);
+            titleRecordCluster.addOther(other);
+            state = State.INDEXING;
+
+            // index title record cluster
+            StatCounter statCounter = new StatCounter();
+            indexTitleRecordCluster(statCounter, titleRecordCluster);
+
+            // if there were collisions, then retry even after indexing!
+            // do not forget to search holdings/licenses again
+            retry = false;
+            before = candidates.size();
+            while ((cont = buildQueue.poll()) != null) {
+                candidates.addAll(cont.cluster);
+                int after = candidates.size();
+                retry = after > before;
+                continueClusterBuild(candidates, cont);
             }
-            cluster.validateByDateRange(licenses);
-            cluster.attachServicesToManifestations();
-            dirty = !buildQueue.isEmpty();
-            if (dirty) {
-                logger.warn("{}: got build queue {}, retrying", manifestation, buildQueue);
+            if (retry) {
+                logger.info("{} {}: retrying after indexing", this, titleRecord);
             }
-        } while (dirty);
-        state = State.INDEXING;
-        Set<String> visited = newHashSet();
-        for (Manifestation m : cluster) {
-            indexManifestation(m, visited);
-        }
+        } while (retry);
     }
 
-    private void indexManifestation(Manifestation m, Set<String> visited) throws IOException {
-        String id = m.externalID();
-        // protection against recursion (should not happen)
-        if (visited.contains(id)) {
-            return;
-        }
-        visited.add(id);
-        // make sure that we do never index a manifestation twice
-        if (service.indexed().contains(id)) {
-            return;
-        }
-        service.indexed().add(id);
-        // find open access
-        Collection<String> issns = (Collection<String>) m.getIdentifiers().get("formattedissn");
-        boolean found = false;
-        for (String issn : issns) {
-            found = found || service.findOpenAccess(issn);
-        }
-        m.setOpenAccess(found);
-        String tag = service.settings().get("tag");
-        // first, index related volumes (conference/proceedings/abstracts/...)
-        List<String> vids = newArrayList();
-        if (!m.getVolumes().isEmpty()) {
-            final ImmutableList<Volume> volumes;
-            synchronized (m.getVolumes()) {
-                volumes = ImmutableList.copyOf(m.getVolumes());
-            }
-            for (Volume volume : volumes) {
-                XContentBuilder builder = jsonBuilder();
-                String vid = volume.build(builder, tag, null);
-                service.ingest().index(manifestationsIndex, manifestationsIndexType, vid, builder.string());
-                vids.add(vid);
-                for (VolumeHolding volumeHolding : volume.getHoldings()) {
-                    builder = jsonBuilder();
-                    vid = volumeHolding.build(builder, tag);
-                    // by holding
-                    service.ingest().index(holdingsIndex, holdingsIndexType, vid, builder.string());
-                    // extra entry by date
-                    service.ingest().index(dateHoldingsIndex, dateHoldingsIndexType, vid + "." + volumeHolding.dates().get(0), builder.string());
-                }
-                int n = 1 + 2 * volume.getHoldings().size();
-                service.indexMetric().mark(n);
-            }
-            int n = m.getVolumes().size();
-            service.indexMetric().mark(n);
-        }
-        m.addVolumeIDs(vids);
-
-        // index this manifestation
-        // holdings by date and the services for them
-        if (!m.getVolumesByDate().isEmpty()) {
-            SetMultimap<Integer, Holding> volumesByDate;
-            synchronized (m.getVolumesByDate()) {
-                volumesByDate = ImmutableSetMultimap.copyOf(m.getVolumesByDate());
-            }
-            for (Integer date : volumesByDate.keySet()) {
-                String identifier = (tag != null ? tag + "." : "") + m.externalID() + (date != -1 ? "." + date : "");
-                Set<Holding> holdings = volumesByDate.get(date);
-                if (holdings != null && !holdings.isEmpty()) {
-                    XContentBuilder builder = jsonBuilder();
-                    String docid = m.buildHoldingsByDate(builder, tag, m.externalID(), date, holdings);
-                    service.ingest().index(dateHoldingsIndex, dateHoldingsIndexType, identifier, builder.string());
-                    service.indexMetric().mark(1);
-                    logger.debug("indexed volume {} date {}", docid, date);
-                }
-            }
-        }
-        XContentBuilder builder = jsonBuilder();
-        String docid = m.build(builder, tag, null);
-        service.ingest().index(manifestationsIndex, manifestationsIndexType, docid, builder.string());
-        service.indexMetric().mark(1);
-
-        // holdings (list of institutions)
-        if (!m.getVolumesByHolder().isEmpty()) {
-            final SetMultimap<String, Holding> holdings;
-            synchronized (m.getVolumesByHolder()) {
-                holdings = ImmutableSetMultimap.copyOf(m.getVolumesByHolder());
-            }
-            builder = jsonBuilder();
-            builder.startObject().startArray("holdings");
-            for (String holder : holdings.keySet()) {
-                docid = m.buildHoldingsByISIL(builder, tag, m.externalID(), holder, holdings.get(holder));
-            }
-            builder.endArray().endObject();
-            service.ingest().index(holdingsIndex, holdingsIndexType, docid, builder.string());
-            service.indexMetric().mark(1);
-            logger.debug("indexed {} holdings for {}", holdings.size(), docid);
-        }
-        // index related manifestations
-        if (!m.getRelatedManifestations().isEmpty()) {
-            SetMultimap<String, Manifestation> rels;
-            synchronized (m.getRelatedManifestations()) {
-                rels = ImmutableSetMultimap.copyOf(m.getRelatedManifestations());
-            }
-            for (String rel : rels.keys()) {
-                for (Manifestation mm : rels.get(rel)) {
-                    indexManifestation(mm, visited);
-                }
-            }
-        }
-    }
-
-    /*private void retrieveOtherEdition(Manifestation manifestation, Collection<Manifestation> cluster) throws IOException {
-        // only print/online edition. That's it.
-        if (!manifestation.hasPrint() && !manifestation.hasOnline()) {
-            return;
-        }
-        QueryBuilder queryBuilder = null;
-        if (manifestation.getOnlineID() != null && manifestation.isPrint()) {
-            queryBuilder = termQuery("IdentifierDNB.identifierDNB", manifestation.getOnlineID());
-        }
-        if (manifestation.getPrintID() != null && manifestation.isOnline()) {
-            queryBuilder = termQuery("IdentifierDNB.identifierDNB", manifestation.getPrintID());
-        }
-        if (queryBuilder == null) {
-            return;
-        }
-        SearchRequestBuilder searchRequest = service.client().prepareSearch()
-                .setQuery(queryBuilder)
-                .setSize(service.size()) // size is per shard!
-                .setSearchType(SearchType.SCAN)
-                .setScroll(TimeValue.timeValueMillis(service.millis()));
-        searchRequest.setIndices(sourceTitleIndex);
-        if (sourceTitleType != null) {
-            searchRequest.setTypes(sourceTitleType);
-        }
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
-        service.queryMetric().mark();
-        searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                .setScroll(TimeValue.timeValueMillis(service.millis()))
-                .execute().actionGet();
-        service.queryMetric().mark();
-        SearchHits hits = searchResponse.getHits();
-        if (hits.getHits().length == 0) {
-            return;
-        }
-        // we expect single hit, but we scroll although
-        do {
-            for (int i = 0; i < hits.getHits().length; i++) {
-                SearchHit hit = hits.getAt(i);
-                //Manifestation m = new Manifestation(mapper.readValue(hit.source(), Map.class));
-                Manifestation m = new Manifestation(hit.getSource());
-                cluster.add(m);
-            }
-            searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(service.millis()))
-                    .execute().actionGet();
-            service.queryMetric().mark();
-            hits = searchResponse.getHits();
-        } while (hits.getHits().length > 0);
-    }*/
-
-    private void retrieveCandidates(Manifestation manifestation, Collection<Manifestation> cluster)
+    private void retrieveCandidates(TitleRecord titleRecord, Collection<TitleRecord> candidates)
             throws IOException {
-        SetMultimap<String, String> relations = ImmutableSetMultimap.copyOf(manifestation.getRelations());
-        Set<String> neighbors = newHashSet(relations.values());
-        QueryBuilder queryBuilder = neighbors.isEmpty() ?
-                termQuery("_all", manifestation.id()) :
-                boolQuery().should(termQuery("_all", manifestation.id()))
-                        .should(termsQuery("IdentifierDNB.identifierDNB", neighbors.toArray()));
-        SearchRequestBuilder searchRequest = service.client().prepareSearch()
+        Set<String> neighbors = newHashSet(titleRecord.getRelations().values());
+        if (neighbors.isEmpty()) {
+            return;
+        }
+        QueryBuilder queryBuilder = termsQuery("IdentifierDNB.identifierDNB", neighbors.toArray());
+        SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
                 .setQuery(queryBuilder)
-                .setSize(service.size()) // size is per shard!
+                .setSize(withHoldingsAndLicenses.size()) // size is per shard!
                 .setSearchType(SearchType.SCAN)
-                .setScroll(TimeValue.timeValueMillis(service.millis()));
+                .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()));
         searchRequest.setIndices(sourceTitleIndex);
         if (sourceTitleType != null) {
             searchRequest.setTypes(sourceTitleType);
         }
-        logger.debug("retrieveCandidates search request = {}", searchRequest.toString());
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                .setScroll(TimeValue.timeValueMillis(service.millis()))
+        searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                 .execute().actionGet();
-        service.queryMetric().mark();
+        withHoldingsAndLicenses.queryMetric().mark();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
             return;
         }
-        ClusterBuildContinuation cont = new ClusterBuildContinuation(manifestation, searchResponse, cluster, 0);
-        buildQueue.offer(cont);
-        while (!buildQueue.isEmpty()) {
-            cont = buildQueue.poll();
-            cluster.addAll(cont.cluster);
-            continueClusterBuild(cluster, cont);
-        }
+        ClusterBuildContinuation temporalCont = new ClusterBuildContinuation(titleRecord, searchResponse,
+                TitleRecord.getTemporalRelations(), true, candidates, 0);
+        buildQueue.offer(temporalCont);
+        ClusterBuildContinuation carrierCont = new ClusterBuildContinuation(titleRecord, searchResponse,
+                TitleRecord.getCarrierRelations(), false, candidates, 0);
+        buildQueue.offer(carrierCont);
     }
 
-    private void continueClusterBuild(Collection<Manifestation> cluster, ClusterBuildContinuation c)
+    private void continueClusterBuild(Collection<TitleRecord> titleRecords, ClusterBuildContinuation c)
             throws IOException {
         SearchResponse searchResponse = c.searchResponse;
         SearchHits hits;
@@ -542,95 +344,60 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
             hits = searchResponse.getHits();
             for (int i = c.pos; i < hits.getHits().length; i++) {
                 SearchHit hit = hits.getAt(i);
-                Manifestation m = new Manifestation(hit.getSource());
-                if (m.id().equals(c.manifestation.id())) {
+                TitleRecord m = new TitleRecord(hit.getSource());
+                if (m.id().equals(c.titleRecord.id())) {
                     continue;
                 }
-                if (m.isDatabase()) {
+                if (titleRecords.contains(m)) {
                     continue;
                 }
-                if (m.isWebsite()) {
-                    continue;
-                }
-                if (cluster.contains(m)) {
-                    continue;
-                }
-                cluster.add(m);
-                service.processed().add(m.externalID());
+                titleRecords.add(m);
                 boolean collided = detectCollisionAndTransfer(m, c, i);
                 if (collided) {
-                    // break out
+                    // abort immediately
                     return;
                 }
-                boolean temporalRelation = false;
-                boolean carrierRelation = false;
-                Collection<String> rels = findTheRelationsBetween(c.manifestation, m.id());
-                for (String relation : rels) {
+                boolean hasRelation = false;
+                Collection<String> relations = findTheRelationsBetween(c.titleRecord, m.id());
+                for (String relation : relations) {
                     if (relation == null) {
                         continue;
                     }
-                    c.manifestation.addRelatedManifestation(relation, m);
-                    String inverse = inverseRelations.get(relation);
-                    if (inverse == null) {
-                        logger.debug("no inverse relation for {}", relation);
-                        //m.addRelatedManifestation("hasRelationTo", c.manifestation);
-                    } else {
-                        m.addRelatedManifestation(inverse, c.manifestation);
+                    String inverse = TitleRecord.getInverseRelations().get(relation);
+                    c.titleRecord.addRelated(relation, m);
+                    if (inverse != null) {
+                        m.addRelated(inverse, c.titleRecord);
                     }
-                    temporalRelation = temporalRelation
-                            || "precededBy".equals(relation)
-                            || "succeededBy".equals(relation);
-                    carrierRelation = carrierRelation
-                            || Manifestation.carrierEditions().contains(relation);
+                    hasRelation = hasRelation || c.relations.contains(relation);
                 }
-                // other direction (missing entries in catalog are possible)
-                for (String relation : rels) {
-                    if (relation == null) {
-                        continue;
-                    }
-                    m.addRelatedManifestation(relation, c.manifestation);
-                    String inverse = inverseRelations.get(relation);
-                    if (inverse == null) {
-                        logger.debug("no inverse relation for {}", relation);
-                        //c.manifestation.addRelatedManifestation("isRelatedTo", m);
-                    } else {
-                        c.manifestation.addRelatedManifestation(inverse, m);
-                    }
-                    temporalRelation = temporalRelation
-                            || "precededBy".equals(relation)
-                            || "succeededBy".equals(relation);
-                    carrierRelation = carrierRelation
-                            || Manifestation.carrierEditions().contains(relation);
-                }
-                // If not database or newspaper:
-                // look for more candidates for this manifestation iff temporal or carrier relation.
-                // Also expand if there are any other print/online editions.
-                boolean donotexpand = m.isDatabase() || m.isNewspaper();
-                if (!donotexpand) {
-                    if (temporalRelation || carrierRelation || m.hasCarrierRelations()) {
-                        retrieveCandidates(m, cluster);
-                    }
+                if (c.expand && hasRelation) {
+                    retrieveCandidates(m, titleRecords);
                 }
             }
-            searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(service.millis()))
+            searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                     .execute().actionGet();
-            service.queryMetric().mark();
+            withHoldingsAndLicenses.queryMetric().mark();
             hits = searchResponse.getHits();
         } while (hits.getHits().length > 0);
     }
 
-    private boolean detectCollisionAndTransfer(Manifestation manifestation,
+    private boolean detectCollisionAndTransfer(TitleRecord titleRecord,
                                                ClusterBuildContinuation c, int pos) {
-        for (Pipeline p : service.getPipelines()) {
+        for (Pipeline p : withHoldingsAndLicenses.getPipelines()) {
             if (this == p) {
                 continue;
             }
             WithHoldingsAndLicensesPipeline pipeline = (WithHoldingsAndLicensesPipeline)p;
-            if (pipeline.getCluster() != null && pipeline.getCluster().contains(manifestation)) {
-                logger.warn("collision detected for {} with {} state={} cluster={} other cluster={}",
-                        manifestation, pipeline, pipeline.state.name(),
-                        getCluster(), pipeline.getCluster());
+            if (pipeline.getCandidates() != null && pipeline.getCandidates().contains(titleRecord)) {
+                logger.warn("{}: collision detected for {} with {} state={} cluster={} other cluster={}",
+                        this,
+                        titleRecord,
+                        pipeline,
+                        pipeline.state.name(),
+                        getCandidates().size(),
+                        pipeline.getCandidates().size()
+                );
                 c.pos = pos;
                 pipeline.getBuildQueue().offer(c);
                 return true;
@@ -639,53 +406,56 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return false;
     }
 
-    private Set<Holding> searchHoldings(Collection<Manifestation> manifestations) throws IOException {
-        // create a map of all manifestations that can have assigned a holding.
-        Map<String, Manifestation> map = newHashMap();
-        for (Manifestation m : manifestations) {
+    private void searchHoldings(Collection<TitleRecord> titleRecords, Set<Holding> holdings)
+            throws IOException {
+        if (sourceHoldingsIndex == null) {
+            return;
+        }
+        // create a map of all title records that can have assigned a holding
+        Map<String, TitleRecord> map = newHashMap();
+        for (TitleRecord m : titleRecords) {
             map.put(m.id(), m);
             // add print if not already there...
             if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
                 map.put(m.getPrintID(), m);
             }
         }
-        Set<Holding> holdings = newHashSet();
-        searchHoldings(holdings, map);
-        return holdings;
+        searchHoldings(map, holdings);
     }
 
-    private void searchHoldings(Set<Holding> holdings, Map<String, Manifestation> manifestations) throws IOException {
+    private void searchHoldings(Map<String, TitleRecord> titleRecordMap, Set<Holding> holdings)
+            throws IOException {
         if (sourceHoldingsIndex == null) {
             return;
         }
-        if (manifestations == null || manifestations.isEmpty()) {
+        if (titleRecordMap == null || titleRecordMap.isEmpty()) {
             return;
         }
         // split ids into portions of 1024 (default max clauses for Lucene)
-        Object[] array = manifestations.keySet().toArray();
+        Object[] array = titleRecordMap.keySet().toArray();
         for (int begin = 0; begin < array.length; begin += 1024) {
             int end = begin + 1024 > array.length ? array.length : begin + 1024;
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("identifierForTheParentRecord", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = service.client().prepareSearch()
+            SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
                     .setQuery(queryBuilder)
-                    .setSize(service.size())
+                    .setSize(withHoldingsAndLicenses.size())
                     .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(service.millis()));
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()));
             searchRequest.setIndices(sourceHoldingsIndex);
             if (sourceHoldingsType != null) {
                 searchRequest.setTypes(sourceHoldingsType);
             }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchHoldings search request = {}/{} {} hits={}",
+            /*logger.debug("searchHoldings search request = {}/{} {} hits={}",
                     sourceHoldingsIndex, sourceHoldingsType,
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());
+                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
-                searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(service.millis()))
+                searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                         .execute().actionGet();
-                service.queryMetric().mark();
+                withHoldingsAndLicenses.queryMetric().mark();
                 SearchHits hits = searchResponse.getHits();
                 if (hits.getHits().length == 0) {
                     break;
@@ -699,78 +469,86 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     if (isil == null) {
                         continue;
                     }
-                    if (service.blackListedISIL().lookup().contains(isil)) {
+                    if (withHoldingsAndLicenses.blackListedISIL().lookup().contains(isil)) {
                         continue;
                     }
-                    holding.setRegion(service.bibdatLookup().lookupRegion().get(isil));
-                    holding.setOrganization(service.bibdatLookup().lookupOrganization().get(isil));
-                    for (String parent : holding.parents()) {
-                        Manifestation parentManifestation = manifestations.get(parent);
-                        parentManifestation.addRelatedHolding(isil, holding);
-                        holding.addManifestation(parentManifestation);
+                    // consortia?
+                    if (withHoldingsAndLicenses.consortiaLookup().lookupISILs().containsKey(isil)) {
+                        List<String> list = withHoldingsAndLicenses.consortiaLookup().lookupISILs().get(isil);
+                        for (String expandedisil : list) {
+                            // new Holding for each ISIL
+                            holding = new Holding(holding.map());
+                            holding.setISIL(expandedisil);
+                            holding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(expandedisil));
+                            holding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(expandedisil));
+                            holding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(expandedisil));
+                            TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                            parentTitleRecord.addRelatedHolding(expandedisil, holding);
+                            holdings.add(holding);
+                        }
+                    } else {
+                        holding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                        holding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                        holding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
+                        TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                        parentTitleRecord.addRelatedHolding(isil, holding);
+                        holdings.add(holding);
                     }
-                    holdings.add(holding);
                 }
             }
         }
-            for (Manifestation m : manifestations.values()) {
-                logger.debug("found holdings of {} = {} ", m.externalID(), m.getVolumesByHolder().size());
-            }
     }
 
-    private Set<License> searchLicensesAndIndicators(Collection<Manifestation> manifestations) throws IOException {
-        // create a map of all manifestations that can have assigned a license.
-        Map<String, Manifestation> map = newHashMap();
+    private void searchLicensesAndIndicators(Collection<TitleRecord> titleRecords, Set<License> licenses) throws IOException {
+        // create a map of all title records that can have assigned a license.
+        Map<String, TitleRecord> map = newHashMap();
         boolean isOnline = false;
-        for (Manifestation m : manifestations) {
+        for (TitleRecord m : titleRecords) {
             map.put(m.externalID(), m);
             // we really just rely on the carrier type. There may be licenses or indicators.
             isOnline = isOnline || "online resource".equals(m.carrierType());
-            // copy print to the online manifestation in case it is not there
+            // copy print to the online edition in case it is not there
             if (m.getOnlineExternalID() != null && !map.containsKey(m.getOnlineExternalID())) {
                 map.put(m.getOnlineExternalID(), m);
             }
         }
-        Set<License> licenses = newHashSet();
         if (isOnline) {
-            logger.debug("searching for licenses and indicators for {}", map);
             searchLicenses(licenses, map);
             searchIndicators(licenses, map);
         }
-        return licenses;
     }
 
-    private void searchLicenses(Set<License> licenses, Map<String, Manifestation> manifestations) throws IOException {
+    private void searchLicenses(Set<License> licenses, Map<String, TitleRecord> titleRecordMap) throws IOException {
         if (sourceLicenseIndex == null) {
             return;
         }
-        if (manifestations == null || manifestations.isEmpty()) {
+        if (titleRecordMap == null || titleRecordMap.isEmpty()) {
             return;
         }
         // split ids into portions of 1024 (default max clauses for Lucene)
-        Object[] array = manifestations.keySet().toArray();
+        Object[] array = titleRecordMap.keySet().toArray();
         for (int begin = 0; begin < array.length; begin += 1024) {
             int end = begin + 1024 > array.length ? array.length : begin + 1024;
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("ezb:zdbid", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = service.client().prepareSearch()
+            SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
                     .setQuery(queryBuilder)
-                    .setSize(service.size())
+                    .setSize(withHoldingsAndLicenses.size())
                     .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(service.millis()));
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()));
             searchRequest.setIndices(sourceLicenseIndex);
             if (sourceLicenseType != null) {
                 searchRequest.setTypes(sourceLicenseType);
             }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchLicenses search request = {} hits={}",
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());
+            /*logger.debug("searchLicenses search request = {} hits={}",
+                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
-                searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(service.millis()))
+                searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                         .execute().actionGet();
-                service.queryMetric().mark();
+                withHoldingsAndLicenses.queryMetric().mark();
                 SearchHits hits = searchResponse.getHits();
                 if (hits.getHits().length == 0) {
                     break;
@@ -784,64 +562,53 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     if (isil == null) {
                         continue;
                     }
-                    if (service.blackListedISIL().lookup().contains(isil)) {
+                    if (withHoldingsAndLicenses.blackListedISIL().lookup().contains(isil)) {
                         continue;
                     }
-                    license.setRegion(service.bibdatLookup().lookupRegion().get(isil));
-                    license.setOrganization(service.bibdatLookup().lookupOrganization().get(isil));
+                    license.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                    license.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                    license.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
                     for (String parent : license.parents()) {
-                        Manifestation m = manifestations.get(parent);
+                        TitleRecord m = titleRecordMap.get(parent);
                         m.addRelatedHolding(isil, license);
-                        logger.debug("license {} attached to manifestation {} print={} online={}",
-                                license.identifier(), m.externalID(), m.getPrintExternalID(), m.getOnlineExternalID());
-                        license.addManifestation(m);
-                        // trick: add also to print manifestation if possible
-                        if (m.hasPrint()) {
-                            Manifestation p = manifestations.get(m.getPrintExternalID());
-                            if (p != null) {
-                                logger.debug("license {} attached to another manifestation {}",
-                                            license.identifier(), p.externalID());
-                                license.addManifestation(p);
-                            }
-                        }
+                        //logger.debug("license {} attached to {} print={} online={}",
+                        //        license.identifier(), m.externalID(), m.getPrintExternalID(), m.getOnlineExternalID());
                     }
                     licenses.add(license);
                 }
             }
         }
-        logger.debug("found {} licenses for manifestations {}",
-                    licenses.size(), manifestations);
     }
 
-    private void searchIndicators(Set<License> indicators, Map<String, Manifestation> manifestations) throws IOException {
+    private void searchIndicators(Set<License> indicators, Map<String, TitleRecord> titleRecordMap) throws IOException {
         if (sourceIndicatorIndex == null) {
             return;
         }
-        if (manifestations == null || manifestations.isEmpty()) {
+        if (titleRecordMap == null || titleRecordMap.isEmpty()) {
             return;
         }
         // split ids into portions of 1024 (default max clauses for Lucene)
-        Object[] array = manifestations.keySet().toArray();
+        Object[] array = titleRecordMap.keySet().toArray();
         for (int begin = 0; begin < array.length; begin += 1024) {
             int end = begin + 1024 > array.length ? array.length : begin + 1024;
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("xbib:identifier", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = service.client().prepareSearch()
+            SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
                     .setQuery(queryBuilder)
-                    .setSize(service.size())
+                    .setSize(withHoldingsAndLicenses.size())
                     .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(service.millis()));
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()));
             searchRequest.setIndices(sourceIndicatorIndex);
             if (sourceLicenseType != null) {
                 searchRequest.setTypes(sourceIndicatorType);
             }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchIndicators search request = {} hits={}",
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());
+            /*logger.debug("searchIndicators search request = {} hits={}",
+                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
-                searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(service.millis()))
+                searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                         .execute().actionGet();
                 SearchHits hits = searchResponse.getHits();
                 if (hits.getHits().length == 0) {
@@ -853,77 +620,46 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     if (isil == null) {
                         continue;
                     }
-                    indicator.setRegion(service.bibdatLookup().lookupRegion().get(isil));
-                    indicator.setOrganization(service.bibdatLookup().lookupOrganization().get(isil));
-                    if (service.blackListedISIL().lookup().contains(isil)) {
+                    indicator.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                    indicator.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                    indicator.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
+                    if (withHoldingsAndLicenses.blackListedISIL().lookup().contains(isil)) {
                         continue;
                     }
                     for (String parent : indicator.parents()) {
-                        Manifestation m = manifestations.get(parent);
+                        TitleRecord m = titleRecordMap.get(parent);
                         m.addRelatedHolding(isil, indicator);
-                        indicator.addManifestation(m);
-                        logger.debug("indicator {} parent {} attached to manifestation {}",
-                                    indicator.identifier(), parent, m.externalID());
-                        // trick: add also to print manifestation if possible
-                        if (m.hasPrint()) {
-                            Manifestation p = manifestations.get(m.getPrintExternalID());
-                            if (p != null) {
-                                indicator.addManifestation(p);
-                                logger.debug("indicator {} parent {} attached to manifestation {}",
-                                            indicator.identifier(), parent, p.externalID());
-                            }
-                        }
                     }
                     indicators.add(indicator);
                 }
             }
         }
-        logger.debug("found {} indicators for manifestations {}",
-                    indicators.size(), manifestations);
     }
 
-    private void searchVolumes(Collection<Manifestation> manifestations)
-            throws IOException {
-        // create a map of all manifestations that can have assigned a holding.
-        Map<String, Manifestation> map = newHashMap();
-        for (Manifestation m : manifestations) {
-            map.put(m.externalID(), m);
-            // add print if not already there...
-            if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
-                map.put(m.getPrintExternalID(), m);
-            }
-        }
-        searchVolumes(map);
-    }
-
-    private void searchVolumes(Map<String, Manifestation> manifestations) throws IOException {
-        if (manifestations == null || manifestations.isEmpty()) {
-            return;
-        }
-        for (String id : manifestations.keySet()) {
-            Manifestation manifestation = manifestations.get(id);
-            SearchRequestBuilder searchRequest = service.client().prepareSearch()
-                    .setIndices(sourceVolumeIndex)
-                    .setSize(service.size())
+    private void searchMonographs(Collection<TitleRecord> titleRecords) throws IOException {
+        for (TitleRecord titleRecord : titleRecords) {
+            SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
+                    .setIndices(sourceMonographicIndex)
+                    .setSize(withHoldingsAndLicenses.size())
                     .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(service.millis()))
-                    .setQuery(termQuery("IdentifierZDB.identifierZDB", id));
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
+                    .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            service.queryMetric().mark();
-            logger.debug("searchVolumes search request = {} hits={}",
+            withHoldingsAndLicenses.queryMetric().mark();
+            logger.debug("searchMonographs search request = {} hits={}",
                     searchRequest.toString(), searchResponse.getHits().getTotalHits());
             while (searchResponse.getScrollId() != null) {
-                searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(service.millis()))
+                searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                         .execute().actionGet();
-                service.queryMetric().mark();
+                withHoldingsAndLicenses.queryMetric().mark();
                 SearchHits hits = searchResponse.getHits();
                 if (hits.getHits().length == 0) {
                     break;
                 }
                 for (SearchHit hit : hits) {
                     Map<String, Object> m = hit.getSource();
-                    Volume volume = new Volume(m, manifestation);
+                    MonographVolume volume = new MonographVolume(m, titleRecord);
                     searchExtraHoldings(volume);
                     searchSeriesVolumeHoldings(volume);
                 }
@@ -935,24 +671,25 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
      * Extra holdings are from a monographic catalog, but not in the base serials catalog.
      * @param volume the volume
      */
-    private void searchExtraHoldings(Volume volume) {
-        Manifestation manifestation = volume.manifestation();
+    @SuppressWarnings("unchecked")
+    private void searchExtraHoldings(MonographVolume volume) {
+        TitleRecord titleRecord = volume.getTitleRecord();
         String key = volume.id();
-        SearchRequestBuilder holdingsSearchRequest = service.client().prepareSearch()
-                .setIndices(sourceVolumeHoldingsIndex)
-                .setSize(service.size())
+        SearchRequestBuilder holdingsSearchRequest = withHoldingsAndLicenses.client().prepareSearch()
+                .setIndices(sourceMonographicHoldingsIndex)
+                .setSize(withHoldingsAndLicenses.size())
                 .setSearchType(SearchType.SCAN)
-                .setScroll(TimeValue.timeValueMillis(service.millis()))
+                .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                 .setQuery(termQuery("xbib.uid", key));
         SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
-        service.queryMetric().mark();
-        logger.debug("searchExtraHoldings search request = {} hits={}",
-                holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
+        withHoldingsAndLicenses.queryMetric().mark();
+        //logger.debug("searchExtraHoldings search request = {} hits={}",
+        //        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
         while (holdingSearchResponse.getScrollId() != null) {
-            holdingSearchResponse = service.client().prepareSearchScroll(holdingSearchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(service.millis()))
+            holdingSearchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(holdingSearchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                     .execute().actionGet();
-            service.queryMetric().mark();
+            withHoldingsAndLicenses.queryMetric().mark();
             SearchHits holdingHits = holdingSearchResponse.getHits();
             if (holdingHits.getHits().length == 0) {
                 break;
@@ -964,16 +701,19 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                 }
                 for (Map<String,Object> item : (List<Map<String,Object>>)o) {
                     if (item != null && !item.isEmpty()) {
-                        VolumeHolding volumeHolding = new VolumeHolding(item, volume);
+                        MonographVolumeHolding volumeHolding = new MonographVolumeHolding(item, volume);
                         volumeHolding.addParent(volume.externalID());
-                        volumeHolding.setMediaType(manifestation.mediaType());
-                        volumeHolding.setCarrierType(manifestation.carrierType());
+                        volumeHolding.setMediaType(titleRecord.mediaType());
+                        volumeHolding.setCarrierType(titleRecord.carrierType());
                         volumeHolding.setDate(volume.firstDate(), volume.lastDate());
-                        volumeHolding.setRegion(service.bibdatLookup().lookupRegion().get(volumeHolding.getISIL()));
-                        volumeHolding.setOrganization(service.bibdatLookup().lookupOrganization().get(volumeHolding.getISIL()));
-                        volumeHolding.setServiceMode(service.statusCodeMapper().lookup(volumeHolding.getStatus()));
-                        if ("interlibrary".equals(volumeHolding.getServiceType()) && volumeHolding.getISIL() != null) {
-                            volume.addHolding(volumeHolding);
+                        String isil = volumeHolding.getISIL();
+                        volumeHolding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                        volumeHolding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                        volumeHolding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
+                        volumeHolding.setServiceMode(withHoldingsAndLicenses.statusCodeMapper().lookup(volumeHolding.getStatus()));
+                        if ("interlibrary".equals(volumeHolding.getServiceType()) && isil != null) {
+                            //volume.addHolding(volumeHolding);
+                            volume.addRelatedHolding(isil, volumeHolding);
                         }
                     }
                 }
@@ -986,49 +726,49 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
      * @param parent the parent volume
      * @throws IOException
      */
-    private void searchSeriesVolumeHoldings(Volume parent)
+    private void searchSeriesVolumeHoldings(MonographVolume parent)
             throws IOException {
-        Manifestation manifestation = parent.manifestation();
+        TitleRecord titleRecord = parent.getTitleRecord();
         // search children volumes of the series (conference, processing, abstract, ...)
-        SearchRequestBuilder searchRequest = service.client().prepareSearch()
-                .setIndices(sourceVolumeIndex)
-                .setSize(service.size())
+        SearchRequestBuilder searchRequest = withHoldingsAndLicenses.client().prepareSearch()
+                .setIndices(sourceMonographicIndex)
+                .setSize(withHoldingsAndLicenses.size())
                 .setSearchType(SearchType.SCAN)
-                .setScroll(TimeValue.timeValueMillis(service.millis()))
+                .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                 .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
                         .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        service.queryMetric().mark();
+        withHoldingsAndLicenses.queryMetric().mark();
         //logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
         //        searchRequest.toString(), searchResponse.getHits().getTotalHits());
         while (searchResponse.getScrollId() != null) {
-            searchResponse = service.client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(service.millis()))
+            searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                     .execute().actionGet();
-            service.queryMetric().mark();
+            withHoldingsAndLicenses.queryMetric().mark();
             SearchHits hits = searchResponse.getHits();
             if (hits.getHits().length == 0) {
                 break;
             }
             for (SearchHit hit : hits) {
-                Volume volume = new Volume(hit.getSource(), manifestation);
-                volume.addParent(manifestation.externalID());
+                MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
+                volume.addParent(titleRecord.externalID());
                 // for each conference/congress, search holdings
-                SearchRequestBuilder holdingsSearchRequest = service.client().prepareSearch()
-                        .setIndices(sourceVolumeHoldingsIndex)
-                        .setSize(service.size())
+                SearchRequestBuilder holdingsSearchRequest = withHoldingsAndLicenses.client().prepareSearch()
+                        .setIndices(sourceMonographicHoldingsIndex)
+                        .setSize(withHoldingsAndLicenses.size())
                         .setSearchType(SearchType.SCAN)
-                        .setScroll(TimeValue.timeValueMillis(service.millis()))
+                        .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                         .setQuery(termQuery("xbib.uid", volume.id()));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
-                service.queryMetric().mark();
-                logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
-                        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
+                withHoldingsAndLicenses.queryMetric().mark();
+                //logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
+                //        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
                 while (holdingSearchResponse.getScrollId() != null) {
-                    holdingSearchResponse = service.client().prepareSearchScroll(holdingSearchResponse.getScrollId())
-                            .setScroll(TimeValue.timeValueMillis(service.millis()))
+                    holdingSearchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(holdingSearchResponse.getScrollId())
+                            .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
                             .execute().actionGet();
-                    service.queryMetric().mark();
+                    withHoldingsAndLicenses.queryMetric().mark();
                     SearchHits holdingHits = holdingSearchResponse.getHits();
                     if (holdingHits.getHits().length == 0) {
                         break;
@@ -1037,63 +777,39 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                         // one hit, many items. Iterate over items
                         Object o = holdingHit.getSource().get("Item");
                         if (!(o instanceof List)) {
-                            o = Arrays.asList(o);
+                            o = Collections.singletonList(o);
                         }
                         for (Map<String,Object> item : (List<Map<String,Object>>)o) {
                             if (item != null && !item.isEmpty()) {
-                                VolumeHolding volumeHolding = new VolumeHolding(item, volume);
-                                volumeHolding.addParent(manifestation.externalID());
+                                MonographVolumeHolding volumeHolding = new MonographVolumeHolding(item, volume);
+                                volumeHolding.addParent(titleRecord.externalID());
                                 volumeHolding.addParent(volume.externalID());
-                                volumeHolding.setMediaType(manifestation.mediaType());
-                                volumeHolding.setCarrierType(manifestation.carrierType());
+                                volumeHolding.setMediaType(titleRecord.mediaType());
+                                volumeHolding.setCarrierType(titleRecord.carrierType());
                                 volumeHolding.setDate(volume.firstDate(), volume.lastDate());
-                                volumeHolding.setRegion(service.bibdatLookup().lookupRegion().get(volumeHolding.getISIL()));
-                                volumeHolding.setOrganization(service.bibdatLookup().lookupOrganization().get(volumeHolding.getISIL()));
-                                volumeHolding.setServiceMode(service.statusCodeMapper().lookup(volumeHolding.getStatus()));
-                                if ("interlibrary".equals(volumeHolding.getServiceType()) && volumeHolding.getISIL() != null) {
-                                    volume.addHolding(volumeHolding);
+                                String isil = volumeHolding.getISIL();
+                                volumeHolding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                                volumeHolding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                                volumeHolding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
+                                volumeHolding.setServiceMode(withHoldingsAndLicenses.statusCodeMapper().lookup(volumeHolding.getStatus()));
+                                if ("interlibrary".equals(volumeHolding.getServiceType()) && isil != null) {
+                                    volume.addRelatedHolding(isil, volumeHolding);
                                 }
                             }
                         }
                     }
                 }
-                manifestation.addVolume(volume);
+                // this also copies holdings from the found volume to the title record
+                titleRecord.addVolume(volume);
             }
         }
     }
 
-    /*private void merge(Collection<Manifestation> manifestations, Set<Holding> holdings, Set<License> licenses,
-                       Set<Volume> volumes, Set<VolumeHolding> extraholdings) {
-        Set<String> isil = newTreeSet();
-        isil.addAll(holdings.stream().map(Holding::getISIL).collect(Collectors.toList()));
-        isil.addAll(holdings.stream().map(Holding::getServiceISIL).collect(Collectors.toList()));
-        isil.addAll(licenses.stream().map(License::getISIL).collect(Collectors.toList()));
-        isil.addAll(licenses.stream().map(License::getServiceISIL).collect(Collectors.toList()));
-        Set<String> newisil = newTreeSet();
-        newisil.addAll(extraholdings.stream()
-                .filter(vh -> "interlibrary".equals(vh.getServiceType()))
-                .map(VolumeHolding::getISIL).collect(Collectors.toList()));
-        newisil.removeAll(isil);
-        logger.info("cluster {}: {} holdings, {} licenses, {} extra volumes ({}), {} extra holdings, existing ISILs={}, new ISILs={}",
-                manifestations, holdings.size(), licenses.size(), volumes.size(), volumes, extraholdings.size(), isil, newisil);
-        for (Volume volume : volumes) {
-            logger.info("title={} vol={} number={} date={}", volume.title(), volume.getVolumeDesignation(), volume.getNumbering(), volume.firstDate());
-        }
-        for (String s : newisil) {
-            if (service.bibdatLookup().lookupLibrary().get(s) != null) {
-                // ok
-            } else if (service.bibdatLookup().lookupOther().get(s) != null) {
-                logger.info("dubious ISIL {}", s);
-            } else {
-                logger.info("unknown (private?) ISIL {}", s);
-            }
-        }
-    }*/
-
-    private Set<String> findTheRelationsBetween(Manifestation manifestation, String id) {
+    @SuppressWarnings("unchecked")
+    private Set<String> findTheRelationsBetween(TitleRecord titleRecord, String id) {
         Set<String> relationNames = new HashSet<String>();
-        for (String entry : Manifestation.relationEntries()) {
-            Object o = manifestation.map().get(entry);
+        for (String entry : TitleRecord.relationEntries()) {
+            Object o = titleRecord.map().get(entry);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -1122,9 +838,9 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         return relationNames;
     }
 
-    private void setAllRelationsBetween(Manifestation manifestation, Collection<Manifestation> cluster) {
-        for (String relation : Manifestation.relationEntries()) {
-            Object o = manifestation.map().get(relation);
+    private void setAllRelationsBetween(TitleRecord titleRecord, Collection<TitleRecord> cluster) {
+        for (String relation : TitleRecord.relationEntries()) {
+            Object o = titleRecord.map().get(relation);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -1141,7 +857,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                             continue;
                         } else {
                             if (logger.isTraceEnabled()) {
-                                logger.trace("entry {} has no relation name in {}", entry, manifestation.externalID());
+                                logger.trace("entry {} has no relation name in {}", entry, titleRecord.externalID());
                             }
                             continue;
                         }
@@ -1150,25 +866,25 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
                     // take only first entry from list...
                     String value = internalObj == null ? null : internalObj instanceof List ?
                             ((List) internalObj).get(0).toString() : internalObj.toString();
-                    for (Manifestation m : cluster) {
+                    for (TitleRecord m : cluster) {
                         // self?
-                        if (m.id().equals(manifestation.id())) {
+                        if (m.id().equals(titleRecord.id())) {
                             continue;
                         }
                         if (m.id().equals(value)) {
-                            manifestation.addRelatedManifestation(key, m);
+                            titleRecord.addRelated(key, m);
                             // special trick: move over links from online to print
                             if ("hasPrintEdition".equals(key)) {
-                                m.setLinks(manifestation.getLinks());
+                                m.setLinks(titleRecord.getLinks());
                             }
-                            String inverse = inverseRelations.get(key);
+                            String inverse = TitleRecord.getInverseRelations().get(key);
                             if (inverse != null) {
-                                m.addRelatedManifestation(inverse, manifestation);
+                                m.addRelated(inverse, titleRecord);
                             } else {
                                 if (logger.isTraceEnabled()) {
-                                    logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key, manifestation.externalID());
+                                    logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key, titleRecord.externalID());
                                 }
-                                m.addRelatedManifestation("isRelatedTo", manifestation);
+                                m.addRelated("isRelatedTo", titleRecord);
                             }
                         }
                     }
@@ -1177,97 +893,258 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, Manife
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private void indexTitleRecordCluster(StatCounter statCounter, TitleRecordCluster titleRecordCluster) throws IOException {
+        for (TitleRecord m : titleRecordCluster.getAll()) {
+            String id = m.externalID();
+            /*if (withHoldingsAndLicenses.indexed().contains(id)) {
+                return;
+            }
+            withHoldingsAndLicenses.indexed().add(id);*/
+            // find open access
+            Collection<String> issns = m.hasIdentifiers() ? (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
+            boolean found = false;
+            if (issns != null) {
+                for (String issn : issns) {
+                    found = found || withHoldingsAndLicenses.findOpenAccess(issn);
+                }
+                m.setOpenAccess(found);
+                if (found) {
+                    statCounter.increase("stat", "openaccess", 1);
+                }
+            }
+            // first, index related  (conference/proceedings/abstracts/...)
+            if (!m.getMonographVolumes().isEmpty()) {
+                final List<MonographVolume> volumes;
+                synchronized (m.getMonographVolumes()) {
+                    volumes = new ArrayList(m.getMonographVolumes());
+                }
+                for (MonographVolume volume : volumes) {
+                    XContentBuilder builder = jsonBuilder();
+                    volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
+                    String vid = volume.externalID();
+                    withHoldingsAndLicenses.ingest().index(manifestationsIndex, manifestationsIndexType, vid, builder.string());
+                    withHoldingsAndLicenses.indexMetric().mark(1);
+                    for (Holding volumeHolding : volume.getRelatedHoldings().values()) {
+                        builder = jsonBuilder();
+                        volumeHolding.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
+                        // to holding index
+                        String hid = volume.externalID();
+                        withHoldingsAndLicenses.ingest().index(holdingsIndex, holdingsIndexType, hid, builder.string());
+                        withHoldingsAndLicenses.indexMetric().mark(1);
+                        statCounter.increase("stat", "holdings", 1);
+                        // extra entry by date
+                        String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
+                                + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
+                        withHoldingsAndLicenses.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
+                        withHoldingsAndLicenses.indexMetric().mark(1);
+                        statCounter.increase("stat", "volumes", 1);
+                    }
+                }
+                int n = m.getMonographVolumes().size();
+                withHoldingsAndLicenses.indexMetric().mark(n);
+                statCounter.increase("stat", "manifestations", n);
+            }
+
+            // write holdings and services
+            if (!m.getRelatedHoldings().isEmpty()) {
+                // copy
+                final SetMultimap<String, Holding> holdings;
+                synchronized (m.getRelatedHoldings()) {
+                    holdings = ImmutableSetMultimap.copyOf(m.getRelatedHoldings());
+                }
+                XContentBuilder builder = jsonBuilder();
+                builder.startObject()
+                        .field("parent", m.externalID());
+                if (m.hasLinks()) {
+                    builder.field("links", m.getLinks());
+                }
+                builder.startArray("institutions");
+                int instcount = 0;
+                for (String holder : holdings.keySet()) {
+                    Set<Holding> uniqueholdings = unique(holdings.get(holder));
+                    if (uniqueholdings != null && !uniqueholdings.isEmpty()) {
+                        instcount++;
+                        builder.startObject()
+                                .field("isil", holder);
+                        builder.field("servicecount", uniqueholdings.size())
+                                .startArray("service");
+                        for (Holding holding : uniqueholdings) {
+                            String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
+                            XContentBuilder serviceBuilder = jsonBuilder();
+                            holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
+                            withHoldingsAndLicenses.ingest().index(serviceIndex, serviceIndexType,
+                                    serviceId, serviceBuilder.string());
+                            withHoldingsAndLicenses.indexMetric().mark(1);
+                            statCounter.increase("stat", "services", 1);
+                            builder.startObject();
+                            builder.field("identifierForTheService", serviceId);
+                            builder.field("dates", holding.dates());
+                            builder.endObject();
+                        }
+                        builder.endArray().endObject();
+                    }
+                }
+                builder.endArray().field("institutioncount", instcount).endObject();
+                withHoldingsAndLicenses.ingest().index(holdingsIndex, holdingsIndexType, m.externalID(), builder.string());
+                withHoldingsAndLicenses.indexMetric().mark(1);
+                statCounter.increase("stat", "holdings", 1);
+                // holdings per year
+                Collection<Integer> dates = m.findDatesOfHoldings();
+                for (Integer date : dates) {
+                    String volumeId = m.externalID() + (date != -1 ? "." + date : "");
+                    Set<Holding> set = unique(m.findHoldingsByDate(date));
+                    builder = jsonBuilder();
+                    buildVolume(builder, m, m.externalID(), date, set);
+                    withHoldingsAndLicenses.ingest().index(volumesIndex, volumesIndexType,
+                            volumeId, builder.string());
+                    withHoldingsAndLicenses.indexMetric().mark(1);
+                }
+                statCounter.increase("stat", "volumes", dates.size());
+            }
+        }
+
+        statCounter.increase("stat", "manifestations", titleRecordCluster.getAll().size());
+
+        for (Expression expr : titleRecordCluster.getWorkSet().getExpressions()) {
+            indexExpression(expr, statCounter);
+        }
+
+        indexWorks(titleRecordCluster.getWorkSet());
+
+        // after expressions/works, we index the  title records, now we have hasExpression/hasWork relations
+        for (TitleRecord m : titleRecordCluster.getAll()) {
+            indexTitleRecord(m, statCounter);
+        }
+    }
+
+    private void indexTitleRecord(TitleRecord m, StatCounter statCounter)  throws IOException {
+        XContentBuilder builder = jsonBuilder();
+        m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
+        withHoldingsAndLicenses.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string());
+        withHoldingsAndLicenses.indexMetric().mark(1);
+    }
+
+    private void indexExpression(Expression expression, StatCounter statCounter) throws IOException {
+        XContentBuilder builder = jsonBuilder();
+        expression.setStatCounter(statCounter);
+        expression.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
+        withHoldingsAndLicenses.ingest().index(expressionIndex, expressionIndexType,
+                expression.getTitleRecord().externalID(), builder.string());
+        withHoldingsAndLicenses.indexMetric().mark(1);
+    }
+
+    private void indexWorks(WorkSet workSet) throws IOException {
+        if (!workSet.getWorks().isEmpty()) {
+            XContentBuilder builder = jsonBuilder();
+            workSet.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
+            withHoldingsAndLicenses.ingest().index(workIndex, workIndexType,
+                    workSet.toString(), builder.string());
+            withHoldingsAndLicenses.indexMetric().mark(1);
+        }
+    }
+
+    private void buildVolume(XContentBuilder builder, TitleRecord titleRecord,
+                             String parentIdentifier, Integer date, Set<Holding> holdings)
+            throws IOException {
+        builder.startObject()
+                .field("identifierForTheVolume", parentIdentifier + "." + date);
+        if (date != -1) {
+            builder.field("date", date);
+        }
+        // do we need this at volume level?
+        if (titleRecord.hasLinks()) {
+            builder.field("links", titleRecord.getLinks());
+        }
+        Map<String, Set<Holding>> institutions = newHashMap();
+        for (Holding holding : holdings) {
+            Set<Holding> set = institutions.containsKey(holding.getISIL()) ?
+                    institutions.get(holding.getISIL()) : newTreeSet();
+            set.add(holding);
+            institutions.put(holding.getISIL(), set);
+        }
+        builder.field("institutioncount", institutions.size())
+                .startArray("institution");
+        for (Map.Entry<String,Set<Holding>> me : institutions.entrySet()) {
+            Set<Holding> set = me.getValue();
+            builder.startObject()
+                    .field("isil", me.getKey())
+                    .field("servicecount", set.size());
+            builder.startArray("service");
+            for (Holding holding : set) {
+                builder.value("(" + holding.getServiceISIL() + ")" + holding.identifier());
+            }
+            builder.endArray();
+            builder.endObject();
+        }
+        builder.endArray().endObject();
+    }
+
+    /**
+     * Iterate through holdings and build a new list that contains
+     * unified holdings = coerce licenses etc.
+     *
+     * @param holdings the holdings
+     * @return unique holdings
+     */
+    private Set<Holding> unique(Set<Holding> holdings) {
+        if (holdings == null) {
+            return null;
+        }
+        Set<Holding> newHoldings = newTreeSet();
+        for (Holding holding : holdings) {
+            if (holding instanceof Indicator) {
+                // check if there are other licenses that match indicator
+                Collection<Holding> other = holding.getSame(holdings);
+                if (other.isEmpty() || other.size() == 1) {
+                    newHoldings.add(holding);
+                } else {
+                    // move most recent license info
+                    for (Holding h : other) {
+                        h.setServiceType(holding.getServiceType());
+                        h.setServiceMode(holding.getServiceMode());
+                        h.setServiceDistribution(holding.getServiceDistribution());
+                        h.setServiceComment(holding.getServiceComment());
+                    }
+                }
+            } else {
+                newHoldings.add(holding);
+            }
+        }
+        return newHoldings;
+    }
+
     private class ClusterBuildContinuation {
-        final Manifestation manifestation;
+        final TitleRecord titleRecord;
         final SearchResponse searchResponse;
-        final Collection<Manifestation> cluster;
+        Set<String> relations;
+        boolean expand;
+        final Collection<TitleRecord> cluster;
         int pos;
 
-        ClusterBuildContinuation(Manifestation manifestation,
+        ClusterBuildContinuation(TitleRecord titleRecord,
                                  SearchResponse searchResponse,
-                                 Collection<Manifestation> cluster,
+                                 Set<String> relations,
+                                 boolean expand,
+                                 Collection<TitleRecord> cluster,
                                  int pos) {
-            this.manifestation = manifestation;
+            this.titleRecord = titleRecord;
             this.searchResponse = searchResponse;
+            this.relations = relations;
+            this.expand = expand;
             this.cluster = cluster;
             this.pos = pos;
         }
 
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            for (Manifestation m : cluster) {
+            for (TitleRecord tr : cluster) {
                 if (sb.length() > 0 ) {
                     sb.append(",");
                 }
-                sb.append(m.toString());
+                sb.append(tr.toString());
             }
             return "Cont[" + sb.toString() + "][pos=" + pos + "]";
         }
     }
-
-    private final Map<String, String> inverseRelations = new HashMap<String, String>() {{
-
-        put("hasPart", "isPartOf");
-        put("hasSupplement", "isSupplementOf");
-        put("isPartOf", "hasPart");
-        put("isSupplementOf", "hasSupplement");
-
-        // temporal axis
-        put("precededBy", "succeededBy");
-        put("succeededBy", "precededBy");
-
-        // "FRBR expression" relations
-        put("hasLanguageEdition", "isLanguageEditionOf");
-        put("hasTranslation", "isTranslationOf");
-        put("isLanguageEditionOf", "hasLanguageEdition");
-        put("isTranslationOf", "hasTranslation");
-
-        // "FRBR manifestation" relations
-        put("hasOriginalEdition", "isOriginalEditionOf");
-        put("hasPrintEdition", "isPrintEditionOf");
-        put("hasOnlineEdition", "isOnlineEditionOf");
-        put("hasBrailleEdition", "isBrailleEditionOf");
-        put("hasDVDEdition", "isDVDEditionOf");
-        put("hasCDEdition", "isCDEditionOf");
-        put("hasDiskEdition", "isDiskEditionOf");
-        put("hasMicroformEdition", "isMicroformEditionOf");
-        put("hasDigitizedEdition", "isDigitizedEditionOf");
-
-        // edition relations
-        put("hasSpatialEdition", "isSpatialEditionOf");
-        put("hasTemporalEdition", "isTemporalEditionOf");
-        put("hasPartialEdition", "isPartialEditionOf");
-        put("hasTransientEdition", "isTransientEditionOf");
-        put("hasLocalEdition", "isLocalEditionOf");
-        put("hasAdditionalEdition", "isAdditionalEditionOf");
-        put("hasAlternativeEdition", "isAdditionalEditionOf");
-        put("hasDerivedEdition", "isDerivedEditionOf");
-        put("hasHardcoverEdition", "isHardcoverEditionOf");
-        put("hasManuscriptEdition", "isManuscriptEditionOf");
-        put("hasBoxedEdition", "isBoxedEditionOf");
-        put("hasReproduction", "isReproductionOf");
-        put("hasSummary", "isSummaryOf");
-
-        put("isOriginalEditionOf", "hasOriginalEdition");
-        put("isPrintEditionOf", "hasPrintEdition");
-        put("isOnlineEditionOf", "hasOnlineEdition");
-        put("isBrailleEditionOf", "hasBrailleEdition");
-        put("isDVDEditionOf", "hasDVDEdition");
-        put("isCDEditionOf", "hasCDEdition");
-        put("isDiskEditionOf", "hasDiskEdition");
-        put("isMicroformEditionOf", "hasMicroformEdition");
-        put("isDigitizedEditionOf", "hasMicroformEdition");
-        put("isSpatialEditionOf", "hasSpatialEdition");
-        put("isTemporalEditionOf", "hasTemporalEdition");
-        put("isPartialEditionOf", "hasPartialEdition");
-        put("isTransientEditionOf", "hasTransientEdition");
-        put("isLocalEditionOf", "hasLocalEdition");
-        put("isAdditionalEditionOf", "hasAdditionalEdition");
-        put("isDerivedEditionOf", "hasDerivedEdition");
-        put("isHardcoverEditionOf", "hasHardcoverEdition");
-        put("isManuscriptEditionOf", "hasManuscriptEdition");
-        put("isBoxedEditionOf", "hasBoxedEdition");
-        put("isReproductionOf", "hasReproduction");
-        put("isSummaryOf", "hasSummary");
-    }};
 }

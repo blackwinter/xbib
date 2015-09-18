@@ -86,8 +86,8 @@ public class EnumerationAndChronology extends MARCEntity {
             if (data == null || data.isEmpty()) {
                 continue;
             }
-            worker.state().getResource().add("TextualEnumerationAndChronology", data);
             if ("a".equals(field.subfieldId())) {
+                worker.state().getResource().add("TextualEnumerationAndChronology", data);
                 Resource r = worker.state().getResource().newResource("EnumerationAndChronology");
                 Resource parsedHoldings = eac.parse(data, r, getMovingwallPatterns());
                 if (!parsedHoldings.isEmpty()) {

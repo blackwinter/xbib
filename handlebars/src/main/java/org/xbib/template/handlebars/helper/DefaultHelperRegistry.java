@@ -44,6 +44,7 @@ public class DefaultHelperRegistry implements HelperRegistry {
         registerHelper(PartialHelper.NAME, PartialHelper.INSTANCE);
         registerHelper("i18n", new I18nHelper(classLoader));
         registerHelper("i18nJs", new I18nJSHelper(classLoader));
+        registerHelper(PaginationHelper.NAME, PaginationHelper.INSTANCE);
     }
 
     @SuppressWarnings("unchecked")

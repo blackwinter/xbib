@@ -34,6 +34,7 @@ package org.xbib.tools.merge.zdb.entities;
 import org.xbib.util.Strings;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newTreeSet;
 
 public class License extends Holding {
 
@@ -60,7 +62,7 @@ public class License extends Holding {
         this.isil = getString("ezb:isil");
         this.serviceisil = isil;
         this.deleted = "delete".equals(getString("ezb:action"));
-        this.dates = buildDateArray();
+        buildDateArray();
         this.info = buildInfo();
         this.findContentType();
         this.priority = this.findPriority();
@@ -73,7 +75,7 @@ public class License extends Holding {
     }
 
     @Override
-    protected List<Integer> buildDateArray() {
+    protected void buildDateArray() {
         List<Integer> dates = newLinkedList();
         String firstDate = getString("ezb:license_period.ezb:first_date");
         int first;
@@ -106,7 +108,11 @@ public class License extends Holding {
                 }
             }
         }
-        return dates;
+        if (!dates.isEmpty()) {
+            this.firstdate = dates.get(0);
+            this.lastdate = dates.get(dates.size() - 1);
+        }
+        this.dates = newTreeSet(dates);
     }
 
     private final static Pattern movingWallPattern = Pattern.compile("^[+-](\\d+)Y$");
@@ -220,7 +226,7 @@ public class License extends Holding {
         Map<String, Object> link = newHashMap();
         link.put("uri", map.get("ezb:reference_url"));
         link.put("nonpublicnote", "Verlagsangebot"); // ZDB = "Volltext"
-        m.put("links", Arrays.asList(link));
+        m.put("links", Collections.singletonList(link));
 
         this.license = newHashMap();
         license.put("type", map.get("ezb:type_id"));

@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2015 Jörg Prante and xbib
+ * Copyright (C) 2012 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -29,33 +29,28 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.articles;
+package org.xbib.io.keyvalue;
 
-import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.element.PipelineElement;
+public class KeyValue<K,V> {
 
-public class SerialItemPipelineElement implements PipelineElement<SerialItem>, PipelineRequest {
+    private final K key;
 
-    private SerialItem serialItem;
+    private final V value;
 
-    private boolean forced;
-
-    public SerialItemPipelineElement set(SerialItem serialItem) {
-        this.serialItem = serialItem;
-        return this;
+    public KeyValue(K key, V value) {
+        this.key = key;
+        this.value = value;
     }
 
-    public SerialItem get() {
-        return serialItem;
+    public K key() {
+        return key;
     }
 
-    public SerialItemPipelineElement setForced(boolean forced) {
-        this.forced = forced;
-        return this;
+    public V value() {
+        return value;
     }
 
-    public boolean getForced() {
-        return forced;
+    public String toString() {
+        return String.valueOf(key) + "=" + value;
     }
-
 }

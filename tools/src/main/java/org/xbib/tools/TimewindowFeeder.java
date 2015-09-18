@@ -1,6 +1,5 @@
 package org.xbib.tools;
 
-import com.carrotsearch.hppc.cursors.ObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
@@ -9,9 +8,11 @@ import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
+import org.elasticsearch.common.hppc.cursors.ObjectCursor;
+import org.elasticsearch.common.joda.time.DateTime;
+import org.elasticsearch.common.joda.time.format.DateTimeFormat;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 
 import java.io.IOException;
@@ -21,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public abstract class TimewindowFeeder extends Feeder {
 
@@ -70,16 +69,16 @@ public abstract class TimewindowFeeder extends Feeder {
 
     @Override
     protected TimewindowFeeder createIndex(String index) throws IOException {
-        ingest.init(settingsBuilder()
+        ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
+                .build());
         if (ingest.client() != null) {
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-            if (settings.getAsBoolean("onlyalias", false)) {
+            if (settings.getAsBoolean("onlyaliases", false)) {
                 updateAliases();
                 return this;
             }
@@ -98,7 +97,7 @@ public abstract class TimewindowFeeder extends Feeder {
                         indexSettingsInput, indexMappingsInput);
                 indexSettingsInput.close();
                 indexMappingsInput.close();
-                ingest.startBulk(getConcreteIndex(), -1, 1000);
+                ingest.startBulk(getConcreteIndex());
             } catch (Exception e) {
                 if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
                     throw e;

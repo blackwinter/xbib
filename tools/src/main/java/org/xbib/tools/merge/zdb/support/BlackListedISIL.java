@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2012 Jörg Prante and xbib
+ * Copyright (C) 2015 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -29,28 +29,33 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.keyvalue;
+package org.xbib.tools.merge.zdb.support;
 
-public class KeyValue<K,V> {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Set;
 
-    private final K key;
+import static com.google.common.collect.Sets.newHashSet;
 
-    private final V value;
+public class BlackListedISIL {
 
-    public KeyValue(K key, V value) {
-        this.key = key;
-        this.value = value;
+    private Set<String> lookup = newHashSet();
+
+    public void buildLookup(InputStream in) throws IOException {
+        if (in == null) {
+            return;
+        }
+        BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+        String line;
+        while ((line = r.readLine()) != null) {
+            lookup.add(line);
+        }
+        r.close();
     }
 
-    public K key() {
-        return key;
-    }
-
-    public V value() {
-        return value;
-    }
-
-    public String toString() {
-        return String.valueOf(key) + "=" + value;
+    public Set<String> lookup() {
+        return lookup;
     }
 }

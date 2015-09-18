@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2012 Jörg Prante and xbib
+ * Copyright (C) 2015 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -38,22 +38,24 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.queue.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.Manifestation;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 
@@ -71,11 +73,13 @@ import java.util.Set;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
+import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
+import static org.elasticsearch.index.query.FilterBuilders.termFilter;
+import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
+import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
 /**
  * Merge serial manifestations with articles
@@ -103,7 +107,7 @@ public class WithArticles
     private String identifier;
 
     public WithArticles reader(Reader reader) {
-        settings = settingsBuilder().loadFrom(reader).build();
+        settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
@@ -123,13 +127,13 @@ public class WithArticles
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build().getAsMap());
+                .build());
         try {
             this.service = this;
             this.client = search.client();
@@ -146,13 +150,13 @@ public class WithArticles
                     .maxConcurrentRequests(settings.getAsInt("maxconcurrentbulkrequests",
                             2 * Runtime.getRuntime().availableProcessors()));
 
-            ingest.init(Settings.settingsBuilder()
+            ingest.init(ImmutableSettings.settingsBuilder()
                     .put("cluster.name", settings.get("target.cluster"))
                     .put("host", settings.get("target.host"))
                     .put("port", settings.getAsInt("target.port", 9300))
                     .put("sniff", settings.getAsBoolean("target.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("target.autodiscover", false))
-                    .build().getAsMap());
+                    .build());
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             String indexSettings = settings.get("target-index-settings",
                     "classpath:org/xbib/tools/merge/articles/settings.json");
@@ -166,7 +170,7 @@ public class WithArticles
                     new URL(indexMappings)).openStream();
             ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                     indexSettingsInput, indexMappingsInput);
-            ingest.startBulk(settings.get("target-index"), -1, 1000);
+            ingest.startBulk(settings.get("target-index"));
             super.setPipelineProvider(new PipelineProvider<WithArticlesPipeline>() {
                 int i = 0;
 
@@ -217,26 +221,26 @@ public class WithArticles
                 .setSize(size)
                 .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(millis));
+
         QueryBuilder queryBuilder = matchAllQuery();
-        QueryBuilder existsQuery = existsQuery("dates");
+        FilterBuilder filterBuilder = existsFilter("dates");
         if (identifier != null) {
             // execute on a single ID
-            existsQuery = null;
+            filterBuilder = null;
             queryBuilder = termQuery("_id", identifier);
         }
         // filter ISSN
         if (settings().getAsBoolean("issnonly", false)) {
-            existsQuery = boolQuery()
-                    .must(existsQuery("dates"))
-                    .must(existsQuery("identifiers.issn"));
+            filterBuilder = boolFilter()
+                    .must(existsFilter("dates"))
+                    .must(existsFilter("identifiers.issn"));
         }
         if (settings().getAsBoolean("eonly", false)) {
-            existsQuery = boolQuery()
-                    .must(existsQuery("dates"))
-                    .must(termQuery("mediatype", "computer"));
+            filterBuilder = boolFilter()
+                    .must(existsFilter("dates"))
+                    .must(termFilter("mediatype", "computer"));
         }
-        queryBuilder = existsQuery != null ?
-                boolQuery().must(queryBuilder).filter(existsQuery) : queryBuilder;
+        queryBuilder = filterBuilder != null ? filteredQuery(queryBuilder, filterBuilder) : queryBuilder;
         searchRequest.setQuery(queryBuilder);
 
         SearchResponse searchResponse = searchRequest.execute().actionGet();
@@ -264,19 +268,19 @@ public class WithArticles
                     }
                     docs.add(id);
                     Set<Integer> dates = newLinkedHashSet();
-                    List<Manifestation> manifestations = newLinkedList();
-                    Manifestation manifestation = expand(id);
-                    if (manifestation == null) {
+                    List<TitleRecord> titleRecords = newLinkedList();
+                    TitleRecord titleRecord = expand(id);
+                    if (titleRecord == null) {
                         continue;
                     }
-                    Collection<String> issns = (Collection<String>) manifestation.getIdentifiers().get("formattedissn");
+                    Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("formattedissn");
                     if (issns != null) {
                         for (String issn : issns) {
-                            expandOA(manifestation, issn);
+                            expandOA(titleRecord, issn);
                         }
                     }
-                    manifestations.add(manifestation);
-                    Collection<Integer> manifestationDates = manifestation.getDates();
+                    titleRecords.add(titleRecord);
+                    Collection<Integer> manifestationDates = titleRecord.getDates();
                     if (manifestationDates != null) {
                         dates.addAll(manifestationDates);
                     }
@@ -290,10 +294,10 @@ public class WithArticles
                                     continue;
                                 }
                                 docs.add(relid);
-                                Manifestation m = expand(relid);
+                                TitleRecord m = expand(relid);
                                 if (m != null) {
-                                    manifestations.add(m);
-                                    logger.info("{} + {} added manifestation", manifestation.externalID(), m.externalID());
+                                    titleRecords.add(m);
+                                    logger.info("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
                                     manifestationDates = m.getDates();
                                     if (manifestationDates != null) {
                                         dates.addAll(manifestationDates);
@@ -305,18 +309,18 @@ public class WithArticles
                     for (Integer date : dates) {
                         SerialItem serialItem = new SerialItem();
                         serialItem.setDate(date);
-                        for (Manifestation m : manifestations) {
+                        for (TitleRecord m : titleRecords) {
                             if (m.firstDate() != null && m.lastDate() != null) {
                                 if (m.firstDate() <= date && date <= m.lastDate()) {
-                                    serialItem.addManifestation(manifestation);
+                                    serialItem.addManifestation(titleRecord);
                                 }
                             } else if (m.firstDate() != null) {
                                 if (m.firstDate() <= date) {
-                                    serialItem.addManifestation(manifestation);
+                                    serialItem.addManifestation(titleRecord);
                                 }
                             }
                         }
-                        if (!serialItem.getManifestations().isEmpty()) {
+                        if (!serialItem.getTitleRecords().isEmpty()) {
                             getQueue().offer(new SerialItemPipelineElement().set(serialItem));
                         }
                     }
@@ -373,7 +377,7 @@ public class WithArticles
         return docs;
     }
 
-    private Manifestation expand(String id) throws IOException {
+    private TitleRecord expand(String id) throws IOException {
         QueryBuilder queryBuilder = termQuery("IdentifierZDB.identifierZDB", id);
         SearchRequestBuilder searchRequestBuilder = service.client().prepareSearch()
                 .setIndices(service.settings().get("zdb-index", "zdb"))
@@ -385,10 +389,10 @@ public class WithArticles
             logger.warn("ZDB-ID {} does not exist", id);
             return null;
         }
-        return new Manifestation(hits.getAt(0).getSource());
+        return new TitleRecord(hits.getAt(0).getSource());
     }
 
-    private Manifestation expandOA(Manifestation manifestation, String issn) throws IOException {
+    private TitleRecord expandOA(TitleRecord titleRecord, String issn) throws IOException {
         QueryBuilder queryBuilder = termQuery("dc:identifier", issn);
         SearchRequestBuilder searchRequestBuilder = service.client().prepareSearch()
                 .setIndices(service.settings().get("doaj-index", "doaj"))
@@ -397,13 +401,13 @@ public class WithArticles
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length > 0) {
-            manifestation.setOpenAccess(true);
+            titleRecord.setOpenAccess(true);
             String license = hits.getAt(0).getSource().containsKey("dc:rights") ?
                     hits.getAt(0).getSource().get("dc:rights").toString() : null;
-            manifestation.setLicense(license);
-            logger.info("{} set to open access: {}", manifestation.externalID(), license);
+            titleRecord.setLicense(license);
+            logger.info("{} set to open access: {}", titleRecord.externalID(), license);
         }
-        return manifestation;
+        return titleRecord;
     }
 
 }

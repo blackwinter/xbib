@@ -1400,7 +1400,18 @@
             "041" : "Language"
         },
         "Language" : {
-            "a" : "value"
+            "a" : "value",
+            "b" : "summaryOrAbstractLanguage",
+            "d" : "sungOrSpokenTextLanguage",
+            "e" : "librettoLanguage",
+            "f" : "tableOfContentLanguage",
+            "g" : "accompanyingMaterialLanguage",
+            "h" : "originalLanguage",
+            "j" : "subtitleOrCaptionLanguage",
+            "k" : "intermediateTranslationLanguage",
+            "m" : "originalAccompanyingMaterialLanguage",
+            "n" : "originalLibrettoLanguage",
+            "2" : "type"
         },
         "value" : {
             "aar" : "Danakil",
@@ -2873,11 +2884,13 @@
             "c" : "personalTitle",
             "d" : "personalDate",
             "e" : "relatorTerm",
+            "g" : "personalInformation",
             "n" : "personalNumber",
             "0" : "personalIdentifier",
             "4" : "roleTerm",
+            "6" : "linkage",
             "7" : "unknown",
-            "9" : null
+            "9" : "prefix"
         }
     },
     "CorporateName" : {
@@ -3416,6 +3429,7 @@
             "n" : "corporateNumber",
             "0" : "corporateIdentifier",
             "4" : "roleTerm",
+            "6" : "linkage",
             "7" : "unknown",
             "8" : "sequenceNumber",
             "9" : "formatted"
@@ -4591,6 +4605,7 @@
             "247" : "FormerTitle"
         },
         "FormerTitle" : {
+            "6" : "linkage",
             "a" : "titleMain",
             "b" : "titleRemainder",
             "f" : "titleDatesOrSequentialDesignation",
@@ -4737,6 +4752,7 @@
           "260$3 $abeef"
         ],
         "subfields" : {
+            "6" : "linkage",
             "a" : "placeOfPublication",
             "b" : "publisherName",
             "c" : "dateOfPublication",
@@ -4782,6 +4798,9 @@
             "c" : "dimensions",
             "e" : "accompanyingMaterial",
             "f" : "typeOfUnit",
+            "i" : null,
+            "t" : null,
+            "w" : null,
             "g" : "sizeOfUnit",
             "3" : "materialsSpecified",
             "6" : "linkage",
@@ -5136,7 +5155,8 @@
             "591" : "LocalNote"
         },
         "subfields" : {
-            "a" : "value"
+            "a" : "value",
+            "6" : "linkage"
         },
         "ActionNote" : {
             "a" : "action",
@@ -5403,7 +5423,8 @@
             "3" : "material",
             "4" : "relatorCode",
             "6" : "linkage",
-            "8" : "sequenceNumber"
+            "8" : "sequenceNumber",
+            "9" : "prefix"
         }
     },
     "LinkingEntry" : {
@@ -5488,10 +5509,12 @@
             "787" : "OtherRelationshipEntry"
         },
         "subfields" : {
+            "6" : "linkage",
             "i" : "relation",
             "a" : "author",
             "t" : "title",
-            "w" : "id"
+            "w" : "id",
+            "x" : "issn"
         },
         "relation" : {
             "Original-Ausg." : "hasOriginalEdition",
@@ -6563,10 +6586,12 @@
           "780$00$itwx"
         ],
         "subfields" : {
+            "6" : "linkage",
             "i" : "relation",
             "a" : "author",
             "t" : "title",
-            "w" : "id"
+            "w" : "id",
+            "x" : "issn"
         },
         "relation" : {
             "Vorg." : "precededBy",
@@ -6816,10 +6841,12 @@
           "785$00$6iw"
         ],
         "subfields" : {
+            "6" : "linkage",
             "i" : "relation",
             "a" : "author",
             "t" : "title",
-            "w" : "id"
+            "w" : "id",
+            "x" : "issn"
         },
         "relation" : {
             "Forts." : "succeededBy",

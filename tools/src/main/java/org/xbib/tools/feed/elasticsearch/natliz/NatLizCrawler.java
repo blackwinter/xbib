@@ -1,8 +1,9 @@
-package org.xbib.tools.crawl;
+package org.xbib.tools.feed.elasticsearch.natliz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.io.Request;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;
@@ -18,7 +19,7 @@ import org.xbib.rdf.Triple;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
-import org.xbib.tools.Converter;
+import org.xbib.tools.Feeder;
 import org.xbib.util.URIUtil;
 
 import java.io.File;
@@ -42,11 +43,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
+import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
-public class NatLiz extends Converter {
+public class NatLizCrawler extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(NatLiz.class);
+    private final static Logger logger = LogManager.getLogger(NatLizCrawler.class);
 
     @Override
     public String getName() {
@@ -55,12 +58,14 @@ public class NatLiz extends Converter {
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return NatLiz::new;
+        return NatLizCrawler::new;
     }
 
     @Override
     public void process(URI uri) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        // the list of ISIL we want to traverse. If there is no such file, we would have to
+        // use findInstitutions()
         InputStream in = getClass().getResourceAsStream("nlz-sigel-isil.json");
         List<Map<String,Object>> members = mapper.readValue(in, List.class);
         String cookie = login();
@@ -70,8 +75,6 @@ public class NatLiz extends Converter {
         Set<Triple> triples = new TreeSet<>();
         Map<String, Object> licenses = new HashMap<String, Object>();
         for (Map<String,Object> member : members) {
-            //Collection<String> members = findInstitutions(cookie);
-            //findSigel(cookie, memberid);
             String memberid = (String) member.get("member");
             Object o = member.get("isil");
             if (!(o instanceof Collection)) {
@@ -235,7 +238,7 @@ public class NatLiz extends Converter {
                 }
             };
             request.prepare().execute(listener).waitFor();
-            Pattern pattern = Pattern.compile("parent\\-fieldname\\-title.*?>\\s*(.*?)\\s*<", Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+            /*Pattern pattern = Pattern.compile("parent\\-fieldname\\-title.*?>\\s*(.*?)\\s*<", Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
             Matcher matcher = pattern.matcher(content);
             String name = "";
             if (matcher.find()) {
@@ -246,7 +249,7 @@ public class NatLiz extends Converter {
             String sigel = "";
             if (matcher.find()) {
                 sigel = matcher.group(1);
-            }
+            }*/
             //String s = String.format("{\"member\":\"%s\", \"name\":\"%s\", \"sigel\":\"%s\"}", member, name, sigel);
             //logger.info("{}", s);
             //writer.write(s);
@@ -306,56 +309,60 @@ public class NatLiz extends Converter {
                     logger.info("{}: {} bytes", license, content.toString().length());
                     //writer.write(content.toString());
                     //writer.write("\n");
+                    // it might not be JSON we receive
                     ObjectMapper mapper = new ObjectMapper();
-                    List<Map<String, Object>> lics = mapper.readValue(content.toString(), List.class);
-                    for (Map<String, Object> lic : lics) {
-                        // Name
-                        String name = (String)lic.get("Title");
-                        // ZDB-ISIL
-                        String zdbisil = (String)lic.get("zseal");
-                        if (zdbisil == null || zdbisil.isEmpty()) {
-                            logger.info("ZDB-ISIL not found in {}", lic);
-                            // fix missing ZDB-ISIL
-                            if ("Walter de Gruyter Online-Zeitschriften (Opt-In, DFG-geförderte Allianz-Lizenz)".equals(name)) {
-                                zdbisil = "ZDB-1-LLH";
-                            } else {
-                                continue;
+                    try {
+                        List<Map<String, Object>> lics = mapper.readValue(content.toString(), List.class);
+                        for (Map<String, Object> lic : lics) {
+                            // Name
+                            String name = (String) lic.get("Title");
+                            // ZDB-ISIL
+                            String zdbisil = (String) lic.get("zseal");
+                            if (zdbisil == null || zdbisil.isEmpty()) {
+                                logger.info("ZDB-ISIL not found in {}", lic);
+                                // fix missing ZDB-ISIL
+                                if ("Walter de Gruyter Online-Zeitschriften (Opt-In, DFG-geförderte Allianz-Lizenz)".equals(name)) {
+                                    zdbisil = "ZDB-1-LLH";
+                                } else {
+                                    continue;
+                                }
+                            }
+                            // download metadata
+                            String url = (String) lic.get("vmetadata");
+                            if (settings.getAsBoolean("downloadmetadata", false) && url != null && !url.isEmpty()) {
+                                downloadMetadataArchive(cookie, url, zdbisil + ".zip");
+                            }
+                            Map<String, Object> map = new HashMap<>();
+                            String timestamp = convertFromDate((String) lic.get("modification_date"));
+                            map.put("lastmodified", timestamp);
+                            map.put("isil", isils);
+                            List<Map<String, Object>> list = licenses.containsKey(zdbisil) ?
+                                    (List<Map<String, Object>>) licenses.get(zdbisil) : new LinkedList<>();
+                            list.add(map);
+                            licenses.put(zdbisil, list);
+                            // generate triples
+                            Resource subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil));
+                            triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
+                            triples.add(new MemoryTriple(subject, IRI.create("xbib:name"), new MemoryLiteral(name)));
+                            IRI predicate = IRI.create("xbib:member");
+                            for (Object isil : isils) {
+                                MemoryTriple triple = new MemoryTriple(subject, predicate, new MemoryLiteral(isil));
+                                triples.add(triple);
+                            }
+                            subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil + "#" + timestamp));
+                            triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
+                            triples.add(new MemoryTriple(subject, IRI.create("xbib:timestamp"), new MemoryLiteral(timestamp)));
+                            if (url != null && !url.isEmpty()) {
+                                triples.add(new MemoryTriple(subject, IRI.create("xbib:metadata"), IRI.create(url)));
+                            }
+                            predicate = IRI.create("xbib:subscribe");
+                            for (Object isil : isils) {
+                                MemoryTriple triple = new MemoryTriple(subject, predicate, new MemoryLiteral(isil));
+                                triples.add(triple);
                             }
                         }
-                        // download metadata
-                        String url = (String)lic.get("vmetadata");
-                        if (url !=null && !url.isEmpty()) {
-                            downloadMetadataArchive(cookie, url, zdbisil + ".zip");
-                        }
-
-                        Map<String,Object> map = new HashMap<>();
-                        String timestamp = convertFromDate((String)lic.get("modification_date"));
-                        map.put("lastmodified", timestamp);
-                        map.put("isil", isils);
-                        List<Map<String, Object>> list = licenses.containsKey(zdbisil) ?
-                                (List<Map<String, Object>>) licenses.get(zdbisil) : new LinkedList<>();
-                        list.add(map);
-                        licenses.put(zdbisil, list);
-                        // triples
-                        Resource subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil));
-                        triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
-                        triples.add(new MemoryTriple(subject, IRI.create("xbib:name"), new MemoryLiteral(name)));
-                        IRI predicate = IRI.create("xbib:member");
-                        for (Object isil : isils) {
-                            MemoryTriple triple = new MemoryTriple(subject, predicate, new MemoryLiteral(isil));
-                            triples.add(triple);
-                        }
-                        subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil + "#" + timestamp));
-                        triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
-                        triples.add(new MemoryTriple(subject, IRI.create("xbib:timestamp"), new MemoryLiteral(timestamp)));
-                        if (url !=null && !url.isEmpty()) {
-                            triples.add(new MemoryTriple(subject, IRI.create("xbib:metadata"), IRI.create(url)));
-                        }
-                        predicate = IRI.create("xbib:subscribe");
-                        for (Object isil : isils) {
-                            MemoryTriple triple = new MemoryTriple(subject, predicate, new MemoryLiteral(isil));
-                            triples.add(triple);
-                        }
+                    } catch (Exception e) {
+                        logger.warn("can't parse JSON response for member {}", member);
                     }
                 } else {
                     logger.error("page returned status {}, skipped", status.get());
@@ -430,10 +437,35 @@ public class NatLiz extends Converter {
 
 
     private void writeLicenses(Map<String,Object> licenses) throws IOException {
-        File file = new File("nlz-licenses.map");
-        FileWriter writer = new FileWriter(file);
-        writer.write(licenses.toString());
-        writer.close();
+        // Java object
+        if (settings.get("mapfile") != null) {
+            File file = new File("nlz-licenses.map");
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(licenses.toString());
+            fileWriter.close();
+        }
+        // JSON file
+        if (settings.get("jsonfile") != null) {
+            XContentBuilder builder = jsonBuilder();
+            builder.map(licenses);
+            File file = new File("nlz-licenses.json");
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(builder.string());
+            fileWriter.close();
+        }
+        // ES
+        if (settings.get("index") != null) {
+            for (String key : licenses.keySet()) {
+                XContentBuilder builder = jsonBuilder();
+                List<Map<String,Object>> list = (List<Map<String, Object>>) licenses.get(key);
+                List<String> isils = new LinkedList<>();
+                for (Map<String,Object> map : list) {
+                    isils.addAll((Collection<? extends String>) map.get("isil"));
+                }
+                builder.startObject().array("isil", isils).endObject();
+                ingest.index(settings.get("index"), settings.get("type"), key, builder.string());
+            }
+        }
     }
 
     private void writeTriples(Set<Triple> triples) throws IOException {

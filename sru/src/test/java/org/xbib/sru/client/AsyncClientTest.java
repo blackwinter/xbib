@@ -138,7 +138,7 @@ public class AsyncClientTest {
                     }
                 };
                 request.addListener(listener);
-                StylesheetTransformer transformer = new StylesheetTransformer("src/test/resources/xsl");
+                StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/test/resources/xsl");
                 try {
                     SRUResponse response = client
                             .searchRetrieve(request)

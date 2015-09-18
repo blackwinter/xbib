@@ -22,7 +22,7 @@ public class MethodValueResolver extends MemberValueResolver<Method> {
 
     @Override
     public boolean matches(final Method method, final String name) {
-        return isPublic(method) && method.getName().equals(name);
+        return isPublic(method) && method.getName().equals(name) && method.getParameterTypes().length == 0;
     }
 
     @Override

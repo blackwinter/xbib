@@ -34,6 +34,7 @@ package org.xbib.tools.feed.elasticsearch.zdb.bib;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.entities.marc.MARCEntityBuilderState;
 import org.xbib.entities.marc.MARCEntityQueue;
@@ -65,7 +66,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.xbib.common.settings.Settings.settingsBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class MarcSRU extends Feeder {
@@ -119,8 +119,6 @@ public class MarcSRU extends Feeder {
 
     protected void prepareOutput() throws IOException {
         String index = settings.get("index");
-        Integer shards = settings.getAsInt("shards", 1);
-        Integer replica = settings.getAsInt("replica", 0);
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 100);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
                 Runtime.getRuntime().availableProcessors());
@@ -128,12 +126,12 @@ public class MarcSRU extends Feeder {
         beforeIndexCreation(ingest);
         ingest.maxActionsPerRequest(maxbulkactions)
                 .maxConcurrentRequests(maxconcurrentbulkrequests)
-                .init(settingsBuilder()
+                .init(ImmutableSettings.settingsBuilder()
                         .put("cluster.name", settings.get("elasticsearch.cluster"))
                         .put("host", settings.get("elasticsearch.host"))
                         .put("port", settings.getAsInt("elasticsearch.port", 9300))
                         .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                        .build().getAsMap());
+                        .build());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.newIndex(index);
     }

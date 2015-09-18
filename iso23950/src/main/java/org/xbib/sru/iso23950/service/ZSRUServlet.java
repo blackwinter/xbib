@@ -119,7 +119,7 @@ public class ZSRUServlet extends HttpServlet implements SRUConstants {
                 response.setHeader("Server", "Java");
                 response.setHeader("X-Powered-By", getClass().getName());
 
-                StylesheetTransformer transformer = new StylesheetTransformer("/xsl");
+                StylesheetTransformer transformer = new StylesheetTransformer().setPath("/xsl");
                 client.searchRetrieve(searchRetrieveRequest)
                     .setStylesheetTransformer(transformer)
                     .setStylesheets(version, stylesheets)

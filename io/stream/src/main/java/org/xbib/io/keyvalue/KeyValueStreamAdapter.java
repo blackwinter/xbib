@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.keyvalue;
+package org.xbib.io.keyvalue;
 
 import java.io.IOException;
 import java.util.List;

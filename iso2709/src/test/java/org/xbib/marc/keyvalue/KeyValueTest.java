@@ -33,7 +33,7 @@ package org.xbib.marc.keyvalue;
 
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.keyvalue.KeyValueStreamAdapter;
+import org.xbib.io.keyvalue.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;

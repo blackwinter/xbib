@@ -45,11 +45,6 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-keyvalue</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
             <artifactId>xbib-iso2709</artifactId>
             <type>jar</type>
         </dependency>

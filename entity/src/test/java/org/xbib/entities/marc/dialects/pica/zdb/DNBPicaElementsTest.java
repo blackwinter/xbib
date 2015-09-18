@@ -47,7 +47,7 @@ import org.testng.annotations.Test;
 import org.xbib.entities.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.entities.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.keyvalue.KeyValueStreamAdapter;
+import org.xbib.io.keyvalue.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;

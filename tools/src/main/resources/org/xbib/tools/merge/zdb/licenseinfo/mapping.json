@@ -1,0 +1,883 @@
+{
+  "Holdings": {
+    "properties": {
+      "identifierForTheHolding": {
+        "type": "string",
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "service": {
+        "type": "string",
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "servicecount": {
+        "type": "long"
+      },
+      "links": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "hostname": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "locationofhost": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "nonpublicnote": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "port": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "publicnote": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "relatedto": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "uri": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "Manifestations": {
+    "properties": {
+      "service": {
+        "type": "string",
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "servicecount": {
+        "type": "long"
+      },
+      "carriertype": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "conference": {
+        "properties": {
+          "conferenceDate": {
+            "type": "string"
+          },
+          "conferenceIdentifier": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "conferenceName": {
+            "type": "string"
+          },
+          "conferencePlace": {
+            "type": "string"
+          },
+          "conferenceUnit": {
+            "type": "string"
+          },
+          "corporateBodyName": {
+            "type": "string"
+          },
+          "corporateBodyNameAddendum": {
+            "type": "string"
+          },
+          "corporateBodyNameNumber": {
+            "type": "string"
+          },
+          "corporateBodyNameeNumber": {
+            "type": "string"
+          },
+          "identifierGND": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      },
+      "contenttype": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "corporateName": {
+        "type": "string"
+      },
+      "country": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "dates": {
+        "type": "long"
+      },
+      "firstdate": {
+        "type": "long"
+      },
+      "genre": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "identifierForTheTitleRecord": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "identifiers": {
+        "properties": {
+          "coden": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "formattedissn": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "isbn": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "issn": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      },
+      "key": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "language": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "lastdate": {
+        "type": "long"
+      },
+      "links": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "hostname": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "locationofhost": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "nonpublicnote": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "port": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "publicnote": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "relatedto": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "uri": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      },
+      "mediatype": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "meetingName": {
+        "type": "string"
+      },
+      "missingdates": {
+        "type": "long"
+      },
+      "number": {
+        "type": "string"
+      },
+      "openaccess": {
+        "type": "boolean"
+      },
+      "parents": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "publishedat": {
+        "type": "string"
+      },
+      "publishedby": {
+        "type": "string"
+      },
+      "relations": {
+        "properties": {
+          "identifierForTheRelatedTitleRecord": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "label": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      },
+      "subseries": {
+        "type": "boolean"
+      },
+      "supplement": {
+        "type": "boolean"
+      },
+      "title": {
+        "type": "string"
+      },
+      "volume": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "volumeids": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "volumes": {
+        "properties": {
+          "conference": {
+            "properties": {
+              "conferenceDate": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "conferenceIdentifier": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "conferenceName": {
+                "type": "string"
+              },
+              "conferencePlace": {
+                "type": "string"
+              },
+              "conferenceUnit": {
+                "type": "string"
+              },
+              "corporateBodyName": {
+                "type": "string"
+              },
+              "corporateBodyNameAddendum": {
+                "type": "string"
+              },
+              "corporateBodyNameeNumber": {
+                "type": "string"
+              },
+              "identifierGND": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "country": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "date": {
+            "type": "long"
+          },
+          "genre": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "identifierForTheVolume": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "identifiers": {
+            "properties": {
+              "isbn": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "issn": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "language": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "number": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "parents": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "publishedat": {
+            "type": "string"
+          },
+          "publishedby": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "string"
+          }
+        }
+      },
+      "volumescount": {
+        "type": "long"
+      }
+    }
+  },
+  "Services": {
+    "properties": {
+      "carriertype": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "comment": {
+        "type": "string"
+      },
+      "distribution": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "identifierForTheService": {
+        "type": "string"
+      },
+      "info": {
+        "properties": {
+          "holdings": {
+            "properties": {
+              "group": {
+                "properties": {
+                  "begindate": {
+                    "type": "long"
+                  },
+                  "beginissue": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "beginpubdate": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "beginvolume": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "enddate": {
+                    "type": "long"
+                  },
+                  "endissue": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "endpubdate": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "endvolume": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  },
+                  "open": {
+                    "type": "string",
+                    "analyzer" : "keyword",
+                    "norms" : {
+                      "enabled" : false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "license": {
+            "properties": {
+              "charge": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "origin": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "readme": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "scope": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "type": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "links": {
+            "properties": {
+              "accessmode": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "nonpublicnote": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "publicnote": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "relatedto": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "uri": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "location": {
+            "properties": {
+              "callnumber": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "collection": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "enumerationAndChronology": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              },
+              "publicnote": {
+                "type": "string",
+                "analyzer" : "keyword",
+                "norms" : {
+                  "enabled" : false
+                }
+              }
+            }
+          },
+          "textualholdings": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      },
+      "isil": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "mediatype": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "mode": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "name": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "organization": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "priority": {
+        "type": "long"
+      },
+      "region": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "serviceOf": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "serviceisil": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "type": {
+        "type": "string"
+      }
+    }
+  },
+  "Volumes": {
+    "properties": {
+      "date": {
+        "type": "long"
+      },
+      "identifierForTheVolume": {
+        "type": "string",
+        "analyzer" : "keyword",
+        "norms" : {
+          "enabled" : false
+        }
+      },
+      "institution": {
+        "properties": {
+          "isil": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "name": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "organization": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "region": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "service": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "servicecount": {
+            "type": "long"
+          }
+        }
+      },
+      "institutioncount": {
+        "type": "long"
+      },
+      "links": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "hostname": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "locationofhost": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "nonpublicnote": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "port": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "publicnote": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "relatedto": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "uri": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          }
+        }
+      }
+    }
+  }
+}

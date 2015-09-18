@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2012 Jörg Prante and xbib
+ * Copyright (C) 2015 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -45,7 +45,7 @@ import org.elasticsearch.search.SearchHits;
 import org.xbib.iri.IRI;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.Pipeline;
-import org.xbib.tools.merge.zdb.entities.Manifestation;
+import org.xbib.tools.merge.zdb.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
 
 import java.io.IOException;
@@ -176,8 +176,8 @@ public class WithArticlesPipeline
         BoolQueryBuilder queryBuilder = boolQuery();
         QueryBuilder dateQuery = termQuery("dc:date", serialItem.getDate());
         Set<String> issns = newHashSet();
-        for (Manifestation manifestation : serialItem.getManifestations()) {
-            Collection<String> l = (Collection<String>) manifestation.getIdentifiers().get("issn");
+        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
+            Collection<String> l = (Collection<String>) titleRecord.getIdentifiers().get("issn");
             issns.addAll(l);
         }
         BoolQueryBuilder issnQuery = boolQuery();
@@ -359,24 +359,24 @@ public class WithArticlesPipeline
 
     private Collection<Map<String,Object>> makePublications(SerialItem serialItem) {
         Collection<Map<String,Object>> publications = newHashSet();
-        for (Manifestation manifestation : serialItem.getManifestations()) {
+        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
             Map<String, Object> publication = newHashMap();
-            String zdbid = manifestation.externalID();
+            String zdbid = titleRecord.externalID();
             // hyphenated form of ZDB ID for linking to ld.zdb-services.de
             String zdborig = new StringBuilder(zdbid).insert(zdbid.length() - 1, "-").toString();
             IRI zdbserviceid = IRI.builder().scheme("http").host("ld.zdb-services.de").path("/resource/" + zdborig).build();
             publication.put("xbib:zdbid", zdbid);
             publication.put("rdfs:seeAlso", zdbserviceid.toString());
             publication.put("rdf:type", "fabio:Journal");
-            publication.put("prism:publicationName", manifestation.getTitle());
-            publication.put("dc:publisher", manifestation.getPublisher());
-            publication.put("prism:place", manifestation.getPublisherPlace());
-            publication.put("prism:issn", manifestation.getIdentifiers().get("formattedissn"));
-            publication.put("dc:rights", manifestation.getLicense());
-            publication.put("xbib:doaj", manifestation.isOpenAccess());
-            publication.put("xbib:media", manifestation.mediaType());
-            publication.put("xbib:content", manifestation.contentType());
-            publication.put("xbib:carrier", manifestation.carrierType());
+            publication.put("prism:publicationName", titleRecord.getTitle());
+            publication.put("dc:publisher", titleRecord.getPublisher());
+            publication.put("prism:place", titleRecord.getPublisherPlace());
+            publication.put("prism:issn", titleRecord.getIdentifiers().get("formattedissn"));
+            publication.put("dc:rights", titleRecord.getLicense());
+            publication.put("xbib:doaj", titleRecord.isOpenAccess());
+            publication.put("xbib:media", titleRecord.mediaType());
+            publication.put("xbib:content", titleRecord.contentType());
+            publication.put("xbib:carrier", titleRecord.carrierType());
             publications.add(publication);
         }
         if (publications.size() > 1) {
@@ -387,8 +387,8 @@ public class WithArticlesPipeline
 
     private Collection<String> makeSubjects(SerialItem serialItem) {
         Collection<String> subjects = newHashSet();
-        for (Manifestation manifestation : serialItem.getManifestations()) {
-            subjects.addAll(getDDC(manifestation));
+        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
+            subjects.addAll(getDDC(titleRecord));
         }
         return subjects;
     }
@@ -541,10 +541,10 @@ public class WithArticlesPipeline
         map1.put("prism:doi", newDOIS);
     }
 
-    private Set<String> getDDC(Manifestation manifestation) {
+    private Set<String> getDDC(TitleRecord titleRecord) {
         // DDC
         Set<String> subjects = newHashSet();
-        Object o = manifestation.map().get("DDCClassificationNumber");
+        Object o = titleRecord.map().get("DDCClassificationNumber");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);
@@ -566,10 +566,10 @@ public class WithArticlesPipeline
         return subjects;
     }
 
-    private Set<String> getAbbrev(Manifestation manifestation) {
+    private Set<String> getAbbrev(TitleRecord titleRecord) {
         // Title abbrev
         Set<String> abbrevs = newHashSet();
-        Object o = manifestation.map().get("AbbreviatedTitle");
+        Object o = titleRecord.map().get("AbbreviatedTitle");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);

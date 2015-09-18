@@ -220,25 +220,25 @@ public class JsonXContentGenerator implements XContentGenerator {
     }
 
     public void writeRawField(String fieldName, byte[] content, OutputStream bos) throws IOException {
-        generator.writeRaw(", \"");
+        generator.writeRaw(",\"");
         generator.writeRaw(fieldName);
-        generator.writeRaw("\" : ");
+        generator.writeRaw("\":");
         flush();
         bos.write(content);
     }
 
     public void writeRawField(String fieldName, byte[] content, int offset, int length, OutputStream bos) throws IOException {
-        generator.writeRaw(", \"");
+        generator.writeRaw(",\"");
         generator.writeRaw(fieldName);
-        generator.writeRaw("\" : ");
+        generator.writeRaw("\":");
         flush();
         bos.write(content, offset, length);
     }
 
     public void writeRawField(String fieldName, InputStream content, OutputStream bos) throws IOException {
-        generator.writeRaw(", \"");
+        generator.writeRaw(",\"");
         generator.writeRaw(fieldName);
-        generator.writeRaw("\" : ");
+        generator.writeRaw("\":");
         flush();
         copy(content, bos);
     }
@@ -283,9 +283,9 @@ public class JsonXContentGenerator implements XContentGenerator {
     }
     
     public void writeRawField(String fieldName, BytesReference content, OutputStream bos) throws IOException {
-        generator.writeRaw(", \"");
+        generator.writeRaw(",\"");
         generator.writeRaw(fieldName);
-        generator.writeRaw("\" : ");
+        generator.writeRaw("\":");
         flush();
         content.writeTo(bos);
     }

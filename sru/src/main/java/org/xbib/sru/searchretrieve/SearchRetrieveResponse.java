@@ -204,7 +204,7 @@ public class SearchRetrieveResponse extends DefaultSRUResponse
             return this;
         }
         if (getTransformer() == null) {
-            setStylesheetTransformer(new StylesheetTransformer("xsl"));
+            setStylesheetTransformer(new StylesheetTransformer().setPath("xsl"));
         }
         // transport parameters into XSL transformer style sheets
         getTransformer().addParameter("version", request.getVersion());

@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2012 Jörg Prante and xbib
+ * Copyright (C) 2015 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newTreeSet;
 
 public class Indicator extends License {
 
@@ -62,7 +63,7 @@ public class Indicator extends License {
         addParent(parent);
         this.isil = getString("xbib:isil");
         this.serviceisil = isil;
-        this.dates = buildDateArray();
+        buildDateArray();
         this.info = buildInfo();
         this.findContentType();
         this.priority = this.findPriority();
@@ -75,7 +76,7 @@ public class Indicator extends License {
     }
 
     @Override
-    protected List<Integer> buildDateArray() {
+    protected void buildDateArray() {
         List<Integer> dates = newLinkedList();
         String firstDate = getString("xbib:firstDate");
         int first;
@@ -98,7 +99,11 @@ public class Indicator extends License {
                 }
             }
         }
-        return dates;
+        if (!dates.isEmpty()) {
+            this.firstdate = dates.get(0);
+            this.lastdate = dates.get(dates.size() - 1);
+        }
+        this.dates = newTreeSet(dates);
     }
 
     @Override

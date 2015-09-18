@@ -1,15 +1,16 @@
 package org.xbib.tools.feed.elasticsearch.mab;
 
-import com.carrotsearch.hppc.cursors.ObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequestBuilder;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.common.hppc.cursors.ObjectCursor;
+import org.elasticsearch.common.joda.time.DateTime;
+import org.elasticsearch.common.joda.time.format.DateTimeFormat;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.xbib.common.settings.Settings;
+import org.elasticsearch.index.query.FilterBuilders;
 import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
@@ -35,7 +36,6 @@ import java.util.zip.GZIPInputStream;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -83,12 +83,12 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 Runtime.getRuntime().availableProcessors());
         ingest.maxActionsPerRequest(maxbulkactions)
                 .maxConcurrentRequests(maxconcurrentbulkrequests);
-        ingest.init(Settings.settingsBuilder()
+        ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .build().getAsMap());
+                .build());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
         concreteIndex = resolveAlias(getIndex() + timeWindow);
@@ -143,8 +143,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 logger.warn("index creation error, but configured to ignore", e);
             }
         }
-        ingest.startBulk(getConcreteIndex(), -1, 1000);
-        ingest.startBulk(getConcreteHoldingsIndex(), -1, 1000);
+        ingest.startBulk(getConcreteIndex());
+        ingest.startBulk(getConcreteHoldingsIndex());
         return this;
     }
 
@@ -174,7 +174,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         queue.execute();
         String fileName = uri.getSchemeSpecificPart();
         InputStream in = new FileInputStream(fileName);
-        ByteSizeValue bufferSize = settings.getAsByteSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
         if (fileName.endsWith(".gz")) {
             in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
         }
@@ -264,12 +264,12 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 if (isil.indexOf("-") == isil.lastIndexOf("-")) {
                     GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(isil).execute().actionGet();
                     if (getAliasesResponse.getAliases().isEmpty()) {
-                        requestBuilder.addAlias(concreteIndex, isil, termQuery("xbib.identifier", isil));
+                        requestBuilder.addAlias(concreteIndex, isil, FilterBuilders.termsFilter("xbib.identifier", isil));
                         newAliases.add(isil);
                     } else for (ObjectCursor<String> indexName : getAliasesResponse.getAliases().keys()) {
                         if (indexName.value.startsWith(titleIndex)) {
                             requestBuilder.removeAlias(indexName.value, isil)
-                                    .addAlias(concreteIndex, isil, termQuery("xbib.identifier", isil));
+                                    .addAlias(concreteIndex, isil, FilterBuilders.termsFilter("xbib.identifier", isil));
                             switchedAliases.add(isil);
                         }
                     }
