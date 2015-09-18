@@ -1,92 +1,97 @@
 {
   "Holdings": {
     "properties": {
-        "properties": {
-          "isil": {
-            "type": "string",
-            "analyzer" : "keyword",
-            "norms" : {
-              "enabled" : false
-            }
-          },
-          "links": {
-            "properties": {
-              "format": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "hostname": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "locationofhost": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "nonpublicnote": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "publicnote": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "relatedto": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              },
-              "uri": {
-                "type": "string",
-                "analyzer" : "keyword",
-                "norms" : {
-                  "enabled" : false
-                }
-              }
-            }
-          },
-          "service": {
-            "type": "string",
-            "analyzer" : "keyword",
-            "norms" : {
-              "enabled" : false
-            }
-          },
-          "servicecount": {
-            "type": "long"
-          }
-        }
-      },
-      "holdingscount": {
-        "type": "long"
-      },
       "identifierForTheHolding": {
         "type": "string",
-        "analyzer" : "keyword",
-        "norms" : {
-          "enabled" : false
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "service": {
+        "type": "string",
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "servicecount": {
+        "type": "long"
+      },
+      "links": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "hostname": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "locationofhost": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "nonpublicnote": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "port": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "publicnote": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "relatedto": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          },
+          "uri": {
+            "type": "string",
+            "analyzer": "keyword",
+            "norms": {
+              "enabled": false
+            }
+          }
         }
       }
+    }
   },
   "Manifestations": {
     "properties": {
+      "service": {
+        "type": "string",
+        "analyzer": "keyword",
+        "norms": {
+          "enabled": false
+        }
+      },
+      "servicecount": {
+        "type": "long"
+      },
       "carriertype": {
         "type": "string",
         "analyzer" : "keyword",
@@ -837,6 +842,13 @@
             }
           },
           "nonpublicnote": {
+            "type": "string",
+            "analyzer" : "keyword",
+            "norms" : {
+              "enabled" : false
+            }
+          },
+          "port": {
             "type": "string",
             "analyzer" : "keyword",
             "norms" : {

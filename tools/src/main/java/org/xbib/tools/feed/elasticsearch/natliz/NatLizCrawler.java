@@ -1,4 +1,4 @@
-package org.xbib.tools.crawl;
+package org.xbib.tools.feed.elasticsearch.natliz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
@@ -19,7 +19,7 @@ import org.xbib.rdf.Triple;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
-import org.xbib.tools.Converter;
+import org.xbib.tools.Feeder;
 import org.xbib.util.URIUtil;
 
 import java.io.File;
@@ -45,10 +45,11 @@ import java.util.regex.Pattern;
 
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
+import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
-public class NatLiz extends Converter {
+public class NatLizCrawler extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(NatLiz.class);
+    private final static Logger logger = LogManager.getLogger(NatLizCrawler.class);
 
     @Override
     public String getName() {
@@ -57,7 +58,7 @@ public class NatLiz extends Converter {
 
     @Override
     protected PipelineProvider<Pipeline> pipelineProvider() {
-        return NatLiz::new;
+        return NatLizCrawler::new;
     }
 
     @Override
@@ -437,17 +438,34 @@ public class NatLiz extends Converter {
 
     private void writeLicenses(Map<String,Object> licenses) throws IOException {
         // Java object
-        File file = new File("nlz-licenses.map");
-        FileWriter writer = new FileWriter(file);
-        writer.write(licenses.toString());
-        writer.close();
-        // JSON
-        XContentBuilder builder = jsonBuilder();
-        builder.map(licenses);
-        file = new File("nlz-licenses.json");
-        writer = new FileWriter(file);
-        writer.write(builder.string());
-        writer.close();
+        if (settings.get("mapfile") != null) {
+            File file = new File("nlz-licenses.map");
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(licenses.toString());
+            fileWriter.close();
+        }
+        // JSON file
+        if (settings.get("jsonfile") != null) {
+            XContentBuilder builder = jsonBuilder();
+            builder.map(licenses);
+            File file = new File("nlz-licenses.json");
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(builder.string());
+            fileWriter.close();
+        }
+        // ES
+        if (settings.get("index") != null) {
+            for (String key : licenses.keySet()) {
+                XContentBuilder builder = jsonBuilder();
+                List<Map<String,Object>> list = (List<Map<String, Object>>) licenses.get(key);
+                List<String> isils = new LinkedList<>();
+                for (Map<String,Object> map : list) {
+                    isils.addAll((Collection<? extends String>) map.get("isil"));
+                }
+                builder.startObject().array("isil", isils).endObject();
+                ingest.index(settings.get("index"), settings.get("type"), key, builder.string());
+            }
+        }
     }
 
     private void writeTriples(Set<Triple> triples) throws IOException {

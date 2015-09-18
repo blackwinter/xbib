@@ -60,6 +60,7 @@ import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.zdb.support.BibdatLookup;
 import org.xbib.tools.merge.zdb.support.BlackListedISIL;
 import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.zdb.support.ConsortiaLookup;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
@@ -71,12 +72,10 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.collect.Sets.newSetFromMap;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
@@ -89,7 +88,7 @@ public class WithHoldingsAndLicenses
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
 
-    private static Set<String> indexed;
+    //private static Set<String> indexed;
 
     //private static Set<String> skipped;
 
@@ -112,6 +111,8 @@ public class WithHoldingsAndLicenses
     private static Settings settings;
 
     private static BibdatLookup bibdatLookup;
+
+    private static ConsortiaLookup consortiaLookup;
 
     private static BlackListedISIL isilbl;
 
@@ -167,7 +168,16 @@ public class WithHoldingsAndLicenses
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared");
 
-        indexed = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
+        // prepare "national license" / consortia ISIL expansion
+        consortiaLookup = new ConsortiaLookup();
+        try {
+            consortiaLookup.buildLookup(client, settings.get("index-consortia", "nlzisil"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+
+
+        //indexed = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
         //skipped = newSetFromMap(new ConcurrentHashMap<String, Boolean>(16, 0.75f, settings.getAsInt("concurrency", 1)));
 
         return this;
@@ -420,9 +430,9 @@ public class WithHoldingsAndLicenses
         return countResponse.getCount() > 0;
     }
 
-    public Set<String> indexed() {
+    /*public Set<String> indexed() {
         return indexed;
-    }
+    }*/
 
     /*public Set<String> skipped() {
         return skipped;
@@ -450,6 +460,10 @@ public class WithHoldingsAndLicenses
 
     public BibdatLookup bibdatLookup() {
         return bibdatLookup;
+    }
+
+    public ConsortiaLookup consortiaLookup() {
+        return consortiaLookup;
     }
 
     public BlackListedISIL blackListedISIL() {

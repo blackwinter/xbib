@@ -205,6 +205,10 @@ public class Holding implements Comparable<Holding> {
         return parents;
     }
 
+    public void setISIL(String isil) {
+        this.isil = isil;
+    }
+
     public String getISIL() {
         return isil;
     }

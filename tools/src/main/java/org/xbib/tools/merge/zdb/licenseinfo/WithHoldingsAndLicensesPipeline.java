@@ -472,12 +472,28 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelR
                     if (withHoldingsAndLicenses.blackListedISIL().lookup().contains(isil)) {
                         continue;
                     }
-                    holding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
-                    holding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
-                    holding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
-                    TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
-                    parentTitleRecord.addRelatedHolding(isil, holding);
-                    holdings.add(holding);
+                    // consortia?
+                    if (withHoldingsAndLicenses.consortiaLookup().lookupISILs().containsKey(isil)) {
+                        List<String> list = withHoldingsAndLicenses.consortiaLookup().lookupISILs().get(isil);
+                        for (String expandedisil : list) {
+                            // new Holding for each ISIL
+                            holding = new Holding(holding.map());
+                            holding.setISIL(expandedisil);
+                            holding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(expandedisil));
+                            holding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(expandedisil));
+                            holding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(expandedisil));
+                            TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                            parentTitleRecord.addRelatedHolding(expandedisil, holding);
+                            holdings.add(holding);
+                        }
+                    } else {
+                        holding.setName(withHoldingsAndLicenses.bibdatLookup().lookupName().get(isil));
+                        holding.setRegion(withHoldingsAndLicenses.bibdatLookup().lookupRegion().get(isil));
+                        holding.setOrganization(withHoldingsAndLicenses.bibdatLookup().lookupOrganization().get(isil));
+                        TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                        parentTitleRecord.addRelatedHolding(isil, holding);
+                        holdings.add(holding);
+                    }
                 }
             }
         }
@@ -881,10 +897,10 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelR
     private void indexTitleRecordCluster(StatCounter statCounter, TitleRecordCluster titleRecordCluster) throws IOException {
         for (TitleRecord m : titleRecordCluster.getAll()) {
             String id = m.externalID();
-            if (withHoldingsAndLicenses.indexed().contains(id)) {
+            /*if (withHoldingsAndLicenses.indexed().contains(id)) {
                 return;
             }
-            withHoldingsAndLicenses.indexed().add(id);
+            withHoldingsAndLicenses.indexed().add(id);*/
             // find open access
             Collection<String> issns = m.hasIdentifiers() ? (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
             boolean found = false;
