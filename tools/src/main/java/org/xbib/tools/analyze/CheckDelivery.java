@@ -80,7 +80,7 @@ public class CheckDelivery implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+        SearchClient search = new SearchClient().newClient(settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))

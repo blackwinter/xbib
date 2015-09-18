@@ -79,7 +79,7 @@ public class SerialsOfArticlesFile implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))

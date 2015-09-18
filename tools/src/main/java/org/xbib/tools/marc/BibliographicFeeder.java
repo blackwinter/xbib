@@ -139,7 +139,7 @@ public abstract class BibliographicFeeder extends TimewindowFeeder {
         queue.execute();
         String fileName = uri.getSchemeSpecificPart();
         InputStream in = new FileInputStream(fileName);
-        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+        ByteSizeValue bufferSize = settings.getAsByteSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
         if (fileName.endsWith(".gz")) {
             in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
         }

@@ -52,8 +52,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newTreeSet;
+import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -81,7 +82,7 @@ public class ISSNsOfZDB implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+        SearchClient search = new SearchClient().newClient(settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -97,9 +98,8 @@ public class ISSNsOfZDB implements CommandLineInterpreter {
                     .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMillis(1000));
 
-            QueryBuilder queryBuilder = boolQuery()
-                    .must(matchAllQuery())
-                    .filter(existsQuery("identifiers.issn"));
+            QueryBuilder queryBuilder =
+                    filteredQuery(matchAllQuery(), existsFilter("identifiers.issn"));
             searchRequestBuilder.setQuery(queryBuilder)
                     .addFields("identifiers.issn");
 

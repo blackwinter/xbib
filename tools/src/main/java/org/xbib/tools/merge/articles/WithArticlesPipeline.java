@@ -63,8 +63,9 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -186,9 +187,8 @@ public class WithArticlesPipeline
             issnQuery.should(matchPhraseQuery("prism:issn", s));
         }
         queryBuilder.must(dateQuery).must(issnQuery);
-        QueryBuilder filteredQueryBuilder = boolQuery()
-                .must(queryBuilder)
-                .filter(existsQuery("xbib:key"));
+        QueryBuilder filteredQueryBuilder =
+                filteredQuery(queryBuilder, existsFilter("xbib:key"));
         Map<String,Map<String,Object>> docs = newHashMap();
         if (service.settings().get("medline-index") != null) {
             fetchMedline(filteredQueryBuilder, docs);

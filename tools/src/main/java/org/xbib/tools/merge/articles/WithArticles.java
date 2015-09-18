@@ -79,7 +79,7 @@ import static org.elasticsearch.index.query.FilterBuilders.termFilter;
 import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge serial manifestations with articles
@@ -107,7 +107,8 @@ public class WithArticles
     private String identifier;
 
     public WithArticles reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder()
+                .loadFrom(reader).build();
         return this;
     }
 

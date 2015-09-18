@@ -46,7 +46,9 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.Writer;
 
+import static org.elasticsearch.index.query.FilterBuilders.termFilter;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -72,7 +74,7 @@ public class CheckOpenAccess implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+        SearchClient search = new SearchClient().newClient(settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -98,9 +100,8 @@ public class CheckOpenAccess implements CommandLineInterpreter {
                 continue;
             }
             int count = s.length == 3 ? Integer.parseInt(s[2]) : 1;
-            QueryBuilder queryBuilder = boolQuery()
-                    .must(termQuery("_id", zdbid))
-                    .filter(termQuery("openaccess", true));
+            QueryBuilder queryBuilder =
+                    filteredQuery(termQuery("_id", zdbid), termFilter("openaccess", true));
             CountRequestBuilder countRequestBuilder = client.prepareCount()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))

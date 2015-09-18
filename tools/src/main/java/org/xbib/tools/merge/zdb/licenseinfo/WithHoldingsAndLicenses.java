@@ -77,7 +77,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses
@@ -127,7 +127,7 @@ public class WithHoldingsAndLicenses
     private StatusCodeMapper statusCodeMapper;
 
     public WithHoldingsAndLicenses reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        settings = settingsBuilder().loadFrom(reader).build();
         return this;
     }
 
