@@ -4,7 +4,6 @@ import org.xbib.io.archive.ArchiveOutputStream;
 import org.xbib.io.archive.entry.ArchiveEntryEncoding;
 import org.xbib.io.archive.entry.ArchiveEntryEncodingHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -46,7 +45,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
 
     private int assemLen;
 
-    private int longFileMode = LONGFILE_ERROR;
+    private int longFileMode = LONGFILE_GNU;
 
     private int bigNumberMode = BIGNUMBER_ERROR;
 
@@ -139,8 +138,8 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
     /**
      * Set the long file mode.
      * This can be LONGFILE_ERROR(0), LONGFILE_TRUNCATE(1) or LONGFILE_GNU(2).
-     * This specifies the treatment of long file names (names >= NAMELEN).
-     * Default is LONGFILE_ERROR.
+     * This specifies the treatment of long file names (names &gt;= NAMELEN).
+     * Default is LONGFILE_GNU.
      *
      * @param longFileMode the mode to use
      */
@@ -169,12 +168,11 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
 
     /**
      * Ends the TAR archive without closing the underlying OutputStream.
-     * <p/>
      * An archive consists of a series of file entries terminated by an
      * end-of-archive entry, which consists of two 512 blocks of zero bytes.
      * POSIX.1 requires two EOF records, like some other implementations.
      *
-     * @throws java.io.IOException on error
+     * @throws IOException on error
      */
     @Override
     public void finish() throws IOException {
@@ -194,7 +192,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
     /**
      * Closes the underlying OutputStream.
      *
-     * @throws java.io.IOException on error
+     * @throws IOException on error
      */
     @Override
     public void close() throws IOException {
@@ -257,7 +255,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
      * is completely written to the output stream.
      *
      * @param archiveEntry The TarEntry to be written to the archive.
-     * @throws java.io.IOException on error
+     * @throws IOException on error
      * @throws ClassCastException  if archiveEntry is not an instance of TarArchiveEntry
      */
     @Override
@@ -368,7 +366,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
      * @param wBuf       The buffer to write to the archive.
      * @param wOffset    The offset in the buffer from which to get bytes.
      * @param numToWrite The number of bytes to write.
-     * @throws java.io.IOException on error
+     * @throws IOException on error
      */
     @Override
     public void write(byte[] wBuf, int wOffset, int numToWrite) throws IOException {
@@ -466,7 +464,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
             }
             w.write(line);
         }
-        byte[] data = w.toString().getBytes(Charset.forName("UTF_8"));
+        byte[] data = w.toString().getBytes(Charset.forName("UTF-8"));
         pex.setEntrySize(data.length);
         putArchiveEntry(pex);
         write(data);
