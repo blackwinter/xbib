@@ -443,11 +443,11 @@
                     "gnd:preferredNameForTheConferenceOrEvent",
                     "gnd:variantNameForTheConferenceOrEvent"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.nameCorporate": { "type" : "string" },
-                    "bib.nameConference": { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.nameCorporate",
+                    "bib.nameConference"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -521,10 +521,10 @@
                     "gnd:preferredNameForTheConferenceOrEvent",
                     "gnd:variantNameForTheConferenceOrEvent"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.nameCorporate": { "type" : "string"}
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.nameCorporate"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -1242,11 +1242,11 @@
                     "gnd:preferredNameForThePlaceOrGeographicName",
                     "gnd:variantNameForThePlaceOrGeographicName"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "dc.subject" : { "type" : "string" },
-                    "bib.nameCorporate" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "dc.subject",
+                    "bib.nameCorporate"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2083,9 +2083,9 @@
                     "gnd:preferredNameForTheConferenceOrEvent",
                     "gnd:variantNameForTheConferenceOrEvent"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2138,10 +2138,10 @@
                     "gnd:preferredNameForThePerson",
                     "gnd:variantNameForThePerson"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.namePersonal" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.namePersonal"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2196,10 +2196,10 @@
                     "gnd:preferredNameForThePerson",
                     "gnd:variantNameForThePerson"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.namePersonal" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.namePersonal"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2251,10 +2251,10 @@
                     "gnd:preferredNameForThePerson",
                     "gnd:variantNameForThePerson"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.namePersonal" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.namePersonal"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2313,10 +2313,10 @@
                     "gnd:preferredNameForThePerson",
                     "gnd:variantNameForThePerson"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.namePersonal" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.namePersonal"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -2384,10 +2384,10 @@
                     "gnd:preferredNameForThePerson",
                     "gnd:variantNameForThePerson"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "bib.namePersonal" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "bib.namePersonal"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",
@@ -4527,10 +4527,10 @@
                     "gnd:preferredNameForThePlaceOrGeographicName",
                     "gnd:variantNameForThePlaceOrGeographicName"
                 ],
-                "fields" : {
-                    "cql.allIndexes" : { "type" : "string" },
-                    "dc.subject" : { "type" : "string" }
-                }
+                "to" : [
+                    "cql.allIndexes",
+                    "dc.subject"
+                ]
               },
               "identifierDNB" : {
                   "type" : "string",

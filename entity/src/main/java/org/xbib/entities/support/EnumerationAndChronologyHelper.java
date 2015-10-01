@@ -61,15 +61,15 @@ public class EnumerationAndChronologyHelper {
     private final static Pattern[] p1a = new Pattern[] {
             // 1921=1339
             // 1921/22=1339
-            Pattern.compile("(\\d{4})(/?\\d{2})\\s*="),
+            Pattern.compile("(\\d{4})(/?\\d{2,4})\\s*="),
             // 1965/70(1971/72)
-            Pattern.compile("(\\d{4})(/?\\d{2})\\((\\d{4})(/?\\d{2})\\)"),
+            Pattern.compile("(\\d{4})(/?\\d{2,4})\\((\\d{4})(/?\\d{2,4})\\)"),
             // 1965/66
             // 1968/70
             // 1961/62(1963)
             // 1961/62(1962)
             // WS 1948/49
-            Pattern.compile("(\\d{4})(/?\\d{2})"),
+            Pattern.compile("(\\d{4})(/?\\d{2,4})"),
             // 1961
             // 1992,14140(12. März)
             // SS 1922
@@ -88,7 +88,7 @@ public class EnumerationAndChronologyHelper {
             // 1.1970; 3.1972; 7.1973
             Pattern.compile("(\\d+)\\.(\\d{4})"),
             // 1.[19]93,1
-            Pattern.compile("(\\d+)\\.(\\[?\\d{2}\\]?\\d{2}/?\\d{0,4})")
+            Pattern.compile("(\\d+)\\.(\\[?\\d{2,4}\\]?\\d{2,4}/?\\d{0,4})")
     };
     // yyyy=yyyy
     private final static Pattern[] p1c = new Pattern[] {
@@ -105,7 +105,7 @@ public class EnumerationAndChronologyHelper {
             // 1963,21(22.Mai) -
             Pattern.compile("(\\d{4}).*\\-\\s*$"),
             // [19]51,1 - [19]52,5
-            Pattern.compile("(\\[\\d{2}\\]\\d{2}).*\\-\\s*$")
+            Pattern.compile("(\\[\\d{2,4}\\]\\d{2,4}).*\\-\\s*$")
     };
     // i.yyyy -
     private final static Pattern[] p2b = new Pattern[] {
@@ -125,7 +125,7 @@ public class EnumerationAndChronologyHelper {
             // 1963 - 1972
             Pattern.compile("(\\d{4}/?\\d{0,4}).*\\-\\s*(\\d{4}/?\\d{0,4})"),
             // [19]51,1 - [19]52,5
-            Pattern.compile("(\\[\\d{2}\\]\\d{2}/?\\d{0,4}).*\\-\\s*(\\[\\d{2}\\]\\d{2}/?\\d{0,4})")
+            Pattern.compile("(\\[\\d{2,4}\\]\\d{2,4}/?\\d{0,4}).*\\-\\s*(\\[\\d{2,4}\\]\\d{2,4}/?\\d{0,4})")
     };
     // i.yyyy - i.yyyy
     private final static Pattern[] p3b = new Pattern[] {
@@ -137,9 +137,9 @@ public class EnumerationAndChronologyHelper {
             Pattern.compile("(\\d+)\\.(\\d{4}/?\\d{0,4}).*\\-\\s*(\\d+)\\.(\\d{4}/?\\d{0,4})"),
             Pattern.compile("(.*?)\\.(\\d{4}/?\\d{0,4}).*\\-\\s*(.*?)\\.(\\d{4}/?\\d{0,4})"),
             // [19]81/82 - [19]83
-            Pattern.compile("(\\d+)\\.(\\[\\d{2}\\]\\d{2})(/\\d{0,4}).*\\-\\s*(\\d+)\\.(\\[\\d{2}\\]\\d{2})(/\\d{0,4})"),
+            Pattern.compile("(\\d+)\\.(\\[\\d{2,4}\\]\\d{2,4})(/\\d{0,4}).*\\-\\s*(\\d+)\\.(\\[\\d{2,4}\\]\\d{2,4})(/\\d{0,4})"),
             // 1.[19]51,1 - 1.[19]52,5
-            Pattern.compile("(\\d+)\\.(\\[\\d{2}\\]\\d{2}).*\\-\\s*(\\d+)\\.(\\[\\d{2}\\]\\d{2})")
+            Pattern.compile("(\\d+)\\.(\\[\\d{2,4}\\]\\d{2,4}).*\\-\\s*(\\d+)\\.(\\[\\d{2,4}\\]\\d{2,4})")
     };
     // yyyy,v - yyyy,v
     private final static Pattern[] p3c = new Pattern[]{

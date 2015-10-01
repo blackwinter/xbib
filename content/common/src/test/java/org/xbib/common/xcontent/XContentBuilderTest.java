@@ -72,14 +72,14 @@ public class XContentBuilderTest {
                 .createParser(builder.string())
                 .losslessDecimals(true)
                 .mapAndClose();
-        assertEquals(map.toString(),"{value=57683974591503.00}");
+        assertEquals(map.toString(), "{value=57683974591503.00}");
         assertEquals(map.get("value").getClass().toString(), "class java.math.BigDecimal");
 
         map = XContentFactory.xContent(contentType)
                 .createParser(builder.string())
                 .losslessDecimals(false)
                 .mapAndClose();
-        assertEquals(map.toString(),"{value=5.7683974591503E13}");
+        assertEquals(map.toString(), "{value=5.7683974591503E13}");
         assertEquals(map.get("value").getClass().toString(), "class java.lang.Double");
     }
 
@@ -116,6 +116,26 @@ public class XContentBuilderTest {
                 .losslessDecimals(false)
                 .mapAndClose();
         assertEquals("{value=2014-04-22T14:01:51.488Z}", map.toString());
+    }
+
+    @Test
+    public void testBase16() throws IOException {
+        XContentBuilder builder = jsonBuilder();
+        builder.startObject().field("value", "4AC3B67267").endObject();
+        assertEquals(builder.string(), "{\"value\":\"4AC3B67267\"}");
+
+        XContentType contentType = XContentFactory.xContentType(builder.string());
+        Map<String,Object> map = XContentFactory.xContent(contentType)
+                .createParser(builder.string())
+                .enableBase16Checks(true)
+                .mapAndClose();
+        assertEquals(new String((byte[])map.get("value")),"Jörg");
+
+        map = XContentFactory.xContent(contentType)
+                .createParser(builder.string())
+                .enableBase16Checks(false)
+                .mapAndClose();
+        assertEquals(map.toString(), "{value=4AC3B67267}");
     }
 
 }

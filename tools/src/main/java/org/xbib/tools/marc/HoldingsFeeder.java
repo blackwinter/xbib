@@ -214,7 +214,7 @@ public abstract class HoldingsFeeder extends Feeder {
             }
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {
-                logger.info("{}", builder.string());
+                logger.debug("{}", builder.string());
             }
             if (executor != null) {
                 // tell executor we increased document count by one

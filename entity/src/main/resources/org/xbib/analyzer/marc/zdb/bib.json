@@ -1343,6 +1343,17 @@
             "dnb" : "IdentifierNBN"
         }
     },
+    "CatalogingSource" : {
+        "values" : [
+            "040$  $abcd"
+        ],
+        "subfields" : {
+            "a" : "agency",
+            "b" : "language",
+            "c" : "transcribingAgency",
+            "d" : "modifyingAgency"
+        }
+    },
     "Language" : {
         "values" : [
         /* 041 = language code */
@@ -2819,6 +2830,7 @@
           "700$0 $004ac",
           "700$0 $004ade",
           "700$1 $04",
+          "700$1 $4a",
           "700$1 $04a",
             "700$1 $04ac",
             "700$1 $04acd",
@@ -3076,7 +3088,8 @@
             "110$1 $ai",
           "110$1 $0046a",
           "110$1 $0046ab",
-          "110$1 $004a",
+            "110$1 $0046abb",
+            "110$1 $004a",
           "110$1 $004ab",
           "110$1 $004abb",
           "110$1 $004abbb",
@@ -3187,6 +3200,9 @@
             "110$1$9$a",
             "110$2 $04a",
             "110$2 $004ag",
+            "110$2 $0046abb",
+            "110$2 $0046an",
+            "110$2 $00499a",
             "110$2 $004a",
             "110$2 $04ab",
             "110$2 $04abg",
@@ -3463,7 +3479,8 @@
           "111$2 $004adn",
           "111$2 $004ae",
           "111$2 $004aen",
-          /* 711 = added entry - meeting name */
+            "111$2 $0046a",
+            /* 711 = added entry - meeting name */
             "711$2 $0a",
             "711$2 $0ac",
             "711$2 $0acd",
@@ -4175,7 +4192,8 @@
           "245$10$6abch",
           "245$10$6abn",
           "245$10$6acnp",
-          "245$10$abchnnpp",
+            "245$10$6ann",
+            "245$10$abchnnpp",
           "245$10$abcnnnppp",
           "245$10$abcnnp",
           "245$10$abcnnpp",
@@ -4187,7 +4205,8 @@
           "245$10$abnnnppp",
           "245$10$abnnp",
           "245$10$abnnpp",
-          "245$10$achnnpp",
+            "245$10$abchnnnppp",
+            "245$10$achnnpp",
           "245$10$acnn",
           "245$10$acnnn",
           "245$10$acnnnnp",
@@ -4749,7 +4768,9 @@
           "260$3 $aabeeff",
           "260$3 $abeeeeeeefffffff",
           "260$3 $abeeefff",
-          "260$3 $abeef"
+          "260$3 $abeef",
+            "260$3 $aaaaaaaaaabb",
+            "260$3 $aabbeeff"
         ],
         "subfields" : {
             "6" : "linkage",
@@ -4783,6 +4804,7 @@
           "300$  $6ac",
           "300$  $acc",
           "300$  $cc",
+            "300$  $cce",
           "300$  $6a",
           "300$  $acce",
           "300$  $acitww",
@@ -4827,6 +4849,7 @@
             "363$00$8ajk",
             "363$00$8ak",
             "363$00$8b",
+            "363$00$8bb",
             "363$00$8bi",
             "363$00$8bij",
             "363$00$8bijk",
@@ -4849,6 +4872,9 @@
             "363$01$8abijk",
             "363$01$8abiu",
             "363$01$8ai",
+            "363$01$8aaaiiii",
+            "363$01$8aiiii",
+            "363$01$8bb",
             "363$01$8aij",
             "363$01$8aijk",
             "363$01$8aik",
@@ -4947,7 +4973,11 @@
           "363$10$8aii",
           "363$10$8bii",
           "363$11$8aaii",
-          "363$11$8aii"
+          "363$11$8aii",
+            "363$11$8a",
+            "363$11$8ab",
+            "363$11$8abi",
+            "363$11$8b"
         ],
         "tags" : {
             "362" : "DatesOfPublication",
@@ -5019,7 +5049,7 @@
           "501$  $6a",
         /* 502 = dissertation note */
         "502$  $a",
-        /* 505 = table fo contents */
+        /* 505 = table of contents */
         "505$  $a",
         "505$0 $a",
         /* 515 = numbering peculiarities note */
@@ -5051,7 +5081,11 @@
         "533$  $fn",
         "533$  $n",
         "533$  $e",
-          "533$  $7bbbbbbccccccfffn",
+        "533$  $7bbbbbbbcccccccf",
+        "533$  $7bbbbbcccccfff",
+        "533$  $7bcfffff",
+        "533$  $bbbbccccffff",
+        "533$  $7bbbbbbccccccfffn",
           "533$  $7bbbbbcccccff",
           "533$  $7bbbbcccc",
           "533$  $7bbbbccccf",
@@ -5215,6 +5249,7 @@
         "600$07$02acdt",
         "600$07$02ad",
         "600$07$02adt",
+        "600$07$002acdtxxxx",
         "600$17$02a",
         "600$17$02acd",
         "600$17$02acdt",
@@ -5229,8 +5264,6 @@
           "600$17$002ac",
           "600$17$002acd",
           "600$17$002acdt",
-        "600$3$7$02ac",
-        "600$3$7$02acd",
           "600$07$002a",
           "600$07$002abcd",
           "600$07$002ac",
@@ -5239,6 +5272,7 @@
           "600$17$002a",
           "600$17$002ad",
           "600$17$002adt",
+          "600$37$002a",
           "600$37$002ac",
           "600$37$002acd",
           /* 610 = subject added entry - corporate name */
@@ -5269,9 +5303,11 @@
           "610$17$002at",
           "610$27$002a",
           "610$27$002ab",
+          "610$17$002abt",
           "610$27$002abb",
           "610$27$002abg",
-          "610$27$002ag",
+            "610$27$002abn",
+            "610$27$002ag",
           "610$27$002at",
           "610$17$002abbb",
           "610$17$002abbgg",
@@ -5374,8 +5410,9 @@
           "653$  $aaaaaaaaaa",
           "653$  $aaaaaaaaaaa",
           "653$  $aaaaaaaaaaaa",
+          "653$  $aaaaaaaaaaaaaaaa",
           "653$  $aaaaaaaaaaaaaaaaaa",
-        /* 655 = index term - genre/form */
+            /* 655 = index term - genre/form */
           "655$ 4$a",
         "655$ 7$02a",
         "655$ 7$2a",
@@ -5386,7 +5423,8 @@
         /* 751 = added entry - geographic name */
         "751$  $024a",
         "751$  $0024a",
-          "751$  $00246a"
+          "751$  $00246a",
+            "751$  $6"
         ],
         "tags" : {
             "600" : "SubjectPersonalName",
@@ -5467,6 +5505,7 @@
           "775$08$6itww",
           "775$08$aitwwx",
           "775$08$itwwx",
+          "775$08$itwx",
           "775$08$iw",
           "775$08$iittwwww",
         /* 787 = other relationship entry */
@@ -7199,7 +7238,11 @@
           "880$2 $006abg",
           "880$3 $6aab",
           "880$3 $6aabb",
-          "880$8 $6a"
+          "880$8 $6a",
+            "880$  $6add",
+            "880$1 $0046abb",
+            "880$1 $006abg",
+            "880$2 $0046an"
         ]
     },
     "Skip" : {
@@ -7212,8 +7255,8 @@
         "006",
         /* ??? */
         "012$53$",
-        /* 040 = cataloging source */
-        "040$  $abcd",
+        /* 028 = publisher number */
+        "028$32$a",
         /* 043 = geographic area */
         "043$  $c",
           "043$  $cc",
@@ -7270,7 +7313,11 @@
         "689$00$0Dat",
         "689$00$0Dax",
         "689$00$0Daz",
-          "689$00$00Dab",
+            "689$00$00Dabt",
+            "689$10$00Dacdtxxxx",
+            "689$20$00Dagx",
+            "689$70$00Dacd",
+            "689$00$00Dab",
           "689$00$00Dabb",
           "689$00$00Dabcd",
           "689$00$00Dabg",
@@ -8165,6 +8212,10 @@
           "930$  $affhl",
           "930$  $affln",
           "930$  $ddln",
+            "930$  $6add",
+            "930$  $adddff",
+            "930$  $adeh",
+            "930$  $ffl",
           /* 931 = masch. Änderungsverf.
             $a Gravkorr-Datum
             $b Gravkorr-Kennzeichen

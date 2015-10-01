@@ -59,6 +59,10 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
+    public MARCEntityQueue(int workers) {
+        super(new MARCSpecification(), workers);
+    }
+
     public MARCEntityQueue(String packageName, int workers, String... paths) {
         super(new MARCSpecification(), workers, packageName, paths);
     }

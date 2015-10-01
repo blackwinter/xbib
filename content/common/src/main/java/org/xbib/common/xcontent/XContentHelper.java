@@ -318,7 +318,15 @@ public class XContentHelper {
                 if (parser.hasTextCharacters()) {
                     generator.writeString(parser.textCharacters(), parser.textOffset(), parser.textLength());
                 } else {
-                    generator.writeString(parser.text());
+                    if (parser.isBase16Checks()) {
+                        try {
+                            generator.writeBinary(parseBase16(parser.text()));
+                        } catch (Exception e) {
+                            generator.writeString(parser.text());
+                        }
+                    } else {
+                        generator.writeString(parser.text());
+                    }
                 }
                 break;
             case VALUE_NUMBER:
@@ -355,6 +363,36 @@ public class XContentHelper {
             case VALUE_EMBEDDED_OBJECT:
                 generator.writeBinary(parser.binaryValue());
         }
+    }
+
+    public static byte[] parseBase16(String s) {
+        final int len = s.length();
+        if( len%2 != 0 ) {
+            throw new IllegalArgumentException("hex string needs to be of even length: " + s);
+        }
+        byte[] out = new byte[len/2];
+        for (int i = 0; i < len; i += 2) {
+            int h = hexToBin(s.charAt(i));
+            int l = hexToBin(s.charAt(i+1));
+            if( h==-1 || l==-1 ) {
+                throw new IllegalArgumentException("contains illegal character for hex string: " + s);
+            }
+            out[i/2] = (byte)(h*16+l);
+        }
+        return out;
+    }
+
+    private static int hexToBin(char ch) {
+        if ('0' <= ch && ch <= '9') {
+            return ch-'0';
+        }
+        if ('A' <= ch && ch <= 'F') {
+            return ch-'A'+10;
+        }
+        if ('a' <= ch && ch <= 'f') {
+            return ch-'a'+10;
+        }
+        return -1;
     }
 
 }

@@ -61,6 +61,12 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
 
     private boolean closed;
 
+    public EntityQueue(Specification specification, int workers) {
+        super(workers);
+        this.specification = specification;
+        this.map = new HashMap<>();
+    }
+
     public EntityQueue(Specification specification, int workers, String packageName, String... paths) {
         this(specification, workers, new URIClassLoader(), packageName, paths);
     }

@@ -1057,5 +1057,4 @@ public final class XContentBuilder implements BytesStream, ToXContent {
             //throw new ElasticsearchIllegalArgumentException("type not supported for generic value conversion: " + type);
         }
     }
-
 }

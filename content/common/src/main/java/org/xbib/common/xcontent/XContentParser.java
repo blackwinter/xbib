@@ -152,5 +152,9 @@ public interface XContentParser extends Closeable {
 
     byte[] binaryValue() throws IOException;
 
+    XContentParser enableBase16Checks(boolean b);
+
+    boolean isBase16Checks();
+
     void close();
 }

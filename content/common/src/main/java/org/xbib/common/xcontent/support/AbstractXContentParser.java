@@ -1,7 +1,10 @@
 
 package org.xbib.common.xcontent.support;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.common.Booleans;
+import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
 
 import java.io.IOException;
@@ -14,6 +17,8 @@ import java.util.Map;
 public abstract class AbstractXContentParser implements XContentParser {
 
     protected boolean losslessDecimals;
+
+    protected boolean base16Checks;
 
     @Override
     public boolean isBooleanValue() throws IOException {
@@ -102,6 +107,15 @@ public abstract class AbstractXContentParser implements XContentParser {
         return losslessDecimals;
     }
 
+    public XContentParser enableBase16Checks(boolean base16Checks) {
+        this.base16Checks = base16Checks;
+        return this;
+    }
+
+    public boolean isBase16Checks() {
+        return base16Checks;
+    }
+
     public String textOrNull() throws IOException {
         if (currentToken() == Token.VALUE_NULL) {
             return null;
@@ -187,10 +201,20 @@ public abstract class AbstractXContentParser implements XContentParser {
         return list;
     }
 
+    private final static Logger logger = LogManager.getLogger("test");
+
     private static Object readValue(XContentParser parser, MapFactory mapFactory, XContentParser.Token t) throws IOException {
         if (t == XContentParser.Token.VALUE_NULL) {
             return null;
         } else if (t == XContentParser.Token.VALUE_STRING) {
+            logger.info("isBase16Checks={} {}", parser.isBase16Checks(), parser.text());
+            if (parser.isBase16Checks()) {
+                try {
+                    return XContentHelper.parseBase16(parser.text());
+                } catch (Exception e) {
+                    //
+                }
+            }
             return parser.text();
         } else if (t == XContentParser.Token.VALUE_NUMBER) {
             XContentParser.NumberType numberType = parser.numberType();
