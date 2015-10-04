@@ -37,6 +37,7 @@ import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
 import org.xbib.entities.support.ConfigurableClassifier;
 import org.xbib.entities.support.IdentifierMapper;
+import org.xbib.iri.IRI;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
@@ -68,7 +69,10 @@ public class OnlineAccessRemote extends MABEntity {
         }
         MABEntityBuilderState state = worker.state();
         String isil = value;
-        if ("identifier".equals(property)) {
+        if ("uri".equals(property)) {
+            // create synthetic local record identifier
+            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
+        } else if ("identifier".equals(property)) {
             IdentifierMapper mapper = worker.identifierMapper();
             if (mapper != null) {
                 isil = mapper.lookup(value);

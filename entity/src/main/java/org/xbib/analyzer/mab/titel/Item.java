@@ -134,6 +134,8 @@ public class Item extends MABEntity {
                 }
             }
         } else if ("callnumber".equals(property)) {
+            // create synthetic local record identifier
+            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
             ConfigurableClassifier classifier = worker.classifier();
             if (classifier != null) {
                 String isil = state.getISIL();

@@ -36,6 +36,7 @@ import org.xbib.entities.marc.dialects.mab.MABEntity;
 import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
 import org.xbib.entities.support.ConfigurableClassifier;
+import org.xbib.iri.IRI;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
@@ -79,12 +80,15 @@ public class OnlineAccessScopedLink extends OnlineAccessRemote {
         if (value == null) {
             return null;
         }
-        if ("scope".equals(property) && catalogid != null && !catalogid.isEmpty()) {
+        MABEntityBuilderState state = worker.state();
+        if ("url".equals(property)) {
+            // create synthetic local record identifier
+            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
+        } else if ("scope".equals(property) && catalogid != null && !catalogid.isEmpty()) {
             String isil = catalogid;
             resource.add("identifier", isil);
             ConfigurableClassifier classifier = worker.classifier();
             if (classifier != null) {
-                MABEntityBuilderState state = worker.state();
                 String key = isil + "." + state.getRecordIdentifier() + ".";
                 java.util.Collection<ConfigurableClassifier.Entry> entries = classifier.lookup(key);
                 if (entries != null) {

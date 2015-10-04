@@ -33,11 +33,11 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.entities.marc.dialects.mab.MABEntity;
 
-public class OnlineAccess extends MABEntity {
+public class OtherCharacteristics extends MABEntity {
 
-    private final static OnlineAccess element = new OnlineAccess();
+    private final static OtherCharacteristics element = new OtherCharacteristics();
 
-    public static OnlineAccess getInstance() {
+    public static OtherCharacteristics getInstance() {
         return element;
     }
 

@@ -32,7 +32,9 @@
 package org.xbib.analyzer.mab.titel;
 
 import org.xbib.entities.marc.dialects.mab.MABEntity;
+import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
+import org.xbib.iri.IRI;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
 
@@ -72,8 +74,11 @@ public class Shelfmark extends Item {
         if (value == null) {
             return null;
         }
+        MABEntityBuilderState state = worker.state();
         if ("Shelfmark".equals(predicate) && prefix != null && !prefix.isEmpty()) {
             resource.add("identifier", prefix);
+            // create synthetic local record identifier
+            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
         }
         return value;
     }

@@ -75,6 +75,8 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private String isil;
 
+    private IRI uid;
+
     public MABEntityBuilderState(RdfGraph<RdfGraphParams> graph, Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
     }
@@ -98,8 +100,10 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
     public Resource getNextItemResource() {
         if (graph().hasResource(ITEM)) {
             Resource resource = graph().removeResource(ITEM);
+            resource.id(uid != null ? uid : resource.id());
             graph().putResource(resource.id(), resource);
         }
+        uid = null;
         MemoryResource item = new MemoryResource().blank();
         graph().putResource(ITEM, item);
         return item;
@@ -159,6 +163,15 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         return isil;
     }
 
+    public MABEntityBuilderState setUID(IRI uid) {
+        this.uid = uid;
+        return this;
+    }
+
+    public IRI getUID() {
+        return uid;
+    }
+
     public Map<String, Facet> getFacets() {
         return facets;
     }
@@ -177,6 +190,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         // last item
         if (graph().hasResource(ITEM)) {
             Resource resource = graph().removeResource(ITEM);
+            resource.id(uid != null ? uid : resource.id());
             graph().putResource(resource.id(), resource);
         }
 
