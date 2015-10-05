@@ -45,7 +45,7 @@ import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
+import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.tools.Converter;
 import org.xbib.util.DateUtil;
 import org.xbib.util.URIUtil;
@@ -96,12 +96,16 @@ public class FromOAI extends Converter {
 
     @Override
     public void prepareSource() throws IOException {
-        for (String uri : settings.getAsArray("input")) {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(uri));
-            queue.add(element);
+        try {
+            for (String uri : settings.getAsArray("input")) {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(URI.create(uri));
+                getQueue().put(element);
+            }
+        } catch (InterruptedException e) {
+
         }
-        logger.info("uris = {}", queue.size());
+        logger.info("uris = {}", getQueue().size());
     }
 
     @Override

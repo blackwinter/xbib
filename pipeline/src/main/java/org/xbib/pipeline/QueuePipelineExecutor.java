@@ -1,11 +1,5 @@
 
-package org.xbib.pipeline.queue;
-
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineExecutor;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.PipelineSink;
+package org.xbib.pipeline;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -30,22 +24,21 @@ import java.util.concurrent.TimeUnit;
  * Each pipeline can receive archive entries, which are put into a blocking queue by
  * this setExecutor.
  *
- * @param <T> the result type
- * @param <R> the pipeline request type
+ *@param <R> the pipeline request type
  * @param <P> the pipeline type
  */
-public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipeline<T,R>>
-     implements PipelineExecutor<T,R,P> {
+public class QueuePipelineExecutor<R extends PipelineRequest, P extends Pipeline<R>>
+     implements PipelineExecutor<R,P> {
 
     private ExecutorService executorService;
 
     private PipelineProvider<P> provider;
 
-    private Set<Pipeline<T,R>> pipelines;
+    private Set<Pipeline<R>> pipelines;
 
-    private Collection<Future<T>> futures;
+    private Collection<Future<R>> futures;
 
-    private PipelineSink<T> sink;
+    private PipelineSink<R> sink;
 
     private CountDownLatch latch;
 
@@ -56,19 +49,19 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
     private volatile boolean closed;
 
     @Override
-    public QueuePipelineExecutor<T,R,P> setConcurrency(int concurrency) {
+    public QueuePipelineExecutor<R,P> setConcurrency(int concurrency) {
         this.concurrency = concurrency;
         return this;
     }
 
     @Override
-    public QueuePipelineExecutor<T,R,P> setPipelineProvider(PipelineProvider<P> provider) {
+    public QueuePipelineExecutor<R,P> setPipelineProvider(PipelineProvider<P> provider) {
         this.provider = provider;
         return this;
     }
 
     @Override
-    public QueuePipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue) {
+    public QueuePipelineExecutor<R,P> setQueue(BlockingQueue<R> queue) {
         this.queue = queue;
         return this;
     }
@@ -82,13 +75,13 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
     }
 
     @Override
-    public QueuePipelineExecutor<T,R,P> setSink(PipelineSink<T> sink) {
+    public QueuePipelineExecutor<R,P> setSink(PipelineSink<R> sink) {
         this.sink = sink;
         return this;
     }
 
     @Override
-    public QueuePipelineExecutor<T,R,P> prepare() {
+    public QueuePipelineExecutor<R,P> prepare() {
         if (provider == null) {
             throw new IllegalArgumentException("no provider set");
         }
@@ -96,15 +89,15 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
             this.executorService = Executors.newFixedThreadPool(concurrency);
         }
         if (pipelines == null) {
-            this.pipelines = new HashSet<Pipeline<T,R>>();
+            this.pipelines = new HashSet<>();
         }
         if (concurrency < 1) {
             concurrency = 1;
         }
-        this.queue = new SynchronousQueue<R>(true); // true means fair queue
+        this.queue = new SynchronousQueue<>(true); // true means fair queue
         this.latch = new CountDownLatch(concurrency);
         for (int i = 0; i < Math.min(concurrency, 256); i++) {
-            Pipeline<T,R> pipeline = provider.get();
+            Pipeline<R> pipeline = provider.get();
             pipelines.add(pipeline);
         }
         return this;
@@ -118,9 +111,9 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
      * @return this setExecutor
      */
     @Override
-    public QueuePipelineExecutor<T,R,P> execute() {
-        futures = new LinkedList<Future<T>>();
-        for (Pipeline<T,R> pipeline : pipelines) {
+    public QueuePipelineExecutor<R,P> execute() {
+        futures = new LinkedList<>();
+        for (Pipeline<R> pipeline : pipelines) {
             futures.add(executorService.submit(pipeline));
         }
         return this;
@@ -132,11 +125,11 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
-    public QueuePipelineExecutor<T,R,P> waitFor() throws InterruptedException, ExecutionException, IOException {
-        for (Future<T> future : futures) {
-            T t = future.get();
+    public QueuePipelineExecutor<R,P> waitFor() throws InterruptedException, ExecutionException, IOException {
+        for (Future<R> future : futures) {
+            R r = future.get();
             if (sink != null)  {
-                sink.write(t);
+                sink.sink(r);
             }
         }
         return this;
@@ -172,7 +165,7 @@ public class QueuePipelineExecutor<T, R extends PipelineRequest, P extends Pipel
      * Get pipelines
      * @return the pipelines
      */
-    public Set<Pipeline<T,R>> getPipelines() {
+    public Set<Pipeline<R>> getPipelines() {
         return pipelines;
     }
 

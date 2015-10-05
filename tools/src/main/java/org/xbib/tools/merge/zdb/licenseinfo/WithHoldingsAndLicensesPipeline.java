@@ -81,7 +81,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
 
-public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelRecordPipelineElement> {
+public class WithHoldingsAndLicensesPipeline implements Pipeline<TitelRecordPipelineElement> {
 
     enum State {
         COLLECTING_CANDIDATES, PROCESSING, INDEXING
@@ -162,9 +162,14 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelR
     }
 
     @Override
-    public Pipeline<Boolean, TitelRecordPipelineElement> setQueue(BlockingQueue<TitelRecordPipelineElement> queue) {
+    public Pipeline<TitelRecordPipelineElement> setQueue(BlockingQueue<TitelRecordPipelineElement> queue) {
         this.queue = queue;
         return this;
+    }
+
+    @Override
+    public BlockingQueue<TitelRecordPipelineElement> getQueue() {
+        return queue;
     }
 
     public Queue<ClusterBuildContinuation> getBuildQueue() {
@@ -176,11 +181,12 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelR
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public TitelRecordPipelineElement call() throws Exception {
         logger.info("pipeline starting");
+        TitelRecordPipelineElement element = null;
         TitleRecord titleRecord = null;
         try {
-            TitelRecordPipelineElement element = queue.poll(10, TimeUnit.SECONDS);
+            element = queue.poll(10, TimeUnit.SECONDS);
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
                 process(titleRecord);
@@ -197,7 +203,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<Boolean, TitelR
             withHoldingsAndLicenses.countDown();
         }
         logger.info("pipeline terminating");
-        return true;
+        return element;
     }
 
     @Override

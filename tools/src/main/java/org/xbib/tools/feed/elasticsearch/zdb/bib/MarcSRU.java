@@ -42,7 +42,7 @@ import org.xbib.io.Request;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
+import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.sru.client.SRUClient;
@@ -104,17 +104,17 @@ public class MarcSRU extends Feeder {
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = r.readLine()) != null) {
-                URIPipelineElement element = new URIPipelineElement();
+                URIPipelineRequest element = new URIPipelineRequest();
                 element.set(URI.create(String.format(settings.get("uri"), line)));
-                queue.put(element);
+                getQueue().put(element);
             }
             in.close();
         } else {
-            URIPipelineElement element = new URIPipelineElement();
+            URIPipelineRequest element = new URIPipelineRequest();
             element.set(URI.create(settings.get("uri")));
-            queue.put(element);
+            getQueue().put(element);
         }
-        logger.info("uris = {}", queue.size());
+        logger.info("uris = {}", getQueue().size());
     }
 
     protected void prepareOutput() throws IOException {

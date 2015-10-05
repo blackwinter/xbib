@@ -43,10 +43,9 @@ import org.xbib.io.archive.tar2.TarSession;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.AbstractPipeline;
 import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineException;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
-import org.xbib.pipeline.simple.MetricSimplePipelineExecutor;
+import org.xbib.pipeline.URIPipelineRequest;
+import org.xbib.pipeline.MetricSimplePipelineExecutor;
 import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
 
@@ -63,8 +62,8 @@ import java.util.Queue;
 
 import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
-public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
-        extends AbstractPipeline<URIPipelineElement, PipelineException> implements Provider {
+public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
+        extends AbstractPipeline<URIPipelineRequest> implements Provider {
 
     private final static Logger logger = LogManager.getLogger(Converter.class.getSimpleName());
 
@@ -76,17 +75,17 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
 
     protected static Session<StringPacket> session;
 
-    protected MetricSimplePipelineExecutor<T, URIPipelineElement, Pipeline<T,URIPipelineElement>> executor;
+    protected MetricSimplePipelineExecutor<URIPipelineRequest, Pipeline<URIPipelineRequest>> executor;
 
     @Override
-    public Converter<T, P> reader(Reader reader) {
+    public Converter<P> reader(Reader reader) {
         this.reader = reader;
         setSettings(settingsBuilder().loadFromReader(reader).build());
         return this;
     }
 
     @Override
-    public Converter<T, P> writer(Writer writer) {
+    public Converter<P> writer(Writer writer) {
         this.writer = writer;
         return this;
     }
@@ -115,15 +114,15 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
                 }
             }
             if (settings.get("uri") != null) {
-                URIPipelineElement element = new URIPipelineElement();
+                URIPipelineRequest element = new URIPipelineRequest();
                 element.set(URI.create(settings.get("uri")));
-                queue.add(element);
+                getQueue().put(element);
                 // parallel URI connection possible?
                 if (settings.getAsBoolean("parallel", false)) {
                     for (int i = 1; i < settings.getAsInt("concurrency", 1); i++) {
-                        element = new URIPipelineElement();
+                        element = new URIPipelineRequest();
                         element.set(URI.create(settings.get("uri")));
-                        queue.put(element);
+                        getQueue().put(element);
                     }
                 }
             } else if (settings.get("path") != null) {
@@ -134,14 +133,14 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
                         .getURIs();
                 logger.info("input from path = {}", uris);
                 for (URI uri : uris) {
-                    URIPipelineElement element = new URIPipelineElement();
+                    URIPipelineRequest element = new URIPipelineRequest();
                     element.set(uri);
-                    queue.put(element);
+                    getQueue().put(element);
                 }
             } else if (settings.get("archive") != null) {
-                URIPipelineElement element = new URIPipelineElement();
+                URIPipelineRequest element = new URIPipelineRequest();
                 element.set(URI.create(settings.get("archive")));
-                queue.put(element);
+                getQueue().put(element);
                 TarConnectionFactory factory = new TarConnectionFactory();
                 Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
                 session = connection.createSession();
@@ -159,9 +158,9 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
             int concurrency = settings.getAsInt("concurrency", 1);
             //metric pipeline setExecutor only uses concurrency over different URIs
             // in the input queue, not with a single URI input
-            executor = new MetricSimplePipelineExecutor<T, URIPipelineElement, Pipeline<T,URIPipelineElement>>()
+            executor = new MetricSimplePipelineExecutor<URIPipelineRequest, Pipeline<URIPipelineRequest>>()
                     .setConcurrency(concurrency)
-                    .setQueue(queue)
+                    .setQueue(getQueue())
                     .setPipelineProvider(pipelineProvider())
                     .prepare()
                     .execute();
@@ -180,7 +179,7 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     }
 
 
-    public Converter<T, P> cleanup() throws IOException {
+    public Converter<P> cleanup() throws IOException {
         if (session != null) {
             session.close();
         }
@@ -193,17 +192,12 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     }
 
     @Override
-    public void newRequest(Pipeline<MeterMetric, URIPipelineElement> pipeline, URIPipelineElement request) {
+    public void newRequest(Pipeline<URIPipelineRequest> pipeline, URIPipelineRequest request) {
         try {
             process(request.get());
         } catch (Exception ex) {
             logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
         }
-    }
-
-    @Override
-    public void error(Pipeline<MeterMetric, URIPipelineElement> pipeline, URIPipelineElement request, PipelineException error) {
-        logger.error(error.getMessage(), error);
     }
 
     protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
@@ -242,7 +236,7 @@ public abstract class Converter<T, P extends Pipeline<T, URIPipelineElement>>
     protected void prepareSink() throws IOException {
     }
 
-    protected abstract PipelineProvider<Pipeline<T,URIPipelineElement>> pipelineProvider();
+    protected abstract PipelineProvider<Pipeline<URIPipelineRequest>> pipelineProvider();
 
     public abstract void process(URI uri) throws Exception;
 

@@ -7,11 +7,9 @@ import org.xbib.io.ConnectionService;
 import org.xbib.io.Packet;
 import org.xbib.io.Session;
 import org.xbib.io.archive.tar.TarSession;
-import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.AbstractPipeline;
 import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineException;
-import org.xbib.pipeline.element.LongPipelineElement;
+import org.xbib.pipeline.LongPipelineRequest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -21,13 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * This class reads from a TAR archive, without knowing of the concrete content type.
  * Processing TAR packets are delegated to an implementing class.
  */
-public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineElement, PipelineException> {
+public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineRequest> {
 
     private final static Logger logger = LogManager.getLogger(AbstractTarReader.class.getName());
 
     private final ConnectionService<TarSession> service = ConnectionService.getInstance();
 
-    private final LongPipelineElement counter = new LongPipelineElement().set(new AtomicLong(0L));
+    private final LongPipelineRequest counter = new LongPipelineRequest().set(new AtomicLong(0L));
 
     protected URI uri;
 
@@ -68,13 +66,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineEle
     }
 */
     @Override
-    public void newRequest(Pipeline<MeterMetric, LongPipelineElement> pipeline, LongPipelineElement request) {
-
-    }
-
-    @Override
-    public void error(Pipeline<MeterMetric, LongPipelineElement> pipeline, LongPipelineElement request, PipelineException error) {
-        logger.error(error.getMessage(), error);
+    public void newRequest(Pipeline<LongPipelineRequest> pipeline, LongPipelineRequest request) {
 
     }
 
@@ -107,7 +99,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineEle
         }
     }
 
-    private LongPipelineElement nextRead() {
+    private LongPipelineRequest nextRead() {
         if (prepared) {
             prepared = false;
         }

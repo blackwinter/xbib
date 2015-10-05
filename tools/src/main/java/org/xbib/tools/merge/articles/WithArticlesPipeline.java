@@ -71,8 +71,7 @@ import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-public class WithArticlesPipeline
-        implements Pipeline<Boolean, SerialItemPipelineElement> {
+public class WithArticlesPipeline implements Pipeline<SerialItemPipelineElement> {
 
     private final WithArticles service;
 
@@ -87,8 +86,6 @@ public class WithArticlesPipeline
     private BlockingQueue<SerialItemPipelineElement> queue;
 
     private SerialItem serialItem;
-
-    //private SerialItemPipelineElement element;
 
     private MeterMetric metric;
 
@@ -117,16 +114,22 @@ public class WithArticlesPipeline
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public BlockingQueue<SerialItemPipelineElement> getQueue() {
+        return queue;
+    }
+
+    @Override
+    public SerialItemPipelineElement call() throws Exception {
         logger.info("pipeline starting");
+        this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        SerialItemPipelineElement element = null;
         try {
-            this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
             /*while (hasNext()) {
                 serialItem = next();
                 process(serialItem);
                 metric.mark();
             }*/
-            SerialItemPipelineElement element = queue.poll();
+            element = queue.poll();
             serialItem = element.get();
             while (serialItem != null) {
                 process(serialItem);
@@ -143,7 +146,7 @@ public class WithArticlesPipeline
             metric.stop();
         }
         logger.info("pipeline terminating");
-        return true;
+        return element;
     }
 
    /* @Override

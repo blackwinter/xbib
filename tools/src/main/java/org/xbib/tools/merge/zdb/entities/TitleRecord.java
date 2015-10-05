@@ -37,7 +37,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.pipeline.PipelineRequest;
 import org.xbib.tools.merge.zdb.support.NaturalOrderComparator;
 import org.xbib.tools.merge.zdb.support.StatCounter;
 import org.xbib.util.Strings;
@@ -66,7 +65,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @SuppressWarnings("unchecked")
-public class TitleRecord implements Comparable<TitleRecord>, PipelineRequest {
+public class TitleRecord implements Comparable<TitleRecord> {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 

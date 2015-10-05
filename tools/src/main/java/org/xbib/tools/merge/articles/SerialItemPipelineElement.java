@@ -32,9 +32,8 @@
 package org.xbib.tools.merge.articles;
 
 import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.element.PipelineElement;
 
-public class SerialItemPipelineElement implements PipelineElement<SerialItem>, PipelineRequest {
+public class SerialItemPipelineElement implements PipelineRequest<SerialItem>  {
 
     private SerialItem serialItem;
 

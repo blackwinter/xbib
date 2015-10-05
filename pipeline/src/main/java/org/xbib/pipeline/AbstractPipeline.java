@@ -35,8 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.metric.MeterMetric;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -46,62 +44,28 @@ import java.util.concurrent.TimeUnit;
  * This abstract class can be used for creating custom Pipeline classes.
  *
  * @param <R> the pipeline request type
- * @param <E> the pipeline error type
  */
-public abstract class AbstractPipeline<R extends PipelineRequest, E extends PipelineException>
-        implements Pipeline<MeterMetric,R>, PipelineRequestListener<MeterMetric,R>,
-        PipelineErrorListener<MeterMetric,R,E> {
+public abstract class AbstractPipeline<R extends PipelineRequest>
+        implements Pipeline<R> {
 
     private final static Logger logger = LogManager.getLogger(AbstractPipeline.class);
 
-    protected BlockingQueue<R> queue = new SynchronousQueue<>(true);
+    private BlockingQueue<R> queue = new SynchronousQueue<>(true);
 
     private MeterMetric metric;
 
-    /**
-     * A list of request listeners for processing requests
-     */
-    private Map<String,PipelineRequestListener<MeterMetric,R>> requestListeners =
-            new LinkedHashMap<String,PipelineRequestListener<MeterMetric,R>>();
-
-    /**
-     * A list of error listeners for processing errors
-     */
-    private Map<String,PipelineErrorListener<MeterMetric,R,E>> errorListeners =
-            new LinkedHashMap<String,PipelineErrorListener<MeterMetric,R,E>>();
-
     @Override
-    public Pipeline<MeterMetric,R> setQueue(BlockingQueue<R> queue) {
+    public Pipeline<R> setQueue(BlockingQueue<R> queue) {
         this.queue = queue;
         return this;
     }
 
-    /**
-     * Add a pipeline request listener to the pipeline. The listener is called each time
-     * this pipeline processes a new request.
-     * @param name the listener name
-     * @param listener the listener
-     * @return this pipeline
-     */
-    public Pipeline<MeterMetric,R> add(String name, PipelineRequestListener<MeterMetric,R> listener) {
-        if (name != null) {
-            this.requestListeners.put(name,listener);
-        }
-        return this;
+    public BlockingQueue<R> getQueue() {
+        return queue;
     }
 
-    /**
-     * Add a pipeline request listener to the pipeline. The listener is called each time
-     * this pipeline processes a new request.
-     * @param name the listener name
-     * @param listener the listener
-     * @return this pipeline
-     */
-    public Pipeline<MeterMetric,R> add(String name, PipelineErrorListener<MeterMetric,R,E> listener) {
-        if (name != null) {
-            this.errorListeners.put(name,listener);
-        }
-        return this;
+    public R newElement() {
+        return (R) new URIPipelineRequest();
     }
 
     /**
@@ -113,33 +77,26 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
      * @throws Exception if pipeline execution was sborted by a non-PipelineException
      */
     @Override
-    public MeterMetric call() throws Exception {
+    public R call() throws Exception {
+        metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        R r = null;
         try {
-            metric = new MeterMetric(5L, TimeUnit.SECONDS);
-            R r = queue.poll(5L, TimeUnit.SECONDS);
+            r = queue.poll(5L, TimeUnit.SECONDS);
             while (r != null) {
-                // add ourselves if not already done
-                requestListeners.put(null, this);
-                errorListeners.put(null, this);
-                for (PipelineRequestListener<MeterMetric, R> requestListener : requestListeners.values()) {
-                    try {
-                        requestListener.newRequest(this, r);
-                    } catch (PipelineException e) {
-                        for (PipelineErrorListener<MeterMetric, R, E> errorListener : errorListeners.values()) {
-                            errorListener.error(this, r, (E) e);
-                        }
-                    }
-                }
+                newRequest(this, r);
                 metric.mark();
                 r = queue.poll(5L, TimeUnit.SECONDS);
             }
             close();
         } catch (InterruptedException e) {
             logger.warn("interrupted");
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            throw t;
         } finally {
             metric.stop();
         }
-        return getMetric();
+        return r;
     }
 
     /**
@@ -156,14 +113,6 @@ public abstract class AbstractPipeline<R extends PipelineRequest, E extends Pipe
      * @param pipeline the pipeline
      * @param request the pipeline request
      */
-    public abstract void newRequest(Pipeline<MeterMetric,R> pipeline, R request);
-
-    /**
-     * A PipelineException occured.
-     * @param pipeline the pipeline
-     * @param request the pipeline request
-     * @param error the pipeline error
-     */
-    public abstract void error(Pipeline<MeterMetric,R> pipeline, R request, E error);
+    public abstract void newRequest(Pipeline<R> pipeline, R request);
 
 }

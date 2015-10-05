@@ -148,7 +148,7 @@ public final class Medline extends Feeder {
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(getResource());
             if (settings.getAsBoolean("mock", false)) {
-                logger.info("{}", params.getGenerator().get());
+                logger.info("result = {}", params.getGenerator().get());
             }
             id = null;
             author.clear();

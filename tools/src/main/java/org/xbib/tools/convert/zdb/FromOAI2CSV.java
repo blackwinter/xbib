@@ -41,7 +41,7 @@ import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
+import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
@@ -72,14 +72,18 @@ public class FromOAI2CSV extends OAIHarvester {
 
     @Override
     public void prepareSource() throws IOException {
-        String[] inputs = settings.getAsArray("input");
-        if (inputs == null) {
-            throw new IllegalArgumentException("no input given");
-        }
-        for (String uri : inputs) {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(uri));
-            queue.offer(element);
+        try {
+            String[] inputs = settings.getAsArray("input");
+            if (inputs == null) {
+                throw new IllegalArgumentException("no input given");
+            }
+            for (String uri : inputs) {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(URI.create(uri));
+                getQueue().put(element);
+            }
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
     }
 

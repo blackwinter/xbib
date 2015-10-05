@@ -1,10 +1,8 @@
-package org.xbib.pipeline.element;
-
-import org.xbib.pipeline.PipelineRequest;
+package org.xbib.pipeline;
 
 import java.net.URI;
 
-public class URIPipelineElement implements PipelineElement<URI>, PipelineRequest {
+public class URIPipelineRequest implements PipelineRequest<URI> {
 
     private URI uri;
 
@@ -14,7 +12,7 @@ public class URIPipelineElement implements PipelineElement<URI>, PipelineRequest
     }
 
     @Override
-    public URIPipelineElement set(URI uri) {
+    public URIPipelineRequest set(URI uri) {
         this.uri = uri;
         return this;
     }

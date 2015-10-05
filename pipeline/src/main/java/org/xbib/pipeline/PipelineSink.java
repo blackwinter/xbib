@@ -3,7 +3,7 @@ package org.xbib.pipeline;
 
 import java.io.IOException;
 
-public interface PipelineSink<T> {
+public interface PipelineSink<R extends PipelineRequest> {
 
-    void write(T t) throws IOException;
+    void sink(R request) throws IOException;
 }

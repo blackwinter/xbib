@@ -1,10 +1,8 @@
-package org.xbib.pipeline.element;
-
-import org.xbib.pipeline.PipelineRequest;
+package org.xbib.pipeline;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class LongPipelineElement implements PipelineElement<AtomicLong>, PipelineRequest {
+public class LongPipelineRequest implements PipelineRequest<AtomicLong> {
 
     private AtomicLong n;
 
@@ -14,7 +12,7 @@ public class LongPipelineElement implements PipelineElement<AtomicLong>, Pipelin
     }
 
     @Override
-    public LongPipelineElement set(AtomicLong n) {
+    public LongPipelineRequest set(AtomicLong n) {
         this.n = n;
         return this;
     }

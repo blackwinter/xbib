@@ -55,7 +55,7 @@ import org.xbib.entities.support.StatusCodeMapper;
 import org.xbib.entities.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.queue.QueuePipelineExecutor;
+import org.xbib.pipeline.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.zdb.support.BibdatLookup;
 import org.xbib.tools.merge.zdb.support.BlackListedISIL;
@@ -71,7 +71,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -83,7 +82,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicenses
-        extends QueuePipelineExecutor<Boolean, TitelRecordPipelineElement, WithHoldingsAndLicensesPipeline>
+        extends QueuePipelineExecutor<TitelRecordPipelineElement, WithHoldingsAndLicensesPipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());

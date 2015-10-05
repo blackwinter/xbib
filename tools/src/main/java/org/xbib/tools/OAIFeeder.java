@@ -44,7 +44,7 @@ import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.element.URIPipelineElement;
+import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -91,10 +91,14 @@ public abstract class OAIFeeder extends TimewindowFeeder {
         if (inputs == null || inputs.length == 0) {
             throw new IllegalArgumentException("no parameter 'uri' given");
         }
-        for (String uri : inputs) {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(uri));
-            queue.add(element);
+        try {
+            for (String uri : inputs) {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(URI.create(uri));
+                getQueue().put(element);
+            }
+        } catch(InterruptedException e) {
+            throw new IOException(e);
         }
     }
 

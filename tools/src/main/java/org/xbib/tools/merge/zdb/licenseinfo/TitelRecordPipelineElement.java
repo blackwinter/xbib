@@ -32,10 +32,9 @@
 package org.xbib.tools.merge.zdb.licenseinfo;
 
 import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.element.PipelineElement;
 import org.xbib.tools.merge.zdb.entities.TitleRecord;
 
-public class TitelRecordPipelineElement implements PipelineElement<TitleRecord>, PipelineRequest {
+public class TitelRecordPipelineElement implements PipelineRequest<TitleRecord> {
 
     private TitleRecord titleRecord;
 

@@ -1,60 +1,56 @@
 
-package org.xbib.pipeline.simple;
+package org.xbib.pipeline;
 
 import org.xbib.metric.MeterMetric;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.PipelineRequest;
-import org.xbib.pipeline.PipelineSink;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class MetricSimplePipelineExecutor<T, R extends PipelineRequest, P extends Pipeline<T,R>>
-        extends SimplePipelineExecutor<T,R,P> {
+public class MetricSimplePipelineExecutor<R extends PipelineRequest, P extends Pipeline<R>>
+        extends SimplePipelineExecutor<R,P> {
 
     protected MeterMetric metric;
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> setConcurrency(int concurrency) {
+    public MetricSimplePipelineExecutor<R,P> setConcurrency(int concurrency) {
         super.setConcurrency(concurrency);
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> setPipelineProvider(PipelineProvider<P> provider) {
+    public MetricSimplePipelineExecutor<R,P> setPipelineProvider(PipelineProvider<P> provider) {
         super.setPipelineProvider(provider);
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> setQueue(BlockingQueue<R> queue) {
+    public MetricSimplePipelineExecutor<R,P> setQueue(BlockingQueue<R> queue) {
         super.setQueue(queue);
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> setSink(PipelineSink<T> sink) {
+    public MetricSimplePipelineExecutor<R,P> setSink(PipelineSink<R> sink) {
         super.setSink(sink);
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> prepare() {
+    public MetricSimplePipelineExecutor<R,P> prepare() {
         super.prepare();
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> execute() {
+    public MetricSimplePipelineExecutor<R,P> execute() {
         metric = new MeterMetric(5L, TimeUnit.SECONDS);
         super.execute();
         return this;
     }
 
     @Override
-    public MetricSimplePipelineExecutor<T,R,P> waitFor()
+    public MetricSimplePipelineExecutor<R,P> waitFor()
             throws InterruptedException, ExecutionException {
         super.waitFor();
         metric.stop();

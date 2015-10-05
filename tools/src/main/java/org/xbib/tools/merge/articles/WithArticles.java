@@ -53,7 +53,7 @@ import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
 import org.xbib.entities.support.ClasspathURLStreamHandler;
 import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.queue.QueuePipelineExecutor;
+import org.xbib.pipeline.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.zdb.entities.TitleRecord;
 import org.xbib.util.DateUtil;
@@ -85,7 +85,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
  * Merge serial manifestations with articles
  */
 public class WithArticles
-        extends QueuePipelineExecutor<Boolean, SerialItemPipelineElement, WithArticlesPipeline>
+        extends QueuePipelineExecutor<SerialItemPipelineElement, WithArticlesPipeline>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithArticles.class.getName());

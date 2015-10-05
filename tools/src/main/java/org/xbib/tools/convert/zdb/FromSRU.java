@@ -39,7 +39,7 @@ import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
 import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
+import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.client.SRUClientFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
@@ -91,23 +91,26 @@ public class FromSRU extends Converter {
 
     @Override
     public void prepareSource() throws IOException {
-        // create input URLs
-        if (settings.get("numbers") != null) {
-            FileInputStream in = new FileInputStream(settings.get("numbers"));
-            BufferedReader r = new BufferedReader(new InputStreamReader(in));
-            String line;
-            while ((line = r.readLine()) != null) {
-                URIPipelineElement element = new URIPipelineElement();
-                element.set(URI.create(String.format(settings.get("uri"), line)));
-                queue.add(element);
+        try {// create input URLs
+            if (settings.get("numbers") != null) {
+                FileInputStream in = new FileInputStream(settings.get("numbers"));
+                BufferedReader r = new BufferedReader(new InputStreamReader(in));
+                String line;
+                while ((line = r.readLine()) != null) {
+                    URIPipelineRequest element = new URIPipelineRequest();
+                    element.set(URI.create(String.format(settings.get("uri"), line)));
+                    getQueue().put(element);
+                }
+                in.close();
+            } else {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(URI.create(settings.get("uri")));
+                getQueue().add(element);
             }
-            in.close();
-        } else {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(settings.get("uri")));
-            queue.add(element);
+            logger.info("uris = {}", getQueue().size());
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
-        logger.info("uris = {}", queue.size());
     }
 
     @Override
