@@ -88,9 +88,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
     public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) {
         super(new MARCSpecification().addParameters(params), workers, packageName, paths);
         logger.info("identifier: {}", params.get("identifier"));
-        setupIdentifierMapper(params);
+        this.identifierMapper = setupIdentifierMapper(params);
         logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
-        setupStatusMapper(params);
+        this.statusMapper = setupStatusMapper(params);
         logger.info("status mapper: {} entries", statusMapper.getMap().size());
     }
 
@@ -104,8 +104,8 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         return this;
     }
 
-    public MABEntityQueue setupIdentifierMapper(Map<String,Object> params) {
-        identifierMapper = new IdentifierMapper();
+    protected IdentifierMapper setupIdentifierMapper(Map<String,Object> params) {
+        IdentifierMapper identifierMapper = new IdentifierMapper();
         // configured sigel
         Map<String,String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
                 "org/xbib/analyzer/mab/sigel2isil.json", "sigel2isil");
@@ -122,16 +122,16 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 logger.error(e.getMessage(), e);
             }
         }
-        return this;
+        return identifierMapper;
     }
 
     @SuppressWarnings("unchecked")
-    public MABEntityQueue setupStatusMapper(Map<String,Object> params) {
+    protected StatusCodeMapper setupStatusMapper(Map<String,Object> params) {
         Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
                 "org/xbib/analyzer/mab/status.json", "status");
-        statusMapper = new StatusCodeMapper();
+        StatusCodeMapper statusMapper = new StatusCodeMapper();
         statusMapper.add(statuscodes);
-        return this;
+        return statusMapper;
     }
 
     public MABEntityQueue addIdentifierMapper(String path) throws IOException {

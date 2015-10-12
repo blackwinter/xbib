@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.merge.articles;
 
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.util.Collection;
 

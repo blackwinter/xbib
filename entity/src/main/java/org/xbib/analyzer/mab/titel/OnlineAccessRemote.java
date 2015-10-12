@@ -70,12 +70,16 @@ public class OnlineAccessRemote extends MABEntity {
         MABEntityBuilderState state = worker.state();
         String isil = value;
         if ("uri".equals(property)) {
-            // create synthetic local record identifier
-            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
+            // create synthetic local record identifier as scheme specific part. We have no ISIL!
+            state.setUID(IRI.builder().curie("uid:" + value).build());
         } else if ("identifier".equals(property)) {
             IdentifierMapper mapper = worker.identifierMapper();
             if (mapper != null) {
                 isil = mapper.lookup(value);
+                state.setISIL(isil);
+                IRI uid = state.getUID();
+                // update UID to correct value
+                state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + uid.getSchemeSpecificPart()).build());
             }
             resource.add("identifier", isil);
             ConfigurableClassifier classifier = worker.classifier();

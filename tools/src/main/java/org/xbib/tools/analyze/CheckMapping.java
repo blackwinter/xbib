@@ -66,7 +66,7 @@ import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
 public class CheckMapping implements CommandLineInterpreter {
 
-    private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
+    private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
     private static Settings settings;
 
@@ -94,7 +94,7 @@ public class CheckMapping implements CommandLineInterpreter {
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build().getAsMap());
         Client client = search.client();
-        checkMapping(client, "zdb");
+        checkMapping(client, settings.get("index"));
         client.close();
     }
 
@@ -116,11 +116,10 @@ public class CheckMapping implements CommandLineInterpreter {
     @SuppressWarnings("unchecked")
     protected void checkMapping(Client client, String index, String type, MappingMetaData mappingMetaData) {
         try {
-            QueryBuilder queryBuilder = matchAllQuery();
             CountRequestBuilder countRequestBuilder = client.prepareCount()
                     .setIndices(index)
                     .setTypes(type)
-                    .setQuery(queryBuilder);
+                    .setQuery(matchAllQuery());
             CountResponse countResponse = countRequestBuilder.execute().actionGet();
             long total = countResponse.getCount();
             if (total > 0L) {
@@ -130,10 +129,10 @@ public class CheckMapping implements CommandLineInterpreter {
                 AtomicInteger empty = new AtomicInteger();
                 SortedSet<Map.Entry<String, Long>> set = entriesSortedByValues(fields);
                 set.forEach(entry -> {
-                    logger.info("count={} percent={} field={}",
+                    logger.info("{} {} {}",
+                            entry.getKey(),
                             entry.getValue(),
-                            (double) (entry.getValue() * 100 / total),
-                            entry.getKey());
+                            (double) (entry.getValue() * 100 / total));
                     if (entry.getValue() == 0) {
                         empty.incrementAndGet();
                     }

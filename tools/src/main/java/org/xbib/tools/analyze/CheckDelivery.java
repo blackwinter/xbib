@@ -43,7 +43,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

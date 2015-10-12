@@ -12,8 +12,8 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.search.SearchHit;
 
 import org.xbib.common.xcontent.XContentHelper;
-import org.xbib.tools.merge.zdb.entities.Institution;
-import org.xbib.tools.merge.zdb.entities.Service;
+import org.xbib.tools.merge.serials.entities.Institution;
+import org.xbib.tools.merge.serials.entities.Service;
 
 import java.io.IOException;
 import java.util.Collection;

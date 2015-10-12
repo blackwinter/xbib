@@ -55,7 +55,7 @@ import org.xbib.pipeline.Pipeline;
 import org.xbib.pipeline.PipelineProvider;
 import org.xbib.pipeline.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 

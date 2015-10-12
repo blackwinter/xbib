@@ -100,6 +100,7 @@ public class Item extends MABEntity {
                 String isil = mapper.lookup(value);
                 if (isil != null) {
                     resource.add("identifier", isil);
+                    state.setUID(IRI.builder().curie("uid:" + isil).build());
                     state.setISIL(isil);
                     if (state.getFacets().get(identifierFacet) == null) {
                         state.getFacets().put(identifierFacet, new StringFacet().setName(identifierFacet).setType(Literal.STRING));

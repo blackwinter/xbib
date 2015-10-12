@@ -84,7 +84,7 @@
         <maven.build.timestamp.format>dd.MM.yyyy HH:mm</maven.build.timestamp.format>
         <java.compiler.source>1.8</java.compiler.source>
         <xbib.version>${project.version}</xbib.version>
-        <xbib.elasticsearch.support.plugin.version>1.5.2.4</xbib.elasticsearch.support.plugin.version>
+        <xbib.elasticsearch.support.plugin.version>1.5.2.5</xbib.elasticsearch.support.plugin.version>
         <antlr.version>4.5</antlr.version>
         <jackson.version>2.5.2</jackson.version>
         <netty.version>4.1.0.Beta5</netty.version>
@@ -99,6 +99,11 @@
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh-external</artifactId>
                 <version>2.6</version>
+            </extension>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.2.3.Final</version>
             </extension>
         </extensions>
 
@@ -487,6 +492,11 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
+                <artifactId>xbib-io-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
                 <artifactId>xbib-iso23950</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -597,6 +607,12 @@
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-epoll</artifactId>
+                <version>${netty.version}</version>
+                <classifier>${os.detected.classifier}</classifier>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
                 <artifactId>netty-common</artifactId>
                 <version>${netty.version}</version>
             </dependency>
@@ -687,10 +703,9 @@
                 <version>1.9.4</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.abdera</groupId>
-                <artifactId>abdera-server</artifactId>
-                <version>1.1.3</version>
-                <type>jar</type>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>1.0.14</version>
             </dependency>
             <dependency>
                 <groupId>net.java.dev.jna</groupId>
@@ -820,6 +835,11 @@
                 <artifactId>junit-benchmarks</artifactId>
                 <version>0.7.2</version>
             </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>1.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -850,6 +870,7 @@
         <module>io/snmp</module>
         <module>io/jdbc</module>
         <module>io/posix</module>
+        <module>io/redis</module>
 
         <module>content/common</module>
         <module>content/xml</module>

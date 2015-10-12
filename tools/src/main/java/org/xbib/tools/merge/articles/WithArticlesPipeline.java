@@ -48,7 +48,7 @@ import org.elasticsearch.search.SearchHits;
 import org.xbib.iri.IRI;
 import org.xbib.metric.MeterMetric;
 import org.xbib.pipeline.Pipeline;
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
 
 import java.io.IOException;
