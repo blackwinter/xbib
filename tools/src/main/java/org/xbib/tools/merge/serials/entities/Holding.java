@@ -86,19 +86,14 @@ public class Holding implements Comparable<Holding> {
 
     protected boolean deleted;
 
-    protected Object servicetype;
-    protected Object servicemode;
-    protected Object servicedistribution;
-    protected Object servicecomment;
-
-    protected Integer priority;
-
-    protected String serviceisil;
-
+    private Object servicetype;
+    private Object servicemode;
+    private Object servicedistribution;
+    private Object servicecomment;
+    private Integer priority;
+    private String serviceisil;
     private String name;
-
     private String region;
-
     private String organization;
 
     public Holding(Map<String, Object> map) {
@@ -155,23 +150,25 @@ public class Holding implements Comparable<Holding> {
                 continue;
             }
             if (map.containsKey("location")) {
-                this.serviceisil = (String) map.get("location");
-                if (serviceisil != null) {
-                    if (serviceisil.startsWith("DE-")) {
+                setServiceISIL((String) map.get("location"));
+                String s = getServiceISIL();
+                if (s != null) {
+                    if (s.startsWith("DE-")) {
                         // find "base" ISIL in DE namespace: cut from last '-' if there is more than one '-'
-                        int firstpos = serviceisil.indexOf('-');
-                        int lastpos = serviceisil.lastIndexOf('-');
-                        this.isil = lastpos > firstpos ? serviceisil.substring(0, lastpos) : serviceisil;
+                        int firstpos = s.indexOf('-');
+                        int lastpos = s.lastIndexOf('-');
+                        setISIL(lastpos > firstpos ? s.substring(0, lastpos) : s);
                     } else {
-                        this.isil = serviceisil;
+                        setISIL(s);
                     }
                 }
             }
         }
         if (isil == null) {
             // e.g. DNB-ID 036674168 WEU GB-LON63
-            this.serviceisil = getString("service.organization"); // Sigel
-            this.isil = this.serviceisil; // no conversion to a surrogate ISIL
+            String isil = getString("service.organization");
+            setISIL(isil);
+            setServiceISIL(isil); // Sigel
         }
         // isil may be null, broken holding record, e.g. DNB-ID 114091315 ZDB-ID 2476016x
         if (isil != null) {
@@ -180,11 +177,11 @@ public class Holding implements Comparable<Holding> {
             buildService();
         }
         // serviceisil may be null
-        if (serviceisil == null) {
-            serviceisil = isil;
+        if (getServiceISIL() == null) {
+            setServiceISIL(isil);
         }
         buildDateArray();
-        this.priority = findPriority();
+        setPriority(findPriority());
     }
 
     public String identifier() {
@@ -215,6 +212,10 @@ public class Holding implements Comparable<Holding> {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void setServiceISIL(String isil) {
+        this.serviceisil = isil;
     }
 
     public String getServiceISIL() {
@@ -302,6 +303,10 @@ public class Holding implements Comparable<Holding> {
 
     public String carrierType() {
         return carrierType;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 
     public Integer getPriority() {
@@ -456,14 +461,17 @@ public class Holding implements Comparable<Holding> {
             }
         }
         info.put("location", l);
-
         Object textualholdings = map.get("textualholdings");
         info.put("textualholdings", textualholdings);
         info.put("holdings", map.get("holdings"));
-        if (map.containsKey("ElectronicLocationAndAccess")) {
-            info.put("links", map.get("ElectronicLocationAndAccess"));
+        Object o = map.get("ElectronicLocationAndAccess");
+        if (o != null) {
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            info.put("links", o);
         }
-        Object o = map.get("license");
+        o = map.get("license");
         if (o != null) {
             if (!(o instanceof List)) {
                 o = Collections.singletonList(o);
@@ -475,11 +483,6 @@ public class Holding implements Comparable<Holding> {
                     m.remove("scopeSource");
                     m.remove("chargeSource");
                     m.remove("accessSource");
-                    // skip license
-                /*List<Map<String,Object>> list = info.containsKey("license") ?
-                        (List<Map<String, Object>>) info.get("license") : newArrayList();
-                list.add(m);
-                info.put("license", list);*/
                 }
             }
         }
@@ -501,19 +504,39 @@ public class Holding implements Comparable<Holding> {
             // split to array if copy-loan
             this.servicemode = "copy-loan".equals(o) ? Arrays.asList("copy", "loan") : o;
             map.put("mode", servicemode);
-            // in ZDB holdings there is no distribution information, but wek keep it here
+            // in ZDB holdings there is no distribution information, but we keep it here
             this.servicedistribution = service.remove("servicedistribution");
             map.put("distribution", this.servicedistribution);
         }
     }
 
     protected Integer findPriority() {
+        Object o = getServiceType();
+        if (o == null) {
+            return 9;
+        }
+        o = getServiceMode();
+        if (o == null) {
+            return 9;
+        }
         if (carrierType == null) {
             return 9;
         }
         switch (carrierType) {
-            case "online resource":
-                return (servicedistribution != null && servicedistribution.toString().contains("postal")) ? 3 : 1;
+            case "online resource": {
+                o = getServiceDistribution();
+                if (o != null) {
+                    if (o instanceof List) {
+                        List l = (List)o;
+                        if (l.contains("postal")) {
+                            return 3;
+                        }
+                    } else if (o.toString().equals("postal")) {
+                        return 3;
+                    }
+                }
+                return 1;
+            }
             case "volume":
                 return 2;
             case "computer disc":
@@ -580,7 +603,7 @@ public class Holding implements Comparable<Holding> {
     public void toXContent(XContentBuilder builder, ToXContent.Params params)
             throws IOException {
         builder.startObject()
-                .field("identifierForTheService", "(" + getISIL() +")" + identifier());
+                .field("identifierForTheService", "(" + getServiceISIL() +")" + identifier());
         builder.startArray("parent");
         for (String p : parents()) {
             builder.value(p);
@@ -594,10 +617,20 @@ public class Holding implements Comparable<Holding> {
                 .fieldIfNotNull("organization", getOrganization())
                 .field("serviceisil", getServiceISIL())
                 .field("priority", getPriority())
-                .fieldIfNotNull("type", getServiceType())
-                .fieldIfNotNull("mode", getServiceMode())
-                .fieldIfNotNull("distribution", getServiceDistribution())
-                .fieldIfNotNull("comment", getServiceComment())
+                .fieldIfNotNull("type", getServiceType());
+        Object o = getServiceMode();
+        if (o instanceof List) {
+            builder.array("mode", (List) o);
+        } else {
+            builder.fieldIfNotNull("mode", o);
+        }
+        o = getServiceDistribution();
+        if (o instanceof List) {
+            builder.array("distribution", (List) o);
+        } else {
+            builder.fieldIfNotNull("distribution", o);
+        }
+        builder.fieldIfNotNull("comment", getServiceComment())
                 .field("info", getInfo())
                 .endObject();
     }

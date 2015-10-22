@@ -67,13 +67,14 @@ public class MonographVolumeHolding extends Holding {
 
     protected void build() {
         this.isil = getString("member");
+        setServiceISIL(isil);
         Object o = get("interlibraryservice");
         if (o != null) {
             if (!(o instanceof List)) {
                 o = Collections.singletonList(o);
             }
-            this.servicemode = o;
-            this.servicetype = "interlibrary";
+            setServiceMode(o);
+            setServiceType("interlibrary");
         }
         this.info = buildInfo();
     }
@@ -85,7 +86,7 @@ public class MonographVolumeHolding extends Holding {
 
     public MonographVolumeHolding setCarrierType(String carrierType) {
         this.carrierType = carrierType;
-        this.priority = findPriority();
+        setPriority(this.findPriority());
         return this;
     }
 
@@ -121,8 +122,18 @@ public class MonographVolumeHolding extends Holding {
         }
         switch (carrierType) {
             case "online resource":
-                return (servicedistribution != null
-                        && servicedistribution.toString().contains("postal")) ? 3 : 1;
+                Object o = getServiceDistribution();
+                if (o != null) {
+                    if (o instanceof List) {
+                        List l = (List)o;
+                        if (l.contains("postal")) {
+                            return 3;
+                        }
+                    } else if (o.toString().equals("postal")) {
+                        return 3;
+                    }
+                }
+                return 1;
             case "volume":
                 return 2;
             case "computer disc":
@@ -158,13 +169,19 @@ public class MonographVolumeHolding extends Holding {
                 .field("name", getName())
                 .field("isil", getServiceISIL())
                 .field("serviceisil", getServiceISIL())
-                .field("priority", priority)
-                .field("type", servicetype);
-        // grr
-        if (servicemode instanceof List) {
-            builder.array("mode", (List) servicemode);
+                .field("priority", getPriority())
+                .field("type", getServiceType());
+        Object o = getServiceMode();
+        if (o instanceof List) {
+            builder.array("mode", (List) o);
         } else {
-            builder.field("mode", servicemode);
+            builder.field("mode", o);
+        }
+        o = getServiceDistribution();
+        if (o instanceof List) {
+            builder.array("distribution", (List) o);
+        } else {
+            builder.field("distribution", o);
         }
         builder.startObject("info")
                 .startObject("location")
@@ -172,7 +189,6 @@ public class MonographVolumeHolding extends Holding {
                 .fieldIfNotNull("collection", map.get("shelfmark")) // 088 b sublocation (Standort)
                 .fieldIfNotNull("callnumber", map.get("callnumber")) // 088 c (Signatur)
                         //.fieldIfNotNull("collection", map.get("collection")) // 088 d zus. Bestandsangabe (nicht vorhanden)
-
                 .endObject();
         builder.endObject().endObject();
     }

@@ -3,7 +3,7 @@
  * license agreements. See the NOTICE.txt file distributed with this work
  * for additional information regarding copyright ownership.
  *
- * Copyright (C) 2012 Jörg Prante and xbib
+ * Copyright (C) 2015 Jörg Prante and xbib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -29,59 +29,30 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.convert.freebase;
+package org.xbib.tools.merge.serials.support;
 
-import org.xbib.io.InputService;
-import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
-import org.xbib.rdf.io.turtle.TurtleContentParser;
-import org.xbib.tools.Converter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
+public class MappedISIL {
 
-/**
- * Freebase converter
- */
-public class Freebase extends Converter {
+    private Map<String,Object> lookup = new HashMap<>();
 
-    @Override
-    public String getName() {
-        return "freebase-turtle-ntriples";
-    }
-
-    protected PipelineProvider<Pipeline> pipelineProvider() {
-        return Freebase::new;
-    }
-
-    // TODO
-    @Override
-    public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
-        String output = settings.get("output");
-        if (!output.endsWith(".gz")) {
-            output = output + ".gz";
+    @SuppressWarnings("unchecked")
+    public void buildLookup(InputStream in) throws IOException {
+        if (in == null) {
+            return;
         }
-        OutputStream out = new GZIPOutputStream(new FileOutputStream(output)) {
-            {
-                def.setLevel(Deflater.BEST_COMPRESSION);
-            }
-        };
-        RdfContentBuilder builder = ntripleBuilder(out);
-        TurtleContentParser parser = new TurtleContentParser(in)
-                .setBaseIRI(IRI.create(settings.get("base")));
-        parser.parse();
+        ObjectMapper mapper = new ObjectMapper();
+        lookup = mapper.readValue(in, Map.class);
         in.close();
-        out.close();
     }
 
+    public Map<String,Object> lookup() {
+        return lookup;
+    }
 }
-

@@ -1,6 +1,5 @@
 package bench;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
 import org.xbib.marc.Field;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
@@ -8,6 +7,7 @@ import org.xbib.marc.json.MarcXchangeJSONLinesWriter;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.marc.xml.MarcXchangeReader;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

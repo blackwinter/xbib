@@ -61,6 +61,7 @@ import org.xbib.tools.merge.serials.support.BibdatLookup;
 import org.xbib.tools.merge.serials.support.BlackListedISIL;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.tools.merge.serials.support.ConsortiaLookup;
+import org.xbib.tools.merge.serials.support.MappedISIL;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
@@ -111,6 +112,8 @@ public class WithHoldingsAndLicenses
 
     private static BlackListedISIL isilbl;
 
+    private static MappedISIL isilMapped;
+
     private static MeterMetric queryMetric;
 
     private static MeterMetric indexMetric;
@@ -155,6 +158,15 @@ public class WithHoldingsAndLicenses
             logger.error(e.getMessage(), e);
         }
         logger.info("ISIL blacklist prepared, size = {}", isilbl.lookup().size());
+
+        logger.info("preparing mapped ISIL...");
+        isilMapped = new MappedISIL();
+        try {
+            isilMapped.buildLookup(getClass().getResourceAsStream("isil.map"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
 
         logger.info("preparing status code mapper...");
         Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
@@ -469,6 +481,10 @@ public class WithHoldingsAndLicenses
 
     public BlackListedISIL blackListedISIL() {
         return isilbl;
+    }
+
+    public MappedISIL mappedISIL() {
+        return isilMapped;
     }
 
     public StatusCodeMapper statusCodeMapper() {

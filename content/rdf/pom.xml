@@ -31,10 +31,5 @@
             <artifactId>xbib-io-stream</artifactId>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-http</artifactId>
-            <type>jar</type>
-        </dependency>
     </dependencies>
 </project>

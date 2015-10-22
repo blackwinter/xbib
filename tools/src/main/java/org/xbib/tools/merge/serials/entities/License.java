@@ -60,12 +60,12 @@ public class License extends Holding {
         String parent = getString("ezb:zdbid");
         addParent(parent);
         this.isil = getString("ezb:isil");
-        this.serviceisil = isil;
+        setServiceISIL(isil);
         this.deleted = "delete".equals(getString("ezb:action"));
         buildDateArray();
         this.info = buildInfo();
         this.findContentType();
-        this.priority = this.findPriority();
+        setPriority(this.findPriority());
     }
 
     @Override
@@ -126,56 +126,56 @@ public class License extends Holding {
                 case "no":
                 case "none":
                 case "nein": {
-                    servicetype = "interlibrary";
-                    servicemode = "none";
-                    servicedistribution = "none";
+                    setServiceType("interlibrary");
+                    setServiceMode("none");
+                    setServiceDistribution("none");
                     break;
                 }
                 case "l":
                 case "copy-loan":
                 case "ja, Leihe und Kopie": {
-                    servicetype = "interlibrary";
-                    servicemode = Arrays.asList("copy", "loan");
-                    servicedistribution = "unrestricted";
+                    setServiceType("interlibrary");
+                    setServiceMode(Arrays.asList("copy", "loan"));
+                    setServiceDistribution("unrestricted");
                     break;
                 }
                 case "copy-loan-domestic":
                 case "ja, Leihe und Kopie (nur Inland)": {
-                    servicetype = "interlibrary";
-                    servicemode = Arrays.asList("copy", "loan");
-                    servicedistribution = "domestic";
+                    setServiceType("interlibrary");
+                    setServiceMode(Arrays.asList("copy", "loan"));
+                    setServiceDistribution("domestic");
                     break;
                 }
                 case "k":
                 case "copy":
                 case "ja, nur Kopie": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "unrestricted";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("unrestricted");
                     break;
                 }
                 case "kn":
                 case "copy-domestic":
                 case "ja, nur Kopie (nur Inland)": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "domestic";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("domestic");
                     break;
                 }
                 case "e":
                 case "copy-electronic":
                 case "ja, auch elektronischer Versand an Nutzer": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "electronic";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("electronic");
                     break;
                 }
                 case "en":
                 case "copy-electronic-domestic":
                 case "ja, auch elektronischer Versand an Nutzer (nur Inland)": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = Arrays.asList("electronic", "domestic");
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution(Arrays.asList("electronic", "domestic"));
                     break;
                 }
                 default: {
@@ -187,15 +187,15 @@ public class License extends Holding {
         String q = getString("ezb:ill_relevance.ezb:inland_only");
         String r = getString("ezb:ill_relevance.ezb:il_electronic_forbidden");
         if ("true".equals(q) && "true".equals(r)) {
-            servicedistribution = Arrays.asList("postal", "domestic");
+            setServiceDistribution(Arrays.asList("postal", "domestic"));
         } else if ("true".equals(q)) {
-            servicedistribution = "domestic";
+            setServiceDistribution("domestic");
         } else if ("true".equals(r)) {
-            servicedistribution = "postal";
+            setServiceDistribution("postal");
         }
         String comment = getString("ezb:ill_relevance.ezb:comment");
         if (!Strings.isNullOrEmpty(comment)) {
-            servicecomment = comment;
+            setServiceComment(comment);
         }
         Map<String, Object> group = newHashMap();
         // first date and last date is obligatory
@@ -240,13 +240,31 @@ public class License extends Holding {
 
     @Override
     protected Integer findPriority() {
+        Object o = getServiceType();
+        if (o == null) {
+            return 9;
+        }
+        o = getServiceMode();
+        if (o == null) {
+            return 9;
+        }
         if (carrierType == null) {
             return 9;
         }
         switch (carrierType) {
             case "online resource":
-                return (servicedistribution != null
-                        && servicedistribution.toString().contains("postal")) ? 3 : 1;
+                o = getServiceDistribution();
+                if (o != null) {
+                    if (o instanceof List) {
+                        List l = (List)o;
+                        if (l.contains("postal")) {
+                            return 3;
+                        }
+                    } else if (o.toString().equals("postal")) {
+                        return 3;
+                    }
+                }
+                return 1;
             case "volume":
                 return 2;
             case "computer disc":

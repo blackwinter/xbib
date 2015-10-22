@@ -64,6 +64,23 @@ public class GNDRdfXmlReaderTest extends StreamTester {
     }
 
     @Test
+    public void testGNDfromRdfXmltoTurtle2() throws Exception {
+        String filename = "/org/xbib/rdf/io/rdfxml/GND.rdf";
+        InputStream in = getClass().getResourceAsStream(filename);
+        if (in == null) {
+            throw new IOException("file " + filename + " not found");
+        }
+        TurtleContentParams params = new TurtleContentParams(IRINamespaceContext.newInstance(), false);
+        RdfXmlContentParser reader = new RdfXmlContentParser(in);
+        StringBuilder sb = new StringBuilder();
+        reader.setRdfContentBuilderProvider(() -> turtleBuilder(params));
+        reader.setRdfContentBuilderHandler(builder -> sb.append(builder.string()));
+        reader.parse();
+        assertStream(new InputStreamReader(getClass().getResource("gnd.ttl").openStream()),
+                new StringReader(sb.toString()));
+    }
+
+    @Test
     public void testGNDtoNtriple() throws Exception {
         String filename = "/org/xbib/rdf/io/rdfxml/GND.rdf";
         InputStream in = getClass().getResourceAsStream(filename);

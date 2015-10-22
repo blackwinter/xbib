@@ -295,7 +295,7 @@ public class MonographVolume extends TitleRecord {
     public void toXContent(XContentBuilder builder, ToXContent.Params params, StatCounter statCounter)
             throws IOException {
         builder.startObject();
-        builder.field("identifierForTheTitleRecord", getIdentifier())
+        builder.field("identifierForTheManifestation", getIdentifier())
                 .array("parents", parents)
                 .field("title", getTitle())
                 .field("titlecomponents", titleComponents)

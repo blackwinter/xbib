@@ -62,11 +62,11 @@ public class Indicator extends License {
         String parent = getString("xbib:identifier");
         addParent(parent);
         this.isil = getString("xbib:isil");
-        this.serviceisil = isil;
+        setServiceISIL(isil);
         buildDateArray();
         this.info = buildInfo();
         this.findContentType();
-        this.priority = this.findPriority();
+        setPriority(this.findPriority());
     }
 
     @Override
@@ -113,51 +113,51 @@ public class Indicator extends License {
         if (s != null) {
             switch (s) {
                 case "kxn": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "domestic";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("domestic");
                     break;
                 }
                 case "kxx": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "unrestricted";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("unrestricted");
                     break;
                 }
                 case "kpn": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = Arrays.asList("postal", "domestic");
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution(Arrays.asList("postal", "domestic"));
                     break;
                 }
                 case "kpx": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "postal";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("postal");
                     break;
                 }
                 case "exn": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = Arrays.asList("electronic", "domestic");
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution(Arrays.asList("electronic", "domestic"));
                     break;
                 }
                 case "exx": {
-                    servicetype = "interlibrary";
-                    servicemode = "copy";
-                    servicedistribution = "electronic";
+                    setServiceType("interlibrary");
+                    setServiceMode("copy");
+                    setServiceDistribution("electronic");
                     break;
                 }
                 default: {
-                    servicetype = "interlibrary";
-                    servicemode = "none";
-                    servicedistribution = "none";
+                    setServiceType("interlibrary");
+                    setServiceMode("none");
+                    setServiceDistribution("none");
                     break;
                 }
             }
             String comment = getString("xbib:comment");
             if (!Strings.isNullOrEmpty(comment)) {
-                servicecomment = comment;
+                setServiceComment(comment);
             }
         }
         Map<String, Object> group = newHashMap();

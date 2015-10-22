@@ -83,14 +83,16 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
     }
 
     public MemoryResource blank() {
-        id(IRI.builder().curie(GENID, "b" + next()).build());
-        this.embedded = true;
-        return this;
+        return blank(IRI.builder().curie(GENID, "b" + next()).build());
     }
 
     public MemoryResource blank(String id) {
-        id(id != null && id.startsWith(PLACEHOLDER) ?
+        return blank(id != null && id.startsWith(PLACEHOLDER) ?
                 IRI.builder().curie(id).build() : IRI.builder().curie(GENID, id).build());
+    }
+
+    public MemoryResource blank(IRI id) {
+        id(id);
         this.embedded = true;
         return this;
     }
@@ -110,7 +112,8 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
     public MemoryResource id(IRI id) {
         this.id = id;
         if (id != null) {
-            embedded = GENID.equals(id.getScheme());
+            String scheme = id.getScheme();
+            embedded = scheme != null && (GENID.equals(scheme) || ("_".equals(scheme)));
         }
         return this;
     }
@@ -158,13 +161,14 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
         if (triple == null) {
             return this;
         }
-        IRI id = triple.subject().id();
+        Resource r = triple.subject();
+        IRI id = r.id();
         if (id == null || id.equals(id())) {
             add(triple.predicate(), triple.object());
         } else {
-            Resource r = children.get(id);
-            if (r != null) {
-                return r.add(triple);
+            Resource child = children.get(id);
+            if (child != null) {
+                return child.add(triple);
             } else {
                 // nothing found, continue with a new resource with new subject
                 return new MemoryResource().id(id).add(triple);

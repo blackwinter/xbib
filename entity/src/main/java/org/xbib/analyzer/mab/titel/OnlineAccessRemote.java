@@ -78,8 +78,10 @@ public class OnlineAccessRemote extends MABEntity {
                 isil = mapper.lookup(value);
                 state.setISIL(isil);
                 IRI uid = state.getUID();
-                // update UID to correct value
-                state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + uid.getSchemeSpecificPart()).build());
+                if (uid != null) {
+                    // update UID to correct value
+                    state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + uid.getSchemeSpecificPart()).build());
+                }
             }
             resource.add("identifier", isil);
             ConfigurableClassifier classifier = worker.classifier();

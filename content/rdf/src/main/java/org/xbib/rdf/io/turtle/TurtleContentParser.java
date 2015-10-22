@@ -31,10 +31,14 @@
  */
 package org.xbib.rdf.io.turtle;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
-import org.xbib.rdf.RdfContentGenerator;
+import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.RdfContentBuilderHandler;
+import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfContentParser;
 import org.xbib.rdf.RdfContentType;
 import org.xbib.rdf.Resource;
@@ -64,9 +68,15 @@ import java.util.Stack;
  */
 public class TurtleContentParser implements RdfContentParser {
 
-    private final static Resource resource = new MemoryResource();
+    private final Resource resource = new MemoryResource();
 
-    private final HashMap<String, Node> bnodes = new HashMap<String, Node>();
+    private final HashMap<String, Node> bnodes = new HashMap<>();
+
+    private RdfContentBuilderProvider provider;
+
+    private RdfContentBuilderHandler rdfContentBuilderHandler;
+
+    private RdfContentBuilder builder;
 
     /**
      * The base IRI
@@ -102,7 +112,7 @@ public class TurtleContentParser implements RdfContentParser {
      */
     private boolean eof;
     /**
-     * Stack for resource statements
+     * Stack for triples
      */
     private Stack<Triple> triples;
     /**
@@ -110,9 +120,7 @@ public class TurtleContentParser implements RdfContentParser {
      */
     private XmlNamespaceContext context = XmlNamespaceContext.getDefaultInstance();
 
-    private RdfContentGenerator builder;
-
-    private boolean strict = false;
+    //private boolean strict = false;
 
     public TurtleContentParser(InputStream in) throws IOException {
         this(new InputStreamReader(in, "UTF-8"));
@@ -127,6 +135,16 @@ public class TurtleContentParser implements RdfContentParser {
         return StandardRdfContentType.TURTLE;
     }
 
+    public TurtleContentParser setRdfContentBuilderProvider(RdfContentBuilderProvider provider) {
+        this.provider = provider;
+        return this;
+    }
+
+    public TurtleContentParser setRdfContentBuilderHandler(RdfContentBuilderHandler rdfContentBuilderHandler) {
+        this.rdfContentBuilderHandler = rdfContentBuilderHandler;
+        return this;
+    }
+
     public TurtleContentParser setBaseIRI(IRI baseIRI) {
         this.baseIRI = baseIRI;
         return this;
@@ -137,24 +155,16 @@ public class TurtleContentParser implements RdfContentParser {
         return this;
     }
 
-    public TurtleContentParser builder(RdfContentGenerator builder) {
-        this.builder = builder;
-        return this;
-    }
-
-    /**
-     * Read statements and parse them. A valid base URI must be given in the
-     * properties.
-     */
     @Override
     public TurtleContentParser parse() throws IOException {
+        if (provider != null) {
+            builder = provider.newContentBuilder();
+            builder.startStream();
+        }
         this.reader = new PushbackReader(reader, 2);
         this.sb = new StringBuilder();
         this.eof = false;
-        this.triples = new Stack<Triple>();
-        if (builder != null) {
-            builder.startStream();
-        }
+        this.triples = new Stack<>();
         try {
             while (!eof) {
                 char ch = skipWhitespace();
@@ -170,7 +180,15 @@ public class TurtleContentParser implements RdfContentParser {
         } finally {
             this.reader.close();
             if (builder != null) {
+                while (!triples.isEmpty()) {
+                    Triple t = triples.pop();
+                    builder.receive(t);
+                }
+                if (rdfContentBuilderHandler != null) {
+                    rdfContentBuilderHandler.build(builder);
+                }
                 builder.endStream();
+                bnodes.clear();
             }
         }
         return this;
@@ -178,18 +196,15 @@ public class TurtleContentParser implements RdfContentParser {
 
     /**
      * Parse a directive.
-     * <p>
      * The prefix directive binds a prefix to a namespace URI. It indicates that
      * a qualified name (qname) with that prefix will thereafter be a shorthand
      * for a URI consisting of the concatenation of the namespace identifier and
      * the bit of the qname to the right of the (only allowed) colon.
-     * <p>
      * The namespace prefix may be empty, in which case the qname starts with a
      * colon. This is known as the default namespace. The empty prefix "" is by
      * default , bound to "#" -- the local namespace of the file. The parser
      * behaves as though there were a @prefix : <#>. just before the file. This
      * means that <#foo> can be written :foo.
-     * <p>
      * The base directive sets the base URI to be used for the parsing of
      * relative URIs. It takes, itself, a relative URI, so it can be used to
      * change the base URI relative to the previous one.
@@ -307,11 +322,6 @@ public class TurtleContentParser implements RdfContentParser {
         }
     }
 
-    /**
-     * Parse triple object
-     *
-     * @throws IOException
-     */
     private void parseObject() throws IOException {
         char ch = peek();
         if (ch == '(') {
@@ -325,29 +335,30 @@ public class TurtleContentParser implements RdfContentParser {
         if (subject.isEmbedded()) {
             // Push triples with blank node subjects on stack.
             // The idea for having ordered getResource properties is:
-            // All getResource property triples should be serialized
-            // after the getResource parent triple.
+            // All resource property triples should be serialized
+            // after the resource parent triple.
             triples.add(0, stmt);
         } else {
-            // Send builder events. A record is grouped by a sequence of same non-blank subjects
-            if (lastsubject == null) {
-                if (builder != null) {
+            // A "record" is grouped by a sequence of same (non-blank) subjects
+            // build temp resource and pass triples to builder
+            if (lastsubject == null || !subject.equals(lastsubject)) {
+                if (provider != null) {
+                    while (!triples.isEmpty()) {
+                        Triple t = triples.pop();
+                        builder.receive(t);
+                    }
+                    if (rdfContentBuilderHandler != null && builder.getSubject() != null) {
+                        rdfContentBuilderHandler.build(builder);
+                    }
+                    bnodes.clear();
+                    builder = provider.newContentBuilder();
                     builder.receive(subject.id());
+                    builder.receive(stmt);
                 }
                 lastsubject = subject;
-            } else if (!subject.equals(lastsubject)) {
+            } else {
                 if (builder != null) {
-                    builder.receive(subject.id());
-                }
-                lastsubject = subject;
-            }
-            if (builder != null) {
-                builder.receive(stmt);
-            }
-            while (!triples.isEmpty()) {
-                Triple s = triples.pop();
-                if (builder != null) {
-                    builder.receive(s);
+                    builder.receive(stmt);
                 }
             }
         }
@@ -370,41 +381,33 @@ public class TurtleContentParser implements RdfContentParser {
         } else if ((int) ch == 65535) {
             throw new EOFException();
         } else {
-            throw new IOException(baseIRI
-                    + ": unable to parse value, unknown character: code = " + (int) ch
-                    + " character = '" + ch + "'");
+            throw new IOException(baseIRI + ": unable to parse value, unknown character: code = " + (int) ch
+                    + " character = '" + ch + "'.  Last triple seen: " + subject + " " + predicate + " " + object);
         }
     }
 
-    /**
-     * Parse IRI
-     *
-     * @return an IRI
-     * @throws IOException
-     */
     private IRI parseURI() throws IOException {
         char ch = read();
-        validate(ch, '<');
+        boolean checkForClose = false;
+        if (ch == '<') {
+            ch = read(); // skip '<' and check for closing '>'
+            checkForClose = true;
+        }
         sb.setLength(0);
-        ch = read();
-        boolean ended;
-        do {
-            while (ch != '>') {
-                sb.append(ch);
-                if (ch == '\\') {
-                    ch = read();
-                    sb.append(ch);
-                }
+        boolean ended = false;
+        while (!ended) {
+            sb.append(ch);
+            if (ch == '\\') {
                 ch = read();
+                sb.append(ch);
             }
-            // '>' not escaped?
             ch = read();
-            ended = (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
-            if (!ended) {
-                //logger.warn("{} unescaped ''>'' in URI: {}", subject, sb);
-            }
-        } while (!ended);
-        String decoded = decode(sb.toString(), "UTF-8");
+            ended = checkForClose ?
+                    (ch == '>') :
+                    (ch == '>' || ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
+        }
+        // we trim to cope with GND erraneous IRIs like skos:exactMatch <http://zbw.eu/stw/descriptor/18673-1 > ;
+        String decoded = decode(sb.toString().trim(), "UTF-8");
         IRI u = IRI.builder().curie(decoded).build();
         u = baseIRI.resolve(u);
         return u;
@@ -417,11 +420,11 @@ public class TurtleContentParser implements RdfContentParser {
      * @throws IOException
      */
     private Node parseQNameOrBoolean() throws IOException {
+        sb.setLength(0);
         char ch = read();
         if (ch != ':' && !isPrefixStartChar(ch)) {
             throw new IOException(baseIRI + ": expected colon or letter, not: '" + ch + "'");
         }
-        sb.setLength(0);
         String ns;
         if (ch == ':') {
             ns = context.getNamespaceURI("");
@@ -441,7 +444,7 @@ public class TurtleContentParser implements RdfContentParser {
             validate(ch, ':');
             ns = context.getNamespaceURI(sb.toString());
             if (ns == null) {
-                throw new IOException(baseIRI + ": namespace not found: " + sb.toString());
+                throw new IOException(baseIRI + ": namespace not found: " + sb.toString() );
             }
         }
         sb.setLength(0);
@@ -456,7 +459,8 @@ public class TurtleContentParser implements RdfContentParser {
         }
         reader.unread(ch);
         // namespace is already resolved
-        return new MemoryResource().id(IRI.create(ns + sb));
+        IRI iri = IRI.builder().curie(ns + sb).build();
+        return new MemoryResource().id(iri);
     }
 
     /**
@@ -502,7 +506,7 @@ public class TurtleContentParser implements RdfContentParser {
         if (ch == ')') {
             reader.read();
             MemoryResource r = new MemoryResource();
-            r.id(IRI.create("rdf:nil"));
+            r.id(IRI.builder().curie("rdf", "nil").build());
             return r;
         } else {
             MemoryResource first = new MemoryResource();
@@ -525,7 +529,7 @@ public class TurtleContentParser implements RdfContentParser {
             }
             reader.read();
             if (builder != null) {
-                Node value = new MemoryResource().id(IRI.create("rdf:null"));
+                Node value = new MemoryResource().id(IRI.builder().curie("rdf", "null").build());
                 builder.receive(new MemoryTriple(blanknode, resource.newPredicate("rdf:rest"), value));
             }
             subject = oldsubject;
@@ -591,7 +595,9 @@ public class TurtleContentParser implements RdfContentParser {
         } else if (ch == '^') {
             reader.read();
             validate(reader.read(), '^');
-            return new MemoryLiteral(value).type(parseURI());
+            skipWhitespace();
+            IRI iri = parseURI();
+            return new MemoryLiteral(value).type(iri);
         } else {
             return new MemoryLiteral(value);
         }
@@ -664,7 +670,7 @@ public class TurtleContentParser implements RdfContentParser {
 
     private Literal parseNumber() throws IOException {
         sb.setLength(0);
-        IRI datatype = IRI.create("xsd:integer");
+        IRI datatype = IRI.builder().curie("xsd", "integer").build();
         char ch = read();
         if (ch == '+' || ch == '-') {
             sb.append(ch);
@@ -675,7 +681,7 @@ public class TurtleContentParser implements RdfContentParser {
             ch = read();
         }
         if (ch == '.' || ch == 'e' || ch == 'E') {
-            datatype = IRI.create("xsd:decimal");
+            datatype = IRI.builder().curie("xsd", "decimal").build();
             if (ch == '.') {
                 sb.append(ch);
                 ch = read();
@@ -692,7 +698,7 @@ public class TurtleContentParser implements RdfContentParser {
                 }
             }
             if (ch == 'e' || ch == 'E') {
-                datatype = IRI.create("xsd:double");
+                datatype = IRI.builder().curie("xsd", "double").build();
                 sb.append(ch);
                 ch = read();
                 if (ch == '+' || ch == '-') {
@@ -763,14 +769,12 @@ public class TurtleContentParser implements RdfContentParser {
     }
 
     private void validate(int ch, char v) throws IOException {
-        if ((char) ch != v) {
+        /*if ((char) ch != v) {
             String message = (subject != null ? subject : "") + " unexpected character: '" + (char) ch + "' expected: '" + v + "'";
             if (strict) {
                 throw new IOException(message);
-            } else {
-                //logger.info(message);
             }
-        }
+        }*/
     }
 
     private boolean isWhitespace(char ch) {
@@ -807,12 +811,12 @@ public class TurtleContentParser implements RdfContentParser {
         while (pos != -1) {
             sb.append(s.substring(i, pos));
             if (pos + 1 >= len) {
-                if (strict) {
+                break;
+                /*if (strict) {
                     throw new IllegalArgumentException("unescaped backslash in: " + s);
                 } else {
-                    //logger.warn("unescaped backslash in: " + s);
                     break;
-                }
+                }*/
             }
             char ch = s.charAt(pos + 1);
             if (ch == 't') {
@@ -858,13 +862,12 @@ public class TurtleContentParser implements RdfContentParser {
                     throw new IllegalArgumentException("illegal Unicode escape sequence '\\U" + xx + "' in: " + s);
                 }
             } else {
-                if (strict) {
+                /*if (strict) {
                     throw new IllegalArgumentException("unescaped backslash in: " + s);
-                } else {
-                    //logger.warn("unescaped backslash in: " + s);
+                } else {*/
                     sb.append('\\');
                     i = pos + 2;
-                }
+                //}
             }
             pos = s.indexOf('\\', i);
         }

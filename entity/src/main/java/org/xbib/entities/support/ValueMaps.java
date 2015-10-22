@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,7 +57,11 @@ public class ValueMaps {
     public synchronized static Map getMap(ClassLoader cl, String path, String format) {
         if (cl != null && !maps.containsKey(format)) {
             try {
-                InputStream in = cl.getResource(path).openStream();
+                URL url = cl.getResource(path);
+                if (url == null) {
+                    throw new IllegalArgumentException("resource in class path does not exist " + path);
+                }
+                InputStream in = url.openStream();
                 if (in == null) {
                     throw new IOException("format " + format + " not found: " + path + format);
                 }
@@ -72,7 +77,11 @@ public class ValueMaps {
     public synchronized static Map<String, String> getAssocStringMap(ClassLoader cl, String path, String format) {
         if (cl != null && !maps.containsKey(format)) {
             try {
-                InputStream in = cl.getResource(path).openStream();
+                URL url = cl.getResource(path);
+                if (url == null) {
+                    throw new IllegalArgumentException("resource in class path does not exist " + path);
+                }
+                InputStream in = url.openStream();
                 if (in == null) {
                     throw new IOException("format " + format + " not found: " + path + format);
                 }
@@ -90,7 +99,7 @@ public class ValueMaps {
                 }
                 in.close();
             } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
             }
         }
         return (Map<String, String>) maps.get(format);

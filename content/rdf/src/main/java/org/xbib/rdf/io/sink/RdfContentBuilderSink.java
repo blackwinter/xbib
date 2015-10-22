@@ -46,7 +46,6 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
 
 import java.io.IOException;
-import java.util.function.Consumer;
 
 public class RdfContentBuilderSink implements QuadSink {
 

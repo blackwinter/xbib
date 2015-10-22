@@ -455,8 +455,13 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<TitelRecordRequ
                     if (isil == null) {
                         continue;
                     }
+                    // blacklisted ISIL?
                     if (withHoldingsAndLicenses.blackListedISIL().lookup().contains(isil)) {
                         continue;
+                    }
+                    // mapped ISIL?
+                    if (withHoldingsAndLicenses.mappedISIL().lookup().containsKey(isil)) {
+                        isil = (String)withHoldingsAndLicenses.mappedISIL().lookup().get(isil);
                     }
                     // consortia?
                     if (withHoldingsAndLicenses.consortiaLookup().lookupISILs().containsKey(isil)) {
@@ -951,7 +956,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<TitelRecordRequ
             if (m.hasLinks()) {
                 builder.field("links", m.getLinks());
             }
-            builder.startArray("institutions");
+            builder.startArray("institution");
             int instcount = 0;
             for (String holder : holdings.keySet()) {
                 Set<Holding> uniqueholdings = unique(holdings.get(holder));
@@ -1062,7 +1067,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<TitelRecordRequ
         Set<Holding> newHoldings = newTreeSet();
         for (Holding holding : holdings) {
             if (holding instanceof Indicator) {
-                // check if there are other licenses that match indicator
+                // check if there are other licenses that match
                 Collection<Holding> other = holding.getSame(holdings);
                 if (other.isEmpty() || other.size() == 1) {
                     newHoldings.add(holding);
@@ -1073,6 +1078,7 @@ public class WithHoldingsAndLicensesPipeline implements Pipeline<TitelRecordRequ
                         h.setServiceMode(holding.getServiceMode());
                         h.setServiceDistribution(holding.getServiceDistribution());
                         h.setServiceComment(holding.getServiceComment());
+                        h.setPriority(holding.getPriority());
                     }
                 }
             } else {
