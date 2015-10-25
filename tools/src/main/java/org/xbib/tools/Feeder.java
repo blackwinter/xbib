@@ -87,7 +87,7 @@ public abstract class Feeder extends Converter {
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    protected void prepareSink() throws IOException {
         logger.info("preparing ingest");
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
@@ -108,7 +108,7 @@ public abstract class Feeder extends Converter {
     }
 
     @Override
-    public Feeder cleanup() throws IOException {
+    protected Feeder cleanup() throws IOException {
         super.cleanup();
         if (ingest != null) {
             try {
@@ -129,6 +129,9 @@ public abstract class Feeder extends Converter {
 
     @Override
     protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
+        if (metric ==null) {
+            return;
+        }
         long docs = metric.count();
         double mean = metric.meanRate();
         double oneminute = metric.oneMinuteRate();

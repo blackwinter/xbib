@@ -84,6 +84,7 @@ public final class Medline extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
+        logger.debug("start uri={}", uri);
         namespaceContext.add(new HashMap<String, String>() {{
             put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
             put("dc", "http://purl.org/dc/elements/1.1/");
@@ -102,6 +103,7 @@ public final class Medline extends Feeder {
                 .setHandler(handler)
                 .parse();
         in.close();
+        logger.debug("end uri={}", uri);
     }
 
     private class Handler extends AbstractXmlResourceHandler {

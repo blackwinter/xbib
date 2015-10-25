@@ -61,13 +61,11 @@ public class MedlineTest {
             logger.info("{}", url.toURI());
             Medline medline = new Medline();
             Settings settings = ImmutableSettings.settingsBuilder()
+                    .put("uri", url.toString())
                     .put("mock", true)
                     .build();
             medline.setSettings(settings);
-            medline.prepareSink();
-            medline.prepareSource();
-            medline.process(url.toURI());
-            medline.cleanup();
+            medline.run();
         } else {
             logger.warn("not found");
         }
@@ -95,7 +93,7 @@ public class MedlineTest {
                 RdfXContentParams params = new RdfXContentParams(namespaceContext);
                 builder = rdfXContentBuilder(params);
                 builder.receive(mf.map(map));
-                logger.info("result={}", params.getGenerator().get());
+                logger.info("medline mapper result={}", params.getGenerator().get());
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }

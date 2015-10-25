@@ -56,16 +56,18 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URI;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
 
 public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
         extends AbstractPipeline<URIPipelineRequest> implements Provider {
 
-    private final static Logger logger = LogManager.getLogger(Converter.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(Converter.class.getName());
 
     protected Reader reader;
 
@@ -90,85 +92,26 @@ public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
         return this;
     }
 
-    public void setSettings(Settings newSettings) {
-        settings = newSettings;
-    }
-
-    public void prepareSource() throws IOException {
-        logger.info("preparing input queue");
-        try {// check if running is allowed only on a configured host
-            if (settings.get("runhost") != null) {
-                boolean found = false;
-                Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-                for (NetworkInterface netint : Collections.list(nets)) {
-                    Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
-                    for (InetAddress addr : Collections.list(inetAddresses)) {
-                        if (addr.getHostName().equals(settings.get("runhost"))) {
-                            found = true;
-                        }
-                    }
-                }
-                if (!found) {
-                    logger.error("configured run host {} not found, exiting", settings.get("runhost"));
-                    System.exit(1);
-                }
-            }
-            if (settings.get("uri") != null) {
-                URIPipelineRequest element = new URIPipelineRequest();
-                element.set(URI.create(settings.get("uri")));
-                getQueue().put(element);
-                // parallel URI connection possible?
-                if (settings.getAsBoolean("parallel", false)) {
-                    for (int i = 1; i < settings.getAsInt("concurrency", 1); i++) {
-                        element = new URIPipelineRequest();
-                        element.set(URI.create(settings.get("uri")));
-                        getQueue().put(element);
-                    }
-                }
-            } else if (settings.get("path") != null) {
-                Queue<URI> uris = new Finder(settings.get("pattern"))
-                        .find(settings.get("path"))
-                        .pathSorted(settings.getAsBoolean("isPathSorted", false))
-                        .chronologicallySorted(settings.getAsBoolean("isChronologicallySorted", false))
-                        .getURIs();
-                logger.info("input from path = {}", uris);
-                for (URI uri : uris) {
-                    URIPipelineRequest element = new URIPipelineRequest();
-                    element.set(uri);
-                    getQueue().put(element);
-                }
-            } else if (settings.get("archive") != null) {
-                URIPipelineRequest element = new URIPipelineRequest();
-                element.set(URI.create(settings.get("archive")));
-                getQueue().put(element);
-                TarConnectionFactory factory = new TarConnectionFactory();
-                Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
-                session = connection.createSession();
-                session.open(Session.Mode.READ);
-            }
-        } catch (InterruptedException e) {
-            throw new IOException(e);
-        }
-    }
-
     @Override
     public void run() throws Exception {
         try {
+            setQueue(new ArrayBlockingQueue<URIPipelineRequest>(32, true));
+            logger.info("preparing sink");
             prepareSink();
+            logger.info("preparing source");
+            prepareSource();
             int concurrency = settings.getAsInt("concurrency", 1);
-            //metric pipeline setExecutor only uses concurrency over different URIs
-            // in the input queue, not with a single URI input
+            logger.info("preparing executor");
             executor = new MetricSimplePipelineExecutor<URIPipelineRequest, Pipeline<URIPipelineRequest>>()
                     .setConcurrency(concurrency)
                     .setQueue(getQueue())
                     .setPipelineProvider(pipelineProvider())
-                    .prepare()
-                    .execute();
-            logger.info("preparing with settings {}", settings.getAsMap());
-            prepareSource();
+                    .prepare();
             logger.info("executing with concurrency={}", concurrency);
-            executor.waitFor();
+            executor.execute().waitFor();
             logger.info("execution completed");
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
         } finally {
             cleanup();
             if (executor != null) {
@@ -176,14 +119,6 @@ public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
                 writeMetrics(executor.metric(), writer);
             }
         }
-    }
-
-
-    public Converter<P> cleanup() throws IOException {
-        if (session != null) {
-            session.close();
-        }
-        return this;
     }
 
     @Override
@@ -194,13 +129,100 @@ public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
     @Override
     public void newRequest(Pipeline<URIPipelineRequest> pipeline, URIPipelineRequest request) {
         try {
-            process(request.get());
-        } catch (Exception ex) {
+            URI uri =request.get();
+            logger.info("processing URI {}", uri);
+            process(uri);
+        } catch (Throwable ex) {
             logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
         }
     }
 
+    public void setSettings(Settings newSettings) {
+        settings = newSettings;
+    }
+
+    protected void prepareSink() throws IOException {
+    }
+
+    protected void prepareSource() throws IOException {
+        if (settings.get("runhost") != null) {
+            logger.info("preparing input queue only on runhost={}", settings.get("runhost"));
+            boolean found = false;
+            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+            for (NetworkInterface netint : Collections.list(nets)) {
+                Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+                for (InetAddress addr : Collections.list(inetAddresses)) {
+                    if (addr.getHostName().equals(settings.get("runhost"))) {
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                logger.error("configured run host {} not found, exiting", settings.get("runhost"));
+                System.exit(1);
+            }
+        }
+        if (settings.getAsArray("uri").length > 0) {
+            logger.info("preparing input queue from uri array={}",
+                    Arrays.asList(settings.getAsArray("uri")));
+            String[] inputs = settings.getAsArray("uri");
+            setQueue(new ArrayBlockingQueue<URIPipelineRequest>(inputs.length, true));
+            for (String input : inputs) {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(URI.create(input));
+                getQueue().offer(element);
+            }
+        } else if (settings.get("uri") != null) {
+            logger.info("preparing input queue from uri={}", settings.get("uri"));
+            String input = settings.get("uri");
+            URIPipelineRequest element = new URIPipelineRequest();
+            element.set(URI.create(input));
+            getQueue().offer(element);
+            // parallel URI into queue?
+            if (settings.getAsBoolean("parallel", false)) {
+                for (int i = 1; i < settings.getAsInt("concurrency", 1); i++) {
+                    element = new URIPipelineRequest();
+                    element.set(URI.create(input));
+                    getQueue().offer(element);
+                }
+            }
+        } else if (settings.get("path") != null) {
+            logger.info("preparing input queue from pattern={}", settings.get("pattern"));
+            Queue<URI> uris = new Finder(settings.get("pattern"))
+                    .find(settings.get("path"))
+                    .pathSorted(settings.getAsBoolean("isPathSorted", false))
+                    .chronologicallySorted(settings.getAsBoolean("isChronologicallySorted", false))
+                    .getURIs();
+            logger.info("input from path = {}", uris);
+            setQueue(new ArrayBlockingQueue<URIPipelineRequest>(uris.size(), true));
+            for (URI uri : uris) {
+                URIPipelineRequest element = new URIPipelineRequest();
+                element.set(uri);
+                getQueue().offer(element);
+            }
+        } else if (settings.get("archive") != null) {
+            logger.info("preparing input queue from archive={}", settings.get("archive"));
+            URIPipelineRequest element = new URIPipelineRequest();
+            element.set(URI.create(settings.get("archive")));
+            getQueue().offer(element);
+            TarConnectionFactory factory = new TarConnectionFactory();
+            Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
+            session = connection.createSession();
+            session.open(Session.Mode.READ);
+        }
+    }
+
+    protected Converter<P> cleanup() throws IOException {
+        if (session != null) {
+            session.close();
+        }
+        return this;
+    }
+
     protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
+        if (metric == null) {
+            return;
+        }
         long docs = metric.count();
         long bytes = 0L;
         long elapsed = metric.elapsed() / 1000000;
@@ -233,11 +255,8 @@ public abstract class Converter<P extends Pipeline<URIPipelineRequest>>
         }
     }
 
-    protected void prepareSink() throws IOException {
-    }
-
     protected abstract PipelineProvider<Pipeline<URIPipelineRequest>> pipelineProvider();
 
-    public abstract void process(URI uri) throws Exception;
+    protected abstract void process(URI uri) throws Exception;
 
 }

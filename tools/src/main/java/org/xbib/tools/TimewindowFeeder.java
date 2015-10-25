@@ -48,7 +48,7 @@ public abstract class TimewindowFeeder extends Feeder {
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    protected void prepareSink() throws IOException {
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",

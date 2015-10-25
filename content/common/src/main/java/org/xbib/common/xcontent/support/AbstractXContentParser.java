@@ -1,8 +1,6 @@
 
 package org.xbib.common.xcontent.support;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.common.Booleans;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
@@ -201,13 +199,10 @@ public abstract class AbstractXContentParser implements XContentParser {
         return list;
     }
 
-    private final static Logger logger = LogManager.getLogger("test");
-
     private static Object readValue(XContentParser parser, MapFactory mapFactory, XContentParser.Token t) throws IOException {
         if (t == XContentParser.Token.VALUE_NULL) {
             return null;
         } else if (t == XContentParser.Token.VALUE_STRING) {
-            logger.info("isBase16Checks={} {}", parser.isBase16Checks(), parser.text());
             if (parser.isBase16Checks()) {
                 try {
                     return XContentHelper.parseBase16(parser.text());

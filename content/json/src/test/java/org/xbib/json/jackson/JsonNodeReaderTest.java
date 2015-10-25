@@ -41,7 +41,7 @@ public final class JsonNodeReaderTest {
 
     @DataProvider
     public Iterator<Object[]> getMalformedData() {
-        final List<Object[]> list = new ArrayList();
+        final List<Object[]> list = new ArrayList<>();
 
         list.add(new Object[]{"", "read.noContent"});
         list.add(new Object[]{"[]{}", "read.trailingData"});

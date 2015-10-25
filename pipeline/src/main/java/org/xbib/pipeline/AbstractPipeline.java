@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.metric.MeterMetric;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,7 +49,7 @@ public abstract class AbstractPipeline<R extends PipelineRequest>
 
     private final static Logger logger = LogManager.getLogger(AbstractPipeline.class);
 
-    private BlockingQueue<R> queue = new SynchronousQueue<>(true);
+    private BlockingQueue<R> queue;
 
     private MeterMetric metric;
 
@@ -62,10 +61,6 @@ public abstract class AbstractPipeline<R extends PipelineRequest>
 
     public BlockingQueue<R> getQueue() {
         return queue;
-    }
-
-    public R newElement() {
-        return (R) new URIPipelineRequest();
     }
 
     /**

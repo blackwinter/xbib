@@ -1,14 +1,555 @@
 {
-  "date_detection": false,
-  "_timestamp": {"enabled": true},
-  "properties": {
-    "xbib": {
-      "properties": {
-        "uid": {
-          "type": "string",
-          "analyzer": "keyword"
+    "_timestamp" : {
+      "enabled" : true
+    },
+    "date_detection" : false,
+    "properties" : {
+      "leader" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "NormalizedHoldings" : {
+        "properties" : {
+          "date" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volume" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "number" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "issue" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "movingwall" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "Product" : {
+        "properties" : {
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "FormattedEnumerationAndChronologyBeginGroup" : {
+        "properties" : {
+          "date" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volume" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "dateSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volumeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "ClassificationNumber" : {
+        "properties" : {
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "holdings" : {
+        "properties" : {
+          "group" : {
+            "properties" : {
+              "beginvolume" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "beginpubdate" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "begindate" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "enddate" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "endpubdate" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "endvolume" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              },
+              "open" : {
+                "analyzer" : "keyword",
+                "type" : "string"
+              }
+            }
+          }
+        }
+      },
+      "SourceOfAcquisition" : {
+        "properties" : {
+          "accessionNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "physicalDescriptionMicroform" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "AdditionalLocation" : {
+        "properties" : {
+          "number" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "custom" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "shelvinglocation" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "collection" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "customSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "m" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "otherCodes" : {
+        "properties" : {
+          "papertype" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "papertypeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "genre" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "genreSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "FormattedEnumerationAndChronologyOpenGroup" : {
+        "properties" : {
+          "date" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volume" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volumeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "identifierForTheRecord" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "ElectronicLocationAndAccess" : {
+        "properties" : {
+          "nonpublicnote" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "e" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "publicnote" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "uri" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "accessmode" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "relatedto" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "dates" : {
+        "type" : "long"
+      },
+      "collection" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "TextualHoldingsPrefix" : {
+        "properties" : {
+          "name" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "FormattedEnumerationAndChronology" : {
+        "properties" : {
+          "9" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "date" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volume" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "c" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "=" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "urn" : {
+        "properties" : {
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "hdl" : {
+        "properties" : {
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "license" : {
+        "properties" : {
+          "origin" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "physicalDescriptionElectronicResource" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "identifierForTheParentRecord" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "service" : {
+        "properties" : {
+          "funding" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicemode" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicedistributionSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "bik" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicecomment" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicetypeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicedistribution" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "ssgnumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicetype" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "zdbprio" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "organization" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "servicemodeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "fundingSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "region" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "ssgnotation" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "LicenseInformation" : {
+        "properties" : {
+          "scopeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "access" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "charge" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "chargeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "accesscomment" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "originSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "origin" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "scope" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "accessparallel" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "typeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "type" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "accessSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "textualholdings" : {
+        "analyzer" : "keyword",
+        "type" : "string"
+      },
+      "IdentifierZDB" : {
+        "properties" : {
+          "identifierBVB" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "identifierGBV" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "identifierZDB" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "identifierDNB" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "identifierHEBIS" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "typeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "xbib" : {
+        "properties" : {
+          "uid" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "ReproductionNote" : {
+        "properties" : {
+          "agency" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "description" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "place" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "FormattedEnumerationAndChronologyEndGroup" : {
+        "properties" : {
+          "date" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volume" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "dateSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "volumeSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "Location" : {
+        "properties" : {
+          "p" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "number" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "enumerationAndChronology" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "custom" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "loancode" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "location" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "shelvinglocation" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "collection" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "customSource" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          },
+          "publicnote" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
+        }
+      },
+      "doi" : {
+        "properties" : {
+          "value" : {
+            "analyzer" : "keyword",
+            "type" : "string"
+          }
         }
       }
     }
-  }
 }

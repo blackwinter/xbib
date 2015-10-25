@@ -4,15 +4,14 @@
 tty -s
 if [ "$?" -gt "0" ]
 then
-    # cron
-    cd $HOME/xbib
+    cd $HOME/xbib-tools
     pwd=$(pwd)
     bin=${pwd}/bin
     lib=${pwd}/lib
 else
     pwd="$( cd -P "$( dirname "$0" )" && pwd )"
-    bin=${pwd}/../../../bin
-    lib=${pwd}/../../../lib
+    bin=${pwd}/../../bin
+    lib=${pwd}/../../lib
 fi
 
 java="java"
@@ -34,7 +33,6 @@ echo '
     "maxbulkactions" : 3000,
     "maxconcurrentbulkrequests" : 8,
     "mock" : false,
-    "client" : "ingest",
     "timewindow" : "yyyyMMddHH",
     "aliases" : true,
     "ignoreindexcreationerror" : true
