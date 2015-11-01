@@ -32,11 +32,9 @@
 package org.xbib.tools.feed.elasticsearch.springer;
 
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.io.StringPacket;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
@@ -44,6 +42,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -70,7 +69,7 @@ public class SpringerCitations extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return SpringerCitations::new;
     }
 

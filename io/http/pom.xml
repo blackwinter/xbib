@@ -29,12 +29,12 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-util</artifactId>
+            <artifactId>xbib-io-stream</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-compress</artifactId>
+            <artifactId>xbib-io-archive</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -67,12 +67,14 @@
             <artifactId>netty-handler</artifactId>
             <type>jar</type>
         </dependency>
+<!--
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
+        -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>

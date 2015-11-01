@@ -1,10 +1,9 @@
 package org.xbib.tools.feed.elasticsearch.mab;
 
-import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
+import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +11,7 @@ import java.io.InputStream;
 public class MarcXchangeJSONLines extends TitleHoldingsFeeder {
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return MarcXchangeJSONLines::new;
     }
 

@@ -31,10 +31,10 @@
  */
 package org.xbib.tools.merge.serials;
 
-import org.xbib.pipeline.PipelineRequest;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.util.concurrent.WorkerRequest;
 
-public class TitelRecordRequest implements PipelineRequest<TitleRecord> {
+public class TitelRecordRequest implements WorkerRequest<TitleRecord> {
 
     private TitleRecord titleRecord;
 

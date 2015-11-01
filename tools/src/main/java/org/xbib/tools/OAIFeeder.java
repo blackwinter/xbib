@@ -179,17 +179,6 @@ public abstract class OAIFeeder extends TimewindowFeeder {
                 });
                 RdfContentBuilder builder = routeRdfXContentBuilder(params);
                 builder.receive(handler.getResource());
-                if (executor != null) {
-                    // tell executor we increased document count by one
-                    executor.metric().mark();
-                    if (executor.metric().count() % 10000 == 0) {
-                        try {
-                            writeMetrics(executor.metric(), null);
-                        } catch (Exception e) {
-                            throw new IOException("metric failed", e);
-                        }
-                    }
-                }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
                 throw new SAXException(e);

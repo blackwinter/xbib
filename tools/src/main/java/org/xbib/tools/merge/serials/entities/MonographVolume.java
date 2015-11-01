@@ -38,17 +38,16 @@ import org.xbib.util.Strings;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
 
 public class MonographVolume extends TitleRecord {
 
     protected final TitleRecord titleRecord;
 
-    protected List<String> parents = newLinkedList();
+    protected List<String> parents = new LinkedList<>();
 
     protected Object conference;
 
@@ -188,11 +187,11 @@ public class MonographVolume extends TitleRecord {
         if (o instanceof List) {
             this.country = (List<String>) o;
         } else if (o instanceof String) {
-            List<String> l = newLinkedList();
+            List<String> l = new LinkedList<>();
             l.add((String) o);
             this.country = l;
         } else {
-            this.country =  newLinkedList();
+            this.country =  new LinkedList();
         }
     }
 
@@ -203,11 +202,11 @@ public class MonographVolume extends TitleRecord {
         if (o instanceof List) {
             this.genres = (List<String>) o;
         } else if (o instanceof String) {
-            List<String> l = newLinkedList();
+            List<String> l = new LinkedList();
             l.add((String) o);
             this.genres = l;
         } else {
-            this.genres = newLinkedList();
+            this.genres = new LinkedList<>();
         }
     }
 
@@ -233,14 +232,14 @@ public class MonographVolume extends TitleRecord {
 
     @SuppressWarnings("unchecked")
     protected void makeIdentifiers() {
-        Map<String, Object> m = newHashMap();
+        Map<String, Object> m = new HashMap<>();
         // get and convert all ISSN
         Object o = map.get("IdentifierISSN");
         if (o != null) {
             if (!(o instanceof List)) {
                 o = Collections.singletonList(o);
             }
-            List<String> issns = newLinkedList();
+            List<String> issns = new LinkedList<>();
             List<Map<String, Object>> l = (List<Map<String, Object>>) o;
             for (Map<String, Object> aL : l) {
                 Object oo = aL.get("identifierISSN");
@@ -263,7 +262,7 @@ public class MonographVolume extends TitleRecord {
             if (!(o instanceof List)) {
                 o = Collections.singletonList(o);
             }
-            List<String> isbns = newLinkedList();
+            List<String> isbns = new LinkedList<>();
             List<Map<String, Object>> l = (List<Map<String, Object>>) o;
             for (Map<String, Object> aL : l) {
                 Object oo = aL.get("identifierISBN");

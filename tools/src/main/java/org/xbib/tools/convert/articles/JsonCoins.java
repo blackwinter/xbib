@@ -37,11 +37,9 @@ import com.fasterxml.jackson.core.JsonToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.io.archive.file.Finder;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.RdfConstants;
@@ -55,6 +53,7 @@ import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.Converter;
 import org.xbib.util.Entities;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.XMLUtil;
 
 import java.io.BufferedReader;
@@ -66,7 +65,6 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Queue;
@@ -188,13 +186,8 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new JsonCoins();
-            }
-        };
+    protected WorkerProvider provider() {
+        return JsonCoins::new;
     }
 
     @Override

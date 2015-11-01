@@ -43,12 +43,11 @@ import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.tools.Converter;
 import org.xbib.util.DateUtil;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.URIWorkerRequest;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -98,7 +97,7 @@ public class FromOAI extends Converter {
     public void prepareSource() throws IOException {
         try {
             for (String uri : settings.getAsArray("input")) {
-                URIPipelineRequest element = new URIPipelineRequest();
+                URIWorkerRequest element = new URIWorkerRequest();
                 element.set(URI.create(uri));
                 getQueue().put(element);
             }
@@ -109,13 +108,8 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new FromOAI(true);
-            }
-        };
+    protected WorkerProvider provider() {
+        return () -> new FromOAI(true);
     }
 
     @Override

@@ -44,7 +44,6 @@ import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 
 import org.xbib.io.Request;
-import org.xbib.sru.Diagnostics;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.iso23950.service.ZSRUService;
 import org.xbib.sru.iso23950.service.ZSRUServiceFactory;
@@ -62,9 +61,10 @@ public class SRUServiceTest {
         for (String name : Arrays.asList("OBVSG")) {
             logger.info("trying " + name);
             ZSRUService service = ZSRUServiceFactory.getService(name);
-            File file = File.createTempFile("sru-" + service.getURI().getHost(), ".xml");
-            FileOutputStream out = new FileOutputStream(file);
-            Writer w = new OutputStreamWriter(out, "UTF-8");
+            if (service != null) {
+                File file = File.createTempFile("sru-" + service.getURI().getHost(), ".xml");
+                FileOutputStream out = new FileOutputStream(file);
+                Writer w = new OutputStreamWriter(out, "UTF-8");
                 try {
                     SRUClient client = service.newClient();
                     SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
@@ -107,6 +107,7 @@ public class SRUServiceTest {
                         public void recordPosition(int recordPosition) {
                             logger.info("got recordPosition=" + recordPosition);
                         }
+
                         @Override
                         public XMLEventConsumer recordData() {
                             return null;
@@ -130,7 +131,7 @@ public class SRUServiceTest {
                     String query = "dc.title = Linux";
                     int from = 1;
                     int size = 10;
-                    SearchRetrieveRequest request = client.newSearchRetrieveRequest()
+                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI())
                             .addListener(listener)
                             .setQuery(query)
                             .setStartRecord(from)
@@ -140,13 +141,13 @@ public class SRUServiceTest {
                             .setStylesheetTransformer(transformer)
                             .to(w);
                     transformer.close();
-                } catch (Diagnostics d) {
-                    logger.error(d.getMessage(), d);
+                    client.close();
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }
-            w.close();
-            out.close();
+                w.close();
+                out.close();
+            }
         }
     }
 }

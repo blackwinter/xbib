@@ -1,7 +1,6 @@
 
 package org.xbib.common.xcontent;
 
-
 import org.xbib.common.xcontent.json.JsonXContent;
 import org.xbib.common.xcontent.smile.SmileXContent;
 import org.xbib.common.xcontent.xml.XmlXContent;

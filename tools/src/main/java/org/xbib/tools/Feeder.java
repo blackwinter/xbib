@@ -41,7 +41,7 @@ import org.xbib.elasticsearch.support.client.Ingest;
 import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;

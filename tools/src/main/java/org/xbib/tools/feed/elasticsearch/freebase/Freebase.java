@@ -31,12 +31,11 @@
  */
 package org.xbib.tools.feed.elasticsearch.freebase;
 
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.ntriple.NTripleContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -54,7 +53,7 @@ public class Freebase extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return Freebase::new;
     }
 

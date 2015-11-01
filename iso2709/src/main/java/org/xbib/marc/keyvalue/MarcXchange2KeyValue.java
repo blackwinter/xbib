@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.keyvalue;
 
-import org.xbib.io.keyvalue.KeyValueStreamListener;
+import org.xbib.util.KeyValueStreamListener;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcException;

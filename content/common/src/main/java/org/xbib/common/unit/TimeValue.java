@@ -2,7 +2,30 @@ package org.xbib.common.unit;
 
 import java.util.concurrent.TimeUnit;
 
-public class TimeValue  {
+public class TimeValue {
+
+    static final long C0 = 1L;
+    static final long C1 = C0 * 1000L;
+    static final long C2 = C1 * 1000L;
+    static final long C3 = C2 * 1000L;
+    static final long C4 = C3 * 60L;
+    static final long C5 = C4 * 60L;
+    static final long C6 = C5 * 24L;
+    private long duration;
+    private TimeUnit timeUnit;
+
+    private TimeValue() {
+
+    }
+
+    public TimeValue(long millis) {
+        this(millis, TimeUnit.MILLISECONDS);
+    }
+
+    public TimeValue(long duration, TimeUnit timeUnit) {
+        this.duration = duration;
+        this.timeUnit = timeUnit;
+    }
 
     public static TimeValue timeValueNanos(long nanos) {
         return new TimeValue(nanos, TimeUnit.NANOSECONDS);
@@ -24,21 +47,52 @@ public class TimeValue  {
         return new TimeValue(hours, TimeUnit.HOURS);
     }
 
-    private long duration;
-
-    private TimeUnit timeUnit;
-
-    private TimeValue() {
-
+    /**
+     * Format the double value with a single decimal points, trimming trailing '.0'.
+     */
+    public static String format1Decimals(double value, String suffix) {
+        String p = String.valueOf(value);
+        int ix = p.indexOf('.') + 1;
+        int ex = p.indexOf('E');
+        char fraction = p.charAt(ix);
+        if (fraction == '0') {
+            if (ex != -1) {
+                return p.substring(0, ix - 1) + p.substring(ex) + suffix;
+            } else {
+                return p.substring(0, ix - 1) + suffix;
+            }
+        } else {
+            if (ex != -1) {
+                return p.substring(0, ix) + fraction + p.substring(ex) + suffix;
+            } else {
+                return p.substring(0, ix) + fraction + suffix;
+            }
+        }
     }
 
-    public TimeValue(long millis) {
-        this(millis, TimeUnit.MILLISECONDS);
-    }
-
-    public TimeValue(long duration, TimeUnit timeUnit) {
-        this.duration = duration;
-        this.timeUnit = timeUnit;
+    public static TimeValue parseTimeValue(String sValue, TimeValue defaultValue) {
+        if (sValue == null) {
+            return defaultValue;
+        }
+        long millis;
+        if (sValue.endsWith("S")) {
+            millis = Long.parseLong(sValue.substring(0, sValue.length() - 1));
+        } else if (sValue.endsWith("ms")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 2)));
+        } else if (sValue.endsWith("s")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 1000);
+        } else if (sValue.endsWith("m")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 60 * 1000);
+        } else if (sValue.endsWith("H") || sValue.endsWith("h")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 60 * 60 * 1000);
+        } else if (sValue.endsWith("d")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 24 * 60 * 60 * 1000);
+        } else if (sValue.endsWith("w")) {
+            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 7 * 24 * 60 * 60 * 1000);
+        } else {
+            millis = Long.parseLong(sValue);
+        }
+        return new TimeValue(millis, TimeUnit.MILLISECONDS);
     }
 
     public long nanos() {
@@ -178,72 +232,23 @@ public class TimeValue  {
         return format1Decimals(value, suffix);
     }
 
-    /**
-     * Format the double value with a single decimal points, trimming trailing '.0'.
-     */
-    public static String format1Decimals(double value, String suffix) {
-        String p = String.valueOf(value);
-        int ix = p.indexOf('.') + 1;
-        int ex = p.indexOf('E');
-        char fraction = p.charAt(ix);
-        if (fraction == '0') {
-            if (ex != -1) {
-                return p.substring(0, ix - 1) + p.substring(ex) + suffix;
-            } else {
-                return p.substring(0, ix - 1) + suffix;
-            }
-        } else {
-            if (ex != -1) {
-                return p.substring(0, ix) + fraction + p.substring(ex) + suffix;
-            } else {
-                return p.substring(0, ix) + fraction + suffix;
-            }
-        }
-    }
-
-    public static TimeValue parseTimeValue(String sValue, TimeValue defaultValue) {
-        if (sValue == null) {
-            return defaultValue;
-        }
-        long millis;
-        if (sValue.endsWith("S")) {
-            millis = Long.parseLong(sValue.substring(0, sValue.length() - 1));
-        } else if (sValue.endsWith("ms")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 2)));
-        } else if (sValue.endsWith("s")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 1000);
-        } else if (sValue.endsWith("m")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 60 * 1000);
-        } else if (sValue.endsWith("H") || sValue.endsWith("h")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 60 * 60 * 1000);
-        } else if (sValue.endsWith("d")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 24 * 60 * 60 * 1000);
-        } else if (sValue.endsWith("w")) {
-            millis = (long) (Double.parseDouble(sValue.substring(0, sValue.length() - 1)) * 7 * 24 * 60 * 60 * 1000);
-        } else {
-            millis = Long.parseLong(sValue);
-        }
-        return new TimeValue(millis, TimeUnit.MILLISECONDS);
-    }
-
-    static final long C0 = 1L;
-    static final long C1 = C0 * 1000L;
-    static final long C2 = C1 * 1000L;
-    static final long C3 = C2 * 1000L;
-    static final long C4 = C3 * 60L;
-    static final long C5 = C4 * 60L;
-    static final long C6 = C5 * 24L;
-
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         TimeValue timeValue = (TimeValue) o;
 
-        if (duration != timeValue.duration) return false;
-        if (timeUnit != timeValue.timeUnit) return false;
+        if (duration != timeValue.duration) {
+            return false;
+        }
+        if (timeUnit != timeValue.timeUnit) {
+            return false;
+        }
 
         return true;
     }

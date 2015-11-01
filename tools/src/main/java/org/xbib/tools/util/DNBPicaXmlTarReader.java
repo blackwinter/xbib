@@ -41,10 +41,10 @@ import org.xbib.io.archive.tar.TarSession;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.dialects.pica.DNBPicaConstants;
-import org.xbib.pipeline.AbstractPipeline;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.LongPipelineRequest;
 import org.xbib.util.Strings;
+import org.xbib.util.concurrent.AbstractWorker;
+import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Worker;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -63,8 +63,8 @@ import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicLong;
 
-
-public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<LongPipelineRequest>
+public class DNBPicaXmlTarReader<P extends Packet>
+        extends AbstractWorker<LongWorkerRequest>
         implements DNBPicaConstants, MarcXchangeListener {
 
     private final static Logger logger = LogManager.getLogger(DNBPicaXmlTarReader.class.getName());
@@ -73,7 +73,7 @@ public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<Long
 
     private final XMLInputFactory factory = XMLInputFactory.newInstance();
 
-    private final LongPipelineRequest counter = new LongPipelineRequest().set(new AtomicLong(0L));
+    private final LongWorkerRequest counter = new LongWorkerRequest().set(new AtomicLong(0L));
 
     private URI uri;
 
@@ -205,7 +205,7 @@ public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<Long
     }
 */
     @Override
-    public void newRequest(Pipeline<LongPipelineRequest> pipeline, LongPipelineRequest request) {
+    public void newRequest(Worker<LongWorkerRequest> pipeline, LongWorkerRequest request) {
         try {
             try (StringReader sr = new StringReader(clob)) {
                 XMLEventReader xmlReader = factory.createXMLEventReader(sr);
@@ -253,7 +253,7 @@ public class DNBPicaXmlTarReader<P extends Packet> extends AbstractPipeline<Long
         }
     }
 
-    private LongPipelineRequest nextRead() {
+    private LongWorkerRequest nextRead() {
         if (clob == null || clob.length() == 0) {
             // special case, message length 0 means deletion
             return null;

@@ -25,20 +25,23 @@ public class PrivateSRUServiceTest {
             logger.info("trying " + name);
             try {
                 SRUService service = ZSRUServiceFactory.getService(name);
-                SRUClient client = service.newClient();
-                File file = File.createTempFile("sru-" + service.getURI().getHost(), ".xml");
-                FileOutputStream out = new FileOutputStream(file);
-                Writer writer = new OutputStreamWriter(out, "UTF-8");
-                String query = "dc.title = test";
-                int from = 1;
-                int size = 10;
-                SearchRetrieveRequest request = client.newSearchRetrieveRequest();
-                request.setQuery(query)
-                        .setStartRecord(from)
-                        .setMaximumRecords(size);
-                client.searchRetrieve(request).to(writer);
-                writer.close();
-                out.close();
+                if (service != null) {
+                    SRUClient client = service.newClient();
+                    File file = File.createTempFile("sru-" + service.getURI().getHost(), ".xml");
+                    FileOutputStream out = new FileOutputStream(file);
+                    Writer writer = new OutputStreamWriter(out, "UTF-8");
+                    String query = "dc.title = test";
+                    int from = 1;
+                    int size = 10;
+                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI());
+                    request.setQuery(query)
+                            .setStartRecord(from)
+                            .setMaximumRecords(size);
+                    client.searchRetrieve(request).to(writer);
+                    writer.close();
+                    out.close();
+                    client.close();
+                }
             } catch (Exception e) {
                 logger.warn(e.getMessage());
             }

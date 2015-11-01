@@ -50,13 +50,14 @@ public class MABDisketteTest extends StreamTester {
 
     @Test
     public void testMABDiskette() throws IOException, SAXException {
-        InputStream in = getClass().getResource("mgl.txt").openStream();
+        String s = "mgl.txt";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("mgl.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
             read(new InputStreamReader(in, "cp850"), w);
         }
-        assertStream(getClass().getResource("mgl.txt.xml").openStream(),
+        assertStream(s, getClass().getResource("mgl.txt.xml").openStream(),
                 new FileInputStream(file));
     }
 

@@ -33,7 +33,7 @@ package org.xbib.marc.dialects.mab;
 
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.io.keyvalue.KeyValueStreamAdapter;
+import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
@@ -64,7 +64,8 @@ public class DE468MABTest extends StreamTester {
      */
 
     public void testDE468() throws IOException, SAXException {
-        InputStream in = getClass().getResource("aleph500-subfields.mrc").openStream();
+        String s = "aleph500-subfields.mrc";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-468.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
@@ -82,13 +83,14 @@ public class DE468MABTest extends StreamTester {
         writer.endCollection();
         writer.endDocument();
         out.close();
-        assertStream(getClass().getResource("DE-468.xml").openStream(),
+        assertStream(s, getClass().getResource("DE-468.xml").openStream(),
                 new FileInputStream(file));
     }
 
     @Test
     public void testMappedDE468() throws IOException, SAXException {
-        InputStream in = getClass().getResource("aleph500-subfields.mrc").openStream();
+        String s = "aleph500-subfields.mrc";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-468-mapped.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
@@ -123,13 +125,14 @@ public class DE468MABTest extends StreamTester {
         writer.endCollection();
         writer.endDocument();
         out.close();
-        assertStream(getClass().getResource("DE-468-mapped.xml").openStream(),
+        assertStream(s, getClass().getResource("DE-468-mapped.xml").openStream(),
                 new FileInputStream(file));
     }
 
 
     public void testKeyValueDE468MAB() throws Exception {
-        File file = File.createTempFile("DE-468-keyvalue.", ".txt");
+        String s = "DE-468-keyvalue.";
+        File file = File.createTempFile(s, ".txt");
         StringWriter sw = new StringWriter();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .addListener(new KeyValueStreamAdapter<FieldList, String>() {
@@ -156,7 +159,7 @@ public class DE468MABTest extends StreamTester {
                         return this;
                     }
 
-                });
+            });
         InputStream in = getClass().getResource("aleph500-subfields.mrc").openStream();
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
         reader.setFormat("MAB");
@@ -169,14 +172,15 @@ public class DE468MABTest extends StreamTester {
         FileWriter fw = new FileWriter(file);
         fw.write(sw.toString());
         fw.close();
-        assertStream(getClass().getResource("DE-468-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource("DE-468-keyvalue.txt").openStream(),
                 new FileInputStream(file));
     }
 
 
     public void testFieldKillerDE468() throws IOException, SAXException {
-        InputStream in = getClass().getResource("aleph500-subfields.mrc").openStream();
-        File file = File.createTempFile("DE-468-killed-fields.", ".xml");
+        String s = "aleph500-subfields.mrc";
+        InputStream in = getClass().getResource(s).openStream();
+                File file = File.createTempFile("DE-468-killed-fields.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
         reader.setFormat("MAB");
@@ -208,7 +212,7 @@ public class DE468MABTest extends StreamTester {
         writer.endDocument();
         out.close();
 
-        assertStream(getClass().getResource("DE-468-killed-fields.xml").openStream(),
+        assertStream(s, getClass().getResource("DE-468-killed-fields.xml").openStream(),
                 new FileInputStream(file));
     }
 

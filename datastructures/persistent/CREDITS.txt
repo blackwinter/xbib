@@ -1,0 +1,9 @@
+These persistent data structure are based on Javersion by Samppa Saarela
+
+https://github.com/ssaarela/javersion
+
+with the following modifications:
+
+- dependencies to Google Guava eliminated
+
+- cleand up tests to only use junit, hamcrest and mockito

@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-util</artifactId>
+            <artifactId>xbib-datastructures-collection</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>

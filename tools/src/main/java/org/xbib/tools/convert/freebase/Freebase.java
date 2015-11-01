@@ -31,13 +31,12 @@
  */
 package org.xbib.tools.convert.freebase;
 
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -58,7 +57,8 @@ public class Freebase extends Converter {
         return "freebase-turtle-ntriples";
     }
 
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    @Override
+    protected WorkerProvider provider() {
         return Freebase::new;
     }
 

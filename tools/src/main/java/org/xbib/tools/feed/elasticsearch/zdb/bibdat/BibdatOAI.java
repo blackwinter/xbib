@@ -33,8 +33,8 @@ package org.xbib.tools.feed.elasticsearch.zdb.bibdat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.dialects.pica.PicaEntityBuilderState;
-import org.xbib.entities.marc.dialects.pica.PicaEntityQueue;
+import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
+import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.oai.OAIConstants;
@@ -45,12 +45,11 @@ import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.OAIFeeder;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -66,11 +65,11 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public final class BibdatOAI extends OAIFeeder {
@@ -78,7 +77,7 @@ public final class BibdatOAI extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(BibdatOAI.class.getSimpleName());
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return BibdatOAI::new;
     }
 
@@ -99,7 +98,7 @@ public final class BibdatOAI extends OAIFeeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-600"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-600") + ")");
         final PicaEntityQueue queue = createQueue(params);

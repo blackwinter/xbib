@@ -34,18 +34,16 @@ package org.xbib.tools.feed.elasticsearch.marc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.entities.marc.direct.MARCDirectQueue;
-import org.xbib.io.InputService;
-import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.util.InputService;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +67,7 @@ public final class FromMARCJson extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return FromMARCJson::new;
     }
 

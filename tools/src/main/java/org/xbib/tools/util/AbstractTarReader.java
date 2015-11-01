@@ -7,9 +7,9 @@ import org.xbib.io.ConnectionService;
 import org.xbib.io.Packet;
 import org.xbib.io.Session;
 import org.xbib.io.archive.tar.TarSession;
-import org.xbib.pipeline.AbstractPipeline;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.LongPipelineRequest;
+import org.xbib.util.concurrent.AbstractWorker;
+import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,13 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * This class reads from a TAR archive, without knowing of the concrete content type.
  * Processing TAR packets are delegated to an implementing class.
  */
-public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineRequest> {
+public abstract class AbstractTarReader extends AbstractWorker<LongWorkerRequest> {
 
     private final static Logger logger = LogManager.getLogger(AbstractTarReader.class.getName());
 
     private final ConnectionService<TarSession> service = ConnectionService.getInstance();
 
-    private final LongPipelineRequest counter = new LongPipelineRequest().set(new AtomicLong(0L));
+    private final LongWorkerRequest counter = new LongWorkerRequest().set(new AtomicLong(0L));
 
     protected URI uri;
 
@@ -66,7 +66,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineReq
     }
 */
     @Override
-    public void newRequest(Pipeline<LongPipelineRequest> pipeline, LongPipelineRequest request) {
+    public void newRequest(Worker<LongWorkerRequest> worker, LongWorkerRequest request) {
 
     }
 
@@ -99,7 +99,7 @@ public abstract class AbstractTarReader extends AbstractPipeline<LongPipelineReq
         }
     }
 
-    private LongPipelineRequest nextRead() {
+    private LongWorkerRequest nextRead() {
         if (prepared) {
             prepared = false;
         }

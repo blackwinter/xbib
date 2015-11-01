@@ -18,7 +18,8 @@ public class MarcXchangeEventConsumerTest extends StreamTester {
 
     @Test
     public void testMarcXchangeEventConsumer() throws Exception {
-        File file = File.createTempFile("HT016424175-event.", ".xml");
+        String s = "HT016424175-event.";
+        File file = File.createTempFile(s, ".xml");
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");
@@ -42,7 +43,7 @@ public class MarcXchangeEventConsumerTest extends StreamTester {
         sw.close();
         assertNull(writer.getException());
         sw.close();
-        assertStream(getClass().getResource("HT016424175-event.xml").openStream(),
+        assertStream(s, getClass().getResource("HT016424175-event.xml").openStream(),
                 new FileInputStream(file));
     }
 }

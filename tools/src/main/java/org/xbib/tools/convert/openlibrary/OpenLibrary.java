@@ -34,10 +34,9 @@ package org.xbib.tools.convert.openlibrary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -63,13 +62,8 @@ public class OpenLibrary extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new OpenLibrary();
-            }
-        };
+    protected WorkerProvider provider() {
+        return OpenLibrary::new;
     }
 
     @Override

@@ -34,10 +34,9 @@ package org.xbib.tools.feed.elasticsearch.jade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
@@ -48,6 +47,7 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.Feeder;
 import org.xbib.tools.util.ArticleVocabulary;
 import org.xbib.util.Entities;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -115,7 +115,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
+    protected WorkerProvider provider() {
         return Jade::new;
     }
 

@@ -115,7 +115,8 @@ public class MarcXchangeMappedOAITest extends StreamTester {
 
         });
 
-        InputStream in = getClass().getResourceAsStream("zdb-oai-marc.xml");
+        String s = "zdb-oai-marc.xml";
+        InputStream in = getClass().getResourceAsStream(s);
         MarcXchangeFieldMapperReader reader = new MarcXchangeFieldMapperReader(in);
         reader.setMarcXchangeListener(writer);
 
@@ -136,7 +137,7 @@ public class MarcXchangeMappedOAITest extends StreamTester {
 
         assertNull(writer.getException());
 
-        assertStream(getClass().getResource("zdb-oai-marc-fieldmapper-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource("zdb-oai-marc-fieldmapper-keyvalue.txt").openStream(),
                 new FileInputStream(file));
 
     }

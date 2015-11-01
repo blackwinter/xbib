@@ -50,14 +50,14 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.QueuePipelineExecutor;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Worker;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,25 +67,25 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
 import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.FilterBuilders.termFilter;
 import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge serial manifestations with articles
  */
 public class WithArticles
-        extends QueuePipelineExecutor<SerialItemPipelineElement, WithArticlesPipeline>
+        extends ForkJoinPipeline<SerialItemRequest, WithArticlesWorker>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithArticles.class.getName());
@@ -171,23 +171,23 @@ public class WithArticles
             ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                     indexSettingsInput, indexMappingsInput);
             ingest.startBulk(settings.get("target-index"));
-            super.setPipelineProvider(new PipelineProvider<WithArticlesPipeline>() {
+            super.setProvider(new WorkerProvider<WithArticlesWorker>() {
                 int i = 0;
 
                 @Override
-                public WithArticlesPipeline get() {
-                    return new WithArticlesPipeline(service, i++);
+                public WithArticlesWorker get() {
+                    return new WithArticlesWorker(service, i++);
                 }
             });
             super.setConcurrency(settings.getAsInt("concurrency", 1));
             this.prepare();
             this.execute();
             logger.info("shutdown in progress");
-            shutdown(new SerialItemPipelineElement().set(null));
+            shutdown(new SerialItemRequest().set(null));
 
             long total = 0L;
-            for (Pipeline pipeline : getPipelines()) {
-                WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
+            for (Worker worker : getWorkers()) {
+                WithArticlesWorker p = (WithArticlesWorker)worker;
                 logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
                         p,
                         p.getMetric().count(),
@@ -267,8 +267,8 @@ public class WithArticles
                         continue;
                     }
                     docs.add(id);
-                    Set<Integer> dates = newLinkedHashSet();
-                    List<TitleRecord> titleRecords = newLinkedList();
+                    Set<Integer> dates = new LinkedHashSet<>();
+                    List<TitleRecord> titleRecords = new LinkedList<>();
                     TitleRecord titleRecord = expand(id);
                     if (titleRecord == null) {
                         continue;
@@ -321,15 +321,15 @@ public class WithArticles
                             }
                         }
                         if (!serialItem.getTitleRecords().isEmpty()) {
-                            getQueue().offer(new SerialItemPipelineElement().set(serialItem));
+                            getQueue().offer(new SerialItemRequest().set(serialItem));
                         }
                     }
                     count++;
                     long percent = count * 100 / total;
                     if (percent != lastpercent && logger.isInfoEnabled()) {
                         logger.info("{}/{} {}%", count, total, percent);
-                        for (Pipeline pipeline : getPipelines()) {
-                            WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
+                        for (Worker worker : getWorkers()) {
+                            WithArticlesWorker p = (WithArticlesWorker)worker;
                             logger.info("{} throughput={} {} {} mean={} mldup={} xrefdup={}",
                                     p.toString(),
                                     p.getMetric().oneMinuteRate(),

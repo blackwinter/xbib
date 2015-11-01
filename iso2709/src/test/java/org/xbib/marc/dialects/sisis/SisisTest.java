@@ -37,7 +37,7 @@ public class SisisTest extends StreamTester {
             assertNull(writer.getException());
         }
         out.close();
-        assertStream(getClass().getResource("DE-A96-unloaddipl-sisis.xml").openStream(),
+        assertStream(s, getClass().getResource("DE-A96-unloaddipl-sisis.xml").openStream(),
                 new FileInputStream(file));
     }
 
@@ -65,7 +65,7 @@ public class SisisTest extends StreamTester {
             assertNull(writer.getException());
         }
         out.close();
-        assertStream(getClass().getResource("DE-836-testTit.tit-sisis.xml").openStream(),
+        assertStream(s, getClass().getResource("DE-836-testTit.tit-sisis.xml").openStream(),
                 new FileInputStream(file));
     }
 

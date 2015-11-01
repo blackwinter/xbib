@@ -39,18 +39,17 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.Lists.newLinkedList;
 
 public class WorkSet {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
-    private final List<Expression> expressions = newLinkedList();
+    private final List<Expression> expressions = new LinkedList<>();
 
-    private List<Expression> works = newLinkedList();
+    private List<Expression> works = new LinkedList<>();
 
     private StatCounter statCounter;
 

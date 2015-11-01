@@ -35,12 +35,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.tools.OAIFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.util.Map;
@@ -70,7 +69,7 @@ public class DOAJ extends OAIFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return DOAJ::new;
     }
 

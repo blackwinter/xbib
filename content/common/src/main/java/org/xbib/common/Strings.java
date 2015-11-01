@@ -1,8 +1,6 @@
 
 package org.xbib.common;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.xbib.io.FastStringReader;
 
 import java.io.BufferedReader;
@@ -22,9 +20,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
-/**
- *
- */
 public class Strings {
 
     public static final String[] EMPTY_ARRAY = new String[0];
@@ -641,28 +636,6 @@ public class Strings {
         }
         sb.append(str.substring(1));
         return sb.toString();
-    }
-
-    public static final ImmutableSet<Character> INVALID_FILENAME_CHARS = ImmutableSet.of('\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',');
-
-    public static boolean validFileName(String fileName) {
-        for (int i = 0; i < fileName.length(); i++) {
-            char c = fileName.charAt(i);
-            if (INVALID_FILENAME_CHARS.contains(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static boolean validFileNameExcludingAstrix(String fileName) {
-        for (int i = 0; i < fileName.length(); i++) {
-            char c = fileName.charAt(i);
-            if (c != '*' && INVALID_FILENAME_CHARS.contains(c)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -1298,7 +1271,7 @@ public class Strings {
     }
 
     public static String collectionToDelimitedString(Iterable<?> coll, String delim, String prefix, String suffix, StringBuilder sb) {
-        if (Iterables.isEmpty(coll)) {
+        if (coll == null || coll.iterator() == null) {
             return "";
         }
         Iterator<?> it = coll.iterator();

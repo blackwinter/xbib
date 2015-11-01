@@ -33,9 +33,7 @@ package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.Resource;
@@ -43,6 +41,7 @@ import org.xbib.rdf.Triple;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,7 +87,7 @@ public class RdfXml extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return RdfXml::new;
     }
 

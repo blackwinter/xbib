@@ -50,14 +50,14 @@ import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class HoldingsStatistics implements CommandLineInterpreter {
 
@@ -65,11 +65,11 @@ public class HoldingsStatistics implements CommandLineInterpreter {
 
     private static Settings settings;
 
-    private Map<String,Integer> volume = newHashMap();
+    private Map<String,Integer> volume = new HashMap<>();
 
-    private Map<String,Integer> online = newHashMap();
+    private Map<String,Integer> online = new HashMap<>();
 
-    private Map<String,Integer> singles = newHashMap();
+    private Map<String,Integer> singles = new HashMap<>();
 
     public HoldingsStatistics reader(Reader reader) {
         settings = settingsBuilder().loadFromReader(reader).build();

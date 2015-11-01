@@ -33,16 +33,16 @@ package org.xbib.tools.feed.elasticsearch.zdb.bib;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.direct.MARCDirectQueue;
-import org.xbib.io.InputService;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.Worker;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
@@ -53,11 +53,9 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -78,16 +76,13 @@ public class DirectBib extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider<Worker> provider() {
         return DirectBib::new;
     }
 
     @Override
     public void process(URI uri) throws IOException {
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        Map<String,Object> params = newHashMap();
-        params.put("identifier", settings.get("identifier", "DE-600"));
-        params.put("_prefix", "(" + settings.get("identifier", "DE-600") + ")");
         final MARCDirectQueue queue = new MyEntityQueue();
         queue.setUnmappedKeyListener((id, key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {

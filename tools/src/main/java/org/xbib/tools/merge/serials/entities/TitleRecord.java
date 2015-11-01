@@ -31,17 +31,16 @@
  */
 package org.xbib.tools.merge.serials.entities;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.tools.merge.serials.support.NaturalOrderComparator;
 import org.xbib.tools.merge.serials.support.StatCounter;
+import org.xbib.util.LinkedHashMultiMap;
+import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
+import org.xbib.util.TreeMultiMap;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,20 +48,13 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Multimaps.newSetMultimap;
-import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.google.common.collect.Sets.newTreeSet;
 
 @SuppressWarnings("unchecked")
 public class TitleRecord implements Comparable<TitleRecord> {
@@ -79,7 +71,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected String extendedTitle;
 
-    protected Set<String> titleComponents = newLinkedHashSet();
+    protected Set<String> titleComponents = new LinkedHashSet();
 
     protected String corporate;
 
@@ -103,15 +95,17 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected Map<String, Object> identifiers;
 
-    private final SetMultimap<String, TitleRecord> related = TreeMultimap.create();
+   // private final SetMultimap<String, TitleRecord> related = TreeMultimap.create();
+    //private final SetMultimap<String, Holding> relatedHoldings = TreeMultimap.create();
+    //private final static Supplier<Set<String>> supplier = Sets::newLinkedHashSet;
+    //private final SetMultimap<String, String> relations = newSetMultimap(Maps.newTreeMap(), supplier);
+    //private final SetMultimap<String, String> externalRelations = newSetMultimap(Maps.newTreeMap(), supplier);
 
-    private final SetMultimap<String, Holding> relatedHoldings = TreeMultimap.create();
-
-    private final static Supplier<Set<String>> supplier = Sets::newLinkedHashSet;
-
-    private final SetMultimap<String, String> relations = newSetMultimap(Maps.newTreeMap(), supplier);
-
-    private final SetMultimap<String, String> externalRelations = newSetMultimap(Maps.newTreeMap(), supplier);
+    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
+    private final MultiMap<String, Holding> relatedHoldings =  new LinkedHashMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new LinkedHashMultiMap<>();
+    private final MultiMap<String, String> relations = new TreeMultiMap<>();
+    private final MultiMap<String, String> externalRelations = new TreeMultiMap();
 
     private boolean isDatabase;
 
@@ -153,7 +147,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     private List<Map<String, Object>> links;
 
-    private final Collection<MonographVolume> monographVolumes = newTreeSet(new NaturalOrderComparator<MonographVolume>());
+    private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 
     public TitleRecord(Map<String, Object> map) {
         this.map = map;
@@ -435,7 +429,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
     /*
      * relation key, id
      */
-    public SetMultimap<String, String> getRelations() {
+    public MultiMap<String, String> getRelations() {
         return relations;
     }
 
@@ -448,10 +442,16 @@ public class TitleRecord implements Comparable<TitleRecord> {
     }
 
     public void addVolume(MonographVolume volume) {
-        synchronized (monographVolumes) {
-            monographVolumes.add(volume);
-            // copy monograph volume holdings to this holdings
-            relatedHoldings.putAll(volume.getRelatedHoldings());
+        monographVolumes.add(volume);
+        // copy monograph volume holdings to this holdings
+        MultiMap<String, Holding> mm = volume.getRelatedHoldings();
+        for (String key : mm.keySet()) {
+            for (Holding holding : mm.get(key)) {
+                relatedHoldings.put(key, holding);
+                for (Integer date : holding.dates()) {
+                    holdingsByDate.put(date, holding);
+                }
+            }
         }
     }
 
@@ -554,7 +554,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
     }
 
     protected List<String> split(String title) {
-        List<String> list = newArrayList();
+        List<String> list = new ArrayList<>();
         if (title != null) {
             title = title.replaceAll(" ; ", "\n").replaceAll(" / ", "\n").replaceAll(" = ", "\n");
             for (String s : title.split("\n")) {
@@ -669,7 +669,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private final static Pattern yearPattern = Pattern.compile("(\\d\\d\\d\\d)");
 
     private void makeGreenDates(List<Map<String, Object>> links) {
-        this.greenDates = newTreeSet();
+        this.greenDates = new TreeSet<>();
         for (Map<String, Object> link : links) {
             boolean b = "kostenfrei".equals(link.get("publicnote"));
             if (b) {
@@ -789,20 +789,20 @@ public class TitleRecord implements Comparable<TitleRecord> {
         if (o instanceof List) {
             this.country = (List<String>) o;
         } else if (o instanceof String) {
-            List<String> l = newLinkedList();
+            List<String> l = new LinkedList<>();
             l.add((String) o);
             this.country = l;
         } else {
-            List<String> l = newLinkedList();
+            List<String> l = new LinkedList<>();
             l.add("unknown");
             this.country = l;
         }
     }
 
     protected void makeIdentifiers() {
-        Map<String, Object> m = newHashMap();
-        Set<String> issns = newLinkedHashSet();
-        Set<String> formattedISSNs = newLinkedHashSet();
+        Map<String, Object> m = new HashMap();
+        Set<String> issns = new LinkedHashSet();
+        Set<String> formattedISSNs = new LinkedHashSet();
         // get and process all ISSN (with and without hyphen)
         Object o = map.get("IdentifierISSN");
         if (o != null) {
@@ -876,9 +876,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 if (internal == null) {
                     continue;
                 }
-                synchronized (relations) {
-                    relations.put(key, internal);
-                }
+                relations.put(key, internal);
                 // external ID = ZDB ID (used for external typed linking, internal linking may collide with GND ID)
                 Object externalObj = m.get("identifierZDB");
                 String external = externalObj == null ? null : externalObj instanceof List ?
@@ -886,9 +884,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 if (external == null) {
                     continue;
                 }
-                synchronized (externalRelations) {
-                    externalRelations.put(key, external);
-                }
+                externalRelations.put(key, external);
                 switch (key) {
                     case "hasDigitizedEdition" :
                     case "hasOnlineEdition": {
@@ -910,59 +906,81 @@ public class TitleRecord implements Comparable<TitleRecord> {
     }
 
     public void addRelated(String relation, TitleRecord titleRecord) {
-        synchronized (related) {
-            related.put(relation, titleRecord);
-        }
+        relatedRecords.put(relation, titleRecord);
     }
 
     public void addRelatedHolding(String relation, Holding holding) {
-        if (relatedHoldings.get(relation).contains(holding)) {
+        if (relatedHoldings.containsKey(relation) && relatedHoldings.get(relation).contains(holding)) {
             return;
         }
-        synchronized (relatedHoldings) {
-            relatedHoldings.put(relation, holding);
+        // add while we go, no coercion
+        relatedHoldings.put(relation, holding);
+        for (Integer date : holding.dates()) {
+            holdingsByDate.put(date, holding);
         }
         holding.addParent(this.externalID());
         holding.addParent(this.getPrintExternalID());
         holding.addParent(this.getOnlineExternalID());
-
-        Set<TitleRecord> set = newHashSet();
-        set.addAll(related.get("hasPrintEdition"));
-        set.addAll(related.get("hasOnlineEdition"));
-        set.addAll(related.get("hasDigitizedEdition"));
-        set.stream().forEach(tr -> {
-            tr.addRelatedHolding(holding.getISIL(), holding);
-        });
+        /*Set<TitleRecord> set = new HashSet();
+        if (related.containsKey("hasPrintEdition")) {
+            set.addAll(related.get("hasPrintEdition"));
+        }
+        if (related.containsKey("hasOnlineEdition")) {
+            set.addAll(related.get("hasOnlineEdition"));
+        }
+        if (related.containsKey("hasDigitizedEdition")) {
+            set.addAll(related.get("hasDigitizedEdition"));
+        }*/
     }
 
-    public SetMultimap<String, TitleRecord> getRelated() {
-        return related;
+    public void addRelatedIndicator(String relation, Indicator indicator) {
+        // already exist?
+        if (relatedHoldings.containsKey(relation) && relatedHoldings.get(relation).contains(indicator)) {
+            return;
+        }
+        // coerce with licenses first
+        Collection<Holding> oldHoldings = relatedHoldings.get(relation);
+        Collection<Holding> newHoldings = indicator.coerceWithLicense(oldHoldings);
+        if (newHoldings == null) {
+            return;
+        }
+        if (oldHoldings != null && oldHoldings.size() == newHoldings.size()) {
+            return;
+        }
+        relatedHoldings.putAll(relation, newHoldings);
+        for (Integer date : indicator.dates()) {
+            holdingsByDate.put(date, indicator);
+        }
+        indicator.addParent(this.externalID());
+        indicator.addParent(this.getPrintExternalID());
+        indicator.addParent(this.getOnlineExternalID());
+        /*Set<TitleRecord> set = new HashSet();
+        if (related.containsKey("hasPrintEdition")) {
+            set.addAll(related.get("hasPrintEdition"));
+        }
+        if (related.containsKey("hasOnlineEdition")) {
+            set.addAll(related.get("hasOnlineEdition"));
+        }
+        if (related.containsKey("hasDigitizedEdition")) {
+            set.addAll(related.get("hasDigitizedEdition"));
+        }*/
+        /*for (TitleRecord tr : set) {
+            if (this != tr && !id().equals(tr.id())) {
+                tr.addRelatedIndicator(indicator.getISIL(), indicator);
+            }
+        }*/
     }
 
-    public SetMultimap<String, Holding> getRelatedHoldings() {
+    public MultiMap<String, TitleRecord> getRelated() {
+        return relatedRecords;
+    }
+
+    public MultiMap<String, Holding> getRelatedHoldings() {
         return relatedHoldings;
     }
 
-    public Set<Holding> findHoldingsByDate(Integer date) {
-        Set<Holding> set = newHashSet();
-        synchronized (relatedHoldings) {
-            set.addAll(relatedHoldings.entries()
-                    .stream()
-                    .filter(entry -> entry.getValue().dates().contains(date))
-                    .map(Map.Entry<String, Holding>::getValue)
-                    .collect(Collectors.toList()));
-        }
-        return set;
-    }
-
-    public Set<Integer> findDatesOfHoldings() {
-        Set<Integer> holdingdates = newHashSet();
-        synchronized (relatedHoldings) {
-            for (Map.Entry<String, Holding> entry : relatedHoldings.entries()) {
-                holdingdates.addAll(entry.getValue().dates());
-            }
-        }
-        return holdingdates;
+    public MultiMap<Integer, Holding> getHoldingsByDate() {
+        return holdingsByDate;
     }
 
     public void toXContent(XContentBuilder builder, XContentBuilder.Params params) throws IOException {
@@ -995,8 +1013,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 .field("firstdate", firstDate())
                 .field("lastdate", lastDate());
         if (dates != null && !dates.isEmpty()) {
-            Set<Integer> missing = Sets.newCopyOnWriteArraySet(dates);
-            Set<Integer> set = findDatesOfHoldings();
+            Set<Integer> missing = new HashSet<>(dates);
+            Set<Integer> set = holdingsByDate.keySet();
             builder.array("dates", set);
             missing.removeAll(set);
             builder.array("missingdates", missing);
@@ -1019,36 +1037,32 @@ public class TitleRecord implements Comparable<TitleRecord> {
         builder.fieldIfNotNull("resourcetype", resourceType);
         builder.fieldIfNotNull("genre", genre);
         // list relations
-        synchronized (related) {
-            SetMultimap<String, TitleRecord> map = related;
-            if (!map.isEmpty()) {
-                builder.startArray("relations");
-                for (String rel : map.keySet()) {
-                    for (TitleRecord tr : map.get(rel)) {
-                        builder.startObject()
-                                .field("identifierForTheRelated", tr.externalID())
-                                .field("label", rel)
-                                .endObject();
-                    }
+        MultiMap<String, TitleRecord> map = relatedRecords;
+        if (!map.isEmpty()) {
+            builder.startArray("relations");
+            for (String rel : map.keySet()) {
+                for (TitleRecord tr : map.get(rel)) {
+                    builder.startObject()
+                            .field("identifierForTheRelated", tr.externalID())
+                            .field("label", rel)
+                            .endObject();
                 }
-                builder.endArray();
             }
+            builder.endArray();
         }
         // list external relations for linking
-        synchronized (externalRelations) {
-            SetMultimap<String, String> map = externalRelations;
-            if (!map.isEmpty()) {
-                builder.startArray("relations");
-                for (String rel : map.keySet()) {
-                    for (String relid : map.get(rel)) {
-                        builder.startObject()
-                                .field("identifierForTheRelated", relid)
-                                .field("label", rel)
-                                .endObject();
-                    }
+        MultiMap<String, String> mm = externalRelations;
+        if (!mm.isEmpty()) {
+            builder.startArray("relations");
+            for (String rel : mm.keySet()) {
+                for (String relid : mm.get(rel)) {
+                    builder.startObject()
+                            .field("identifierForTheRelated", relid)
+                            .field("label", rel)
+                            .endObject();
                 }
-                builder.endArray();
             }
+            builder.endArray();
         }
         // links in catalog
         if (hasLinks()) {
@@ -1067,18 +1081,18 @@ public class TitleRecord implements Comparable<TitleRecord> {
         }*/
         // holdings
         if (!relatedHoldings.isEmpty()) {
-            synchronized (relatedHoldings) {
-                builder.field("servicecount", relatedHoldings.size());
-                builder.startArray("service");
-                for (Map.Entry<String, Holding> me : relatedHoldings.entries()) {
+            builder.field("servicecount", relatedHoldings.size());
+            builder.startArray("service");
+            for (String key : relatedHoldings.keySet()) {
+                for (Holding holding : relatedHoldings.get(key)) {
                     builder.startObject()
-                            .field("isil", me.getKey())
-                            .field("identifierForTheService", "(" + me.getKey() + ")" + me.getValue().identifier())
-                            .field("dates", me.getValue().dates())
+                            .field("isil", key)
+                            .field("identifierForTheService", "(" + key + ")" + holding.identifier())
+                            .field("dates", holding.dates())
                             .endObject();
                 }
-                builder.endArray();
             }
+            builder.endArray();
         }
         builder.endObject();
         if (statCounter != null) {
@@ -1114,18 +1128,18 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return externalID.compareTo(m.externalID());
     }
 
-    private final static Set<String> temporalRelations = newHashSet(
+    private final static Set<String> temporalRelations = new HashSet<>(Arrays.asList(
             "succeededBy",
             "precededBy",
             "hasTransientEdition",
             "isTransientEditionOf"
-    );
+    ));
 
     public static Set<String> getTemporalRelations() {
         return temporalRelations;
     }
 
-    private final static Set<String> carrierRelations = newHashSet(
+    private final static Set<String> carrierRelations = new HashSet<>(Arrays.asList(
             "hasPrintEdition",
             "hasOnlineEdition",
             "hasBrailleEdition",
@@ -1133,29 +1147,29 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "hasDVDEdition",
             "hasMicroformEdition",
             "hasDigitizedEdition"
-    );
+    ));
 
     public static Set<String> getCarrierRelations() {
         return carrierRelations;
     }
 
-    private final static Set<String> supplementalRelations = newHashSet(
+    private final static Set<String> supplementalRelations = new HashSet<>(Arrays.asList(
             "hasSupplement",
             "isSupplementOf"
-    );
+    ));
 
     public static Set<String> getSupplementalRelations() {
         return supplementalRelations;
     }
 
-    private final static Set<String> relationEntries = newHashSet(
+    private final static Set<String> relationEntries = new HashSet<>(Arrays.asList(
             "PrecedingEntry",
             "SucceedingEntry",
             "OtherEditionEntry",
             "OtherRelationshipEntry",
             "SupplementSpecialIssueEntry",
             "SupplementParentEntry"
-    );
+    ));
 
     public static Set<String> relationEntries() {
         return relationEntries;

@@ -1,0 +1,146 @@
+package org.xbib.util;
+
+import org.xbib.util.AbstractHashTrie.Node;
+
+import java.util.AbstractSet;
+import java.util.Iterator;
+
+public class MutableHashSet<E> extends AbstractSet<E> implements MutableSet<E> {
+
+    private MSet<E> set;
+
+    public MutableHashSet() {
+        this.set = new MSet<>(32);
+    }
+
+    public MutableHashSet(int expectedSize) {
+        this.set = new MSet<>(expectedSize);
+    }
+
+    MutableHashSet(Node<E, AbstractTrieSet.EntryNode<E>> root, int size) {
+        this.set = new MSet<>(root, size);
+    }
+
+    @Override
+    public boolean add(E e) {
+        int size = set.size;
+        set.conj(e);
+        return size != set.size;
+    }
+
+    @Override
+    public boolean addAllFrom(Iterable<E> iterable) {
+        int size = set.size;
+        set.conjAll(iterable);
+        return size != set.size;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        return set.contains(o);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return set.iterator();
+    }
+
+    @Override
+    public int size() {
+        return set.size();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        int size = set.size;
+        set.disj(o);
+        return size != set.size;
+    }
+
+    @Override
+    public void clear() {
+        if (set.size() > 0) {
+            set = new MSet<>(32);
+        }
+    }
+
+    @Override
+    public PersistentHashSet<E> toPersistentSet() {
+        return set.toPersistentSet();
+    }
+
+    private static class MSet<E> extends AbstractTrieSet<E, MSet<E>> {
+
+        private final Thread owner = Thread.currentThread();
+
+        private UpdateContext<EntryNode<E>> updateContext;
+
+        private Node<E, EntryNode<E>> root;
+
+        private int size;
+
+        private MSet(int expectedSize) {
+            this(expectedSize, null, 0);
+        }
+
+        private MSet(Node<E, EntryNode<E>> root, int size) {
+            this(32, root, size);
+        }
+
+        @SuppressWarnings("unchecked")
+        private MSet(int expectedSize, Node<E, EntryNode<E>> root, int size) {
+            this.updateContext = new UpdateContext<>(expectedSize);
+            this.root = root != null ? root : EMPTY_NODE;
+            this.size = size;
+        }
+
+        public PersistentHashSet<E> toPersistentSet() {
+            verifyThread();
+            updateContext.commit();
+            return new PersistentHashSet<>(root, size);
+        }
+
+        private void verifyThread() {
+            if (owner != Thread.currentThread()) {
+                throw new IllegalStateException("MutableMap should only be accessed form the thread it was created in.");
+            }
+        }
+
+        @Override
+        public int size() {
+            verifyThread();
+            return size;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected MSet<E> doReturn(Node<E, EntryNode<E>> newRoot, int newSize) {
+            verifyThread();
+            root = newRoot != null ? newRoot : EMPTY_NODE;
+            size = newSize;
+            return this;
+        }
+
+        @Override
+        protected Node<E, EntryNode<E>> root() {
+            return root;
+        }
+
+        @Override
+        protected UpdateContext<EntryNode<E>> updateContext(int expectedUpdates, Merger<EntryNode<E>> merger) {
+            verifyThread();
+            if (updateContext.isCommitted()) {
+                updateContext = new UpdateContext<>(expectedUpdates, merger);
+            } else {
+                updateContext.merger(merger);
+            }
+            return updateContext;
+        }
+
+        @Override
+        protected void commit(UpdateContext<?> updateContext) {
+            // Nothing to do here
+        }
+
+    }
+}

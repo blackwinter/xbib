@@ -35,24 +35,21 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.ToXContent;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.entities.support.EnumerationAndChronologyHelper;
+import org.xbib.etl.support.EnumerationAndChronologyHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Sets.newTreeSet;
+import java.util.TreeSet;
 
 public class Holding implements Comparable<Holding> {
 
@@ -66,7 +63,7 @@ public class Holding implements Comparable<Holding> {
 
     protected String internalParent;
 
-    protected Set<String> parents = newHashSet();
+    protected Set<String> parents = new HashSet<>();
 
     protected String isil;
 
@@ -83,6 +80,9 @@ public class Holding implements Comparable<Holding> {
     protected Integer firstdate;
 
     protected Integer lastdate;
+
+    // from a moving wall
+    protected Integer delta;
 
     protected boolean deleted;
 
@@ -315,7 +315,7 @@ public class Holding implements Comparable<Holding> {
 
     @SuppressWarnings("unchecked")
     protected void buildDateArray() {
-        List<Integer> dates = newArrayList();
+        List<Integer> dates = new ArrayList<>();
         // our pre-parsed dates
         Object o = map().get("dates");
         if (o != null) {
@@ -345,17 +345,17 @@ public class Holding implements Comparable<Holding> {
             this.firstdate = dates.get(0);
             this.lastdate = dates.get(dates.size() - 1);
         }
-        this.dates = newTreeSet(dates);
+        this.dates = new TreeSet<>(dates);
     }
 
     @SuppressWarnings("unchecked")
     private List<Integer> parseDates(List<Map<String, Object>> groups) {
         EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
-        List<Integer> begin = newLinkedList();
-        List<Integer> end = newLinkedList();
-        List<String> beginvolume = newLinkedList();
-        List<String> endvolume = newLinkedList();
-        List<Boolean> open = newLinkedList();
+        List<Integer> begin = new LinkedList<>();
+        List<Integer> end = new LinkedList<>();
+        List<String> beginvolume = new LinkedList<>();
+        List<String> endvolume = new LinkedList<>();
+        List<Boolean> open = new LinkedList<>();
         for (Map<String, Object> m : groups) {
             Object o = m.get("movingwall");
             if (o != null) {
@@ -375,7 +375,7 @@ public class Holding implements Comparable<Holding> {
                 eac.parse(content, begin, end, beginvolume, endvolume, open);
             }
         }
-        List<Integer> dates = newArrayList();
+        List<Integer> dates = new ArrayList<>();
         for (int i = 0; i < begin.size(); i++) {
             if (open.get(i)) {
                 end.set(i, currentYear);
@@ -428,7 +428,7 @@ public class Holding implements Comparable<Holding> {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> buildInfo() {
-        Map<String, Object> info = newLinkedHashMap();
+        Map<String, Object> info = new LinkedHashMap<>();
         List<Map<String,Object>> l = new ArrayList<Map<String,Object>>();
         for (String locKey : new String[]{"Location","AdditionalLocation"}) {
             Object o = map.get(locKey);
@@ -437,7 +437,7 @@ public class Holding implements Comparable<Holding> {
                     o = Collections.singletonList(o);
                 }
                 for (Map<String,Object> oldlocation : (List<Map<String,Object>>)o) {
-                    Map<String,Object> location = newHashMap();
+                    Map<String,Object> location = new HashMap<>();
                     // Beschreibung
                     if (oldlocation.containsKey("collection")) {
                         location.put("collection", oldlocation.get("collection"));
@@ -552,43 +552,6 @@ public class Holding implements Comparable<Holding> {
             default:
                 throw new IllegalArgumentException("unknown carrier: " + carrierType());
         }
-    }
-
-    /**
-     * Similarity of holdings: they must have same media type, same
-     * carrier type, and same date period (if any).
-     *
-     * @param holdings the holdings to check for similarity against this holding
-     * @return collection of holdings which are similar, or an empty collection if no holding is similar
-     */
-    public Collection<Holding> getSame(Collection<Holding> holdings) {
-        Collection<Holding> same = newArrayList();
-        for (Holding holding : holdings) {
-            // same ISIL, media, carrier, from/to?
-            if (isil.equals(holding.isil)
-                    && serviceisil.equals(holding.serviceisil)
-                    && mediaType.equals(holding.mediaType)
-                    && carrierType.equals(holding.carrierType)) {
-
-                // check if start date / end date are the same
-                // both no dates?
-                if (dates == null && holding.dates == null) {
-                    // hit, no dates at all
-                    same.add(holding);
-                } else if (dates != null && !dates.isEmpty()
-                        && holding.dates != null && !holding.dates.isEmpty()) {
-                    // compare first date and last date
-                    Integer d1 = firstdate; //dates.get(0);
-                    Integer d2 = lastdate; //dates.get(dates.size() - 1);
-                    Integer e1 = holding.firstdate; // holding.dates.get(0);
-                    Integer e2 = holding.lastdate; //holding.dates.get(holding.dates.size() - 1);
-                    if (d1.equals(e1) && d2.equals(e2)) {
-                        same.add(holding);
-                    }
-                }
-            }
-        }
-        return same;
     }
 
     public String toString() {

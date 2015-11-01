@@ -88,7 +88,8 @@ public class MarcXchangeSingleTest extends StreamTester {
         writer.beginCollection();
 
         // write one MARC record twice
-        InputStream in = getClass().getResourceAsStream("HT016424175.xml");
+        String s = "HT016424175.xml";
+        InputStream in = getClass().getResourceAsStream(s);
         MarcXchangeReader reader = new MarcXchangeReader(in);
         reader.setFormat("AlephXML").setType("Bibliographic");
         reader.addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");
@@ -96,7 +97,7 @@ public class MarcXchangeSingleTest extends StreamTester {
         reader.parse();
         in.close();
 
-        in = getClass().getResourceAsStream("HT016424175.xml");
+        in = getClass().getResourceAsStream(s);
         reader = new MarcXchangeReader(in);
         reader.setFormat("AlephXML").setType("Bibliographic");
         reader.addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");
@@ -110,9 +111,9 @@ public class MarcXchangeSingleTest extends StreamTester {
 
         assertNull(writer.getException());
 
-        assertStream(getClass().getResource("HT016424175-out.xml").openStream(),
+        assertStream(s, getClass().getResource("HT016424175-out.xml").openStream(),
                 new FileInputStream(file));
-        assertStream(getClass().getResource("HT016424175-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource("HT016424175-keyvalue.txt").openStream(),
                 new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
     }
 }

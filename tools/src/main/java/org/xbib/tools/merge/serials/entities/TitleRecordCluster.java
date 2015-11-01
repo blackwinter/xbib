@@ -32,14 +32,14 @@
 package org.xbib.tools.merge.serials.entities;
 
 import org.xbib.tools.merge.serials.support.StatCounter;
+import org.xbib.util.MultiMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newTreeSet;
+import java.util.TreeSet;
 
 public class TitleRecordCluster {
 
@@ -49,11 +49,11 @@ public class TitleRecordCluster {
 
     private Integer lastDate = Integer.MIN_VALUE;
 
-    private Set<TitleRecord> main = newTreeSet();
+    private Set<TitleRecord> main = new TreeSet<>();
 
-    private Set<TitleRecord> other = newTreeSet();
+    private Set<TitleRecord> other = new TreeSet<>();
 
-    private List<Expression> expressions = newArrayList();
+    private List<Expression> expressions = new ArrayList<>();
 
     private WorkSet workSet = new WorkSet();
 
@@ -94,7 +94,7 @@ public class TitleRecordCluster {
     }
 
     public Collection<TitleRecord> getAll() {
-        Set<TitleRecord> set = newTreeSet();
+        Set<TitleRecord> set = new TreeSet<>();
         set.addAll(main);
         set.addAll(other);
         return set;
@@ -109,7 +109,7 @@ public class TitleRecordCluster {
     }
 
     private void findExpressions() {
-        List<TitleRecord> headRecords = newArrayList();
+        List<TitleRecord> headRecords = new ArrayList<>();
         // special case of single element
         if (main.size() == 1) {
             TitleRecord tr = main.iterator().next();
@@ -129,13 +129,16 @@ public class TitleRecordCluster {
                     this.lastDate = d;
                 }
                 // we have to check all related title records for first/last dates
-                for (TitleRecord p : m.getRelated().values()) {
-                    if (p.firstDate() != null && p.firstDate() < firstDate) {
-                        this.firstDate = p.firstDate();
-                    }
-                    d = p.lastDate() == null ? currentYear : p.lastDate();
-                    if (d > this.lastDate) {
-                        this.lastDate = d;
+                MultiMap<String,TitleRecord> mm  = m.getRelated();
+                for (String key : mm.keySet()) {
+                    for (TitleRecord p : mm.get(key)) {
+                        if (p.firstDate() != null && p.firstDate() < firstDate) {
+                            this.firstDate = p.firstDate();
+                        }
+                        d = p.lastDate() == null ? currentYear : p.lastDate();
+                        if (d > this.lastDate) {
+                            this.lastDate = d;
+                        }
                     }
                 }
                 // Find all "head record" which qualifies for a "work".

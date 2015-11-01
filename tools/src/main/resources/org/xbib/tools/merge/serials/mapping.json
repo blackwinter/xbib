@@ -106,7 +106,7 @@
   },
   "Holdings" : {
     "properties" : {
-      "institutions" : {
+      "institution" : {
         "properties" : {
           "service" : {
             "properties" : {

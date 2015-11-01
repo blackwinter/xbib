@@ -2,17 +2,16 @@ package org.xbib.tools.feed.elasticsearch.natliz;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.entities.marc.direct.MARCDirectQueue;
-import org.xbib.io.InputService;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,11 +19,11 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class NatLizMarc extends Feeder {
@@ -41,7 +40,7 @@ public class NatLizMarc extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return NatLizMarc::new;
     }
 
@@ -49,7 +48,7 @@ public class NatLizMarc extends Feeder {
     public void process(URI uri) throws Exception {
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         // set identifier prefix (ISIL)
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "NLZ"));
         params.put("_prefix", "(" + settings.get("identifier", "NLZ") + ")");
         final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?

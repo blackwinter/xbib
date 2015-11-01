@@ -36,15 +36,14 @@ import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAISession;
 import org.xbib.oai.xml.MetadataHandler;
 
+import java.util.LinkedList;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newLinkedList;
 
 public class ListRecordsRequest extends ClientOAIRequest<ListRecordsRequest> {
 
-    private List<ListRecordsListener> listeners = newLinkedList();
+    private List<ListRecordsListener> listeners = new LinkedList<>();
 
-    private List<MetadataHandler> handlers = newLinkedList();
+    private List<MetadataHandler> handlers = new LinkedList<>();
 
     public ListRecordsRequest(OAISession session) {
         super(session);

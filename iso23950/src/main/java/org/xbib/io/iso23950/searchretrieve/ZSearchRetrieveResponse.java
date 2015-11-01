@@ -33,16 +33,13 @@ package org.xbib.io.iso23950.searchretrieve;
 
 import org.xbib.sru.SRUVersion;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
-import org.xbib.sru.util.SRUFilterReader;
+import org.xbib.sru.SRUFilterReader;
 import org.xbib.io.iso23950.ZResponse;
 import org.xbib.io.iso23950.ZSession;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
 
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;

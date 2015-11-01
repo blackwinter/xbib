@@ -1,7 +1,5 @@
 package org.xbib.common.xcontent;
 
-import com.google.common.io.CharStreams;
-import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.xml.XmlXParams;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 
@@ -12,19 +10,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 
 public class JsonXContentTest {
 
     public void testJSONXmlXContent(String path) throws Exception {
         Reader r = getInput(path);
-        String json = CharStreams.toString(r);
+        StringWriter w = new StringWriter();
+        copy(r, w);
+        String json = w.toString();
         byte[] buf = json.getBytes("UTF-8");
         XmlXParams params = new XmlXParams(root(), context());
         String xml = XContentHelper.convertToXml(params, buf, 0, buf.length, false);
-        Writer w = getOutput("test-xmlxcontent-" + path + ".xml");
-        w.write(xml);
-        w.close();
+        Writer out = getOutput("test-xmlxcontent-" + path + ".xml");
+        out.write(xml);
+        out.close();
         r.close();
     }
 
@@ -51,5 +52,13 @@ public class JsonXContentTest {
         nsContext.addNamespace("abc", "http://localhost/");
         nsContext.addNamespace("lia", "http://xbib.org/namespaces/lia/");
         return nsContext;
+    }
+
+    private void copy(Reader reader, Writer writer) throws IOException {
+        char[] buffer = new char[1024];
+        int len;
+        while ((len = reader.read(buffer)) != -1) {
+            writer.write(buffer, 0, len);
+        }
     }
 }

@@ -35,13 +35,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.Set;
-
-import static com.google.common.collect.Sets.newHashSet;
 
 public class BlackListedISIL {
 
-    private Set<String> lookup = newHashSet();
+    private Set<String> lookup = new HashSet<>();
 
     public void buildLookup(InputStream in) throws IOException {
         if (in == null) {

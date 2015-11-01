@@ -36,22 +36,22 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.MARCEntityQueue;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.io.Request;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.URIPipelineRequest;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.sru.client.SRUClient;
+/*import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.client.SRUClientFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
-import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
+import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;*/
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.URIWorkerRequest;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.stream.SaxEventConsumer;
 
 import javax.xml.stream.util.XMLEventConsumer;
@@ -72,14 +72,14 @@ public class MarcSRU extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(MarcSRU.class.getName());
 
-    private SRUClient client;
+    //private SRUClient client;
 
     MarcSRU() {
         super();
     }
 
     MarcSRU(boolean b) {
-        client = SRUClientFactory.newClient();
+        //client = SRUClientFactory.newClient();
     }
 
     @Override
@@ -104,15 +104,15 @@ public class MarcSRU extends Feeder {
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = r.readLine()) != null) {
-                URIPipelineRequest element = new URIPipelineRequest();
-                element.set(URI.create(String.format(settings.get("uri"), line)));
-                getQueue().put(element);
+                URIWorkerRequest request = new URIWorkerRequest();
+                request.set(URI.create(String.format(settings.get("uri"), line)));
+                getQueue().offer(request);
             }
             in.close();
         } else {
-            URIPipelineRequest element = new URIPipelineRequest();
-            element.set(URI.create(settings.get("uri")));
-            getQueue().put(element);
+            URIWorkerRequest request = new URIWorkerRequest();
+            request.set(URI.create(settings.get("uri")));
+            getQueue().offer(request);
         }
         logger.info("uris = {}", getQueue().size());
     }
@@ -137,7 +137,7 @@ public class MarcSRU extends Feeder {
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
+    protected WorkerProvider provider() {
         return () -> new MarcSRU(true);
     }
 
@@ -174,7 +174,7 @@ public class MarcSRU extends Feeder {
                 .addListener("Bibliographic", bib)
                 .addListener("Holdings", hol);
 
-        final SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
+        /*final SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
             @Override
             public void onConnect(Request request) {
@@ -243,18 +243,19 @@ public class MarcSRU extends Feeder {
                 .setURI(uri)
                 .addListener(listener);
         SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
+        */
 
     }
 
     @Override
     public MarcSRU cleanup() {
-        try {
+       /* try {
             if (client != null) {
                 client.close();
             }
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        }
+        }*/
         return this;
     }
 

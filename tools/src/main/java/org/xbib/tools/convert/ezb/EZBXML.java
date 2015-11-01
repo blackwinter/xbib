@@ -31,10 +31,8 @@
  */
 package org.xbib.tools.convert.ezb;
 
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -45,6 +43,7 @@ import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.Converter;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -71,7 +70,7 @@ public class EZBXML extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return EZBXML::new;
     }
 

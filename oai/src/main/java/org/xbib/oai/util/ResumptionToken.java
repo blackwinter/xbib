@@ -31,28 +31,16 @@
  */
 package org.xbib.oai.util;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ResumptionToken<T> {
     
     private final static int DEFAULT_INTERVAL_SIZE = 1000;
 
-    private final static Cache<UUID,ResumptionToken> cache
-            = CacheBuilder.newBuilder()
-            .maximumSize(1000)
-            .expireAfterAccess(1200, TimeUnit.SECONDS)
-            .build(new CacheLoader<UUID,ResumptionToken>() {
-        @Override
-                public ResumptionToken load(UUID uuid) throws Exception {
-                    return new ResumptionToken();
-                }
-            });
- 
+    private final static ConcurrentHashMap<UUID, ResumptionToken> cache = new ConcurrentHashMap<>();
+
     private final UUID uuid;
 
     public final int interval;
@@ -95,7 +83,7 @@ public class ResumptionToken<T> {
     }
     
     public static ResumptionToken get(UUID token) {
-        return cache.getIfPresent(token);
+        return cache.get(token);
     }
     
     public UUID getKey() {

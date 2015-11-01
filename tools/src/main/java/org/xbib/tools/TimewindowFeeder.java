@@ -13,7 +13,7 @@ import org.elasticsearch.common.joda.time.DateTime;
 import org.elasticsearch.common.joda.time.format.DateTimeFormat;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 
 import java.io.IOException;
 import java.io.InputStream;

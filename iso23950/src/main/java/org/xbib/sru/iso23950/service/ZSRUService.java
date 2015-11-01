@@ -33,6 +33,7 @@ package org.xbib.sru.iso23950.service;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -44,30 +45,33 @@ import org.xbib.io.iso23950.searchretrieve.CQLSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.PQFSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 import org.xbib.io.iso23950.service.ZService;
-import org.xbib.query.cql.SyntaxException;
 import org.xbib.sru.Diagnostics;
 import org.xbib.sru.SRUConstants;
 import org.xbib.sru.SRUVersion;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.iso23950.client.ZSRUClientFactory;
-import org.xbib.sru.service.PropertiesSRUService;
+import org.xbib.sru.service.SRUService;
 import org.xbib.xml.transform.StylesheetTransformer;
 
 /**
  *  A SRU service on a Z service
  */
-public class ZSRUService extends PropertiesSRUService implements ZService, ZConstants, SRUConstants {
+public class ZSRUService implements SRUService, ZService, ZConstants, SRUConstants {
 
     private final Properties properties;
 
     public ZSRUService(Properties properties) throws IOException {
-        super(properties);
         this.properties = properties;
     }
 
     @Override
     public ZClient newZClient() {
         return ZClientFactory.getInstance().newZClient(properties);
+    }
+
+    @Override
+    public URI getURI() {
+        return URI.create(properties.getProperty("uri"));
     }
 
     @Override
@@ -116,16 +120,9 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
         return properties.getProperty("stylesheet." + version.name().toLowerCase(), null);
     }
 
-    /**
-     * CQL search
-     *
-     * @param request
-     * @param writer
-     * @throws IOException
-     * @throws SyntaxException
-     */
     public void searchRetrieve(CQLSearchRetrieveRequest request, Writer writer)
             throws IOException {
+        /*
         // sanity check for record schema
         if (request.getRecordSchema() != null && !getRecordSchema().equals(request.getRecordSchema())) {
             throw new Diagnostics(66, request.getRecordSchema());
@@ -134,6 +131,7 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
         if (request.getRecordPacking() != null && !getRecordPacking().equals(request.getRecordPacking())) {
             throw new Diagnostics(6, request.getRecordPacking());
         }
+        */
 
         String cql = request.getQuery();
         int from = request.getStartRecord();
@@ -171,13 +169,14 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
      * to carry this information (startRecord/maximumRecords in SRU). The result
      * is fully adhering to SRU response.
      *
-     * @param request
-     * @param writer
+     * @param request request
+     * @param writer writer
      * @throws Diagnostics
      * @throws IOException
      */
     public void searchRetrieve(PQFSearchRetrieveRequest request, Writer writer)
             throws IOException {
+        /*
         // sanity check for record schema
         if (request.getRecordSchema() != null && !getRecordSchema().equals(request.getRecordSchema())) {
             throw new Diagnostics(66, request.getRecordSchema());
@@ -186,6 +185,7 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
         if (request.getRecordPacking() != null && !getRecordPacking().equals(request.getRecordPacking())) {
             throw new Diagnostics(6, request.getRecordPacking());
         }
+        */
         String pqf = request.getQuery();
         int from = request.getStartRecord();
         int size = request.getMaximumRecords();
@@ -211,5 +211,9 @@ public class ZSRUService extends PropertiesSRUService implements ZService, ZCons
         } catch (org.xbib.io.iso23950.Diagnostics d) {
             throw new Diagnostics(1, d.getPlainText());
         }
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

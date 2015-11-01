@@ -50,12 +50,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class CheckDelivery implements CommandLineInterpreter {
 
@@ -63,7 +63,7 @@ public class CheckDelivery implements CommandLineInterpreter {
 
     private static Settings settings;
 
-    private Set<String> notfoundset = newHashSet();
+    private Set<String> notfoundset = new HashSet<>();
 
     public CheckDelivery reader(Reader reader) {
         settings = settingsBuilder().loadFromReader(reader).build();

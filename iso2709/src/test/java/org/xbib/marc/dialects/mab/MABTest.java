@@ -53,31 +53,36 @@ public class MABTest extends StreamTester {
 
     @Test
     public void testZDBMAB() throws IOException, SAXException {
-        InputStream in = getClass().getResource("1217zdbtit.dat").openStream();
+        String s = "1217zdbtit.dat";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("zdb.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
             read(new InputStreamReader(in, "x-MAB"), w);
         }
-        assertStream(getClass().getResource("1217zdbtit.dat-out.xml").openStream(),
+        in.close();
+        assertStream(s, getClass().getResource("1217zdbtit.dat-out.xml").openStream(),
                 new FileInputStream(file));
     }
 
     @Test
     public void testCreateMABXML() throws IOException, SAXException {
-        InputStream in = getClass().getResource("test.groupstream").openStream();
+        String s ="test.groupstream";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("test.groupstream.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
             read(new InputStreamReader(in, "x-MAB"), w);
         }
-        assertStream(getClass().getResource("test.groupstream-out.xml").openStream(),
+        in.close();
+        assertStream(s, getClass().getResource("test.groupstream-out.xml").openStream(),
                 new FileInputStream(file));
     }
 
     @Test
     public void testReplacement() throws IOException, SAXException {
-        InputStream in = getClass().getResource("DE-605-aleph500-publish.xml").openStream();
+        String s = "DE-605-aleph500-publish.xml";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-605-aleph500-publish-out.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         MarcXchangeReader reader = new MarcXchangeReader(in)
@@ -91,7 +96,8 @@ public class MABTest extends StreamTester {
         writer.endCollection();
         writer.endDocument();
         out.close();
-        assertStream(getClass().getResource("DE-605-aleph500-publish-out.xml").openStream(),
+        in.close();
+        assertStream(s, getClass().getResource("DE-605-aleph500-publish-out.xml").openStream(),
                 new FileInputStream(file));
     }
 

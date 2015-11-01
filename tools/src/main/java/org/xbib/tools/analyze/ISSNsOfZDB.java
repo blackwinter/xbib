@@ -51,18 +51,18 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
-import static com.google.common.collect.Sets.newTreeSet;
 import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class ISSNsOfZDB implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDB.class.getName());
 
-    private final static Set<String> issns = newTreeSet();
+    private final static Set<String> issns = new TreeSet<>();
 
     private static Settings settings;
 

@@ -2,11 +2,9 @@ package org.xbib.tools.feed.elasticsearch.medline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.Resource;
@@ -16,6 +14,7 @@ import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.InvalidXmlCharacterFilterReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -41,7 +40,7 @@ public final class Mesh extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return Mesh::new;
     }
 

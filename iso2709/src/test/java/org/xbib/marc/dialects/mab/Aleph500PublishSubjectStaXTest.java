@@ -50,7 +50,8 @@ public class Aleph500PublishSubjectStaXTest extends StreamTester {
 
     @Test
     public void testDE605Subject() throws IOException, SAXException {
-        InputStream in = getClass().getResource("DE-605-aleph500-publish-subject.xml").openStream();
+        String s = "DE-605-aleph500-publish-subject.xml";
+        InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-605-publish-subject.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
         MarcXchangeFieldMapperReader reader = new MarcXchangeFieldMapperReader(in)
@@ -151,7 +152,8 @@ public class Aleph500PublishSubjectStaXTest extends StreamTester {
         writer.endCollection();
         writer.endDocument();
         out.close();
-        assertStream(getClass().getResource("DE-605-aleph500-publish-subject-result.xml").openStream(),
+        in.close();
+        assertStream(s, getClass().getResource("DE-605-aleph500-publish-subject-result.xml").openStream(),
                 new FileInputStream(file));
     }
 

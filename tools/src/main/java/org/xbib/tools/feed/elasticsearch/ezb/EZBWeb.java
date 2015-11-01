@@ -42,14 +42,13 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.TimewindowFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,7 +61,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -79,7 +77,7 @@ public class EZBWeb extends TimewindowFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return EZBWeb::new;
     }
 
@@ -120,24 +118,26 @@ public class EZBWeb extends TimewindowFeeder {
             br.readLine(); // ZDB-Id: ...
             br.readLine(); // Treffer: ...
             br.readLine(); // empty line
-            Scanner scanner = new Scanner(br);
-            scanner.useDelimiter("\t|\n");
-            while (scanner.hasNext()) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] s = line.split("\\t");
                 try {
-                    String sigel = scanner.next();
-                    String isil = scanner.next();
-                    String name = scanner.next(); // unused
-                    String code1 = scanner.next();
-                    String code2 = scanner.next();
-                    String code3 = scanner.next();
-                    String comment = scanner.next();
-                    String firstDate = scanner.next();
-                    String firstVolume = scanner.next();
-                    String firstIssue = scanner.next();
-                    String lastDate = scanner.next();
-                    String lastVolume = scanner.next();
-                    String lastIssue = scanner.next();
-                    String movingWall = scanner.next();
+                    int i = 0;
+                    String sigel = i < s.length ? s[i++] : "";
+                    String isil = i < s.length ? s[i++] : "";
+                    String name = i < s.length ? s[i++] : ""; // unused
+                    String code1 = i < s.length ? s[i++] : "";
+                    String code2 = i < s.length ? s[i++] : "";
+                    String code3 = i < s.length ? s[i++] : "";
+                    String comment = i < s.length ? s[i++] : "";
+                    String firstDate = i < s.length ? s[i++] : "";
+                    String firstVolume = i < s.length ? s[i++] : "";
+                    String firstIssue = i < s.length ? s[i++] : "";
+                    String lastDate = i < s.length ? s[i++] : "";
+                    String lastVolume = i < s.length ? s[i++] : "";
+                    String lastIssue = i < s.length ? s[i++] : "";
+                    String movingWall = i < s.length ? s[i] : "";
+
                     // AAAAA entry ("free serials")
                     if ("AAAAA".equals(sigel)) {
                         isil = "DE-ALL";
@@ -185,17 +185,6 @@ public class EZBWeb extends TimewindowFeeder {
                     if (settings.getAsBoolean("mock", false)) {
                         logger.info("{}", builder.string());
                     }
-                    if (executor != null) {
-                        // tell executor we increased document count by one
-                        executor.metric().mark();
-                        if (executor.metric().count() % 10000 == 0) {
-                            try {
-                                writeMetrics(executor.metric(), null);
-                            } catch (Exception e) {
-                                throw new IOException("metric failed", e);
-                            }
-                        }
-                    }
                 } catch (NoSuchElementException e) {
                     logger.error(url + " " + e.getMessage(), e);
                 }
@@ -217,7 +206,7 @@ public class EZBWeb extends TimewindowFeeder {
     }
 
     private Iterator<String> searchZDB() throws IOException {
-        List<String> list = new LinkedList<String>();
+        List<String> list = new LinkedList<>();
         Client client = ingest.client();
         if (client == null) {
             // mock

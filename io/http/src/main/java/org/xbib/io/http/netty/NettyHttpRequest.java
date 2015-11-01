@@ -40,12 +40,10 @@ import org.asynchttpclient.RequestBuilder;
 import org.xbib.io.http.HttpPacket;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.PreparedHttpRequest;
-import org.xbib.util.URIUtil;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 
 /**
  * A default HTTP request
@@ -108,14 +106,6 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
     public NettyHttpRequest addParameter(String name, String value) {
         if (value != null && value.length() > 0 && requestBuilder != null) {
             requestBuilder.addQueryParameter(name, value);
-        }
-        return this;
-    }
-
-    @Override
-    public NettyHttpRequest addParameter(String name, String value, Charset charset) {
-        if (value != null && value.length() > 0 && requestBuilder != null) {
-            requestBuilder.addQueryParameter(name, URIUtil.encode(value, charset));
         }
         return this;
     }

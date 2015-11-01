@@ -24,7 +24,8 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
 
     @Test
     public void testMarcXchangeCleaner() throws Exception {
-        File file = File.createTempFile("HT016424175-clean.", ".xml");
+        String s = "HT016424175-clean.";
+        File file = File.createTempFile(s, ".xml");
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");
@@ -48,13 +49,14 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
         sw.close();
         assertNull(writer.getException());
 
-        assertStream(getClass().getResource("HT016424175-clean.xml").openStream(),
+        assertStream(s, getClass().getResource("HT016424175-clean.xml").openStream(),
                 new FileInputStream(file));
     }
 
     @Test
     public void testMarcXchangeFieldMapperEventConsumer() throws Exception {
-        File file = File.createTempFile("HT016424175-event-fieldmapper.", ".xml");
+        String s = "HT016424175-event-fieldmapper.";
+        File file = File.createTempFile(s, ".xml");
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");
@@ -88,7 +90,7 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
         sw.close();
         assertNull(writer.getException());
 
-        assertStream(getClass().getResource("HT016424175-event-fieldmapper.xml").openStream(),
+        assertStream(s, getClass().getResource("HT016424175-event-fieldmapper.xml").openStream(),
                 new FileInputStream(file));
     }
 }

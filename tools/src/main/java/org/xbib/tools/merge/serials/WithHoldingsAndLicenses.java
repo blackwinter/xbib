@@ -50,12 +50,10 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.entities.support.StatusCodeMapper;
-import org.xbib.entities.support.ValueMaps;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.StatusCodeMapper;
+import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.serials.support.BibdatLookup;
 import org.xbib.tools.merge.serials.support.BlackListedISIL;
@@ -65,6 +63,8 @@ import org.xbib.tools.merge.serials.support.MappedISIL;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,13 +77,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicenses
-        extends QueuePipelineExecutor<TitelRecordRequest, WithHoldingsAndLicensesPipeline>
+        extends ForkJoinPipeline<TitelRecordRequest, WithHoldingsAndLicensesWorker>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
@@ -104,19 +104,19 @@ public class WithHoldingsAndLicenses
 
     private String identifier;
 
-    private static Settings settings;
-
-    private static BibdatLookup bibdatLookup;
-
-    private static ConsortiaLookup consortiaLookup;
-
-    private static BlackListedISIL isilbl;
-
-    private static MappedISIL isilMapped;
-
     private static MeterMetric queryMetric;
 
     private static MeterMetric indexMetric;
+
+    private Settings settings;
+
+    private BibdatLookup bibdatLookup;
+
+    private ConsortiaLookup consortiaLookup;
+
+    private BlackListedISIL isilbl;
+
+    private MappedISIL isilMapped;
 
     private long total;
 
@@ -277,46 +277,49 @@ public class WithHoldingsAndLicenses
         queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
 
-        super.setPipelineProvider(new PipelineProvider<WithHoldingsAndLicensesPipeline>() {
+        super.setProvider(new WorkerProvider<WithHoldingsAndLicensesWorker>() {
             int i = 0;
 
             @Override
-            public WithHoldingsAndLicensesPipeline get() {
-                WithHoldingsAndLicensesPipeline pipeline = new WithHoldingsAndLicensesPipeline(service, i++);
+            public WithHoldingsAndLicensesWorker get() {
+                WithHoldingsAndLicensesWorker pipeline = new WithHoldingsAndLicensesWorker(service, i++);
                 pipeline.setQueue(getQueue());
                 return pipeline;
             }
         });
         super.setConcurrency(settings.getAsInt("concurrency", 1));
 
-        this.prepare();
+        prepare();
 
         // here we do the work!
-        this.execute();
+        try {
+            execute();
+        } finally {
+            logger.info("shutdown in progress");
+            shutdown(new TitelRecordRequest().set(null));
 
-        logger.info("shutdown in progress");
-        shutdown(new TitelRecordRequest().set(null));
+            logger.info("query: started {}, ended {}, took {}, count = {}",
+                    DateUtil.formatDateISO(queryMetric.startedAt()),
+                    DateUtil.formatDateISO(queryMetric.stoppedAt()),
+                    TimeValue.timeValueMillis(queryMetric.elapsed() / 1000000).format(),
+                    queryMetric.count());
+            logger.info("index: started {}, ended {}, took {}, count = {}",
+                    DateUtil.formatDateISO(indexMetric.startedAt()),
+                    DateUtil.formatDateISO(indexMetric.stoppedAt()),
+                    TimeValue.timeValueMillis(indexMetric.elapsed() / 1000000).format(),
+                    indexMetric.count());
 
-        logger.info("query: started {}, ended {}, took {}, count = {}",
-                DateUtil.formatDateISO(queryMetric.startedAt()),
-                DateUtil.formatDateISO(queryMetric.stoppedAt()),
-                TimeValue.timeValueMillis(queryMetric.elapsed() / 1000000).format(),
-                queryMetric.count());
-        logger.info("index: started {}, ended {}, took {}, count = {}",
-                DateUtil.formatDateISO(indexMetric.startedAt()),
-                DateUtil.formatDateISO(indexMetric.stoppedAt()),
-                TimeValue.timeValueMillis(indexMetric.elapsed() / 1000000).format(),
-                indexMetric.count());
+            logger.info("ingest shutdown in progress");
+            ingest.flushIngest();
+            ingest.waitForResponses(TimeValue.timeValueSeconds(60));
+            ingest.shutdown();
 
-        logger.info("ingest shutdown in progress");
-        ingest.flushIngest();
-        ingest.waitForResponses(TimeValue.timeValueSeconds(60));
-        ingest.shutdown();
+            logger.info("search shutdown in progress");
+            search.shutdown();
 
-        logger.info("search shutdown in progress");
-        search.shutdown();
+            logger.info("run complete");
 
-        logger.info("run complete");
+        }
     }
 
     @Override
@@ -443,14 +446,6 @@ public class WithHoldingsAndLicenses
         return countResponse.getCount() > 0;
     }
 
-    /*public Set<String> indexed() {
-        return indexed;
-    }*/
-
-    /*public Set<String> skipped() {
-        return skipped;
-    }*/
-
     public Client client() {
         return client;
     }
@@ -503,10 +498,11 @@ public class WithHoldingsAndLicenses
 
         public void run() {
             long percent = count * 100 / total;
-            logger.info("=====> {}/{} {}%",
+            logger.info("=====> {}/{} = {}%, pipelines={}",
                     count,
                     total,
-                    percent);
+                    percent,
+                    canReceive());
             logger.info("=====> query metric={} ({} {} {})",
                     queryMetric.meanRate(),
                     queryMetric.oneMinuteRate(),

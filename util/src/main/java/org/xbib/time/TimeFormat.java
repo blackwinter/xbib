@@ -9,14 +9,14 @@ public interface TimeFormat {
      *
      * @param duration The original {@link Duration} instance from which the time string should be decorated.
      */
-    public abstract String format(final Duration duration);
+    String format(final Duration duration);
 
     /**
      * Given a populated {@link Duration} object. Apply formatting (without rounding) and output the result.
      *
      * @param duration The original {@link Duration} instance from which the time string should be decorated.
      */
-    public String formatUnrounded(Duration duration);
+    String formatUnrounded(Duration duration);
 
     /**
      * Decorate with past or future prefix/suffix (with rounding)
@@ -24,7 +24,7 @@ public interface TimeFormat {
      * @param duration The original {@link Duration} instance from which the time string should be decorated.
      * @param time     The formatted time string.
      */
-    public String decorate(Duration duration, String time);
+    String decorate(Duration duration, String time);
 
     /**
      * Decorate with past or future prefix/suffix (without rounding)
@@ -32,6 +32,6 @@ public interface TimeFormat {
      * @param duration The original {@link Duration} instance from which the time string should be decorated.
      * @param time     The formatted time string.
      */
-    public String decorateUnrounded(Duration duration, String time);
+    String decorateUnrounded(Duration duration, String time);
 
 }

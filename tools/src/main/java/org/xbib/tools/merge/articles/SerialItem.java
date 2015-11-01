@@ -34,14 +34,13 @@ package org.xbib.tools.merge.articles;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.util.Collection;
-
-import static com.google.common.collect.Sets.newHashSet;
+import java.util.HashSet;
 
 public class SerialItem {
 
     private Integer date;
 
-    private Collection<TitleRecord> titleRecords = newHashSet();
+    private Collection<TitleRecord> titleRecords = new HashSet<>();
 
     public SerialItem() {
     }

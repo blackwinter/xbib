@@ -33,10 +33,8 @@ package org.xbib.tools.feed.elasticsearch.ezb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -47,6 +45,7 @@ import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.TimewindowFeeder;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -76,10 +75,9 @@ public final class EZBXML extends TimewindowFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return EZBXML::new;
     }
-
 
     protected String getIndex() {
         return settings.get("index", "ezbxml");
@@ -155,17 +153,6 @@ public final class EZBXML extends TimewindowFeeder {
             builder.receive(getResource());
             if (settings.getAsBoolean("mock", false)) {
                 logger.info("{}", builder.string());
-            }
-            if (executor != null) {
-                // tell executor we increased document count by one
-                executor.metric().mark();
-                if (executor.metric().count() % 10000 == 0) {
-                    try {
-                        writeMetrics(executor.metric(), null);
-                    } catch (Exception e) {
-                        throw new IOException("metric failed", e);
-                    }
-                }
             }
         }
 

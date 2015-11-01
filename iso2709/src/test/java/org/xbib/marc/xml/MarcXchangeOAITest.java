@@ -104,12 +104,13 @@ public class MarcXchangeOAITest extends StreamTester {
 
         };
 
-        InputStream in = getClass().getResource("zdb-oai-marc.xml").openStream();
+        String s = "zdb-oai-marc.xml";
+        InputStream in = getClass().getResource(s).openStream();
         MarcXchangeReader reader = new MarcXchangeReader(in);
         reader.addListener("Bibliographic", listener);
         reader.parse();
         in.close();
-        assertStream( getClass().getResource("zdb-oai-marc.txt").openStream(),
+        assertStream(s, getClass().getResource("zdb-oai-marc.txt").openStream(),
                 new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
     }
 }

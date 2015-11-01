@@ -89,7 +89,7 @@
         <jackson.version>2.5.2</jackson.version>
         <netty.version>4.1.0.Beta5</netty.version>
         <jetty.version>9.3.0.M2</jetty.version>
-        <maven.surefire.version>2.18.1</maven.surefire.version>
+        <maven.surefire.version>2.19</maven.surefire.version>
     </properties>
 
     <build>
@@ -412,12 +412,32 @@
         <dependencies>
             <dependency>
                 <groupId>org.xbib</groupId>
+                <artifactId>xbib-datastructures-persistent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-datastructures-keyvalue</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-datastructures-collection</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-datastructures-forkjoin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
                 <artifactId>xbib-charset</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-compress</artifactId>
+                <artifactId>xbib-io-archive</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -427,7 +447,7 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-iso2709</artifactId>
+                <artifactId>xbib-marc-iso2709</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -437,32 +457,12 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-sru</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-entity</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-pipeline</artifactId>
+                <artifactId>xbib-etl</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-io-stream</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-file</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-ftp</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -477,27 +477,7 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-rsync</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-snmp</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-posix</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-io-redis</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-iso23950</artifactId>
+                <artifactId>xbib-sru-iso23950</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -508,16 +488,6 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-matching</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-standardnumber</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-handlebars</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -538,16 +508,6 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-content-json</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-query</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-elasticsearch-search</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -579,11 +539,6 @@
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.woodstox</groupId>
@@ -632,26 +587,6 @@
                 <version>1.4</version>
             </dependency>
             <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <version>3.1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>1.1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.resteasy</groupId>
-                <artifactId>resteasy-jaxrs</artifactId>
-                <version>3.0.11.Final</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.12</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-slf4j-impl</artifactId>
                 <version>2.2</version>
@@ -672,11 +607,6 @@
                 <version>2.11.0</version>
             </dependency>
             <dependency>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-                <version>1.4.01</version>
-            </dependency>
-            <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
                 <version>2.7.2</version>
@@ -692,26 +622,9 @@
                 <version>9.6.0-5</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <classifier>indy</classifier>
-                <version>2.4.3</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.ant</groupId>
                 <artifactId>ant</artifactId>
                 <version>1.9.4</version>
-            </dependency>
-            <dependency>
-                <groupId>io.reactivex</groupId>
-                <artifactId>rxjava</artifactId>
-                <version>1.0.14</version>
-            </dependency>
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna</artifactId>
-                <version>4.1.0</version>
-                <type>jar</type>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -750,82 +663,6 @@
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-runtime</artifactId>
-                <version>${antlr.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.carrotsearch</groupId>
-                <artifactId>hppc</artifactId>
-                <version>0.6.1</version>
-                <type>jar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>3.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>cglib</groupId>
-                <artifactId>cglib</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>5.0.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-easymock</artifactId>
-                <version>1.6.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>1.6.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>1.15</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.arquillian.junit</groupId>
-                <artifactId>arquillian-junit-container</artifactId>
-                <version>1.1.8.Final</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.arquillian.container</groupId>
-                <artifactId>arquillian-jetty-embedded-7</artifactId>
-                <version>1.1.5.Final</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.shrinkwrap.descriptors</groupId>
-                <artifactId>shrinkwrap-descriptors-impl</artifactId>
-                <version>1.1.0-beta-1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.weld.servlet</groupId>
-                <artifactId>weld-servlet-core</artifactId>
-                <version>3.0.0.Alpha8</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.weld</groupId>
-                <artifactId>weld-core-impl</artifactId>
-                <version>3.0.0.Alpha8</version>
-            </dependency>
-            <dependency>
-                <groupId>net.sourceforge.htmlunit</groupId>
-                <artifactId>htmlunit</artifactId>
-                <version>2.16</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-httpclient</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>3.1</version>
-            </dependency>
-            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>
@@ -850,6 +687,23 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <scope>provided</scope>
@@ -862,44 +716,30 @@
     </dependencies>
 
     <modules>
-        <module>io/stream</module>
-        <module>io/file</module>
-        <module>io/http</module>
-        <module>io/ftp</module>
-        <module>io/rsync</module>
-        <module>io/snmp</module>
-        <module>io/jdbc</module>
-        <module>io/posix</module>
-        <module>io/redis</module>
+        <module>datastructures/keyvalue</module>
+        <module>datastructures/collection</module>
+        <module>datastructures/persistent</module>
+        <module>datastructures/forkjoin</module>
 
         <module>content/common</module>
         <module>content/xml</module>
         <module>content/json</module>
         <module>content/rdf</module>
 
+        <module>io/stream</module>
+        <module>io/archive</module>
+        <module>io/http</module>
+        <module>io/jdbc</module>
+
         <module>charset</module>
-        <module>compress</module>
         <module>util</module>
         <module>iso2709</module>
         <module>jacc</module>
-        <module>dict</module>
-        <module>handlebars</module>
-        <module>pipeline</module>
         <module>matching</module>
-        <module>standardnumber</module>
-        <module>entity</module>
-        <module>query</module>
-        <module>sru</module>
-        <module>oai</module>
+        <module>etl</module>
         <module>iso23950</module>
+        <module>oai</module>
 
-        <module>elasticsearch/search</module>
-
-        <module>web/federator</module>
-        <module>web/dispatcher</module>
-        <module>web/sru</module>
-        <module>web/oai</module>
-        
         <module>tools</module>
 
     </modules>

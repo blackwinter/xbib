@@ -31,12 +31,11 @@
  */
 package org.xbib.tools.feed.elasticsearch.zdb.bib;
 
-import org.xbib.entities.marc.MARCEntityQueue;
+import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.marc.BibliographicFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
@@ -61,7 +60,7 @@ public class MarcBib extends BibliographicFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return MarcBib::new;
     }
 

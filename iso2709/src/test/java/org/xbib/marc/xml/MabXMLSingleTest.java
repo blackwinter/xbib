@@ -1,7 +1,5 @@
 package org.xbib.marc.xml;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
@@ -85,11 +83,11 @@ public class MabXMLSingleTest extends StreamTester {
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.addListener("h", listener);
-
         writer.startDocument();
         writer.beginCollection();
 
-        InputStream in = getClass().getResourceAsStream("NLM22420274X.xml");
+        String s = "NLM22420274X.xml";
+        InputStream in = getClass().getResourceAsStream(s);
         MabXMLReader reader = new MabXMLReader(in);
         reader.setFormat("MabXML").setType("h");
         reader.addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");
@@ -103,10 +101,10 @@ public class MabXMLSingleTest extends StreamTester {
 
         assertNull(writer.getException());
 
-        assertStream(getClass().getResource("NLM22420274X-out.xml").openStream(),
+        assertStream(s, getClass().getResource("NLM22420274X-out.xml").openStream(),
                 new FileInputStream(file));
 
-        assertStream(getClass().getResource("NLM22420274X.txt").openStream(),
+        assertStream(s, getClass().getResource("NLM22420274X.txt").openStream(),
                 new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
     }
 }

@@ -72,7 +72,8 @@ public class MarcXchangeSRUTest extends StreamTester {
 
         };
 
-        InputStream in = getClass().getResource("zdb-sru-marcxmlplus.xml").openStream();
+        String s = "zdb-sru-marcxmlplus.xml";
+        InputStream in = getClass().getResource(s).openStream();
         MarcXchangeReader reader = new MarcXchangeReader(in);
         reader.setContentHandler(handler);
         reader.parse();
@@ -82,7 +83,7 @@ public class MarcXchangeSRUTest extends StreamTester {
         fw.write(sb.toString());
         fw.close();
 
-        assertStream(getClass().getResource("zdb-sru-marcxmlplus.txt").openStream(),
+        assertStream(s, getClass().getResource("zdb-sru-marcxmlplus.txt").openStream(),
                 new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
     }
 }

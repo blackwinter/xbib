@@ -33,19 +33,18 @@ package org.xbib.tools.feed.elasticsearch.zdb.bibdat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.dialects.pica.PicaEntityBuilderState;
-import org.xbib.entities.marc.dialects.pica.PicaEntityQueue;
-import org.xbib.io.InputService;
-import org.xbib.io.keyvalue.KeyValueStreamAdapter;
+import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
+import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
+import org.xbib.util.InputService;
+import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,7 +70,7 @@ public final class BibdatFromPPXML extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return BibdatFromPPXML::new;
     }
 
@@ -93,7 +92,7 @@ public final class BibdatFromPPXML extends Feeder {
                     @Override
                     public KeyValueStreamAdapter<FieldList, String> begin() {
                         if (logger.isTraceEnabled()) {
-                            logger.trace("startStream object");
+                            logger.trace("start object");
                         }
                         return this;
                     }
@@ -101,12 +100,12 @@ public final class BibdatFromPPXML extends Feeder {
                     @Override
                     public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
                         if (logger.isTraceEnabled()) {
-                            logger.trace("startStream");
+                            logger.trace("start field");
                             for (Field f : key) {
                                 logger.trace("tag={} ind={} subf={} data={}",
                                         f.tag(), f.indicator(), f.subfieldId(), f.data());
                             }
-                            logger.trace("end");
+                            logger.trace("end field");
                         }
                         return this;
                     }

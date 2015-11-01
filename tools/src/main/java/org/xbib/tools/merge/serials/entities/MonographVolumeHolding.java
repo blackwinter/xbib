@@ -35,13 +35,12 @@ import org.xbib.common.xcontent.ToXContent;
 import org.xbib.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newTreeSet;
+import java.util.TreeSet;
 
 public class MonographVolumeHolding extends Holding {
 
@@ -91,7 +90,7 @@ public class MonographVolumeHolding extends Holding {
     }
 
     public MonographVolumeHolding setDate(Integer from, Integer to) {
-        List<Integer> dates = newArrayList();
+        List<Integer> dates = new ArrayList<>();
         if (from != null && to != null) {
             for (Integer i = from; i <= to; i++) {
                 dates.add(i);
@@ -102,13 +101,13 @@ public class MonographVolumeHolding extends Holding {
         if (!dates.isEmpty()) {
             this.firstdate = dates.get(0);
             this.lastdate = dates.get(dates.size() - 1);
-            this.dates = newTreeSet(dates);
+            this.dates = new TreeSet<>(dates);
         }
         return this;
     }
 
     protected Map<String, Object> buildInfo() {
-        return newHashMap();
+        return new HashMap<>();
     }
 
     public String getStatus() {

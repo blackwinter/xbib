@@ -42,16 +42,15 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
 
 public class ConsortiaLookup {
 
     private final static Logger logger = LogManager.getLogger(BibdatLookup.class);
 
-    private Map<String, List<String>> isils = newHashMap();
+    private Map<String, List<String>> isils = new HashMap<>();
 
     public void buildLookup(Client client, String index) throws IOException {
         int size = 1000;

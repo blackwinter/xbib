@@ -33,7 +33,6 @@ package org.xbib.sru.iso23950.client;
 
 import org.xbib.io.Connection;
 import org.xbib.io.ConnectionService;
-import org.xbib.io.Session;
 import org.xbib.io.iso23950.ZSession;
 import org.xbib.io.iso23950.client.ZClient;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
@@ -57,11 +56,11 @@ public class ZSRUClient extends DefaultSRUClient {
     private final ConnectionService<ZSession> connectionService = ConnectionService.getInstance();
 
     protected ZSRUClient(ZSRUService service) throws IOException {
-        super(service.getURI());
+        super();
         this.service = service;
     }
 
-    @Override
+    /*@Override
     public String getRecordSchema() {
         return service.getRecordSchema();
     }
@@ -70,11 +69,11 @@ public class ZSRUClient extends DefaultSRUClient {
     public String getRecordPacking() {
         return service.getRecordPacking();
     }
+    */
 
     @Override
-    public SearchRetrieveRequest newSearchRetrieveRequest() {
-        SearchRetrieveRequest request = super.newSearchRetrieveRequest();
-        return request.setURI(service.getURI());
+    public SearchRetrieveRequest newSearchRetrieveRequest(URI uri) {
+        return super.newSearchRetrieveRequest(uri);
     }
 
     @Override

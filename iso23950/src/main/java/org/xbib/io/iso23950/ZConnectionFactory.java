@@ -32,6 +32,7 @@
 package org.xbib.io.iso23950;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import org.xbib.io.ConnectionFactory;
 
@@ -60,6 +61,11 @@ public final class ZConnectionFactory implements ConnectionFactory<ZSession> {
         ZConnection conn = new ZConnection();
         conn.setURI(uri);
         return conn;
+    }
+
+    @Override
+    public InputStream open(URI uri) throws IOException {
+        return null; // TODO (how to stream a z3950 URL?)
     }
 
     @Override

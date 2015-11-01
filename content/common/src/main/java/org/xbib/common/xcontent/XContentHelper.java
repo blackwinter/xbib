@@ -1,7 +1,6 @@
 
 package org.xbib.common.xcontent;
 
-import com.google.common.collect.Maps;
 import org.xbib.io.BytesArray;
 import org.xbib.io.BytesReference;
 import org.xbib.common.xcontent.xml.XmlXParams;
@@ -9,6 +8,7 @@ import org.xbib.common.xcontent.xml.XmlXParams;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -223,7 +223,7 @@ public class XContentHelper {
                     List mergedList = new ArrayList();
                     if (allListValuesAreMapsOfOne(defaultList) && allListValuesAreMapsOfOne(contentList)) {
                         // all are in the form of [ {"key1" : {}}, {"key2" : {}} ], merge based on keys
-                        Map<String, Map<String, Object>> processed = Maps.newLinkedHashMap();
+                        Map<String, Map<String, Object>> processed = new LinkedHashMap<>();
                         for (Object o : contentList) {
                             Map<String, Object> map = (Map<String, Object>) o;
                             Map.Entry<String, Object> entry = map.entrySet().iterator().next();

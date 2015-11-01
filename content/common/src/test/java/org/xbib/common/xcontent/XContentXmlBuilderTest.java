@@ -9,11 +9,12 @@ import org.xbib.xml.namespace.XmlNamespaceContext;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 
-import static com.google.common.io.ByteStreams.copy;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 import static org.xbib.common.xcontent.XContentFactory.xmlBuilder;
 
 public class XContentXmlBuilderTest extends Assert {
@@ -206,4 +207,11 @@ public class XContentXmlBuilderTest extends Assert {
         );
     }
 
+    private void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = in.read(buffer)) != -1) {
+            out.write(buffer, 0, len);
+        }
+    }
 }

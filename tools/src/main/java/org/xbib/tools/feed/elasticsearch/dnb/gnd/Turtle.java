@@ -33,14 +33,13 @@ package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -60,7 +59,7 @@ public class Turtle extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return Turtle::new;
     }
 

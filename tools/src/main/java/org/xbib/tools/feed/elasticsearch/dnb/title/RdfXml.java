@@ -32,13 +32,12 @@
 package org.xbib.tools.feed.elasticsearch.dnb.title;
 
 import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +56,7 @@ public class RdfXml extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return RdfXml::new;
     }
 

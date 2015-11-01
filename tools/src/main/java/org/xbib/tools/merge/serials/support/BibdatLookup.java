@@ -42,21 +42,21 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newHashMap;
 
 public class BibdatLookup {
 
     private final static Logger logger = LogManager.getLogger(BibdatLookup.class);
 
-    private Map<String, String> name = newHashMap();
+    private Map<String, String> name = new HashMap<>();
 
-    private Map<String, String> region = newHashMap();
+    private Map<String, String> region = new HashMap<>();
 
-    private Map<String, String> organization = newHashMap();
+    private Map<String, String> organization = new HashMap<>();
 
-    private Map<String, String> other = newHashMap();
+    private Map<String, String> other = new HashMap<>();
 
     public void buildLookup(Client client, String index) throws IOException {
         int size = 1000;

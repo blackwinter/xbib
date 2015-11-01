@@ -34,7 +34,6 @@ package org.xbib.tools.merge.serials.support;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newHashMap;
 
 public class StatCounter extends HashMap<String,Map<String,Integer>> {
 
@@ -43,7 +42,7 @@ public class StatCounter extends HashMap<String,Map<String,Integer>> {
             return;
         }
         if (!containsKey(key)) {
-            put(key, newHashMap());
+            put(key, new HashMap<>());
         }
         Map<String,Integer> map = get(key);
         if (!map.containsKey(value)) {
@@ -58,7 +57,7 @@ public class StatCounter extends HashMap<String,Map<String,Integer>> {
             return;
         }
         if (!containsKey(key)) {
-            put(key, newHashMap());
+            put(key, new HashMap<>());
         }
         Map<String,Integer> map = get(key);
         if (!map.containsKey(value)) {

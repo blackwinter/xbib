@@ -9,20 +9,17 @@
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>xbib-iso23950</artifactId>
+    <artifactId>xbib-sru-iso23950</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-iso23950</name>
-    <description>ISO 23950 information retrieval</description>
+    <name>xbib-sru-iso23950</name>
+    <description>Search/Retrieve by URI and ISO 23950 information retrieval</description>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- for bibliographic char set -->
-                    <forkCount>1</forkCount>
-                    <reuseForks>true</reuseForks>
                     <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
             </plugin>
@@ -76,17 +73,12 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-entity</artifactId>
+            <artifactId>xbib-marc-iso2709</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-query</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-sru</artifactId>
+            <artifactId>xbib-io-http</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -94,11 +86,6 @@
             <artifactId>xbib-charset</artifactId>
             <type>jar</type>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

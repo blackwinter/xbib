@@ -1,7 +1,6 @@
 
 package org.xbib.common.xcontent.support;
 
-import com.google.common.collect.Lists;
 import org.xbib.common.Strings;
 import org.xbib.common.unit.TimeValue;
 
@@ -17,7 +16,7 @@ public class XContentMapValues {
      * as a single list.
      */
     public static List<Object> extractRawValues(String path, Map<String, Object> map) {
-        List<Object> values = Lists.newArrayList();
+        List<Object> values = new ArrayList<>();
         String[] pathElements = Strings.splitStringToArray(path, '.');
         if (pathElements.length == 0) {
             return values;

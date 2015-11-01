@@ -36,18 +36,19 @@ import org.xbib.util.Strings;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newTreeSet;
 
 public class License extends Holding {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+
+    private final static Pattern movingWallPattern = Pattern.compile("^[+-](\\d+)Y$");
 
     public License(Map<String, Object> m) {
         super(m);
@@ -76,7 +77,7 @@ public class License extends Holding {
 
     @Override
     protected void buildDateArray() {
-        List<Integer> dates = newLinkedList();
+        List<Integer> dates = new LinkedList<>();
         String firstDate = getString("ezb:license_period.ezb:first_date");
         int first;
         int last;
@@ -94,7 +95,7 @@ public class License extends Holding {
         if (movingWall != null) {
             Matcher m = movingWallPattern.matcher(movingWall);
             if (m.matches()) {
-                int delta = Integer.parseInt(m.group(1));
+                this.delta = Integer.parseInt(m.group(1));
                 last = currentYear;
                 first = last - delta;
                 if ("+".startsWith(movingWall)) {
@@ -112,13 +113,11 @@ public class License extends Holding {
             this.firstdate = dates.get(0);
             this.lastdate = dates.get(dates.size() - 1);
         }
-        this.dates = newTreeSet(dates);
+        this.dates = new TreeSet<>(dates);
     }
 
-    private final static Pattern movingWallPattern = Pattern.compile("^[+-](\\d+)Y$");
-
     protected Map<String, Object> buildInfo() {
-        Map<String, Object> m = newHashMap();
+        Map<String, Object> m = new HashMap<>();
         String s = getString("ezb:ill_relevance.ezb:ill_code");
         if (s != null) {
             switch (s) {
@@ -197,7 +196,7 @@ public class License extends Holding {
         if (!Strings.isNullOrEmpty(comment)) {
             setServiceComment(comment);
         }
-        Map<String, Object> group = newHashMap();
+        Map<String, Object> group = new HashMap<>();
         // first date and last date is obligatory
         group.put("begindate", getString("ezb:license_period.ezb:first_date"));
         group.put("enddate", getString("ezb:license_period.ezb:last_date"));
@@ -219,22 +218,23 @@ public class License extends Holding {
         if (lastIssue != null) {
             group.put("endissue", lastIssue);
         }
-        Map<String, Object> holdings = newHashMap();
+        // moving wall
+        if (delta != null) {
+            group.put("delta", delta);
+        }
+        Map<String, Object> holdings = new HashMap<>();
         holdings.put("group", group);
         m.put("holdings", holdings);
-
-        Map<String, Object> link = newHashMap();
+        Map<String, Object> link = new HashMap<>();
         link.put("uri", map.get("ezb:reference_url"));
         link.put("nonpublicnote", "Verlagsangebot"); // ZDB = "Volltext"
         m.put("links", Collections.singletonList(link));
-
-        this.license = newHashMap();
+        this.license = new HashMap<>();
         license.put("type", map.get("ezb:type_id"));
         license.put("scope", map.get("ezb:license_type_id"));
         license.put("charge", map.get("ezb:price_type_id"));
         license.put("readme", map.get("ezb:readme_url"));
         m.put("license", license);
-
         return m;
     }
 

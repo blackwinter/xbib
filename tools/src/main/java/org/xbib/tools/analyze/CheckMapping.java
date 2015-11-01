@@ -44,7 +44,6 @@ import org.elasticsearch.common.hppc.cursors.ObjectCursor;
 import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.xbib.common.settings.ImmutableSettings;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
@@ -54,15 +53,15 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import static com.google.common.collect.Maps.newTreeMap;
 import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class CheckMapping implements CommandLineInterpreter {
 
@@ -86,7 +85,7 @@ public class CheckMapping implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -123,7 +122,7 @@ public class CheckMapping implements CommandLineInterpreter {
             CountResponse countResponse = countRequestBuilder.execute().actionGet();
             long total = countResponse.getCount();
             if (total > 0L) {
-                Map<String,Long> fields = newTreeMap();
+                Map<String,Long> fields = new TreeMap();
                 Map<String,Object> root = mappingMetaData.getSourceAsMap();
                 checkMapping(client, index, type, "", "", root, fields);
                 AtomicInteger empty = new AtomicInteger();

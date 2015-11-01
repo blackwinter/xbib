@@ -32,10 +32,9 @@
 package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.xbib.oai.rdf.RdfResourceHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.tools.OAIFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 public class NatLiz extends OAIFeeder {
 
@@ -55,7 +54,7 @@ public class NatLiz extends OAIFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return NatLiz::new;
     }
 

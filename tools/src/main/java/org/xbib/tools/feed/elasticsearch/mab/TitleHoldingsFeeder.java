@@ -12,10 +12,10 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.xbib.common.unit.ByteSizeValue;
-import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
-import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.entities.support.ValueMaps;
+import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
+import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -27,15 +27,15 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -155,7 +155,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             return;
         }
         // set identifier prefix (ISIL)
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-605"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
@@ -257,8 +257,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             // for union catalog, create aliases for "main ISILs" using xbib.identifier
             Map<String, String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
                     settings.get("sigel2isil", "/org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
-            final List<String> newAliases = newLinkedList();
-            final List<String> switchedAliases = newLinkedList();
+            final List<String> newAliases = new LinkedList<>();
+            final List<String> switchedAliases = new LinkedList<>();
             IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
             for (String isil : sigel2isil.values()) {
                 // only one (or none) hyphen = "main ISIL"
@@ -333,9 +333,6 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 resource.newResource("xbib").add("uid", state.getRecordIdentifier());
                 builder.receive(resource);
                 docs++;
-            }
-            if (executor != null) {
-                executor.metric().mark(docs);
             }
         }
     }

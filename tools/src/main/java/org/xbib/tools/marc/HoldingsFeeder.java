@@ -11,9 +11,9 @@ import org.elasticsearch.common.joda.time.format.DateTimeFormat;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.common.unit.ByteSizeValue;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
@@ -24,12 +24,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -115,7 +115,7 @@ public abstract class HoldingsFeeder extends Feeder {
             return;
         }
         // set identifier prefix (ISIL)
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-605"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
@@ -215,17 +215,6 @@ public abstract class HoldingsFeeder extends Feeder {
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {
                 logger.debug("{}", builder.string());
-            }
-            if (executor != null) {
-                // tell executor we increased document count by one
-                executor.metric().mark();
-                if (executor.metric().count() % 10000 == 0) {
-                    try {
-                        writeMetrics(executor.metric(), null);
-                    } catch (Exception e) {
-                        throw new IOException("metric failed", e);
-                    }
-                }
             }
         }
     }

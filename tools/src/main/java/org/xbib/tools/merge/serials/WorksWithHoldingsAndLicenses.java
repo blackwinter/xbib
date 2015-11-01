@@ -50,12 +50,10 @@ import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
 import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.support.client.search.SearchClient;
 import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.entities.support.StatusCodeMapper;
-import org.xbib.entities.support.ValueMaps;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.StatusCodeMapper;
+import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.QueuePipelineExecutor;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.tools.merge.serials.support.BibdatLookup;
@@ -64,6 +62,8 @@ import org.xbib.tools.merge.serials.support.ConsortiaLookup;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,13 +76,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WorksWithHoldingsAndLicenses
-        extends QueuePipelineExecutor<TitelRecordRequest, WorksWithHoldingsAndLicensesPipeline>
+        extends ForkJoinPipeline<TitelRecordRequest, WorksWithHoldingsAndLicensesWorker>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WorksWithHoldingsAndLicenses.class.getSimpleName());
@@ -263,12 +263,12 @@ public class WorksWithHoldingsAndLicenses
         queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
 
-        super.setPipelineProvider(new PipelineProvider<WorksWithHoldingsAndLicensesPipeline>() {
+        super.setProvider(new WorkerProvider<WorksWithHoldingsAndLicensesWorker>() {
             int i = 0;
 
             @Override
-            public WorksWithHoldingsAndLicensesPipeline get() {
-                WorksWithHoldingsAndLicensesPipeline pipeline = new WorksWithHoldingsAndLicensesPipeline(service, i++);
+            public WorksWithHoldingsAndLicensesWorker get() {
+                WorksWithHoldingsAndLicensesWorker pipeline = new WorksWithHoldingsAndLicensesWorker(service, i++);
                 pipeline.setQueue(getQueue());
                 return pipeline;
             }

@@ -55,20 +55,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
-import static com.google.common.collect.Maps.newTreeMap;
 import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
 import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.FilterBuilders.termFilter;
 import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.ImmutableSettings.settingsBuilder;
+import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class PublisherFile implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
-    private final static Map<String,Collection<Object>> publishers = newTreeMap();
+    private final static Map<String,Collection<Object>> publishers = new TreeMap<>();
 
     private static Settings settings;
 

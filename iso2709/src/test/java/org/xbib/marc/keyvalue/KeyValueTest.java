@@ -33,7 +33,7 @@ package org.xbib.marc.keyvalue;
 
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.io.keyvalue.KeyValueStreamAdapter;
+import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
@@ -61,80 +61,82 @@ public class KeyValueTest extends StreamTester {
             Iso2709Reader reader = new Iso2709Reader(r);
             reader.setFormat(MarcXchangeConstants.MARC21);
             reader.setMarcXchangeListener(new MarcXchange2KeyValue()
-                            .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                                @Override
-                                public KeyValueStreamAdapter<FieldList, String> begin() {
-                                    sw.append("begin object\n");
-                                    return this;
-                                }
+                .addListener(new KeyValueStreamAdapter<FieldList, String>() {
+                    @Override
+                    public KeyValueStreamAdapter<FieldList, String> begin() {
+                        sw.append("begin object\n");
+                        return this;
+                    }
 
-                                @Override
-                                public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                                    sw.append("begin\n");
-                                    for (Field f : key) {
-                                        sw.append(String.format("tag=%s indicator=%s subfield=%s data=%s\n",
-                                                f.tag(), f.indicator(), f.subfieldId(), f.data()));
-                                    }
-                                    sw.append("end\n");
-                                    return this;
-                                }
+                    @Override
+                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
+                        sw.append("begin\n");
+                        for (Field f : key) {
+                            sw.append(String.format("tag=%s indicator=%s subfield=%s data=%s\n",
+                                    f.tag(), f.indicator(), f.subfieldId(), f.data()));
+                        }
+                        sw.append("end\n");
+                        return this;
+                    }
 
-                                @Override
-                                public KeyValueStreamAdapter<FieldList, String> end() {
-                                    sw.append("end object\n");
-                                    return this;
-                                }
+                    @Override
+                    public KeyValueStreamAdapter<FieldList, String> end() {
+                        sw.append("end object\n");
+                        return this;
+                    }
 
-                            })
+                })
             );
             reader.parse();
         }
-        assertStream(getClass().getResource(s + "-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource(s + "-keyvalue.txt").openStream(),
                 new ByteArrayInputStream(sw.toString().getBytes("UTF-8")));
     }
 
     @Test
     public void testDE605KeyValue() throws IOException, SAXException {
-        InputStream in = getClass().getResource("DE-605-aleph500-publish.xml").openStream();
+        String s = "DE-605-aleph500-publish.xml";
+        InputStream in = getClass().getResource(s).openStream();
         MarcXchangeFieldMapperReader reader = new MarcXchangeFieldMapperReader(in)
                 .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");
 
         final StringWriter sw = new StringWriter();
         reader.setMarcXchangeListener(new MarcXchange2KeyValue()
-                        .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                            @Override
-                            public KeyValueStreamAdapter<FieldList, String> begin() {
-                                sw.append("begin object\n");
-                                return this;
-                            }
+            .addListener(new KeyValueStreamAdapter<FieldList, String>() {
+                @Override
+                public KeyValueStreamAdapter<FieldList, String> begin() {
+                    sw.append("begin object\n");
+                    return this;
+                }
 
-                            @Override
-                            public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                                sw.append("begin\n");
-                                for (Field f : key) {
-                                    sw.append(String.format("tag=%s indicator=%s subfield=%s data=%s\n",
-                                            f.tag(), f.indicator(), f.subfieldId(), f.data()));
-                                }
-                                sw.append("end\n");
-                                return this;
-                            }
+                @Override
+                public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
+                    sw.append("begin\n");
+                    for (Field f : key) {
+                        sw.append(String.format("tag=%s indicator=%s subfield=%s data=%s\n",
+                                f.tag(), f.indicator(), f.subfieldId(), f.data()));
+                    }
+                    sw.append("end\n");
+                    return this;
+                }
 
-                            @Override
-                            public KeyValueStreamAdapter<FieldList, String> end() {
-                                sw.append("end object\n");
-                                return this;
-                            }
+                @Override
+                public KeyValueStreamAdapter<FieldList, String> end() {
+                    sw.append("end object\n");
+                    return this;
+                }
 
-                        })
+            })
         );
         reader.parse();
-        assertStream(getClass().getResource("DE-605-aleph500-publish-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource("DE-605-aleph500-publish-keyvalue.txt").openStream(),
                 new ByteArrayInputStream(sw.toString().getBytes("UTF-8")));
     }
 
     @Test
     public void testDE605MappedKeyValue() throws IOException, SAXException {
-        InputStream in = getClass().getResource("DE-605-aleph500-publish.xml").openStream();
+        String s = "DE-605-aleph500-publish.xml";
+        InputStream in = getClass().getResource(s).openStream();
         MarcXchangeFieldMapperReader reader = new MarcXchangeFieldMapperReader(in)
                 .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");
 
@@ -220,13 +222,14 @@ public class KeyValueTest extends StreamTester {
                         })
         );
         reader.parse();
-        assertStream(getClass().getResource("DE-605-aleph500-publish-mapped-keyvalue.txt").openStream(),
+        assertStream(s, getClass().getResource("DE-605-aleph500-publish-mapped-keyvalue.txt").openStream(),
                 new ByteArrayInputStream(sw.toString().getBytes("UTF-8")));
     }
 
     @Test
     public void testDE605Transform() throws IOException, SAXException {
-        InputStream in = getClass().getResource("DE-605-aleph500-publish.xml").openStream();
+        String s = "DE-605-aleph500-publish.xml";
+        InputStream in = getClass().getResource(s).openStream();
         MarcXchangeReader reader = new MarcXchangeReader(in)
                 .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd")
                 .setTransformer("088$  $a", value -> value.equals("294") ? "DE-294" : value)
@@ -261,7 +264,8 @@ public class KeyValueTest extends StreamTester {
                         })
         );
         reader.parse();
-        assertStream(getClass().getResource("DE-605-aleph500-publish-transform.txt").openStream(),
+        in.close();
+        assertStream(s, getClass().getResource("DE-605-aleph500-publish-transform.txt").openStream(),
                 new ByteArrayInputStream(sw.toString().getBytes("UTF-8")));
     }
 }
