@@ -42,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +50,7 @@ public class Indicator extends License {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
-    private final static Pattern movingWallYearPattern = Pattern.compile("\\-(\\d+)Y");
+    private final static Pattern movingWallPattern = Pattern.compile("^[+-](\\d+)Y$");
 
     public Indicator(Map<String, Object> m) {
         super(m);
@@ -80,24 +79,34 @@ public class Indicator extends License {
     @Override
     protected void buildDateArray() {
         List<Integer> dates = new LinkedList<>();
-        String firstDate = getString("xbib:firstDate");
-        int first;
-        int last;
-        if (!Strings.isNullOrEmpty(firstDate)) {
-            first = Integer.parseInt(firstDate);
-            String lastDate = getString("xbib:lastDate");
-            last = Strings.isNullOrEmpty(lastDate) ? currentYear : Integer.parseInt(lastDate);
-            String movingWall = getString("xbib:movingWall");
-            if (movingWall != null) {
-                Matcher m = movingWallYearPattern.matcher(movingWall);
-                if (m.find()) {
-                    this.delta = Integer.parseInt(m.group(1));
-                    last = last - delta;
-                }
+        Integer first;
+        Integer last;
+        this.delta = null;
+        String movingWall = getString("xbib:movingWall");
+        if (movingWall != null) {
+            Matcher m = movingWallPattern.matcher(movingWall);
+            if (m.find()) {
+                this.delta = Integer.parseInt(m.group(1));
             }
-            if (first > 0 && last > 0) {
-                for (int d = first; d <= last; d++) {
+        }
+        String firstDateStr = getString("xbib:firstDate");
+        String lastDateStr = getString("xbib:lastDate");
+        last = Strings.isNullOrEmpty(lastDateStr) ? currentYear : Integer.parseInt(lastDateStr);
+        if (!Strings.isNullOrEmpty(firstDateStr)) {
+            first = Integer.parseInt(firstDateStr);
+            for (int d = first; d <= last; d++) {
+                dates.add(d);
+            }
+        }
+        if (movingWall != null && delta != null) {
+            first = last - delta + 1;
+            if (movingWall.startsWith("+")) {
+                for (Integer d = first; d <= last; d++) {
                     dates.add(d);
+                }
+            } else if (movingWall.startsWith("-")) {
+                for (Integer d = first; d <= last; d++) {
+                    dates.remove(d);
                 }
             }
         }
@@ -105,6 +114,7 @@ public class Indicator extends License {
             this.firstdate = dates.get(0);
             this.lastdate = dates.get(dates.size() - 1);
         }
+        // ordered unique dates
         this.dates = new TreeSet<>(dates);
     }
 
@@ -204,40 +214,28 @@ public class Indicator extends License {
         if (holdings == null) {
             return null;
         }
-        Set<Holding> newHoldings = new TreeSet<>(holdings);
         // check if there are other licenses that match
-        Collection<Holding> same = coerce(holdings);
-        if (same.isEmpty() || same.size() == 1) {
-            // sole indicator
+        boolean found = isIn(holdings);
+        if (!found) {
+            Collection<Holding> newHoldings = new ArrayList<>(holdings);
             newHoldings.add(this);
-        } else {
-            // move this indicator to all existing licenses
-            for (Holding h : same) {
-                if (h == this) {
-                    continue;
-                }
-                h.setServiceType(this.getServiceType());
-                h.setServiceMode(this.getServiceMode());
-                h.setServiceDistribution(this.getServiceDistribution());
-                h.setServiceComment(this.getServiceComment());
-                h.setPriority(this.getPriority());
-            }
+            return newHoldings;
         }
-        return newHoldings;
+        return holdings;
     }
 
     /**
-     * Similarity of holdings: they must have same media type, same
+     * Similarity of license/indicator: they must have same media type, same
      * carrier type, and same date period (if any).
      *
      * @param holdings the holdings to check for similarity against this holding
      * @return collection of holdings which are similar, or an empty collection if no holding is similar
      */
-    private Collection<Holding> coerce(Collection<Holding> holdings) {
+    private boolean isIn(Collection<Holding> holdings) {
         if (holdings == null) {
-            return null;
+            return false;
         }
-        Collection<Holding> same = new ArrayList<>();
+        boolean found = false;
         for (Holding holding : holdings) {
             // same ISIL, media, carrier, from/to?
             if (isil.equals(holding.isil)
@@ -248,7 +246,7 @@ public class Indicator extends License {
                 // both no dates?
                 if (dates == null && holding.dates == null) {
                     // hit, no dates at all
-                    same.add(holding);
+                    found = true;
                 } else if (firstdate != null && holding.firstdate != null) {
                     if (lastdate != null && holding.lastdate != null) {
                         // both first and last date are present
@@ -257,14 +255,14 @@ public class Indicator extends License {
                         Integer e1 = holding.firstdate;
                         Integer e2 = holding.lastdate;
                         if (d1.equals(e1) && d2.equals(e2)) {
-                            same.add(holding);
+                            found = true;
                         }
                     } else {
                         // no last date
                         Integer d1 = firstdate;
                         Integer e1 = holding.firstdate;
                         if (d1.equals(e1)) {
-                            same.add(holding);
+                            found = true;
                         }
                     }
                 } else if (lastdate != null && holding.lastdate != null) {
@@ -272,12 +270,12 @@ public class Indicator extends License {
                     Integer d1 = lastdate;
                     Integer e1 = holding.lastdate;
                     if (d1.equals(e1)) {
-                        same.add(holding);
+                        found = true;
                     }
                 }
             }
         }
-        return same;
+        return found;
     }
 
 }

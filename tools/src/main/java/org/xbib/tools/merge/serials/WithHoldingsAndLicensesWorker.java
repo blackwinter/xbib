@@ -450,8 +450,10 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
             }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             /*logger.debug("searchHoldings search request = {}/{} {} hits={}",
-                    sourceHoldingsIndex, sourceHoldingsType,
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
+                    sourceHoldingsIndex,
+                    sourceHoldingsType,
+                    searchRequest.toString(),
+                    searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
                 searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
@@ -550,7 +552,8 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
             }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             /*logger.debug("searchLicenses search request = {} hits={}",
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
+                    searchRequest.toString(),
+                    searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
                 searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))
@@ -582,8 +585,11 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
                     for (String parent : license.parents()) {
                         TitleRecord m = titleRecordMap.get(parent);
                         m.addRelatedHolding(isil, license);
-                        //logger.debug("license {} attached to {} print={} online={}",
-                        //        license.identifier(), m.externalID(), m.getPrintExternalID(), m.getOnlineExternalID());
+                        /*logger.debug("license {} attached to {} print={} online={}",
+                                license.identifier(),
+                                m.externalID(),
+                                m.getPrintExternalID(),
+                                m.getOnlineExternalID());*/
                     }
                     licenses.add(license);
                 }
@@ -643,6 +649,11 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
                     for (String parent : indicator.parents()) {
                         TitleRecord m = titleRecordMap.get(parent);
                         m.addRelatedIndicator(isil, indicator);
+                        /*logger.debug("indicator {} attached to {} print={} online={}",
+                                indicator.identifier(),
+                                m.externalID(),
+                                m.getPrintExternalID(),
+                                m.getOnlineExternalID());*/
                     }
                     indicators.add(indicator);
                 }
@@ -660,8 +671,8 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
                     .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             withHoldingsAndLicenses.queryMetric().mark();
-            logger.debug("searchMonographs search request = {} hits={}",
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());
+            /*logger.debug("searchMonographs search request = {} hits={}",
+                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
             while (searchResponse.getScrollId() != null) {
                 searchResponse = withHoldingsAndLicenses.client().prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(withHoldingsAndLicenses.millis()))

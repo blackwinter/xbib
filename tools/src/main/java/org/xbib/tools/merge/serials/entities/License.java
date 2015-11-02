@@ -78,34 +78,34 @@ public class License extends Holding {
     @Override
     protected void buildDateArray() {
         List<Integer> dates = new LinkedList<>();
-        String firstDate = getString("ezb:license_period.ezb:first_date");
-        int first;
-        int last;
-        if (firstDate != null) {
-            first = Integer.parseInt(firstDate);
-            String lastDate = getString("ezb:license_period.ezb:last_date");
-            last = lastDate == null ? currentYear : Integer.parseInt(lastDate);
-            if (first > 0 && last > 0) {
-                for (int d = first; d <= last; d++) {
-                    dates.add(d);
-                }
-            }
-        }
+        Integer first;
+        Integer last;
+        this.delta = null;
         String movingWall = getString("ezb:license_period.ezb:moving_wall");
         if (movingWall != null) {
             Matcher m = movingWallPattern.matcher(movingWall);
-            if (m.matches()) {
+            if (m.find()) {
                 this.delta = Integer.parseInt(m.group(1));
-                last = currentYear;
-                first = last - delta;
-                if ("+".startsWith(movingWall)) {
-                    for (int d = first; d <= last; d++) {
-                        dates.add(d);
-                    }
-                } else if ("-".startsWith(movingWall)) {
-                    for (int d = first; d <= last; d++) {
-                        dates.remove(d);
-                    }
+            }
+        }
+        String firstDateStr = getString("ezb:license_period.ezb:first_date");
+        String lastDateStr = getString("ezb:license_period.ezb:last_date");
+        last = Strings.isNullOrEmpty(lastDateStr) ? currentYear : Integer.parseInt(lastDateStr);
+        if (!Strings.isNullOrEmpty(firstDateStr)) {
+            first = Integer.parseInt(firstDateStr);
+            for (int d = first; d <= last; d++) {
+                dates.add(d);
+            }
+        }
+        if (movingWall != null && delta != null) {
+            first = last - delta + 1;
+            if (movingWall.startsWith("+")) {
+                for (Integer d = first; d <= last; d++) {
+                    dates.add(d);
+                }
+            } else if (movingWall.startsWith("-")) {
+                for (Integer d = first; d <= last; d++) {
+                    dates.remove(d);
                 }
             }
         }
