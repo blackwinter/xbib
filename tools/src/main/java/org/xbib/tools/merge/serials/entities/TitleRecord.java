@@ -38,6 +38,7 @@ import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.TreeMultiMap;
+import org.xbib.util.concurrent.PartiallyBlockingCopyOnWriteArrayListMultiMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -95,17 +96,12 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected Map<String, Object> identifiers;
 
-   // private final SetMultimap<String, TitleRecord> related = TreeMultimap.create();
-    //private final SetMultimap<String, Holding> relatedHoldings = TreeMultimap.create();
-    //private final static Supplier<Set<String>> supplier = Sets::newLinkedHashSet;
-    //private final SetMultimap<String, String> relations = newSetMultimap(Maps.newTreeMap(), supplier);
-    //private final SetMultimap<String, String> externalRelations = newSetMultimap(Maps.newTreeMap(), supplier);
-
     private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
-    private final MultiMap<String, Holding> relatedHoldings =  new LinkedHashMultiMap<>();
-    private final MultiMap<Integer, Holding> holdingsByDate =  new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
+    // we add holdings to other title records which may be accessed by other threads too
+    private final MultiMap<String, Holding> relatedHoldings =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
 
     private boolean isDatabase;
 
@@ -844,10 +840,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
      * Check for ZDB IDs and remember as external IDs.
      */
     private void makeRelations() {
-        //this.isInTimeline = false;
-        //boolean hasSuccessor = false;
-        //boolean hasPredecessor = false;
-        //boolean hasTransient = false;
         // default is print
         this.printID = identifier;
         this.printExternalID = externalID;
@@ -910,7 +902,12 @@ public class TitleRecord implements Comparable<TitleRecord> {
     }
 
     public void addRelatedHolding(String relation, Holding holding) {
-        if (relatedHoldings.containsKey(relation) && relatedHoldings.get(relation).contains(holding)) {
+        addRelatedHolding(relation, holding, true);
+    }
+
+    private void addRelatedHolding(String relation, Holding holding, boolean recursion) {
+        Collection<Holding> c = relatedHoldings.get(relation);
+        if (c != null && c.contains(holding)) {
             return;
         }
         // add while we go, no coercion
@@ -921,21 +918,30 @@ public class TitleRecord implements Comparable<TitleRecord> {
         holding.addParent(this.externalID());
         holding.addParent(this.getPrintExternalID());
         holding.addParent(this.getOnlineExternalID());
-        /*Set<TitleRecord> set = new HashSet();
-        if (related.containsKey("hasPrintEdition")) {
-            set.addAll(related.get("hasPrintEdition"));
+        if (!recursion) {
+            return;
         }
-        if (related.containsKey("hasOnlineEdition")) {
-            set.addAll(related.get("hasOnlineEdition"));
+        // tricky: add this holding also to title records of other carrier editions!
+        Set<TitleRecord> set = new HashSet();
+        if (relatedRecords.containsKey("hasPrintEdition")) {
+            set.addAll(relatedRecords.get("hasPrintEdition"));
         }
-        if (related.containsKey("hasDigitizedEdition")) {
-            set.addAll(related.get("hasDigitizedEdition"));
-        }*/
+        if (relatedRecords.containsKey("hasOnlineEdition")) {
+            set.addAll(relatedRecords.get("hasOnlineEdition"));
+        }
+        if (relatedRecords.containsKey("hasDigitizedEdition")) {
+            set.addAll(relatedRecords.get("hasDigitizedEdition"));
+        }
+        for (TitleRecord tr : set) {
+            // add holding, avoid recursion
+            tr.addRelatedHolding(holding.getISIL(), holding, false);
+        }
     }
 
     public void addRelatedIndicator(String relation, Indicator indicator) {
         // already exist?
-        if (relatedHoldings.containsKey(relation) && relatedHoldings.get(relation).contains(indicator)) {
+        Collection<Holding> c = relatedHoldings.get(relation);
+        if (c != null && c.contains(indicator)) {
             return;
         }
         // coerce with licenses first
@@ -954,21 +960,21 @@ public class TitleRecord implements Comparable<TitleRecord> {
         indicator.addParent(this.externalID());
         indicator.addParent(this.getPrintExternalID());
         indicator.addParent(this.getOnlineExternalID());
-        /*Set<TitleRecord> set = new HashSet();
-        if (related.containsKey("hasPrintEdition")) {
-            set.addAll(related.get("hasPrintEdition"));
+        // tricky: add this holding also to title records of other carrier editions!
+        Set<TitleRecord> set = new HashSet();
+        if (relatedRecords.containsKey("hasPrintEdition")) {
+            set.addAll(relatedRecords.get("hasPrintEdition"));
         }
-        if (related.containsKey("hasOnlineEdition")) {
-            set.addAll(related.get("hasOnlineEdition"));
+        if (relatedRecords.containsKey("hasOnlineEdition")) {
+            set.addAll(relatedRecords.get("hasOnlineEdition"));
         }
-        if (related.containsKey("hasDigitizedEdition")) {
-            set.addAll(related.get("hasDigitizedEdition"));
-        }*/
-        /*for (TitleRecord tr : set) {
-            if (this != tr && !id().equals(tr.id())) {
-                tr.addRelatedIndicator(indicator.getISIL(), indicator);
-            }
-        }*/
+        if (relatedRecords.containsKey("hasDigitizedEdition")) {
+            set.addAll(relatedRecords.get("hasDigitizedEdition"));
+        }
+        // add holding, avoid recursion
+        for (TitleRecord tr : set) {
+            tr.addRelatedHolding(indicator.getISIL(), indicator, false);
+        }
     }
 
     public MultiMap<String, TitleRecord> getRelated() {

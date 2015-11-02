@@ -86,8 +86,9 @@
         <xbib.version>${project.version}</xbib.version>
         <xbib.elasticsearch.support.plugin.version>1.5.2.5</xbib.elasticsearch.support.plugin.version>
         <antlr.version>4.5</antlr.version>
-        <jackson.version>2.5.2</jackson.version>
-        <netty.version>4.1.0.Beta5</netty.version>
+        <jackson.version>2.6.3</jackson.version>
+        <netty.version>4.1.0.Beta7</netty.version>
+
         <jetty.version>9.3.0.M2</jetty.version>
         <maven.surefire.version>2.19</maven.surefire.version>
     </properties>
@@ -412,11 +413,6 @@
         <dependencies>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-datastructures-persistent</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
                 <artifactId>xbib-datastructures-keyvalue</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -428,6 +424,11 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-datastructures-forkjoin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-jacc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -448,11 +449,6 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-marc-iso2709</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-jacc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -718,7 +714,6 @@
     <modules>
         <module>datastructures/keyvalue</module>
         <module>datastructures/collection</module>
-        <module>datastructures/persistent</module>
         <module>datastructures/forkjoin</module>
 
         <module>content/common</module>

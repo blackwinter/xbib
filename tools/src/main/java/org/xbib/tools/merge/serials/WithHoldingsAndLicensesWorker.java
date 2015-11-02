@@ -51,7 +51,6 @@ import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.tools.merge.serials.entities.MonographVolume;
 import org.xbib.tools.merge.serials.entities.MonographVolumeHolding;
 import org.xbib.util.ExceptionFormatter;
-import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.Worker;
@@ -238,7 +237,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
     private void process(TitleRecord titleRecord) throws IOException {
         // Candidates are unstructured, no timeline organization,
         // no relationship analysis, not ordered by ID
-        this.candidates = new HashSet<TitleRecord>();
+        this.candidates = new HashSet<>();
         candidates.add(titleRecord);
         state = State.COLLECTING_CANDIDATES;
         searchNeighbors(titleRecord, candidates, 0);
@@ -327,10 +326,10 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
         if (hits.getHits().length == 0) {
             return;
         }
-        // copy candidates to a new list
+        // copy candidates to a new list for each continuation, may be used by other threads after a collision
         List<TitleRecord> list = new ArrayList<>(candidates);
         ClusterBuildContinuation carrierCont = new ClusterBuildContinuation(titleRecord, searchResponse,
-                TitleRecord.getCarrierRelations(), list, 0);
+                TitleRecord.getCarrierRelations(), list, level);
         buildQueue.offer(carrierCont);
     }
 
@@ -515,8 +514,9 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
             // we really just rely on the carrier type. There may be licenses or indicators.
             isOnline = isOnline || "online resource".equals(m.carrierType());
             // copy print to the online edition in case it is not there
-            if (m.getOnlineExternalID() != null && !map.containsKey(m.getOnlineExternalID())) {
-                map.put(m.getOnlineExternalID(), m);
+            String id = m.getOnlineExternalID();
+            if (id != null && !map.containsKey(id)) {
+                map.put(id, m);
             }
         }
         if (isOnline) {
@@ -970,8 +970,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
         }
         // write holdings and services
         if (!m.getRelatedHoldings().isEmpty()) {
-            // copy our local copy since we need it for quite a while, tries to avoid java.util.ConcurrentModificationException
-            final MultiMap<String, Holding> holdingsMap = new LinkedHashMultiMap<>(m.getRelatedHoldings());
+            final MultiMap<String, Holding> holdingsMap = m.getRelatedHoldings();
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
                     .field("parent", m.externalID());
@@ -1016,7 +1015,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
                 statCounter.increase("stat", "holdings", 1);
             }
             // holdings per year
-            MultiMap<Integer,Holding> map = new LinkedHashMultiMap<>(m.getHoldingsByDate());
+            MultiMap<Integer,Holding> map = m.getHoldingsByDate();
             for (Integer date : map.keySet()) {
                 Collection<Holding> holdings = map.get(date);
                 String volumeId = m.externalID() + (date != -1 ? "." + date : "");
