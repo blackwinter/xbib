@@ -112,12 +112,11 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.3</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
                         <source>${java.compiler.source}</source>
                         <target>${java.compiler.source}</target>
-                        <encoding>UTF-8</encoding>
                         <optimize>true</optimize>
                         <showDeprecation>true</showDeprecation>
                         <showWarnings>true</showWarnings>

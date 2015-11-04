@@ -274,6 +274,15 @@ public class Indicator extends License {
                     }
                 }
             }
+            if (found) {
+                // move new indicators to existing license, effectivly
+                // superseding existing indicatos
+                holding.setPriority(getPriority());
+                holding.setServiceType(getServiceType());
+                holding.setServiceMode(getServiceMode());
+                holding.setServiceDistribution(getServiceDistribution());
+                holding.setServiceComment(getServiceComment());
+            }
         }
         return found;
     }

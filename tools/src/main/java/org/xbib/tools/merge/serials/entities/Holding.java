@@ -210,6 +210,10 @@ public class Holding implements Comparable<Holding> {
         return isil;
     }
 
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     public boolean isDeleted() {
         return deleted;
     }

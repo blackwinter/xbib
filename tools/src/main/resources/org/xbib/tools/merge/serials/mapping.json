@@ -108,7 +108,7 @@
     "properties" : {
       "institution" : {
         "properties" : {
-          "service" : {
+          "services" : {
             "properties" : {
               "identifierForTheService" : {
                 "norms" : {
@@ -327,6 +327,10 @@
             "type" : "string"
           },
           "contact" : {
+            "norms" : {
+              "enabled" : false
+            },
+            "analyzer" : "keyword",
             "type" : "string"
           },
           "format" : {

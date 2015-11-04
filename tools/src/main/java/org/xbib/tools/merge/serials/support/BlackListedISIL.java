@@ -44,7 +44,7 @@ public class BlackListedISIL {
 
     public void buildLookup(InputStream in) throws IOException {
         if (in == null) {
-            return;
+            throw new IOException("stream not found");
         }
         BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String line;

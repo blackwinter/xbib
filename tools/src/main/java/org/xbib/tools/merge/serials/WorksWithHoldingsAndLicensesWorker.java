@@ -990,7 +990,7 @@ public class WorksWithHoldingsAndLicensesWorker implements Worker<TitelRecordReq
                         builder.startObject()
                                 .field("isil", holder);
                         builder.field("servicecount", uniqueholdings.size())
-                                .startArray("service");
+                                .startArray("services");
                         for (Holding holding : uniqueholdings) {
                             String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                             XContentBuilder serviceBuilder = jsonBuilder();

@@ -41,7 +41,6 @@ import org.xbib.util.TreeMultiMap;
 import org.xbib.util.concurrent.PartiallyBlockingCopyOnWriteArrayListMultiMap;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -96,13 +95,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected Map<String, Object> identifiers;
 
-    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
-    private final MultiMap<String, String> relations = new TreeMultiMap<>();
-    private final MultiMap<String, String> externalRelations = new TreeMultiMap();
-    // we add holdings to other title records which may be accessed by other threads too
-    private final MultiMap<String, Holding> relatedHoldings =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
-    private final MultiMap<Integer, Holding> holdingsByDate =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
-
     private boolean isDatabase;
 
     private boolean isPacket;
@@ -142,6 +134,13 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private String carrierType;
 
     private List<Map<String, Object>> links;
+
+    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
+    private final MultiMap<String, String> relations = new TreeMultiMap<>();
+    private final MultiMap<String, String> externalRelations = new TreeMultiMap();
+    // we add holdings to other title records which may be accessed by other threads too
+    private final MultiMap<String, Holding> relatedHoldings =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
 
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 
@@ -234,8 +233,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected Set<Integer> getIntegerSet(String key) {
         Object o = map.get(key);
-        if (o instanceof List) {
-            return new HashSet<Integer>((Collection<Integer>)o);
+        if (o instanceof Collection) {
+            return new HashSet<>((Collection<Integer>)o);
         }
         return null;
     }
@@ -550,7 +549,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
     }
 
     protected List<String> split(String title) {
-        List<String> list = new ArrayList<>();
+        List<String> list = new LinkedList<>();
         if (title != null) {
             title = title.replaceAll(" ; ", "\n").replaceAll(" / ", "\n").replaceAll(" = ", "\n");
             for (String s : title.split("\n")) {
@@ -922,17 +921,20 @@ public class TitleRecord implements Comparable<TitleRecord> {
             return;
         }
         // tricky: add this holding also to title records of other carrier editions!
-        Set<TitleRecord> set = new HashSet();
-        if (relatedRecords.containsKey("hasPrintEdition")) {
-            set.addAll(relatedRecords.get("hasPrintEdition"));
+        List<TitleRecord> list = new LinkedList();
+        Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
-        if (relatedRecords.containsKey("hasOnlineEdition")) {
-            set.addAll(relatedRecords.get("hasOnlineEdition"));
+        trs = relatedRecords.get("hasOnlineEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
-        if (relatedRecords.containsKey("hasDigitizedEdition")) {
-            set.addAll(relatedRecords.get("hasDigitizedEdition"));
+        trs = relatedRecords.get("hasDigitizedEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
-        for (TitleRecord tr : set) {
+        for (TitleRecord tr : list) {
             // add holding, avoid recursion
             tr.addRelatedHolding(holding.getISIL(), holding, false);
         }
@@ -961,18 +963,21 @@ public class TitleRecord implements Comparable<TitleRecord> {
         indicator.addParent(this.getPrintExternalID());
         indicator.addParent(this.getOnlineExternalID());
         // tricky: add this holding also to title records of other carrier editions!
-        Set<TitleRecord> set = new HashSet();
-        if (relatedRecords.containsKey("hasPrintEdition")) {
-            set.addAll(relatedRecords.get("hasPrintEdition"));
+        List<TitleRecord> list = new LinkedList();
+        Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
-        if (relatedRecords.containsKey("hasOnlineEdition")) {
-            set.addAll(relatedRecords.get("hasOnlineEdition"));
+        trs = relatedRecords.get("hasOnlineEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
-        if (relatedRecords.containsKey("hasDigitizedEdition")) {
-            set.addAll(relatedRecords.get("hasDigitizedEdition"));
+        trs = relatedRecords.get("hasDigitizedEdition");
+        if (trs != null) {
+            list.addAll(trs);
         }
         // add holding, avoid recursion
-        for (TitleRecord tr : set) {
+        for (TitleRecord tr : list) {
             tr.addRelatedHolding(indicator.getISIL(), indicator, false);
         }
     }

@@ -84,18 +84,9 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
     }
 
     private final int number;
-
     private final WithHoldingsAndLicenses withHoldingsAndLicenses;
-
     private final Logger logger;
-
     private final Queue<ClusterBuildContinuation> buildQueue;
-
-    private State state;
-
-    private BlockingQueue<TitelRecordRequest> queue;
-
-    private Set<TitleRecord> candidates;
 
     private final String sourceTitleIndex;
     private final String sourceTitleType;
@@ -116,6 +107,13 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
     private final String volumesIndexType;
     private final String serviceIndex;
     private final String serviceIndexType;
+
+    private State state;
+
+    private BlockingQueue<TitelRecordRequest> queue;
+
+    private Set<TitleRecord> candidates;
+
 
     public WithHoldingsAndLicensesWorker(WithHoldingsAndLicenses withHoldingsAndLicenses, int number) {
         this.number = number;
@@ -940,11 +938,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
         }
         // first, index related conference/proceedings/abstracts/...
         if (!m.getMonographVolumes().isEmpty()) {
-            final List<MonographVolume> volumes;
-            synchronized (m.getMonographVolumes()) {
-                volumes = new ArrayList(m.getMonographVolumes());
-            }
-            for (MonographVolume volume : volumes) {
+            for (MonographVolume volume : m.getMonographVolumes()) {
                 XContentBuilder builder = jsonBuilder();
                 volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
                 String vid = volume.externalID();
@@ -996,24 +990,29 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
                     instcount++;
                     builder.startObject()
                             .field("isil", isil);
-                    builder.field("servicecount", holdings.size())
-                            .startArray("service");
+                    builder.startArray("services");
+                    int count = 0;
                     for (Holding holding : holdings) {
+                        if (holding.isDeleted()) {
+                            continue;
+                        }
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
                         withHoldingsAndLicenses.ingest().index(serviceIndex, serviceIndexType,
                                     serviceId, serviceBuilder.string());
+                        withHoldingsAndLicenses.indexMetric().mark(1);
                         builder.startObject();
                         builder.field("identifierForTheService", serviceId);
                         builder.field("dates", holding.dates());
                         builder.endObject();
+                        count++;
                     }
-                    builder.endArray().endObject();
-                    int n = holdings.size();
-                    withHoldingsAndLicenses.indexMetric().mark(n);
+                    builder.endArray()
+                            .field("servicecount", count)
+                            .endObject();
                     if (statCounter != null) {
-                        statCounter.increase("stat", "services", n);
+                        statCounter.increase("stat", "services", count);
                     }
                 }
             }
@@ -1049,34 +1048,40 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
         withHoldingsAndLicenses.indexMetric().mark(1);
     }
 
-    private void buildVolume(XContentBuilder builder, TitleRecord titleRecord,
-                             String parentIdentifier, Integer date, Collection<Holding> holdings)
+    private void buildVolume(XContentBuilder builder,
+                             TitleRecord titleRecord,
+                             String parentIdentifier,
+                             Integer date,
+                             Collection<Holding> holdings)
             throws IOException {
         builder.startObject()
                 .field("identifierForTheVolume", parentIdentifier + "." + date);
         if (date != -1) {
             builder.field("date", date);
         }
-        // do we need this at volume level?
         if (titleRecord.hasLinks()) {
             builder.field("links", titleRecord.getLinks());
         }
+        // TODO we need better organization of holdings per ISIL per year
         Map<String, Set<Holding>> institutions = new HashMap<>();
         for (Holding holding : holdings) {
-            Set<Holding> set = institutions.containsKey(holding.getISIL()) ?
-                    institutions.get(holding.getISIL()) : new TreeSet<>();
+            // create holdings in order
+            Set<Holding> set = institutions.containsKey(holding.getISIL()) ? institutions.get(holding.getISIL()) : new TreeSet<>();
             set.add(holding);
             institutions.put(holding.getISIL(), set);
         }
-        builder.field("institutioncount", institutions.size())
-                .startArray("institution");
-        for (Map.Entry<String,Set<Holding>> me : institutions.entrySet()) {
-            Set<Holding> set = me.getValue();
+        builder.field("institutioncount", institutions.size());
+        builder.startArray("institution");
+        for (String isil : institutions.keySet()) {
+            Collection<Holding> set = institutions.get(isil);
             builder.startObject()
-                    .field("isil", me.getKey())
+                    .field("isil", isil)
                     .field("servicecount", set.size());
             builder.startArray("service");
             for (Holding holding : set) {
+                if (holding.isDeleted()) {
+                    continue;
+                }
                 builder.value("(" + holding.getServiceISIL() + ")" + holding.identifier());
             }
             builder.endArray();

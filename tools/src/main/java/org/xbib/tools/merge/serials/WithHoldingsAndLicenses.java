@@ -102,6 +102,10 @@ public class WithHoldingsAndLicenses
 
     private long millis;
 
+    private long total;
+
+    private long count;
+
     private String identifier;
 
     private static MeterMetric queryMetric;
@@ -117,10 +121,6 @@ public class WithHoldingsAndLicenses
     private BlackListedISIL isilbl;
 
     private MappedISIL isilMapped;
-
-    private long total;
-
-    private long count;
 
     private StatusCodeMapper statusCodeMapper;
 
@@ -214,19 +214,16 @@ public class WithHoldingsAndLicenses
                 "ingest".equals(settings.get("client")) ?
                         new IngestTransportClient() :
                         new BulkTransportClient();
-
-        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 100))
+        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
                 .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
-
-        InputStream clientSettingsInputStream = getClass().getResource(settings.get("transport-client-settings", "transport-client-settings.json")).openStream();
-        ingest.setting(clientSettingsInputStream);
-        clientSettingsInputStream.close();
         ingest.init(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .put("transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("transport.ping_timeout", TimeValue.timeValueSeconds(60))
+                .put("transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60))
                 .build());
 
         String index = settings.get("index");
@@ -282,9 +279,9 @@ public class WithHoldingsAndLicenses
 
             @Override
             public WithHoldingsAndLicensesWorker get() {
-                WithHoldingsAndLicensesWorker pipeline = new WithHoldingsAndLicensesWorker(service, i++);
-                pipeline.setQueue(getQueue());
-                return pipeline;
+                WithHoldingsAndLicensesWorker worker = new WithHoldingsAndLicensesWorker(service, i++);
+                worker.setQueue(getQueue());
+                return worker;
             }
         });
         super.setConcurrency(settings.getAsInt("concurrency", 1));
@@ -324,7 +321,6 @@ public class WithHoldingsAndLicenses
 
     @Override
     public WithHoldingsAndLicenses execute() {
-        // execute pipelines
         super.execute();
         logger.debug("executing");
         // enter loop over all title records
@@ -359,14 +355,14 @@ public class WithHoldingsAndLicenses
             for (SearchHit hit : hits) {
                 try {
                     if (canReceive() == 0L) {
-                        logger.error("no more pipelines left to receive, aborting feed");
+                        logger.error("no more workers left to receive, aborting feed");
                         return this;
                     }
                     TitleRecord titleRecord = new TitleRecord(hit.getSource());
                     getQueue().put(new TitelRecordRequest().set(titleRecord));
                     count++;
                 } catch (Throwable e) {
-                    logger.error("error passing data to merge pipelines, exiting", e);
+                    logger.error("error passing data to merge workers, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
                     failure = true;
                     break;
@@ -498,7 +494,7 @@ public class WithHoldingsAndLicenses
 
         public void run() {
             long percent = count * 100 / total;
-            logger.info("=====> {}/{} = {}%, pipelines={}",
+            logger.info("=====> {}/{} = {}%, workers={}",
                     count,
                     total,
                     percent,
