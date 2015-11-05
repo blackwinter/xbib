@@ -427,32 +427,12 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-jacc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-charset</artifactId>
+                <artifactId>xbib-io-charset</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-io-archive</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-util</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-marc-iso2709</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-etl</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -468,21 +448,6 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-io-jdbc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-sru-iso23950</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-oai</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xbib</groupId>
-                <artifactId>xbib-matching</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -503,6 +468,51 @@
             <dependency>
                 <groupId>org.xbib</groupId>
                 <artifactId>xbib-content-json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-jacc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-cql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-marc-iso2709</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-iso23950</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-oai</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-sru</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-etl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-matching</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -711,6 +721,7 @@
     </dependencies>
 
     <modules>
+
         <module>datastructures/keyvalue</module>
         <module>datastructures/collection</module>
         <module>datastructures/forkjoin</module>
@@ -720,20 +731,24 @@
         <module>content/json</module>
         <module>content/rdf</module>
 
+        <module>io/charset</module>
         <module>io/stream</module>
         <module>io/archive</module>
         <module>io/http</module>
         <module>io/jdbc</module>
 
-        <module>charset</module>
-        <module>util</module>
-        <module>iso2709</module>
-        <module>jacc</module>
+        <module>compiler/jacc</module>
+        <module>compiler/cql</module>
+
+        <module>bibliographic/iso2709</module>
+        <module>bibliographic/iso23950</module>
+        <module>bibliographic/oai</module>
+        <module>bibliographic/sru</module>
+
         <module>matching</module>
         <module>etl</module>
-        <module>iso23950</module>
-        <module>oai</module>
 
+        <module>util</module>
         <module>tools</module>
 
     </modules>

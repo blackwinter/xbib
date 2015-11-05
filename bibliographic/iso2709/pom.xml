@@ -6,19 +6,20 @@
         <groupId>org.xbib</groupId>
         <artifactId>xbib</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../</relativePath>
+        <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xbib-etl</artifactId>
+    <artifactId>xbib-marc-iso2709</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-etl</name>
-    <description>Extract-transform-load bibliographic data</description>
+    <name>xbib-marc-iso2709</name>
+    <description>ISO 2709 (MARC)</description>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <!-- for loading charsets -->
                 <configuration>
                     <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
@@ -39,34 +40,24 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-datastructures-forkjoin</artifactId>
+            <artifactId>xbib-io-stream</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-marc-iso2709</artifactId>
+            <artifactId>xbib-content-xml</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-content-common</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <type>jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
             <artifactId>xbib-io-charset</artifactId>
             <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-archive</artifactId>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.carrotsearch</groupId>
-            <artifactId>junit-benchmarks</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

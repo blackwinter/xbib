@@ -6,33 +6,25 @@
         <groupId>org.xbib</groupId>
         <artifactId>xbib</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../</relativePath>
+        <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xbib-util</artifactId>
+    <artifactId>xbib-io-charset</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-util</name>
-    <description>Utilities</description>
+    <name>xbib-charset</name>
+    <description>Bibliographic character sets</description>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration><!-- fork for charset loading via META-INF/services -->
-                    <forkMode>once</forkMode>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                     <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-charset</artifactId>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

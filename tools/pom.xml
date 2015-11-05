@@ -64,7 +64,7 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-charset</artifactId>
+            <artifactId>xbib-io-charset</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
