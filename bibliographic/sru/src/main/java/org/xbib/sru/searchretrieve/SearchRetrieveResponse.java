@@ -49,7 +49,7 @@ import org.xbib.io.http.HttpResponseListener;
 import org.xbib.sru.DefaultSRUResponse;
 import org.xbib.sru.SRUResponse;
 import org.xbib.sru.SRUVersion;
-import org.xbib.text.Normalizer;
+import java.text.Normalizer;
 import org.xbib.xml.transform.StylesheetTransformer;
 import org.xml.sax.InputSource;
 
@@ -223,7 +223,7 @@ public class SearchRetrieveResponse extends DefaultSRUResponse
             }
             // TODO normalization should be configurable
             String s = sb.toString();
-            InputSource source = new InputSource(new StringReader(Normalizer.normalize(s, Normalizer.Form.C)));
+            InputSource source = new InputSource(new StringReader(Normalizer.normalize(s, Normalizer.Form.NFC)));
             getTransformer().setSource(reader, source).setResult(writer);
             SRUVersion version = SRUVersion.fromString(request.getVersion());
             String[] stylesheets = getStylesheets(version);

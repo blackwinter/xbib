@@ -3,8 +3,8 @@ package org.xbib.common.xcontent.yaml;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.io.BytesReference;
-import org.xbib.common.xcontent.XContentType;
 import org.xbib.common.xcontent.json.JsonXContentGenerator;
 
 import java.io.IOException;
@@ -17,8 +17,9 @@ public class YamlXContentGenerator extends JsonXContentGenerator {
         super(generator);
     }
 
-    public XContentType contentType() {
-        return XContentType.YAML;
+    @Override
+    public XContent content() {
+        return YamlXContent.yamlXContent;
     }
 
     public void writeRawField(String fieldName, InputStream content, OutputStream bos) throws IOException {

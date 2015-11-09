@@ -3,7 +3,9 @@ package org.xbib.common.settings.loader;
 
 import java.io.IOException;
 import java.util.Map;
-import org.xbib.common.xcontent.XContentType;
+
+import org.xbib.common.xcontent.XContent;
+import org.xbib.common.xcontent.yaml.YamlXContent;
 
 /**
  * Settings loader that loads (parses) the settings in a yaml format by flattening them
@@ -12,8 +14,8 @@ import org.xbib.common.xcontent.XContentType;
 public class YamlSettingsLoader extends XContentSettingsLoader {
 
     @Override
-    public XContentType contentType() {
-        return XContentType.YAML;
+    public XContent content() {
+        return YamlXContent.yamlXContent;
     }
 
     @Override

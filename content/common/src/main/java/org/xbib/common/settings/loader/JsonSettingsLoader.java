@@ -1,7 +1,8 @@
 
 package org.xbib.common.settings.loader;
 
-import org.xbib.common.xcontent.XContentType;
+import org.xbib.common.xcontent.XContent;
+import org.xbib.common.xcontent.json.JsonXContent;
 
 /**
  * Settings loader that loads (parses) the settings in a json format by flattening them
@@ -10,7 +11,7 @@ import org.xbib.common.xcontent.XContentType;
 public class JsonSettingsLoader extends XContentSettingsLoader {
 
     @Override
-    public XContentType contentType() {
-        return XContentType.JSON;
+    public XContent content() {
+        return JsonXContent.jsonXContent;
     }
 }

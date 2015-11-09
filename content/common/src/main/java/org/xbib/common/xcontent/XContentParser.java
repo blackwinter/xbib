@@ -88,7 +88,7 @@ public interface XContentParser extends Closeable {
         INT, LONG, FLOAT, DOUBLE, BIG_DECIMAL, BIG_INTEGER
     }
 
-    XContentType contentType();
+    XContent content();
 
     Token nextToken() throws IOException;
 

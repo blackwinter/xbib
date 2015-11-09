@@ -7,9 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.xbib.common.xcontent.XContentFactory;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 
 /**
  * Settings loader that loads (parses) the settings in a xcontent format by flattening them
@@ -17,11 +16,11 @@ import org.xbib.common.xcontent.XContentType;
  */
 public abstract class XContentSettingsLoader implements SettingsLoader {
 
-    public abstract XContentType contentType();
+    public abstract XContent content();
 
     @Override
     public Map<String, String> load(String source) throws IOException {
-        XContentParser parser = XContentFactory.xContent(contentType()).createParser(source);
+        XContentParser parser = content().createParser(source);
         try {
             return load(parser);
         } finally {
@@ -31,7 +30,7 @@ public abstract class XContentSettingsLoader implements SettingsLoader {
 
     @Override
     public Map<String, String> load(byte[] source) throws IOException {
-        try (XContentParser parser = XContentFactory.xContent(contentType()).createParser(source)) {
+        try (XContentParser parser = content().createParser(source)) {
             return load(parser);
         }
     }

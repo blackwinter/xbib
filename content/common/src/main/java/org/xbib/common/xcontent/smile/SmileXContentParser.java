@@ -2,7 +2,7 @@
 package org.xbib.common.xcontent.smile;
 
 import com.fasterxml.jackson.core.JsonParser;
-import org.xbib.common.xcontent.XContentType;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.json.JsonXContentParser;
 
 public class SmileXContentParser extends JsonXContentParser {
@@ -12,7 +12,8 @@ public class SmileXContentParser extends JsonXContentParser {
     }
 
     @Override
-    public XContentType contentType() {
-        return XContentType.SMILE;
+    public XContent content() {
+        return SmileXContent.smileXContent;
     }
+
 }

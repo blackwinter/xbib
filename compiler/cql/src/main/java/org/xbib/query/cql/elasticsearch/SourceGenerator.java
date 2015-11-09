@@ -1,16 +1,17 @@
 package org.xbib.query.cql.elasticsearch;
 
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.common.xcontent.XContentFactory;
 
 import java.io.IOException;
+
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class SourceGenerator {
 
     private final XContentBuilder builder;
 
     public SourceGenerator() throws IOException {
-        this.builder = XContentFactory.jsonBuilder();
+        this.builder = jsonBuilder();
     }
 
     public void build(QueryGenerator query,

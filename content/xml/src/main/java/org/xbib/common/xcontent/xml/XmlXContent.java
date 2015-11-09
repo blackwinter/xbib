@@ -43,7 +43,6 @@ import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -103,11 +102,11 @@ public class XmlXContent implements XContent {
         return builder;
     }
 
-    private XmlXContent() {
+    public XmlXContent() {
     }
 
-    public XContentType type() {
-        return XContentType.XML;
+    public String name() {
+        return "xml";
     }
 
     public static XmlXContent xmlXContent() {
@@ -155,5 +154,15 @@ public class XmlXContent implements XContent {
 
     public XContentParser createParser(Reader reader) throws IOException {
         return new XmlXContentParser(xmlFactory.createParser(reader));
+    }
+
+    @Override
+    public boolean isXContent(BytesReference bytes) {
+        int length = bytes.length() < 20 ? bytes.length() : 20;
+        if (length == 0) {
+            return false;
+        }
+        byte first = bytes.get(0);
+        return length > 2 && first == '<' && bytes.get(1) == '?' && bytes.get(2) == 'x';
     }
 }

@@ -47,7 +47,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 /**
  * Convert a MarcXchange stream to Elasticsearch XContent lines.

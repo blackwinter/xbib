@@ -11,7 +11,7 @@ import java.math.BigInteger;
 
 public interface XContentGenerator {
 
-    XContentType contentType();
+    XContent content();
 
     void usePrettyPrint();
 

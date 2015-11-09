@@ -3,17 +3,14 @@ package org.xbib.common.xcontent.smile;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.dataformat.smile.SmileParser;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.io.BytesReference;
-import org.xbib.common.xcontent.XContentType;
 import org.xbib.common.xcontent.json.JsonXContentGenerator;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- *
- */
 public class SmileXContentGenerator extends JsonXContentGenerator {
 
     public SmileXContentGenerator(JsonGenerator generator) {
@@ -21,8 +18,8 @@ public class SmileXContentGenerator extends JsonXContentGenerator {
     }
 
     @Override
-    public XContentType contentType() {
-        return XContentType.SMILE;
+    public XContent content() {
+        return SmileXContent.smileXContent;
     }
 
     @Override

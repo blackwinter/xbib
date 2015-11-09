@@ -34,8 +34,8 @@ package org.xbib.common.xcontent.xml;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 import org.xbib.common.xcontent.support.AbstractXContentParser;
 
 import java.io.IOException;
@@ -50,94 +50,117 @@ public class XmlXContentParser extends AbstractXContentParser {
         this.parser = parser;
     }
 
-    public XContentType contentType() {
-        return XContentType.XML;
+    @Override
+    public XContent content() {
+        return XmlXContent.xmlXContent();
     }
 
+    @Override
     public XContentParser.Token nextToken() throws IOException {
         return convertToken(parser.nextToken());
     }
 
+    @Override
     public void skipChildren() throws IOException {
         parser.skipChildren();
     }
 
+    @Override
     public XContentParser.Token currentToken() {
         return convertToken(parser.getCurrentToken());
     }
 
+    @Override
     public XContentParser.NumberType numberType() throws IOException {
         return convertNumberType(parser.getNumberType());
     }
 
+    @Override
     public boolean estimatedNumberType() {
         return true;
     }
 
+    @Override
     public String currentName() throws IOException {
         return parser.getCurrentName();
     }
 
+    @Override
     protected boolean doBooleanValue() throws IOException {
         return parser.getBooleanValue();
     }
 
+    @Override
     public String text() throws IOException {
         return parser.getText();
     }
 
+    @Override
     public boolean hasTextCharacters() {
         return parser.hasTextCharacters();
     }
 
+    @Override
     public char[] textCharacters() throws IOException {
         return parser.getTextCharacters();
     }
 
+    @Override
     public int textLength() throws IOException {
         return parser.getTextLength();
     }
 
+    @Override
     public int textOffset() throws IOException {
         return parser.getTextOffset();
     }
 
+    @Override
     public Number numberValue() throws IOException {
         return parser.getNumberValue();
     }
 
+    @Override
     public BigInteger bigIntegerValue() throws IOException {
         return parser.getBigIntegerValue();
     }
 
+    @Override
     public BigDecimal bigDecimalValue() throws IOException {
         return parser.getDecimalValue();
     }
 
+    @Override
     public short doShortValue() throws IOException {
         return parser.getShortValue();
     }
 
+    @Override
     public int doIntValue() throws IOException {
         return parser.getIntValue();
     }
 
+    @Override
     public long doLongValue() throws IOException {
         return parser.getLongValue();
     }
 
+    @Override
     public float doFloatValue() throws IOException {
         return parser.getFloatValue();
     }
 
+    @Override
     public double doDoubleValue() throws IOException {
         return parser.getDoubleValue();
     }
 
+    @Override
     public byte[] binaryValue() throws IOException {
         return parser.getBinaryValue();
     }
 
+    @Override
     public void close() {
         try {
             parser.close();

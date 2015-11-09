@@ -1,0 +1,4 @@
+org.xbib.common.xcontent.json.JsonXContent
+org.xbib.common.xcontent.yaml.YamlXContent
+org.xbib.common.xcontent.smile.SmileXContent
+org.xbib.common.xcontent.xml.XmlXContent

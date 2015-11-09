@@ -1,6 +1,5 @@
-package org.xbib.common.xcontent;
+package org.xbib.common.xcontent.xml;
 
-import org.xbib.common.xcontent.xml.XmlXParams;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 
 import javax.xml.namespace.QName;
@@ -22,7 +21,7 @@ public class JsonXContentTest {
         String json = w.toString();
         byte[] buf = json.getBytes("UTF-8");
         XmlXParams params = new XmlXParams(root(), context());
-        String xml = XContentHelper.convertToXml(params, buf, 0, buf.length, false);
+        String xml = XmlXContentHelper.convertToXml(params, buf, 0, buf.length, false);
         Writer out = getOutput("test-xmlxcontent-" + path + ".xml");
         out.write(xml);
         out.close();

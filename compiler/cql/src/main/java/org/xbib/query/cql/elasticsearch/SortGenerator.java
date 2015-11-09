@@ -12,7 +12,7 @@ import org.xbib.query.cql.elasticsearch.ast.Token;
 import java.io.IOException;
 import java.util.Stack;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 /**
  * Build sort in Elasticsearch JSON syntax from abstract syntax tree

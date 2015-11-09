@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.rdf.xcontent;
+package org.xbib.rdf.content;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +38,6 @@ import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
-import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;

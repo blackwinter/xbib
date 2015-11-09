@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class NatLizMembers extends Feeder {
 

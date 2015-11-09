@@ -80,7 +80,7 @@ public class SearchRetrieveRequest extends DefaultSRURequest implements SRUReque
      */
     private String filter;
 
-    protected SearchRetrieveRequest() {
+    public SearchRetrieveRequest() {
     }
 
     @Override

@@ -31,7 +31,7 @@ import org.xbib.common.settings.loader.SettingsLoaderFactory;
 
 import static org.xbib.common.unit.ByteSizeValue.parseBytesSizeValue;
 import static org.xbib.common.unit.TimeValue.parseTimeValue;
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class Settings {
 

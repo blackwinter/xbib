@@ -38,8 +38,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
@@ -49,11 +47,9 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
 import org.xbib.rdf.memory.MemoryResource;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfContentGenerator<R> {
-
-    private final static Logger logger = LogManager.getLogger(RdfXContentGenerator.class);
 
     private R params;
 

@@ -49,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-content-common</artifactId>
+            <artifactId>xbib-content-rdf</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>

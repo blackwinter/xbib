@@ -1,6 +1,7 @@
 package org.xbib.common.xcontent;
 
 import org.testng.annotations.Test;
+import org.xbib.common.xcontent.json.JsonXContent;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class XContentBuilderTest {
 
@@ -67,15 +68,15 @@ public class XContentBuilderTest {
         builder.startObject().field("value", new BigDecimal("57683974591503.00")).endObject();
         assertEquals(builder.string(), "{\"value\":57683974591503.00}");
 
-        XContentType contentType = XContentFactory.xContentType(builder.string());
-        Map<String,Object> map = XContentFactory.xContent(contentType)
+        XContent content = XContentService.xContent(builder.string());
+        Map<String,Object> map = content
                 .createParser(builder.string())
                 .losslessDecimals(true)
                 .mapAndClose();
         assertEquals(map.toString(), "{value=57683974591503.00}");
         assertEquals(map.get("value").getClass().toString(), "class java.math.BigDecimal");
 
-        map = XContentFactory.xContent(contentType)
+        map = content
                 .createParser(builder.string())
                 .losslessDecimals(false)
                 .mapAndClose();
@@ -89,15 +90,15 @@ public class XContentBuilderTest {
         builder.startObject().field("value", new BigInteger("1234567891234567890123456789")).endObject();
         assertEquals(builder.string(),"{\"value\":1234567891234567890123456789}");
 
-        XContentType contentType = XContentFactory.xContentType(builder.string());
-        Map<String,Object> map = XContentFactory.xContent(contentType)
+        XContent content = XContentService.xContent(builder.string());
+        Map<String,Object> map = content
                 .createParser(builder.string())
                 .losslessDecimals(true)
                 .mapAndClose();
         assertEquals(map.toString(),"{value=1234567891234567890123456789}");
         assertEquals(map.get("value").getClass().toString(), "class java.math.BigInteger");
 
-        map = XContentFactory.xContent(contentType)
+        map = content
                 .createParser(builder.string())
                 .losslessDecimals(false)
                 .mapAndClose();
@@ -111,7 +112,7 @@ public class XContentBuilderTest {
         Date d = new Date();
         d.setTime(1398175311488L);
         builder.startObject().field("value", d).endObject();
-        Map<String,Object> map = XContentFactory.xContent(XContentType.JSON)
+        Map<String,Object> map = JsonXContent.jsonXContent
                 .createParser(builder.string())
                 .losslessDecimals(false)
                 .mapAndClose();
@@ -124,15 +125,14 @@ public class XContentBuilderTest {
         builder.startObject().field("value", "4AC3B67267").endObject();
         assertEquals(builder.string(), "{\"value\":\"4AC3B67267\"}");
 
-        XContentType contentType = XContentFactory.xContentType(builder.string());
-        Map<String,Object> map = XContentFactory.xContent(contentType)
+        XContent content = XContentService.xContent(builder.string());
+        Map<String,Object> map = content
                 .createParser(builder.string())
                 .enableBase16Checks(true)
                 .mapAndClose();
         assertEquals(new String((byte[])map.get("value")),"Jörg");
 
-        map = XContentFactory.xContent(contentType)
-                .createParser(builder.string())
+        map = content.createParser(builder.string())
                 .enableBase16Checks(false)
                 .mapAndClose();
         assertEquals(map.toString(), "{value=4AC3B67267}");

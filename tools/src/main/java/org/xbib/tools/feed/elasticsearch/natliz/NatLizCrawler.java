@@ -42,9 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
-import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class NatLizCrawler extends Feeder {
 

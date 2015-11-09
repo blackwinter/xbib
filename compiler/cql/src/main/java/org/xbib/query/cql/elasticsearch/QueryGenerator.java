@@ -11,7 +11,7 @@ import org.xbib.query.cql.elasticsearch.ast.Token;
 
 import java.io.IOException;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 /**
  * Build Elasticsearch query from abstract syntax tree

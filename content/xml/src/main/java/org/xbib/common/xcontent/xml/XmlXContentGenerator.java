@@ -35,13 +35,13 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentString;
 import org.xbib.io.BytesReference;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 import org.xbib.xml.ISO9075;
 import org.xbib.xml.XMLUtil;
 import org.xbib.xml.namespace.XmlNamespaceContext;
@@ -93,8 +93,8 @@ public class XmlXContentGenerator implements XContentGenerator {
         return params.getNamespaceContext();
     }
 
-    public XContentType contentType() {
-        return XContentType.XML;
+    public XContent content() {
+        return XmlXContent.xmlXContent();
     }
 
     public void usePrettyPrint() {

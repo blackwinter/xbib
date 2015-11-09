@@ -18,8 +18,6 @@ import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
-
 
 /**
  * A JSON based content implementation using Jackson.
@@ -40,50 +38,56 @@ public class JsonXContent implements XContent {
         jsonXContent = new JsonXContent();
     }
 
-    private JsonXContent() {
+    public JsonXContent() {
     }
 
-    
-    public XContentType type() {
-        return XContentType.JSON;
+    @Override
+    public String name() {
+        return "json";
     }
 
-    
     public byte streamSeparator() {
         return '\n';
     }
 
-    
+
+    @Override
     public XContentGenerator createGenerator(OutputStream os) throws IOException {
         return new JsonXContentGenerator(jsonFactory.createGenerator(os, JsonEncoding.UTF8));
     }
 
-    
+
+    @Override
     public XContentGenerator createGenerator(Writer writer) throws IOException {
         return new JsonXContentGenerator(jsonFactory.createGenerator(writer));
     }
 
-    
+
+    @Override
     public XContentParser createParser(String content) throws IOException {
         return new JsonXContentParser(jsonFactory.createParser(new FastStringReader(content)));
     }
 
-    
+
+    @Override
     public XContentParser createParser(InputStream is) throws IOException {
         return new JsonXContentParser(jsonFactory.createParser(is));
     }
 
-    
+
+    @Override
     public XContentParser createParser(byte[] data) throws IOException {
         return new JsonXContentParser(jsonFactory.createParser(data));
     }
 
-    
+
+    @Override
     public XContentParser createParser(byte[] data, int offset, int length) throws IOException {
         return new JsonXContentParser(jsonFactory.createParser(data, offset, length));
     }
 
-    
+
+    @Override
     public XContentParser createParser(BytesReference bytes) throws IOException {
         if (bytes.hasArray()) {
             return createParser(bytes.array(), bytes.arrayOffset(), bytes.length());
@@ -91,8 +95,27 @@ public class JsonXContent implements XContent {
         return createParser(bytes.streamInput());
     }
 
-    
+
+    @Override
     public XContentParser createParser(Reader reader) throws IOException {
         return new JsonXContentParser(jsonFactory.createParser(reader));
+    }
+
+    @Override
+    public boolean isXContent(BytesReference bytes) {
+        int length = bytes.length() < 20 ? bytes.length() : 20;
+        if (length == 0) {
+            return false;
+        }
+        byte first = bytes.get(0);
+        if (first == '{') {
+            return true;
+        }
+        for (int i = 0; i < length; i++) {
+            if (bytes.get(i) == '{') {
+                return true;
+            }
+        }
+        return false;
     }
 }

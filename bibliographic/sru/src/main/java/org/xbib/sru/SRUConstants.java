@@ -348,7 +348,7 @@ public interface SRUConstants {
      * may or may not be the same as the short name listed in the table 
      * below (and may differ from the short name that another server assigns).
      */
-    Map<String,URI> RECORD_SCHEMAS = new HashMap() {{
+    Map<String,URI> RECORD_SCHEMAS = new HashMap<String,URI>() {{
         put("dc",URI.create("info:srw/schema/1/dc-v1.1"));
         put("diag",URI.create("info:srw/schema/1/diagnostic-v1.1"));
         put("zeerex",URI.create("http://explain.z3950.org/dtd/2.0/"));
@@ -368,7 +368,7 @@ public interface SRUConstants {
         put("pam",URI.create("info:srw/schema/11/pam-v2.1"));
     }};
     
-    Map<String,URI> RECORD_SCHEMA_NAMESPACES = new HashMap() {{
+    Map<String,URI> RECORD_SCHEMA_NAMESPACES = new HashMap<String,URI>() {{
         put("mods",URI.create("http://www.loc.gov/mods/v3"));
         put("mx",URI.create("info:lc/xmlns/marcxchange-v1"));
         put("marcxml",URI.create("http://www.loc.gov/MARC21/slim"));

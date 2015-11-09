@@ -26,10 +26,5 @@
             <artifactId>xbib-content-json</artifactId>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-stream</artifactId>
-            <type>jar</type>
-        </dependency>
     </dependencies>
 </project>
