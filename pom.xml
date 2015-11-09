@@ -755,7 +755,6 @@
         <module>io/archive</module>
         <module>io/http</module>
         <module>io/jdbc</module>
-        <module>io/memcached</module>
 
         <module>compiler/jacc</module>
         <module>compiler/cql</module>
