@@ -48,6 +48,8 @@ public class XmlXParams {
 
     private QName root;
 
+    private boolean fatalNamespaceErrors;
+
     public XmlXParams() {
         this(null, null);
     }
@@ -82,5 +84,14 @@ public class XmlXParams {
 
     public static XmlXParams getDefaultParams() {
         return DEFAULT_PARAMS;
+    }
+
+    public XmlXParams setFatalNamespaceErrors() {
+        this.fatalNamespaceErrors = true;
+        return this;
+    }
+
+    public boolean isFatalNamespaceErrors() {
+        return fatalNamespaceErrors;
     }
 }

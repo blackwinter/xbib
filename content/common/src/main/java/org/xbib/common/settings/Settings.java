@@ -444,7 +444,7 @@ public class Settings {
                 }
             }
             for (int i = 0; i < values.size(); i++) {
-                put(setting + '.' + i, values.get(i).toString());
+                put(setting + '.' + i, values.get(i));
             }
             return this;
         }
@@ -833,7 +833,7 @@ public class Settings {
         /**
          * Strategy interface used to resolve replacement values for placeholders contained in Strings.
          */
-        public static interface PlaceholderResolver {
+        public interface PlaceholderResolver {
 
             /**
              * Resolves the supplied placeholder name into the replacement value.

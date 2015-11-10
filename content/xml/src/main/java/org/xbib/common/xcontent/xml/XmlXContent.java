@@ -31,8 +31,6 @@
  */
 package org.xbib.common.xcontent.xml;
 
-import com.ctc.wstx.stax.WstxInputFactory;
-import com.ctc.wstx.stax.WstxOutputFactory;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 
@@ -65,19 +63,15 @@ public class XmlXContent implements XContent {
 
     private final static XmlXContent xmlXContent;
 
-    /**
-     * We need Woodstox, the default Stax JDK parser is too buggy.
-     */
     static {
-        inputFactory = new WstxInputFactory();
+        inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isNamespaceAware", Boolean.TRUE);
         inputFactory.setProperty("javax.xml.stream.isValidating", Boolean.FALSE);
         inputFactory.setProperty("javax.xml.stream.isCoalescing", Boolean.TRUE);
         inputFactory.setProperty("javax.xml.stream.isReplacingEntityReferences", Boolean.FALSE);
         inputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
 
-        outputFactory = new WstxOutputFactory();
-
+        outputFactory = XMLOutputFactory.newInstance();
         outputFactory.setProperty("javax.xml.stream.isRepairingNamespaces", Boolean.FALSE);
 
         xmlFactory = new XmlFactory(inputFactory, outputFactory);

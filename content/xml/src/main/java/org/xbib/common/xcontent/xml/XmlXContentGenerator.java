@@ -431,7 +431,11 @@ public class XmlXContentGenerator implements XContentGenerator {
             nsPrefix = name.substring(0, pos);
             nsURI = context.getNamespaceURI(nsPrefix);
             if (nsURI == null) {
-                throw new IllegalArgumentException("unknown namespace prefix: " + nsPrefix);
+                if (params.isFatalNamespaceErrors()) {
+                    throw new IllegalArgumentException("unknown namespace prefix: " + nsPrefix);
+                } else {
+                    nsURI = "xbib:namespace/" + nsPrefix;
+                }
             }
             name = name.substring(pos + 1);
         }

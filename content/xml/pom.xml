@@ -19,6 +19,7 @@
         <dependency>
             <groupId>org.xbib</groupId>
             <artifactId>xbib-content-common</artifactId>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -29,21 +30,25 @@
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
             <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
             <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>serializer</artifactId>
             <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.codehaus.woodstox</groupId>
             <artifactId>woodstox-core-asl</artifactId>
             <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>net.sf.saxon</groupId>

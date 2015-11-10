@@ -19,11 +19,15 @@ public class XContentService {
     private final static XContentService instance = new XContentService();
 
     private XContentService() {
-        ServiceLoader<XContent> loader = ServiceLoader.load(XContent.class);
-        for (XContent xContent : loader) {
-            if (!xcontents.containsKey(xContent.name())) {
-                xcontents.put(xContent.name(), xContent);
+        try {
+            ServiceLoader<XContent> loader = ServiceLoader.load(XContent.class);
+            for (XContent xContent : loader) {
+                if (!xcontents.containsKey(xContent.name())) {
+                    xcontents.put(xContent.name(), xContent);
+                }
             }
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 
