@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.b3kat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.elasticsearch.support.client.Ingest;
+import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
@@ -79,6 +79,7 @@ public final class MarcXML extends Feeder {
 
     @Override
     protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
+        // TODO this should no longer be necessary
         ingest.mapping("title", MarcXML.class.getResourceAsStream("mapping-title.json"));
         return this;
     }

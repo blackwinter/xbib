@@ -84,8 +84,8 @@
         <maven.build.timestamp.format>dd.MM.yyyy HH:mm</maven.build.timestamp.format>
         <java.compiler.source>1.8</java.compiler.source>
         <xbib.version>${project.version}</xbib.version>
-        <xbib.elasticsearch.support.plugin.version>1.5.2.5</xbib.elasticsearch.support.plugin.version>
-        <jackson.version>2.5.2</jackson.version><!-- must match ES Jackson version -->
+        <xbib.elasticsearch.helper.plugin.version>1.5.2.6</xbib.elasticsearch.helper.plugin.version>
+        <jackson.version>2.6.3</jackson.version>
         <netty.version>4.1.0.Beta7</netty.version>
         <jetty.version>9.3.0.M2</jetty.version>
         <maven.surefire.version>2.19</maven.surefire.version>
@@ -531,8 +531,8 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib.elasticsearch.plugin</groupId>
-                <artifactId>elasticsearch-support</artifactId>
-                <version>${xbib.elasticsearch.support.plugin.version}</version>
+                <artifactId>elasticsearch-helper</artifactId>
+                <version>${xbib.elasticsearch.helper.plugin.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

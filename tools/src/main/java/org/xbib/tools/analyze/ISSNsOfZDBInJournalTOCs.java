@@ -43,7 +43,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.io.Request;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;

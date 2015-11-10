@@ -12,6 +12,7 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.xbib.common.unit.ByteSizeValue;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
@@ -89,7 +90,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build());
+                .build(), new LongAdderIngestMetric());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
         concreteIndex = resolveAlias(getIndex() + timeWindow);

@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.dnb.title;
 
-import org.xbib.elasticsearch.support.client.Ingest;
+import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -62,6 +62,7 @@ public class RdfXml extends Feeder {
 
     @Override
     public RdfXml beforeIndexCreation(Ingest output) throws IOException {
+        // TODO is this still necessary?
         output.setting(getClass().getResourceAsStream("settings.json"));
         output.mapping(settings.get("type"), getClass().getResourceAsStream("mapping.json"));
         return this;

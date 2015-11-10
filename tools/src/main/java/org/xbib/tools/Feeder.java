@@ -37,10 +37,11 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
+import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
+import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
@@ -102,7 +103,7 @@ public abstract class Feeder extends Converter {
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build());
+                    .build(), new LongAdderIngestMetric());
         }
         createIndex(getIndex());
     }
@@ -185,7 +186,7 @@ public abstract class Feeder extends Converter {
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                     .build();
-            ingest.init(clientSettings);
+            ingest.init(clientSettings, new LongAdderIngestMetric());
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {

@@ -45,11 +45,12 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
+import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
+import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
@@ -156,7 +157,7 @@ public class WithArticles
                     .put("port", settings.getAsInt("target.port", 9300))
                     .put("sniff", settings.getAsBoolean("target.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("target.autodiscover", false))
-                    .build());
+                    .build(), new LongAdderIngestMetric());
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             String indexSettings = settings.get("target-index-settings",
                     "classpath:org/xbib/tools/merge/articles/settings.json");

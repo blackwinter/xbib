@@ -41,7 +41,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 

@@ -34,6 +34,7 @@ package org.xbib.tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.settings.ImmutableSettings;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
@@ -82,7 +83,7 @@ public abstract class OAIFeeder extends TimewindowFeeder {
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build());
+                    .build(), new LongAdderIngestMetric());
         }
         super.prepareSink();
     }

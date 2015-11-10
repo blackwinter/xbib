@@ -13,6 +13,7 @@ import org.elasticsearch.common.joda.time.DateTime;
 import org.elasticsearch.common.joda.time.format.DateTimeFormat;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 
 import java.io.IOException;
@@ -75,7 +76,7 @@ public abstract class TimewindowFeeder extends Feeder {
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
-                .build());
+                .build(), new LongAdderIngestMetric());
         if (ingest.client() != null) {
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             if (settings.getAsBoolean("onlyaliases", false)) {

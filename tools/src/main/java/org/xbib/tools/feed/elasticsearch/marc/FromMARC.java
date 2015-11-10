@@ -33,7 +33,6 @@ package org.xbib.tools.feed.elasticsearch.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.elasticsearch.support.client.Ingest;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
@@ -75,12 +74,6 @@ public final class FromMARC extends Feeder {
     @Override
     protected WorkerProvider provider() {
         return FromMARC::new;
-    }
-
-    @Override
-    protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
-        //ingest.mapping("title", FromMARC.class.getResourceAsStream("mapping-title.json"));
-        return this;
     }
 
     @Override

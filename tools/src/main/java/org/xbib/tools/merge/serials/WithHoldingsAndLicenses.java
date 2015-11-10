@@ -45,11 +45,12 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
+import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
+import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
@@ -224,7 +225,7 @@ public class WithHoldingsAndLicenses
                 .put("transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("transport.ping_timeout", TimeValue.timeValueSeconds(60))
                 .put("transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60))
-                .build());
+                .build(), new LongAdderIngestMetric());
 
         String index = settings.get("index");
         try {

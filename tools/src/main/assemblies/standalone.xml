@@ -13,7 +13,7 @@
             <scope>runtime</scope>
             <includes>
                 <include>org.xbib</include>
-                <include>org.xbib.elasticsearch.plugin:elasticsearch-support</include>
+                <include>org.xbib.elasticsearch.plugin:elasticsearch-helper</include>
                 <include>xerces:xercesImpl</include>
                 <include>xml-apis:xml-apis</include>
                 <include>xalan:xalan</include>
