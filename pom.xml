@@ -85,11 +85,11 @@
         <java.compiler.source>1.8</java.compiler.source>
         <xbib.version>${project.version}</xbib.version>
         <xbib.elasticsearch.support.plugin.version>1.5.2.5</xbib.elasticsearch.support.plugin.version>
-        <antlr.version>4.5</antlr.version>
-        <jackson.version>2.6.3</jackson.version>
+        <jackson.version>2.5.2</jackson.version><!-- must match ES Jackson version -->
         <netty.version>4.1.0.Beta7</netty.version>
         <jetty.version>9.3.0.M2</jetty.version>
         <maven.surefire.version>2.19</maven.surefire.version>
+        <antlr.version>4.5</antlr.version>
     </properties>
 
     <build>

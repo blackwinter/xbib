@@ -40,7 +40,6 @@ import org.xbib.xml.transform.StylesheetTransformer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Arrays;
@@ -51,8 +50,8 @@ public class ZServiceTest {
 
     @Test
     public void testService() {
-        try {
-            for (String serviceName : Arrays.asList("LIBRIS", "LOC", "OBVSG")) {
+        for (String serviceName : Arrays.asList("LIBRIS", "LOC", "OBVSG")) {
+            try {
                 ZService service = ZServiceFactory.getService(serviceName);
                 ZClient client = service.newZClient();
                 File file = File.createTempFile("service-" + service.getURI().getHost(), ".xml");
@@ -76,9 +75,9 @@ public class ZServiceTest {
                 }
                 sw.close();
                 out.close();
+            } catch (Throwable e) {
+                logger.error(e.getMessage(), e);
             }
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
         }
     }
 }
