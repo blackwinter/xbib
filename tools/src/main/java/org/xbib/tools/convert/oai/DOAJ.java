@@ -38,8 +38,6 @@ import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -48,6 +46,7 @@ import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.XSDResourceIdentifiers;
 import org.xbib.tools.OAIHarvester;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -69,7 +68,7 @@ public class DOAJ extends OAIHarvester {
         return "doaj";
     }
 
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return DOAJ::new;
     }
 
@@ -116,17 +115,6 @@ public class DOAJ extends OAIHarvester {
                 });
                 RdfContentBuilder builder = routeRdfXContentBuilder(params);
                 builder.receive(handler.getResource());
-                if (executor != null) {
-                    // tell executor we increased document count by one
-                    executor.metric().mark();
-                    if (executor.metric().count() % 10000 == 0) {
-                        try {
-                            writeMetrics(executor.metric(), null);
-                        } catch (Exception e) {
-                            throw new IOException("metric failed", e);
-                        }
-                    }
-                }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
                 throw new SAXException(e);

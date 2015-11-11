@@ -25,12 +25,8 @@ import org.xbib.io.FastByteArrayOutputStream;
 
 public final class XContentBuilder implements BytesStream, ToXContent {
 
-    @Override
-    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-        return builder.copy(this);
-    }
 
-    public static enum FieldCaseConversion {
+    public enum FieldCaseConversion {
         /**
          * No came conversion will occur.
          */
@@ -47,6 +43,15 @@ public final class XContentBuilder implements BytesStream, ToXContent {
 
     protected static FieldCaseConversion globalFieldCaseConversion = FieldCaseConversion.NONE;
 
+    private XContentGenerator generator;
+
+    private final OutputStream bos;
+
+    private FieldCaseConversion fieldCaseConversion = globalFieldCaseConversion;
+
+    private StringBuilder cachedStringBuilder;
+
+
     public static void globalFieldCaseConversion(FieldCaseConversion globalFieldCaseConversion) {
         XContentBuilder.globalFieldCaseConversion = globalFieldCaseConversion;
     }
@@ -58,14 +63,9 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         return new XContentBuilder(xContent, new FastByteArrayOutputStream());
     }
 
-    private XContentGenerator generator;
-
-    private final OutputStream bos;
-
-    private FieldCaseConversion fieldCaseConversion = globalFieldCaseConversion;
-
-    private StringBuilder cachedStringBuilder;
-
+    public static XContentBuilder builder(XContent xContent, OutputStream out) throws IOException {
+        return new XContentBuilder(xContent, out);
+    }
     /**
      * Constructs a new builder using the provided xcontent and an OutputStream. Make sure
      * to call {@link #close()} when the builder is done with.
@@ -75,13 +75,18 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         this.generator = xContent.createGenerator(bos);
     }
 
+    @Override
+    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
+        return builder.copy(this);
+    }
+
     public XContentBuilder fieldCaseConversion(FieldCaseConversion fieldCaseConversion) {
         this.fieldCaseConversion = fieldCaseConversion;
         return this;
     }
 
-    public XContentType contentType() {
-        return generator.contentType();
+    public XContent content() {
+        return generator.content();
     }
 
     public XContentGenerator generator() {
@@ -325,7 +330,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.intValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -333,7 +338,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
     public XContentBuilder fieldIfNotNull(String name, Integer value) throws IOException {
         if (value != null) {
             field(name);
-            generator.writeNumber(value.intValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -343,7 +348,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.intValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -365,7 +370,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.longValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -375,7 +380,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.longValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -383,7 +388,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
     public XContentBuilder fieldIfNotNull(String name, Long value) throws IOException {
         if (value != null) {
             field(name);
-            generator.writeNumber(value.longValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -405,7 +410,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.floatValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -415,7 +420,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (value == null) {
             generator.writeNull();
         } else {
-            generator.writeNumber(value.floatValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -423,7 +428,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
     public XContentBuilder fieldIfNotNull(String name, Float value) throws IOException {
         if (value != null) {
             field(name);
-            generator.writeNumber(value.floatValue());
+            generator.writeNumber(value);
         }
         return this;
     }
@@ -968,17 +973,17 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         if (type == String.class) {
             generator.writeString((String) value);
         } else if (type == Integer.class) {
-            generator.writeNumber(((Integer) value).intValue());
+            generator.writeNumber((Integer) value);
         } else if (type == Long.class) {
-            generator.writeNumber(((Long) value).longValue());
+            generator.writeNumber((Long) value);
         } else if (type == Float.class) {
-            generator.writeNumber(((Float) value).floatValue());
+            generator.writeNumber((Float) value);
         } else if (type == Double.class) {
-            generator.writeNumber(((Double) value).doubleValue());
+            generator.writeNumber((Double) value);
         } else if (type == Short.class) {
-            generator.writeNumber(((Short) value).shortValue());
+            generator.writeNumber((Short) value);
         } else if (type == Boolean.class) {
-            generator.writeBoolean(((Boolean) value).booleanValue());
+            generator.writeBoolean((Boolean) value);
         } else if (type == GeoPoint.class) {
             generator.writeStartObject();
             generator.writeNumberField("lat", ((GeoPoint) value).lat());
@@ -1057,5 +1062,4 @@ public final class XContentBuilder implements BytesStream, ToXContent {
             //throw new ElasticsearchIllegalArgumentException("type not supported for generic value conversion: " + type);
         }
     }
-
 }

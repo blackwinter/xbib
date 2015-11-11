@@ -9,12 +9,9 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/**
- *
- */
 public interface XContentGenerator {
 
-    XContentType contentType();
+    XContent content();
 
     void usePrettyPrint();
 

@@ -40,6 +40,7 @@ public class CSVTokenizer extends StreamTokenizer {
     public static final int TT_DELIMITER = -5;
 
     public static final int TT_QUOTED = -6;
+
     private char delimChar;
 
     public CSVTokenizer(Reader r) {
@@ -50,7 +51,9 @@ public class CSVTokenizer extends StreamTokenizer {
         super(r);
         commentChar(cc);
         ordinaryChar('/');
-        ordinaryChar('\t');
+        //if (delim != '\t') {
+            ordinaryChar('\t');
+        //}
         eolIsSignificant(true);
         delimChar = delim;
     }

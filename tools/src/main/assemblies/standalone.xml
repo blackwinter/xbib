@@ -13,14 +13,13 @@
             <scope>runtime</scope>
             <includes>
                 <include>org.xbib</include>
-                <include>org.xbib.elasticsearch.plugin:elasticsearch-support</include>
+                <include>org.xbib.elasticsearch.plugin:elasticsearch-helper</include>
                 <include>xerces:xercesImpl</include>
                 <include>xml-apis:xml-apis</include>
                 <include>xalan:xalan</include>
                 <include>xalan:serializer</include>
                 <include>org.codehaus.woodstox:woodstox-core-asl</include>
                 <include>org.codehaus.woodstox:stax2-api</include>
-                <include>com.google.guava:guava</include>
                 <include>io.netty</include>
                 <include>com.fasterxml.jackson.core:jackson-core</include>
                 <include>com.fasterxml.jackson.core:jackson-annotations</include>

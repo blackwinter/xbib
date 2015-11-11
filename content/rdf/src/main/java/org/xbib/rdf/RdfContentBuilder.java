@@ -49,6 +49,8 @@ public class RdfContentBuilder implements RdfContentGenerator {
 
     private final OutputStream out;
 
+    private IRI subject;
+
     public RdfContentBuilder() throws IOException {
         this(NTripleContent.nTripleContent, NTripleContentParams.DEFAULT_PARAMS);
     }
@@ -132,6 +134,7 @@ public class RdfContentBuilder implements RdfContentGenerator {
 
     @Override
     public RdfContentBuilder receive(IRI identifier) throws IOException {
+        this.subject = identifier;
         generator.receive(identifier);
         return this;
     }
@@ -146,6 +149,10 @@ public class RdfContentBuilder implements RdfContentGenerator {
     public RdfContentBuilder receive(Resource resource) throws IOException {
         generator.receive(resource);
         return this;
+    }
+
+    public IRI getSubject() {
+        return subject;
     }
 
 }

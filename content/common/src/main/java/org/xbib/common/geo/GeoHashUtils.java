@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-
 /**
  * Utilities for encoding and decoding geohashes. Based on
  * http://en.wikipedia.org/wiki/Geohash.

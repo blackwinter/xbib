@@ -40,12 +40,12 @@ import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar2.TarConnectionFactory;
 import org.xbib.io.archive.tar2.TarSession;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -66,7 +66,7 @@ public class ORCID extends Feeder {
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
+    protected WorkerProvider provider() {
         return ORCID::new;
     }
 

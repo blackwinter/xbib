@@ -1,34 +1,14 @@
-/*
- * Licensed to ElasticSearch and Shay Banon under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. ElasticSearch licenses this
- * file to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 
 package org.xbib.common.settings.loader;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.xbib.common.xcontent.XContentFactory;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 
 /**
  * Settings loader that loads (parses) the settings in a xcontent format by flattening them
@@ -36,11 +16,11 @@ import org.xbib.common.xcontent.XContentType;
  */
 public abstract class XContentSettingsLoader implements SettingsLoader {
 
-    public abstract XContentType contentType();
+    public abstract XContent content();
 
     @Override
     public Map<String, String> load(String source) throws IOException {
-        XContentParser parser = XContentFactory.xContent(contentType()).createParser(source);
+        XContentParser parser = content().createParser(source);
         try {
             return load(parser);
         } finally {
@@ -50,18 +30,15 @@ public abstract class XContentSettingsLoader implements SettingsLoader {
 
     @Override
     public Map<String, String> load(byte[] source) throws IOException {
-        XContentParser parser = XContentFactory.xContent(contentType()).createParser(source);
-        try {
+        try (XContentParser parser = content().createParser(source)) {
             return load(parser);
-        } finally {
-            parser.close();
         }
     }
 
     public Map<String, String> load(XContentParser jp) throws IOException {
         StringBuilder sb = new StringBuilder();
-        Map<String, String> settings = newHashMap();
-        List<String> path = newArrayList();
+        Map<String, String> settings = new HashMap<>();
+        List<String> path = new ArrayList<>();
         XContentParser.Token token = jp.nextToken();
         if (token == null) {
             return settings;

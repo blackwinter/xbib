@@ -18,7 +18,7 @@ java="java"
 echo '
 {
     "path" : "/Users/joerg/import/zdb",
-    "pattern" : "1408*tit*mrc.gz",
+    "pattern" : "1509*tit*mrc.gz",
     "elements" : "/org/xbib/analyzer/marc/zdb/bib.json",
     "package" : "org.xbib.analyzer.marc.zdb.bib",
     "concurrency" : 1,
@@ -26,23 +26,22 @@ echo '
     "identifier" : "DE-600",
     "collection" : "Zeitschriften",
     "elasticsearch" : {
-        "cluster" : "joerg",
-        "host" : "localhost",
-        "port" : 9300,
-        "sniff" : false
+        "cluster" : "zbn-1.5",
+        "host" : "zephyros",
+        "port" : 19300,
+        "autodiscover" : true
     },
     "bib-index" : "zdb",
     "bib-type" : "zdb",
     "maxbulkactions" : 2000,
     "maxconcurrentbulkrequests" : 8,
     "mock" : false,
-    "detect" : true,
-    "client" : "ingest",
+    "detect-unknown" : true,
     "timewindow" : "yyyyMMddHH",
     "aliases" : true,
     "ignoreindexcreationerror" : true
 }
-' | ${java} \
+' | ${java} -XX:+UseG1GC \
     -cp ${lib}/\*:${bin}/\* \
     -Dlog4j.configurationFile=${bin}/log4j2.xml \
     org.xbib.tools.Runner \

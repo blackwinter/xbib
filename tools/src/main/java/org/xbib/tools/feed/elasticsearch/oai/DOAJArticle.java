@@ -36,8 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.iri.IRI;
 import org.xbib.oai.rdf.RdfResourceHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.Resource;
@@ -45,6 +43,7 @@ import org.xbib.rdf.XSDResourceIdentifiers;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.tools.OAIFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -76,7 +75,7 @@ public class DOAJArticle extends OAIFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return DOAJArticle::new;
     }
 

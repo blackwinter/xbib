@@ -54,17 +54,7 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-entity</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-pipeline</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-jdbc</artifactId>
+            <artifactId>xbib-etl</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -74,23 +64,34 @@
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-charset</artifactId>
+            <artifactId>xbib-io-charset</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-compress</artifactId>
+            <artifactId>xbib-io-archive</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-sru</artifactId>
+            <artifactId>xbib-io-jdbc</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-elasticsearch-search</artifactId>
+            <artifactId>xbib-matching</artifactId>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.xbib.elasticsearch.plugin</groupId>
+            <artifactId>elasticsearch-helper</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
+            <type>jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

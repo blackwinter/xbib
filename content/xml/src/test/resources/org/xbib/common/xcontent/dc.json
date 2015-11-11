@@ -1,0 +1,183 @@
+{
+    "xbib:updated":"2012-05-17T17:02:24Z",
+    "dc:type":{
+        "xbib:recordType":"h",
+        "bib:issuance":"monographic"
+    },
+    "dc:identifier":{
+        "xbib:identifierAuthorityMAB":"HT014262244",
+        "xbib:identifierAuthorityEKI":"HBZHT014262244",
+        "xbib:identifierAuthorityOriginISBN":"1-932394-28-1",
+        "xbib:identifierAuthorityEAN":"9781932394283",
+        "xbib:identifierAuthorityISBN":"1932394281",
+        "xbib:sysID":"013391972",
+        "xbib:identifierAuthorityISIL":["DE-1010","DE-6-282","DE-361","DE-6","DE-1044","DE-467"]
+    },
+    "dc:language":{
+        "xbib:languageISO6392b":"eng",
+        "xbib:languageISO6391":"en"
+    },
+    "dc:format":{
+        "dcterms:format":"print",
+        "dcterms:medium":"paper"
+    },
+    "dc:contributor":[{
+        "bib:namePersonal":"Gospodnetić, Otis",
+        "xbib:namePersonalID":"HP02672128",
+        "xbib:namePersonalRole":"cre"
+    },{
+        "bib:namePersonal":"Hatcher, Erik",
+        "xbib:namePersonalID":"128668350",
+        "xbib:namePersonalRole":"cre",
+        "xbib:namePersonalAlt":"Hatcher, E."
+    }],
+    "dc:creator":[{
+        "bib:namePersonal":"Gospodnetić, Otis",
+        "xbib:namePersonalID":"HP02672128"
+    },{
+        "bib:namePersonal":"Hatcher, Erik",
+        "xbib:namePersonalID":"128668350",
+        "xbib:namePersonalAlt":"Hatcher, E."
+    }],
+    "dc:title":{
+        "xbib:title":"Lucene in action",
+        "xbib:titleSub":"[a guide to the Java search engine]"
+    },
+    "dc:description":{
+        "xbib:creatorDescription":"Otis Gospodnetić ; Erik Hatcher",
+        "dcterms:extent":"XXXIV, 421 S. : Ill."
+    },
+    "dc:publisher":{
+        "xbib:publisherPlace":"Greenwich, Conn.",
+        "xbib:publisherName":"Manning"
+    },
+    "dc:date":{
+        "dcterms:issued":"2005"
+    },
+    "dc:relation":[{
+        "xbib:relationName":"Später u.d.T.",
+        "xbib:relationValue":"McCandless, Michael: Lucene in action"
+    },{
+        "lia:lia":{
+            "lia:access":[{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-1010",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-1010 GE 01TYD1110",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"01TYD1110",
+                    "lia:number":"GE"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":"restricted",
+                "lia:library":{
+                    "lia:name":"DE-6-282",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-6-282 00071001 WI 14 822",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"WI 14 822",
+                    "lia:number":"00071001"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-361",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-361 00000010 HK520 G676",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"HK520 G676",
+                    "lia:number":"00000010"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-6",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-6 00000040 3W 622",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"3W 622",
+                    "lia:number":"00000040"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-1044",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-1044 00000001 11 = TYD6810",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"11 = TYD6810",
+                    "lia:number":"00000001"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-1044",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-1044 00000001 11 = TYD6810+1",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"11 = TYD6810+1",
+                    "lia:number":"00000001"
+                }
+            },{
+                "lia:name":"DE-605",
+                "lia:authority":"ISIL",
+                "lia:service":["inter-library-loan","copy"],
+                "lia:library":{
+                    "lia:name":"DE-467",
+                    "lia:authority":"ISIL"
+                },
+                "lia:item":{
+                    "lia:identifier":"DE-467 51 51TWYD3730",
+                    "lia:type":"hard-cover",
+                    "lia:preferredTransport":"physical",
+                    "lia:preferredDelivery":"physical",
+                    "lia:shelfmark":"51TWYD3730",
+                    "lia:number":"51"
+                }
+            }]
+        }
+    }],
+    "dc:subject":{
+        "xbib:rswk":{
+            "xbib:subjectTopic":"Lucene",
+            "xbib:hasGND":"4800725-0"
+        }
+    }
+}

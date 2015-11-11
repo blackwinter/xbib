@@ -2,10 +2,9 @@ package org.xbib.tools.feed.elasticsearch.natliz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -13,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class NatLizMembers extends Feeder {
 
@@ -23,7 +22,7 @@ public class NatLizMembers extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return NatLizMembers::new;
     }
 

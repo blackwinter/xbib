@@ -36,7 +36,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.io.Connection;
 import org.xbib.io.ConnectionFactory;
-import org.xbib.util.URIUtil;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -44,9 +43,8 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.sql.SQLException;
-import java.util.Properties;
 
 /**
  * A connection factory for JDBC DataSources
@@ -56,8 +54,6 @@ public final class SQLConnectionFactory implements ConnectionFactory<SQLSession>
 
     private static final Logger logger = LogManager.getLogger(SQLConnectionFactory.class.getName());
 
-    private Properties properties;
-
     private String jndiName;
 
     @Override
@@ -65,23 +61,13 @@ public final class SQLConnectionFactory implements ConnectionFactory<SQLSession>
         return "jdbc";
     }
 
-    /**
-     * Get connection
-     *
-     * @param uri
-     *
-     * @return an SQL connection
-     *
-     * @throws java.io.IOException
-     */
     @Override
     public Connection<SQLSession> getConnection(final URI uri) throws IOException {
-        this.properties = URIUtil.getPropertiesFromURI(uri);
         Context context = null;
         DataSource ds = null;
         for (String name : new String[]{
-                    "jdbc/" + properties.getProperty("host"),
-                    "java:comp/env/" + properties.getProperty("scheme") + ":" + properties.getProperty("host") + ":" + properties.getProperty("port")
+                    "jdbc/" + uri.getHost(),
+                    "java:comp/env/" + uri.getScheme() + ":" + uri.getHost() + ":" + uri.getPort()
                 }) {
             this.jndiName = name;
             try {
@@ -101,21 +87,26 @@ public final class SQLConnectionFactory implements ConnectionFactory<SQLSession>
             }
         }
         try {
-            if (ds == null) {
+            if (context != null && ds == null) {
                 BasicDataSource bsource = new BasicDataSource();
-                bsource.setDriverClassName(properties.getProperty("driverClassName"));
-                String url = properties.getProperty("jdbcScheme") + properties.getProperty("host") + ":" + properties.getProperty("port") + ("jdbc:oracle:thin:@".equals(properties.getProperty("jdbcScheme")) ? ":" : "/") + properties.getProperty("cluster");
+                //bsource.setDriverClassName(properties.getProperty("driverClassName"));
+                String url = uri.toString();
+                        //properties.getProperty("jdbcScheme") + properties.getProperty("host") + ":" + properties.getProperty("port") + ("jdbc:oracle:thin:@".equals(properties.getProperty("jdbcScheme")) ? ":" : "/") + properties.getProperty("cluster");
                 bsource.setUrl(url);
-                if (properties.containsKey("username")) {
-                    bsource.setUsername(properties.getProperty("username"));
+                String auth = uri.getAuthority();
+                int pos = auth != null ? auth.indexOf(':') : 0;
+                String username = pos > 0 ? auth.substring(0, pos) : null;
+                String password = pos > 0 ? auth.substring(pos + 1) : auth;
+                if (username != null) {
+                    bsource.setUsername(username);
                 }
-                if (properties.containsKey("password")) {
-                    bsource.setPassword(properties.getProperty("password"));
+                if (password != null) {
+                    bsource.setPassword(password);
                 }
-                if (properties.containsKey("n")) {
+                /*if (properties.containsKey("n")) {
                     bsource.setInitialSize(Integer.parseInt(properties.getProperty("n")));
                     bsource.setMaxActive(Integer.parseInt(properties.getProperty("n")));
-                }
+                }*/
                 // Other BasicDataSource settings, not used yet:
                 //  setAccessToUnderlyingConnectionAllowed(boolean allow)
                 //  setDefaultAutoCommit(boolean defaultAutoCommit)
@@ -143,12 +134,17 @@ public final class SQLConnectionFactory implements ConnectionFactory<SQLSession>
         } catch (NamingException e) {
             throw new IOException(e.getMessage());
         }
-        try {
+        /*try {
             ds.getConnection().setAutoCommit("false".equals(properties.getProperty("autoCommit")) ? false : true);
         } catch (SQLException e) {
             throw new IOException(e.getMessage());
-        }
+        }*/
         return new SQLConnection(ds);
+    }
+
+    @Override
+    public InputStream open(URI uri) throws IOException {
+        return uri.toURL().openStream();
     }
 
     @Override

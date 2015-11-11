@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.csv.CSVParser;
 import org.xbib.grouping.bibliographic.endeavor.PublishedJournal;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;

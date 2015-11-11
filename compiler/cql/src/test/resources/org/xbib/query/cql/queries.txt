@@ -1,0 +1,141 @@
+"to be or not to be"
+publicationYear < 1980
+lengthOfFemur > 2.4
+bioMass >= 100
+id = 12345678
+id = 8a666b7e-6597-3cfb-b478-313cc3c25011
+contentid = "0a1af248-7339-3b59-bc07-3a460275456f"
+isbn = "0818631678"
+title = "duck" and author = "sanderson"
+unix
+financing
+"Christine Wolfinger"
+"der die das"
+1234
+"1234"
+1.234
+"1.234"
+"unix AND wolfinger"
+"to be or not to be"
+"not macht erfinderisch"
+"to be or not to be"
+unix$
+"^linux"
+finan*
+finan?
+finan*ng
+finan?ier?ng
+title = "duck"
+title = "Dinosaur Systematics"
+title <> linux
+cql.resultSetId = HT000011990
+cql.allRecords = 2
+cql.allRecords = 1 NOT title = fish|cql.allRecords = 1 not title = fish
+title any "unix linux"
+title all "unix linux"
+title all "unix 'linux' test"
+title all "linux \"pinguin's best friend\" unix"
+dc.title adj "lord of the rings"
+anywhere = "linux unix \"grundkurs für einsteiger\""
+dc.date=2003|dc.date = 2003
+dc.date="2003"|dc.date = "2003"
+dc.creator=smith|dc.creator = smith
+dc.title=financing|dc.title = financing
+dc.subject=financing|dc.subject = financing
+"feathered dinosaur" and (yixian or jehol)
+(a or b) and (c or d)
+unix AND wolfinger|unix and wolfinger
+"keine angst" AND unix|"keine angst" and unix
+unix and 2012
+dc.title=unix or wolfinger|dc.title = unix or wolfinger
+(dc.title = unix or dc.date = 2003) and ( dc.creator = wolfinger and dc.creator = christine or dc.creator = maier )|(dc.title = unix or dc.date = 2003) and (dc.creator = wolfinger and dc.creator = christine or dc.creator = maier)
+(dc.title = "unix" or dc.title = "linux") and ( dc.creator = "wolfinger" and dc.creator = "christine" )|(dc.title = "unix" or dc.title = "linux") and (dc.creator = "wolfinger" and dc.creator = "christine")
+financing AND success|financing and success
+financing OR monetary|financing or monetary
+financing NOT success|financing not success
+(financing AND monetary) OR success|(financing and monetary) or success
+financing AND (monetary OR success)|financing and (monetary or success)
+"financing constraints" OR success|"financing constraints" or success
+"financing constraints" NOT model|"financing constraints" not model
+("financing constraints" AND model) OR success|("financing constraints" and model) or success
+"financing constraints" AND (model OR success)|"financing constraints" and (model or success)
+dinosaur or bird
+dino and "eiszeit"
+dinosaur not reptile
+date = 2007-09-30 or date = "2007-09-30T12:34:56"
+dinosaur and bird or dinobird
+(bird or dinosaur) and (feathers or scales)
+linux and creator = wolfinger
+dc.title=linux and dc.title = unix|dc.title = linux and dc.title = unix
+dc.title = unix and dc.date = 2000
+dc.title = "unix" and dc.creator = "wolfinger"
+dc.title = "unix" or dc.creator = "wolfinger"
+dc.title = "unix" and dc.creator = "wolfinger" and dc.creator = "christine"
+dc.title = "unix" and ( dc.creator = "wolfinger" or dc.creator = "meyer" )|dc.title = "unix" and (dc.creator = "wolfinger" or dc.creator = "meyer")
+(dc.title = "unix" or dc.title = "linux") and ( dc.creator = "wolfinger" and dc.creator = "meyer" )|(dc.title = "unix" or dc.title = "linux") and (dc.creator = "wolfinger" and dc.creator = "meyer")
+dc.title = "foo" and (dc.creator = "smith" or dc.creator = "jones")
+dc.creator = "smith" and dc.creator = "jones"
+dc.date = 2007-09-30 or dc.date = "2007-09-30T12:34:56"
+identifier = 0783923126590
+identifier = "9783923126590"
+identifier = "9783923126590*"
+dc.identifier=/bib.identifierAuthority=isbn "0201563177"|dc.identifier =/bib.identifierAuthority=isbn "0201563177"
+dc.identifier =/bib.identifierAuthority=isbn "0201563177"|dc.identifier =/bib.identifierAuthority=isbn "0201563177"
+dc.identifier =/bib.identifierAuthority=isbn "0201563177" and dc.title=unix sortby date|dc.identifier =/bib.identifierAuthority=isbn "0201563177" and dc.title = unix sortby date
+dc.date > 2007-09-30 and dc.date < "2007-10-30T12:34:56"
+date > 2007-01-01
+dc.date <= 2006-07-01
+dc.date >= 2005-02-31
+dc.date within "2006-01-01 2007-01-01"
+dc.date > 2011
+dc.date = "> 2003"
+dc.date = "20012010"
+test and filter.collection = "test"|test
+dc.title = test and filter.collection = "test"|dc.title = test
+(dc.title = "unix" or dc.title = "linux") and ( dc.creator = "wolfinger" and dc.creator = "meyer" ) and filter.subject = "computer"|(dc.title = "unix" or dc.title = "linux") and (dc.creator = "wolfinger" and dc.creator = "meyer")
+dc.title = "unix" and filter.creator = "wolfinger"|dc.title = "unix"
+dc.title = "unix" and filter.creator = "wolfinger" or filter.creator = "meyer"|dc.title = "unix"
+dc.title = "unix" and (filter.creator = "wolfinger" and filter.subject= Computer)|dc.title = "unix"
+unix and filter.date > 2006-01-01|unix
+unix and (filter.date > 2006-01-01 and filter.date > 2007-01-01)|unix
+unix and filter.date within "2006-01-01 2007-01-01"|unix
+unix and filter.collection = "info:sid/a.b.c.d:module"|unix
+unix and filter.collection = "info:sid/a.b.c.d:module" or filter.collection = "info:sid/e.f.g.h:module"|unix
+unix and (filter.collection = "info:sid/a.b.c.d:module" and filter.creator ="Wolfinger, Christine")|unix
+test and filter.collection = "test"|test
+test and (filter.creator = "a" and filter.subject = "b")|test
+test and filter.creator = "a" or filter.subject = "b"|test
+test and filter.creator = "smith"|test
+test and (filter.creator = "jones" and filter.collection = "test")|test
+test and filter.creator = "smith" or filter.creator = "jones"|test
+test and (filter.creator = "smith" and filter.creator = "jones")|test
+test or filter.creator = "smith" and filter.creator = "jones"|test
+test or (filter.creator = "smith" and filter.creator = "jones")|test
+test and (filter.creator = "smith" or filter.creator = "jones")|test
+test or (filter.creator = "smith" or filter.creator = "jones")|test
+test and (filter.creator = "smith" or filter.creator = "jones" and filter.subject = "unix")|test
+structure AND filter.creator="smith"|structure
+structure AND filter.subject="data"|structure
+structure AND filter.date="2003"|structure
+pädagogik AND filter.taxonomy="0/24/*"|pädagogik
+pädagogik AND filter.taxonomy="0/24/313/*"|pädagogik
+pädagogik AND filter.taxonomy="0/24/313/21/*"|pädagogik
+linux and filter.creator <> "Wolfinger"|linux
+unix and option.offset = 10 and option.length = 20|unix
+test and option.length = 1 and option.length = 2 and option.length = 3|test
+bib.namePersonal = meier
+unix sortby date/sort.descending
+unix sortby date/sort.descending geo/sort.ascending
+unix sortby geo/sort.ascending/sort.unit=km/sort.lat=50.9415016174/sort.lon=6.95853996277
+unix sortby geo/sort.ascending/sort.unit=km/sort.center="(50.9415016174,6.95853996277)"
+unix and filter.location any "DE-929 DE-107 DE-Zw1"|unix
+unix and filter.location any "DE-929 DE-107 DE-Zw1" sortby date/sort.descending|unix sortby date/sort.descending
+unix and option.offset = 10 and option.length = 20 and filter.location any "DE-929 DE-107 DE-Zw1" sortby date/sort.descending|unix sortby date/sort.descending
+unix and facet.dc.creator = "on"|unix
+unix and facet.dc.creator = "off"|unix
+unix and facet.dc.creator = "on" and facet.dc.subject = "on" and facet.dc.date = "off"|unix
+unix and facet.dc.date = on|unix
+unix and facet.dc.creator = "on" and facet.dc.subject = "on" and facet.dc.subject = "buckets=10"|unix
+unix and facet.dc.date = "on" and facet.dc.subject = "on" and facet.dc.subject = "buckets=20"|unix
+unix and facet.dc.creator = "on" and facet.dc.subject = "on" and facet.dc.subject = "buckets=20"|unix
+cql.allIndexes all "linux;"

@@ -3,9 +3,8 @@ package org.xbib.tools.util;
 import org.xbib.io.Packet;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.xml.stream.MarcXchangeReader;
-import org.xbib.metric.MeterMetric;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.element.LongPipelineElement;
+import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Worker;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -58,7 +57,7 @@ public class MarcXmlTarReader extends AbstractTarReader {
     }
 
     @Override
-    public void newRequest(Pipeline<MeterMetric, LongPipelineElement> pipeline, LongPipelineElement request) {
+    public void newRequest(Worker<LongWorkerRequest> pipeline, LongWorkerRequest request) {
         try {
             StringReader sr = new StringReader(packet.toString());
             XMLEventReader xmlReader = factory.createXMLEventReader(sr);

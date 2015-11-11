@@ -4,7 +4,7 @@
 tty -s
 if [ "$?" -gt "0" ]
 then
-    cd $HOME/hbz-toolbox
+    cd $HOME/xbib-tools
     pwd=$(pwd)
     bin=${pwd}/bin
     lib=${pwd}/lib
@@ -35,7 +35,6 @@ echo '
     "maxbulkactions" : 10000,
     "maxconcurrentbulkrequests" : 8,
     "mock" : false,
-    "client" : "ingest",
     "timewindow" : "yyyyMMddHH",
     "aliases" : true,
     "ignoreindexcreationerror" : true

@@ -1,0 +1,65 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix sf: <http://www.opengis.net/ont/sf#> .
+@prefix isbd: <http://iflastandards.info/ns/isbd/elements/> .
+@prefix gndo: <http://d-nb.info/standards/elementset/gnd#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix marcRole: <http://id.loc.gov/vocabulary/relators/> .
+@prefix lib: <http://purl.org/library/> .
+@prefix umbel: <http://umbel.org/umbel#> .
+@prefix rdau: <http://rdaregistry.info/Elements/u/> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://d-nb.info/gnd/1-2> a gndo:SeriesOfConferenceOrEvent ;
+        gndo:gndIdentifier "1-2" ;
+        gndo:oldAuthorityNumber "(DE-588b)1-2" ;
+        gndo:variantNameForTheConferenceOrEvent "Conferentie van Niet-Kernwapenstaten" , "Conference on Non-Nuclear Weapon States" ;
+        gndo:preferredNameForTheConferenceOrEvent "Conference of Non-Nuclear Weapon States" .
+
+<http://d-nb.info/gnd/2-4> a gndo:ConferenceOrEvent ;
+        gndo:gndIdentifier "2-4" ;
+        gndo:oldAuthorityNumber "(DE-588b)2-4" ;
+        gndo:preferredNameForTheConferenceOrEvent "Conferenza Nazionale della Ceramica <1963, Vicenza>" ;
+        gndo:geographicAreaCode <http://d-nb.info/standards/vocab/gnd/geographic-area-code#XA-IT> ;
+        gndo:dateOfConferenceOrEvent "1963" ;
+        gndo:placeOfConferenceOrEvent <http://d-nb.info/gnd/4063445-0> .
+
+<http://d-nb.info/gnd/3-6> a gndo:SeriesOfConferenceOrEvent ;
+        gndo:gndIdentifier "3-6" ;
+        gndo:oldAuthorityNumber "(DE-588b)3-6" ;
+        gndo:preferredNameForTheConferenceOrEvent "Conferinţă de Sudura şi Încercari de Metale" ;
+        gndo:precedingConferenceOrEvent <http://d-nb.info/gnd/1216918-3> ;
+        gndo:succeedingConferenceOrEvent <http://d-nb.info/gnd/5038504-5> .
+
+<http://d-nb.info/gnd/4-8> a gndo:SeriesOfConferenceOrEvent ;
+        gndo:gndIdentifier "4-8" ;
+        gndo:oldAuthorityNumber "(DE-588b)4-8" ;
+        gndo:preferredNameForTheConferenceOrEvent "Congrès des Anesthésistes Réanimateurs d'Expression Française" .
+
+<http://d-nb.info/gnd/5-X> a gndo:SeriesOfConferenceOrEvent ;
+        gndo:gndIdentifier "5-X" ;
+        gndo:oldAuthorityNumber "(DE-588b)5-X" ;
+        gndo:preferredNameForTheConferenceOrEvent "Congrès des Associations Régionales pour la Sauvegarde de l'Enfance et de l'Adolescence" .
+
+<http://d-nb.info/gnd/15612-7> a gndo:TerritorialCorporateBodyOrAdministrativeUnit , gndo:Country ;
+    gndo:gndIdentifier "15612-7" ;
+    gndo:oldAuthorityNumber "(DE-588b)15612-7" ;
+    owl:sameAs <http://sws.geonames.org/2361809> ;
+    geo:hasGeometry _:node19nqul6gix1 .
+
+_:node19nqul6gix1 a sf:Point ;
+    geo:asWKT "Point ( -002.000000 +013.000000 )"^^geo:wktLiteral .
+
+<http://d-nb.info/gnd/15612-7> gndo:geographicAreaCode <http://d-nb.info/standards/vocab/gnd/geographic-area-code#XC-HVBF> ;
+    gndo:biographicalOrHistoricalInformation "1960 von Frankreich in die Unabhängigkeit entlassen, 1984 umbenannt in Burkina Faso"@de ;
+    gndo:definition "Unabhängiger Staat in Westafrika"@de ;
+    gndo:dateOfEstablishment "XX.XX.1960" ;
+    gndo:dateOfTermination "08.08.1984" ;
+    gndo:variantNameForThePlaceOrGeographicName "Haute-Volta" , "Upper Volta" , "République de Haute-Volta" ;
+    gndo:preferredNameForThePlaceOrGeographicName "Obervolta" ;
+    gndo:succeedingPlaceOrGeographicName <http://d-nb.info/gnd/4088707-8> .

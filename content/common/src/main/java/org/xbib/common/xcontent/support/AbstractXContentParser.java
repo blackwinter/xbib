@@ -2,6 +2,7 @@
 package org.xbib.common.xcontent.support;
 
 import org.xbib.common.Booleans;
+import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
 
 import java.io.IOException;
@@ -14,6 +15,8 @@ import java.util.Map;
 public abstract class AbstractXContentParser implements XContentParser {
 
     protected boolean losslessDecimals;
+
+    protected boolean base16Checks;
 
     @Override
     public boolean isBooleanValue() throws IOException {
@@ -100,6 +103,15 @@ public abstract class AbstractXContentParser implements XContentParser {
 
     public boolean isLosslessDecimals() {
         return losslessDecimals;
+    }
+
+    public XContentParser enableBase16Checks(boolean base16Checks) {
+        this.base16Checks = base16Checks;
+        return this;
+    }
+
+    public boolean isBase16Checks() {
+        return base16Checks;
     }
 
     public String textOrNull() throws IOException {
@@ -191,6 +203,13 @@ public abstract class AbstractXContentParser implements XContentParser {
         if (t == XContentParser.Token.VALUE_NULL) {
             return null;
         } else if (t == XContentParser.Token.VALUE_STRING) {
+            if (parser.isBase16Checks()) {
+                try {
+                    return XContentHelper.parseBase16(parser.text());
+                } catch (Exception e) {
+                    //
+                }
+            }
             return parser.text();
         } else if (t == XContentParser.Token.VALUE_NUMBER) {
             XContentParser.NumberType numberType = parser.numberType();

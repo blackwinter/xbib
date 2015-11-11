@@ -45,13 +45,12 @@ import org.xbib.tools.util.ArticleVocabulary;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class ORCIDMapper implements ArticleVocabulary {
 
@@ -65,11 +64,11 @@ public class ORCIDMapper implements ArticleVocabulary {
 
     private String mbox;
 
-    private Map<String,String> ids = newHashMap();
+    private Map<String,String> ids = new HashMap<>();
 
     private String idtype;
 
-    private List<Work> works = newLinkedList();
+    private List<Work> works = new LinkedList<>();
 
     private Work work;
 
@@ -261,9 +260,9 @@ public class ORCIDMapper implements ArticleVocabulary {
         String title;
         String relatedtitle;
         Datestamp datestamp = new Datestamp();
-        Set<String> dois = newLinkedHashSet();
-        Set<String> pmids = newLinkedHashSet();
-        Set<String> isbns = newLinkedHashSet();
+        Set<String> dois = new LinkedHashSet<>();
+        Set<String> pmids = new LinkedHashSet<>();
+        Set<String> isbns = new LinkedHashSet<>();
 
         @Override
         public int compareTo(Work o) {

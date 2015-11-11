@@ -33,11 +33,10 @@ package org.xbib.tools.convert.viaf;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -91,7 +90,7 @@ public class VIAF extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return VIAF::new;
     }
 

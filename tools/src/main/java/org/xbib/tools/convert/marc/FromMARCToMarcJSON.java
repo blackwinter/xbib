@@ -2,9 +2,8 @@ package org.xbib.tools.convert.marc;
 
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.json.MarcXchangeJSONLinesWriter;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,7 +29,7 @@ public class FromMARCToMarcJSON extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return FromMARCToMarcJSON::new;
     }
 

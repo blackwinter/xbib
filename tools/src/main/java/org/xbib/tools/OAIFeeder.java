@@ -33,8 +33,8 @@ package org.xbib.tools;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.joda.time.DateTime;
-import org.elasticsearch.common.joda.time.format.DateTimeFormat;
+import org.xbib.common.settings.Settings;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
@@ -44,7 +44,6 @@ import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -59,8 +58,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -72,34 +69,28 @@ public abstract class OAIFeeder extends TimewindowFeeder {
     private final static Logger logger = LogManager.getLogger(OAIFeeder.class);
 
     @Override
-    public void prepareSink() throws IOException {
-        ingest = createIngest();
-        String timeWindow = settings.get("timewindow") != null ?
-                DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
-        setConcreteIndex(resolveAlias(getIndex() + timeWindow));
-        Pattern pattern = Pattern.compile("^(.*)\\d+$");
-        Matcher m = pattern.matcher(getConcreteIndex());
-        setIndex(m.matches() ? m.group() : getConcreteIndex());
-        logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
-        Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-        Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                Runtime.getRuntime().availableProcessors());
-        ingest.maxActionsPerRequest(maxbulkactions)
-                .maxConcurrentRequests(maxconcurrentbulkrequests);
-        createIndex(getConcreteIndex());
-        String[] inputs = settings.getAsArray("uri");
-        if (inputs == null || inputs.length == 0) {
-            throw new IllegalArgumentException("no parameter 'uri' given");
+    protected void prepareSink() throws IOException {
+        if (ingest == null) {
+            ingest = createIngest();
+            Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
+            Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
+                    Runtime.getRuntime().availableProcessors());
+            ingest.maxActionsPerRequest(maxbulkactions)
+                    .maxConcurrentRequests(maxconcurrentbulkrequests);
+            ingest.init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap(), new LongAdderIngestMetric());
         }
-        for (String uri : inputs) {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(uri));
-            queue.add(element);
-        }
+        super.prepareSink();
     }
 
     @Override
-    public void process(URI uri) throws Exception {
+    protected void process(URI uri) throws Exception {
+        logger.info("processing URI {} for OAI", uri);
         Map<String, String> params = URIUtil.parseQueryString(uri);
         String server = uri.toString();
         String verb = params.get("verb");
@@ -122,6 +113,7 @@ public abstract class OAIFeeder extends TimewindowFeeder {
             try {
                 request.addHandler(newMetadataHandler());
                 ListRecordsListener listener = new ListRecordsListener(request);
+                logger.info("OAI request: {}", request.getURL());
                 request.prepare().execute(listener).waitFor();
                 if (listener.getResponse() != null) {
                     logger.debug("got OAI response");
@@ -188,17 +180,6 @@ public abstract class OAIFeeder extends TimewindowFeeder {
                 });
                 RdfContentBuilder builder = routeRdfXContentBuilder(params);
                 builder.receive(handler.getResource());
-                if (executor != null) {
-                    // tell executor we increased document count by one
-                    executor.metric().mark();
-                    if (executor.metric().count() % 10000 == 0) {
-                        try {
-                            writeMetrics(executor.metric(), null);
-                        } catch (Exception e) {
-                            throw new IOException("metric failed", e);
-                        }
-                    }
-                }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
                 throw new SAXException(e);

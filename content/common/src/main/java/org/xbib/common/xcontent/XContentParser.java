@@ -88,7 +88,7 @@ public interface XContentParser extends Closeable {
         INT, LONG, FLOAT, DOUBLE, BIG_DECIMAL, BIG_INTEGER
     }
 
-    XContentType contentType();
+    XContent content();
 
     Token nextToken() throws IOException;
 
@@ -151,6 +151,10 @@ public interface XContentParser extends Closeable {
     boolean booleanValue() throws IOException;
 
     byte[] binaryValue() throws IOException;
+
+    XContentParser enableBase16Checks(boolean b);
+
+    boolean isBase16Checks();
 
     void close();
 }

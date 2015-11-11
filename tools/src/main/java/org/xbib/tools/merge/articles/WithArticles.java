@@ -38,26 +38,25 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.queue.QueuePipelineExecutor;
+import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
+import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.tools.CommandLineInterpreter;
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Worker;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,16 +66,14 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
-import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
-import static org.elasticsearch.index.query.FilterBuilders.termFilter;
-import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
@@ -85,7 +82,7 @@ import static org.xbib.common.settings.Settings.settingsBuilder;
  * Merge serial manifestations with articles
  */
 public class WithArticles
-        extends QueuePipelineExecutor<Boolean, SerialItemPipelineElement, WithArticlesPipeline>
+        extends ForkJoinPipeline<SerialItemRequest, WithArticlesWorker>
         implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(WithArticles.class.getName());
@@ -107,8 +104,7 @@ public class WithArticles
     private String identifier;
 
     public WithArticles reader(Reader reader) {
-        settings = settingsBuilder()
-                .loadFrom(reader).build();
+        settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
@@ -128,13 +124,13 @@ public class WithArticles
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build());
+                .build().getAsMap());
         try {
             this.service = this;
             this.client = search.client();
@@ -151,13 +147,13 @@ public class WithArticles
                     .maxConcurrentRequests(settings.getAsInt("maxconcurrentbulkrequests",
                             2 * Runtime.getRuntime().availableProcessors()));
 
-            ingest.init(ImmutableSettings.settingsBuilder()
+            ingest.init(Settings.settingsBuilder()
                     .put("cluster.name", settings.get("target.cluster"))
                     .put("host", settings.get("target.host"))
                     .put("port", settings.getAsInt("target.port", 9300))
                     .put("sniff", settings.getAsBoolean("target.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("target.autodiscover", false))
-                    .build());
+                    .build().getAsMap(), new LongAdderIngestMetric());
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             String indexSettings = settings.get("target-index-settings",
                     "classpath:org/xbib/tools/merge/articles/settings.json");
@@ -171,24 +167,24 @@ public class WithArticles
                     new URL(indexMappings)).openStream();
             ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                     indexSettingsInput, indexMappingsInput);
-            ingest.startBulk(settings.get("target-index"));
-            super.setPipelineProvider(new PipelineProvider<WithArticlesPipeline>() {
+            ingest.startBulk(settings.get("target-index"), -1L, 1L);
+            super.setProvider(new WorkerProvider<WithArticlesWorker>() {
                 int i = 0;
 
                 @Override
-                public WithArticlesPipeline get() {
-                    return new WithArticlesPipeline(service, i++);
+                public WithArticlesWorker get() {
+                    return new WithArticlesWorker(service, i++);
                 }
             });
             super.setConcurrency(settings.getAsInt("concurrency", 1));
             this.prepare();
             this.execute();
             logger.info("shutdown in progress");
-            shutdown(new SerialItemPipelineElement().set(null));
+            shutdown(new SerialItemRequest().set(null));
 
             long total = 0L;
-            for (Pipeline pipeline : getPipelines()) {
-                WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
+            for (Worker worker : getWorkers()) {
+                WithArticlesWorker p = (WithArticlesWorker)worker;
                 logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
                         p,
                         p.getMetric().count(),
@@ -224,7 +220,7 @@ public class WithArticles
                 .setScroll(TimeValue.timeValueMillis(millis));
 
         QueryBuilder queryBuilder = matchAllQuery();
-        FilterBuilder filterBuilder = existsFilter("dates");
+        QueryBuilder filterBuilder = existsQuery("dates");
         if (identifier != null) {
             // execute on a single ID
             filterBuilder = null;
@@ -232,16 +228,16 @@ public class WithArticles
         }
         // filter ISSN
         if (settings().getAsBoolean("issnonly", false)) {
-            filterBuilder = boolFilter()
-                    .must(existsFilter("dates"))
-                    .must(existsFilter("identifiers.issn"));
+            filterBuilder = boolQuery()
+                    .must(existsQuery("dates"))
+                    .must(existsQuery("identifiers.issn"));
         }
         if (settings().getAsBoolean("eonly", false)) {
-            filterBuilder = boolFilter()
-                    .must(existsFilter("dates"))
-                    .must(termFilter("mediatype", "computer"));
+            filterBuilder = boolQuery()
+                    .must(existsQuery("dates"))
+                    .must(termQuery("mediatype", "computer"));
         }
-        queryBuilder = filterBuilder != null ? filteredQuery(queryBuilder, filterBuilder) : queryBuilder;
+        queryBuilder = boolQuery().must(queryBuilder).filter(filterBuilder);
         searchRequest.setQuery(queryBuilder);
 
         SearchResponse searchResponse = searchRequest.execute().actionGet();
@@ -268,8 +264,8 @@ public class WithArticles
                         continue;
                     }
                     docs.add(id);
-                    Set<Integer> dates = newLinkedHashSet();
-                    List<TitleRecord> titleRecords = newLinkedList();
+                    Set<Integer> dates = new LinkedHashSet<>();
+                    List<TitleRecord> titleRecords = new LinkedList<>();
                     TitleRecord titleRecord = expand(id);
                     if (titleRecord == null) {
                         continue;
@@ -322,15 +318,15 @@ public class WithArticles
                             }
                         }
                         if (!serialItem.getTitleRecords().isEmpty()) {
-                            getQueue().offer(new SerialItemPipelineElement().set(serialItem));
+                            getQueue().offer(new SerialItemRequest().set(serialItem));
                         }
                     }
                     count++;
                     long percent = count * 100 / total;
                     if (percent != lastpercent && logger.isInfoEnabled()) {
                         logger.info("{}/{} {}%", count, total, percent);
-                        for (Pipeline pipeline : getPipelines()) {
-                            WithArticlesPipeline p = (WithArticlesPipeline)pipeline;
+                        for (Worker worker : getWorkers()) {
+                            WithArticlesWorker p = (WithArticlesWorker)worker;
                             logger.info("{} throughput={} {} {} mean={} mldup={} xrefdup={}",
                                     p.toString(),
                                     p.getMetric().oneMinuteRate(),

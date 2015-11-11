@@ -3,8 +3,8 @@ package org.xbib.common.xcontent.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 import org.xbib.common.xcontent.support.AbstractXContentParser;
 
 import java.io.IOException;
@@ -19,8 +19,8 @@ public class JsonXContentParser extends AbstractXContentParser {
         this.parser = parser;
     }
 
-    public XContentType contentType() {
-        return XContentType.JSON;
+    public XContent content() {
+        return JsonXContent.jsonXContent;
     }
 
     public XContentParser.Token nextToken() throws IOException {

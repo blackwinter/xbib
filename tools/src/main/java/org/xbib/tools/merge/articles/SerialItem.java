@@ -31,18 +31,16 @@
  */
 package org.xbib.tools.merge.articles;
 
-import org.xbib.pipeline.PipelineRequest;
-import org.xbib.tools.merge.zdb.entities.TitleRecord;
+import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.util.Collection;
+import java.util.HashSet;
 
-import static com.google.common.collect.Sets.newHashSet;
-
-public class SerialItem implements PipelineRequest {
+public class SerialItem {
 
     private Integer date;
 
-    private Collection<TitleRecord> titleRecords = newHashSet();
+    private Collection<TitleRecord> titleRecords = new HashSet<>();
 
     public SerialItem() {
     }

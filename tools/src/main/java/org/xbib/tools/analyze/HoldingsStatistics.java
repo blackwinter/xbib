@@ -42,19 +42,19 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
 
 import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -64,14 +64,14 @@ public class HoldingsStatistics implements CommandLineInterpreter {
 
     private static Settings settings;
 
-    private Map<String,Integer> volume = newHashMap();
+    private Map<String,Integer> volume = new HashMap<>();
 
-    private Map<String,Integer> online = newHashMap();
+    private Map<String,Integer> online = new HashMap<>();
 
-    private Map<String,Integer> singles = newHashMap();
+    private Map<String,Integer> singles = new HashMap<>();
 
     public HoldingsStatistics reader(Reader reader) {
-        settings = settingsBuilder().loadFrom(reader).build();
+        settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
@@ -86,7 +86,7 @@ public class HoldingsStatistics implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(settingsBuilder()
+        SearchClient search = new SearchClient().init(settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))

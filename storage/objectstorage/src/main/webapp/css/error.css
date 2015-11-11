@@ -1,9 +1,0 @@
-body { font-family: Verdana, Arial, helvetica, sans-serif; margin: 2em 3em; }
-fieldset { border: 0px; margin: 0px; padding: 0px; font-size: small}
-fieldset ol { margin: 0px; padding: 0px;}
-fieldset li { list-style: none; padding: .125em; margin: 0px; }
-label { width: 160px; text-align:left; font-weight: bold; font-size: small;}
-input.inputline, textarea { border: #ccc 1px solid; width: 60em }
-input:hover.inputline, #orderbox textarea:hover { border: #333 1px solid;}
-input:focus.inputline, #orderbox textarea:hover { border: #333 1px solid; }
-.footer {  margin-top: 2em;  font-size: small; }

@@ -34,16 +34,14 @@ package org.xbib.tools.feed.elasticsearch.geonames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.tools.Feeder;
 import org.xbib.util.Strings;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Scanner;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -62,7 +60,7 @@ public class GeonamesFromZIP extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return GeonamesFromZIP::new;
     }
 

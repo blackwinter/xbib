@@ -35,6 +35,7 @@ import org.xbib.io.ConnectionFactory;
 import org.xbib.io.http.netty.NettyHttpConnection;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 /**
@@ -58,6 +59,11 @@ public final class HttpConnectionFactory implements ConnectionFactory<HttpSessio
         NettyHttpConnection connection = new NettyHttpConnection();
         connection.setURI(uri);
         return connection;
+    }
+
+    @Override
+    public InputStream open(URI uri) throws IOException {
+        return uri.toURL().openStream();
     }
 
     @Override

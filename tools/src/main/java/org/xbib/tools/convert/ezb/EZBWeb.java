@@ -34,16 +34,15 @@ package org.xbib.tools.convert.ezb;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -67,7 +66,7 @@ public class EZBWeb extends Converter {
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getSimpleName());
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return EZBWeb::new;
     }
 

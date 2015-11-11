@@ -39,7 +39,7 @@ public interface Provider extends CommandLineInterpreter {
 
     String getName();
 
-    public static class Factory {
+    class Factory {
 
         private final static Map<String, Provider> providers = new WeakHashMap<String, Provider>();
 

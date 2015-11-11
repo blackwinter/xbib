@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-util</artifactId>
+            <artifactId>xbib-datastructures-collection</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -27,14 +27,10 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-stream</artifactId>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
             <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-http</artifactId>
-            <type>jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

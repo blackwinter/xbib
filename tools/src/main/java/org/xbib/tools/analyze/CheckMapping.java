@@ -31,6 +31,8 @@
  */
 package org.xbib.tools.analyze;
 
+import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequestBuilder;
@@ -40,12 +42,9 @@ import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.hppc.cursors.ObjectCursor;
-import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.CommandLineInterpreter;
 
 import java.io.IOException;
@@ -53,24 +52,24 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import static com.google.common.collect.Maps.newTreeMap;
-import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class CheckMapping implements CommandLineInterpreter {
 
-    private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
+    private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
     private static Settings settings;
 
     public CheckMapping reader(Reader reader) {
-        settings = settingsBuilder().loadFrom(reader).build();
+        settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
@@ -85,7 +84,7 @@ public class CheckMapping implements CommandLineInterpreter {
 
     @Override
     public void run() throws Exception {
-        SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -93,7 +92,7 @@ public class CheckMapping implements CommandLineInterpreter {
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build().getAsMap());
         Client client = search.client();
-        checkMapping(client, "zdb");
+        checkMapping(client, settings.get("index"));
         client.close();
     }
 
@@ -115,24 +114,23 @@ public class CheckMapping implements CommandLineInterpreter {
     @SuppressWarnings("unchecked")
     protected void checkMapping(Client client, String index, String type, MappingMetaData mappingMetaData) {
         try {
-            QueryBuilder queryBuilder = matchAllQuery();
             CountRequestBuilder countRequestBuilder = client.prepareCount()
                     .setIndices(index)
                     .setTypes(type)
-                    .setQuery(queryBuilder);
+                    .setQuery(matchAllQuery());
             CountResponse countResponse = countRequestBuilder.execute().actionGet();
             long total = countResponse.getCount();
             if (total > 0L) {
-                Map<String,Long> fields = newTreeMap();
+                Map<String,Long> fields = new TreeMap();
                 Map<String,Object> root = mappingMetaData.getSourceAsMap();
                 checkMapping(client, index, type, "", "", root, fields);
                 AtomicInteger empty = new AtomicInteger();
                 SortedSet<Map.Entry<String, Long>> set = entriesSortedByValues(fields);
                 set.forEach(entry -> {
-                    logger.info("count={} percent={} field={}",
+                    logger.info("{} {} {}",
+                            entry.getKey(),
                             entry.getValue(),
-                            (double) (entry.getValue() * 100 / total),
-                            entry.getKey());
+                            (double) (entry.getValue() * 100 / total));
                     if (entry.getValue() == 0) {
                         empty.incrementAndGet();
                     }
@@ -165,7 +163,7 @@ public class CheckMapping implements CommandLineInterpreter {
                     checkMapping(client, index, type, path, key, child, fields);
                 }
             } else if ("type".equals(key)) {
-                FilterBuilder filterBuilder = existsFilter(path);
+                QueryBuilder filterBuilder = existsQuery(path);
                 QueryBuilder queryBuilder = constantScoreQuery(filterBuilder);
                 CountRequestBuilder countRequestBuilder = client.prepareCount()
                         .setIndices(index)

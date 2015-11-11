@@ -14,10 +14,7 @@ import org.xbib.io.BytesReference;
  */
 public interface XContent {
 
-    /**
-     * The type this content handles and produces.
-     */
-    XContentType type();
+    String name();
 
     /**
      * Creates a new generator using the provided output stream.
@@ -60,4 +57,5 @@ public interface XContent {
     XContentParser createParser(BytesReference bytes) throws IOException;
 
 
+    boolean isXContent(BytesReference bytes);
 }

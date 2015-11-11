@@ -1,9 +1,0 @@
-{
-    "Test" : {
-        "_type" : "application/x-groovy",
-        "class" : "groovyElement",
-        "script" : "element.groovy",        
-        "comment" : "return [ begin:{}, build:{println 'Hello World!'}, end:{} ] as org.xbib.elements.Element",
-        "values" : [ "100, 200, 300"]
-    }
-}

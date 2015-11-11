@@ -33,16 +33,15 @@ package org.xbib.tools.convert.zdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.MARCEntityQueue;
-import org.xbib.io.InputService;
-import org.xbib.io.keyvalue.KeyValueStreamAdapter;
+import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.util.InputService;
+import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -69,7 +68,7 @@ public final class FromMARC extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return FromMARC::new;
     }
 

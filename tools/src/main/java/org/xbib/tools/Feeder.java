@@ -34,14 +34,14 @@ package org.xbib.tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.elasticsearch.support.client.Ingest;
-import org.xbib.elasticsearch.support.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.support.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.support.client.transport.BulkTransportClient;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
+import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
+import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
@@ -87,7 +87,7 @@ public abstract class Feeder extends Converter {
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    protected void prepareSink() throws IOException {
         logger.info("preparing ingest");
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
@@ -96,19 +96,19 @@ public abstract class Feeder extends Converter {
             ingest = createIngest();
             ingest.maxActionsPerRequest(maxbulkactions)
                     .maxConcurrentRequests(maxconcurrentbulkrequests);
-            ingest.init(ImmutableSettings.settingsBuilder()
+            ingest.init(Settings.settingsBuilder()
                     .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
                     .put("host", settings.get("elasticsearch.host", "localhost"))
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build());
+                    .build(), new LongAdderIngestMetric());
         }
         createIndex(getIndex());
     }
 
     @Override
-    public Feeder cleanup() throws IOException {
+    protected Feeder cleanup() throws IOException {
         super.cleanup();
         if (ingest != null) {
             try {
@@ -129,6 +129,9 @@ public abstract class Feeder extends Converter {
 
     @Override
     protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
+        if (metric ==null) {
+            return;
+        }
         long docs = metric.count();
         double mean = metric.meanRate();
         double oneminute = metric.oneMinuteRate();
@@ -175,14 +178,14 @@ public abstract class Feeder extends Converter {
             return this;
         }
         if (settings.get("elasticsearch.cluster") != null) {
-            Settings clientSettings = ImmutableSettings.settingsBuilder()
+            Settings clientSettings = Settings.settingsBuilder()
                     .put("cluster.name", settings.get("elasticsearch.cluster"))
                     .put("host", settings.get("elasticsearch.host"))
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                     .build();
-            ingest.init(clientSettings);
+            ingest.init(clientSettings, new LongAdderIngestMetric());
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {

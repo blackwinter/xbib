@@ -33,8 +33,8 @@ package org.xbib.tools.feed.elasticsearch.zdb.hol;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.entities.marc.MARCEntityBuilderState;
-import org.xbib.entities.marc.MARCEntityQueue;
+import org.xbib.etl.marc.MARCEntityBuilderState;
+import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeReader;
 import org.xbib.oai.OAIConstants;
@@ -45,12 +45,11 @@ import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.OAIFeeder;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -65,11 +64,11 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -80,7 +79,7 @@ public class MarcHolOAI extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(MarcHolOAI.class.getName());
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return MarcHolOAI::new;
     }
 
@@ -102,7 +101,7 @@ public class MarcHolOAI extends OAIFeeder {
     @Override
     public void process(URI uri) throws Exception {
         // set identifier prefix (ISIL)
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-605"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
@@ -206,17 +205,6 @@ public class MarcHolOAI extends OAIFeeder {
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {
                 logger.info("{}", builder.string());
-            }
-            if (executor != null) {
-                // tell executor we increased document count by one
-                executor.metric().mark();
-                if (executor.metric().count() % 10000 == 0) {
-                    try {
-                        writeMetrics(executor.metric(), null);
-                    } catch (Exception e) {
-                        throw new IOException("metric failed", e);
-                    }
-                }
             }
         }
     }

@@ -33,13 +33,12 @@ package org.xbib.tools.feed.elasticsearch.viaf;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -61,7 +60,7 @@ public class VIAF extends Feeder {
         return "viaf-to-elasticsearch";
     }
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return VIAF::new;
     }
 

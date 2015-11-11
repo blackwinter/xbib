@@ -36,17 +36,12 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-util</artifactId>
+            <artifactId>xbib-io-archive</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
             <type>jar</type>
         </dependency>
     </dependencies>

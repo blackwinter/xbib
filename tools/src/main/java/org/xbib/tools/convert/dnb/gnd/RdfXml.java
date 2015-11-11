@@ -31,12 +31,11 @@
  */
 package org.xbib.tools.convert.dnb.gnd;
 
-import org.xbib.io.InputService;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
+import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -59,7 +58,7 @@ public class RdfXml extends Converter {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return RdfXml::new;
     }
 

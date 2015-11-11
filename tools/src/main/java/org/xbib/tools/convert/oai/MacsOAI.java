@@ -31,9 +31,8 @@
  */
 package org.xbib.tools.convert.oai;
 
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.OAIHarvester;
+import org.xbib.util.concurrent.WorkerProvider;
 
 public class MacsOAI extends OAIHarvester {
 
@@ -42,7 +41,7 @@ public class MacsOAI extends OAIHarvester {
         return "oai-macs";
     }
 
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return MacsOAI::new;
     }
 

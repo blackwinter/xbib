@@ -38,13 +38,14 @@ import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
-import org.xbib.sru.client.SRUClient;
+/*import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.client.SRUClientFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
+*/
 import org.xbib.tools.Converter;
+import org.xbib.util.concurrent.URIWorkerRequest;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -66,7 +67,7 @@ public class FromSRU extends Converter {
 
     private final static AtomicLong counter = new AtomicLong();
 
-    private SRUClient client;
+    //private SRUClient client;
 
     @Override
     public String getName() {
@@ -74,7 +75,7 @@ public class FromSRU extends Converter {
     }
 
     public FromSRU(boolean b) {
-        client = SRUClientFactory.newClient();
+       // client = SRUClientFactory.newClient();
     }
 
     @Override
@@ -91,34 +92,37 @@ public class FromSRU extends Converter {
 
     @Override
     public void prepareSource() throws IOException {
-        // create input URLs
-        if (settings.get("numbers") != null) {
-            FileInputStream in = new FileInputStream(settings.get("numbers"));
-            BufferedReader r = new BufferedReader(new InputStreamReader(in));
-            String line;
-            while ((line = r.readLine()) != null) {
-                URIPipelineElement element = new URIPipelineElement();
-                element.set(URI.create(String.format(settings.get("uri"), line)));
-                queue.add(element);
+        try {// create input URLs
+            if (settings.get("numbers") != null) {
+                FileInputStream in = new FileInputStream(settings.get("numbers"));
+                BufferedReader r = new BufferedReader(new InputStreamReader(in));
+                String line;
+                while ((line = r.readLine()) != null) {
+                    URIWorkerRequest request = new URIWorkerRequest();
+                    request.set(URI.create(String.format(settings.get("uri"), line)));
+                    getQueue().put(request);
+                }
+                in.close();
+            } else {
+                URIWorkerRequest request = new URIWorkerRequest();
+                request.set(URI.create(settings.get("uri")));
+                getQueue().add(request);
             }
-            in.close();
-        } else {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(settings.get("uri")));
-            queue.add(element);
+            logger.info("uris = {}", getQueue().size());
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
-        logger.info("uris = {}", queue.size());
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
+    protected WorkerProvider provider() {
         return () -> new FromSRU(true);
     }
 
     @Override
     public void process(URI uri) throws Exception {
         StringWriter w = new StringWriter();
-        SearchRetrieveRequest request = client.newSearchRetrieveRequest()
+        /*SearchRetrieveRequest request = client.newSearchRetrieveRequest()
                 .setURI(uri);
         SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
         if (response.httpStatus() == 200 && w.toString().length() > 0) {
@@ -126,7 +130,7 @@ public class FromSRU extends Converter {
             packet.name(Long.toString(counter.incrementAndGet()));
             packet.packet(w.toString());
             session.write(packet);
-        }
+        }*/
     }
 
     public void run() throws Exception {
@@ -141,13 +145,13 @@ public class FromSRU extends Converter {
     }
 
     public FromSRU cleanup() {
-        try {
+        /*try {
             if (client != null) {
                 client.close();
             }
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        }
+        }*/
         return this;
     }
 

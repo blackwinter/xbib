@@ -11,8 +11,6 @@ import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
 import org.xbib.iri.IRI;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
@@ -21,6 +19,7 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
 import org.xbib.tools.Feeder;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,9 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.xbib.common.xcontent.XContentFactory.jsonBuilder;
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
-import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class NatLizCrawler extends Feeder {
 
@@ -57,7 +55,7 @@ public class NatLizCrawler extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return NatLizCrawler::new;
     }
 

@@ -35,11 +35,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
-import org.xbib.io.InputService;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
@@ -50,6 +48,7 @@ import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -78,12 +77,13 @@ public final class Medline extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return Medline::new;
     }
 
     @Override
     public void process(URI uri) throws Exception {
+        logger.debug("start uri={}", uri);
         namespaceContext.add(new HashMap<String, String>() {{
             put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
             put("dc", "http://purl.org/dc/elements/1.1/");
@@ -102,6 +102,7 @@ public final class Medline extends Feeder {
                 .setHandler(handler)
                 .parse();
         in.close();
+        logger.debug("end uri={}", uri);
     }
 
     private class Handler extends AbstractXmlResourceHandler {
@@ -148,7 +149,7 @@ public final class Medline extends Feeder {
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(getResource());
             if (settings.getAsBoolean("mock", false)) {
-                logger.info("{}", params.getGenerator().get());
+                logger.info("result = {}", params.getGenerator().get());
             }
             id = null;
             author.clear();

@@ -42,7 +42,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.support.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.io.Request;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;
@@ -58,12 +58,11 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.common.collect.Sets.newTreeSet;
-import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -71,14 +70,14 @@ public class ISSNsOfZDBInJournalTOCs implements CommandLineInterpreter {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDBInJournalTOCs.class.getName());
 
-    private final static Set<String> issns = newTreeSet();
+    private final static Set<String> issns = new TreeSet<>();
 
     private static Settings settings;
 
     private String issn;
 
     public ISSNsOfZDBInJournalTOCs reader(Reader reader) {
-        settings = settingsBuilder().loadFrom(reader).build();
+        settings = settingsBuilder().loadFromReader(reader).build();
         return this;
     }
 
@@ -129,7 +128,7 @@ public class ISSNsOfZDBInJournalTOCs implements CommandLineInterpreter {
             }
         };
 
-        SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -144,8 +143,9 @@ public class ISSNsOfZDBInJournalTOCs implements CommandLineInterpreter {
                     .setSize(1000) // per shard
                     .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMinutes(10));
+
             QueryBuilder queryBuilder =
-                    filteredQuery(matchAllQuery(), existsFilter("identifiers.issn"));
+                    boolQuery().must(matchAllQuery()).filter(existsQuery("identifiers.issn"));
             searchRequestBuilder.setQuery(queryBuilder)
                     .addFields("identifiers.issn");
 

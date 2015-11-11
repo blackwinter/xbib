@@ -10,13 +10,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import com.fasterxml.jackson.core.io.SerializedString;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentString;
 import org.xbib.io.BytesReference;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
-import org.xbib.common.xcontent.XContentType;
 
 public class JsonXContentGenerator implements XContentGenerator {
 
@@ -28,8 +28,8 @@ public class JsonXContentGenerator implements XContentGenerator {
         this.generator = generator;
     }
 
-    public XContentType contentType() {
-        return XContentType.JSON;
+    public XContent content() {
+        return JsonXContent.jsonXContent;
     }
 
     public void usePrettyPrint() {

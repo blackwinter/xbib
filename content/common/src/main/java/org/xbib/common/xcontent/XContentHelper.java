@@ -1,16 +1,18 @@
 
 package org.xbib.common.xcontent;
 
-import com.google.common.collect.Maps;
+import org.xbib.common.xcontent.json.JsonXContent;
 import org.xbib.io.BytesArray;
 import org.xbib.io.BytesReference;
-import org.xbib.common.xcontent.xml.XmlXParams;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class XContentHelper {
 
@@ -18,32 +20,20 @@ public class XContentHelper {
         if (bytes.hasArray()) {
             return createParser(bytes.array(), bytes.arrayOffset(), bytes.length());
         }
-        return XContentFactory.xContent(bytes).createParser(bytes.streamInput());
+        XContent content = XContentService.xContent(bytes);
+        if (content == null) {
+            throw new IOException("unknown format");
+        }
+        return content.createParser(bytes.streamInput());
     }
 
     public static XContentParser createParser(byte[] data, int offset, int length) throws IOException {
-        return XContentFactory.xContent(data, offset, length).createParser(data, offset, length);
+        return XContentService.xContent(data, offset, length).createParser(data, offset, length);
     }
 
     public static Map<String, Object> convertFromJsonToMap(Reader reader) {
         try {
-            return XContentFactory.xContent(XContentType.JSON).createParser(reader).mapOrderedAndClose();
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to parse content to map", e);
-        }
-    }
-
-    public static Map<String, Object> convertFromXmlToMap(Reader reader) {
-        try {
-            return XContentFactory.xContent(XContentType.XML).createParser(reader).mapOrderedAndClose();
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to parse content to map", e);
-        }
-    }
-
-    public static Map<String, Object> convertFromXmlToMap(String data) {
-        try {
-            return XContentFactory.xContent(XContentType.XML).createParser(data).mapOrderedAndClose();
+            return JsonXContent.jsonXContent.createParser(reader).mapOrderedAndClose();
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to parse content to map", e);
         }
@@ -51,9 +41,10 @@ public class XContentHelper {
 
     public static Map<String, Object> convertToMap(String data) {
         try {
-            return XContentFactory.xContent(XContentFactory.xContentType(data)).createParser(data).mapOrderedAndClose();
+            XContent content = XContentService.xContent(data);
+            return content.createParser(data).mapOrderedAndClose();
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to parse content to map", e);
+            throw new IllegalArgumentException("failed to parse content to map", e);
         }
     }
 
@@ -61,16 +52,19 @@ public class XContentHelper {
         if (bytes.hasArray()) {
             return convertToMap(bytes.array(), bytes.arrayOffset(), bytes.length(), ordered);
         }
+        XContent content = XContentService.xContent(bytes);
+        if (content == null) {
+            throw new IllegalArgumentException("unknown format");
+        }
         try {
-            XContentType contentType = XContentFactory.xContentType(bytes);
-            XContentParser parser = XContentFactory.xContent(contentType).createParser(bytes.streamInput());
+            XContentParser parser = content.createParser(bytes.streamInput());
             if (ordered) {
                 return parser.mapOrderedAndClose();
             } else {
                 return parser.mapAndClose();
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to parse content to map", e);
+            throw new IllegalArgumentException("failed to parse content to map", e);
         }
     }
 
@@ -80,10 +74,8 @@ public class XContentHelper {
 
     public static Map<String, Object> convertToMap(byte[] data, int offset, int length, boolean ordered){
         try {
-            XContentParser parser;
-            XContentType contentType;
-                contentType = XContentFactory.xContentType(data, offset, length);
-                parser = XContentFactory.xContent(contentType).createParser(data, offset, length);
+            XContent content = XContentService.xContent(data, offset, length);
+            XContentParser parser = content.createParser(data, offset, length);
             if (ordered) {
                 return parser.mapOrderedAndClose();
             } else {
@@ -102,16 +94,19 @@ public class XContentHelper {
         if (bytes.hasArray()) {
             return convertToJson(bytes.array(), bytes.arrayOffset(), bytes.length(), reformatJson, prettyPrint);
         }
-        XContentType xContentType = XContentFactory.xContentType(bytes);
-        if (xContentType == XContentType.JSON && !reformatJson) {
+        XContent xContent = XContentService.xContent(bytes);
+        if (xContent == null) {
+            throw new IOException("unknown format");
+        }
+        if (xContent == JsonXContent.jsonXContent && !reformatJson) {
             BytesArray bytesArray = bytes.toBytesArray();
             return new String(bytesArray.array(), bytesArray.arrayOffset(), bytesArray.length(), "UTF-8");
         }
         XContentParser parser = null;
         try {
-            parser = XContentFactory.xContent(xContentType).createParser(bytes.streamInput());
+            parser = xContent.createParser(bytes.streamInput());
             parser.nextToken();
-            XContentBuilder builder = XContentFactory.jsonBuilder();
+            XContentBuilder builder = jsonBuilder();
             if (prettyPrint) {
                 builder.prettyPrint();
             }
@@ -129,46 +124,15 @@ public class XContentHelper {
     }
 
     public static String convertToJson(byte[] data, int offset, int length, boolean reformatJson, boolean prettyPrint) throws IOException {
-        XContentType xContentType = XContentFactory.xContentType(data, offset, length);
-        if (xContentType == XContentType.JSON && !reformatJson) {
+        XContent xContent = XContentService.xContent(data, offset, length);
+        if (xContent == JsonXContent.jsonXContent && !reformatJson) {
             return new String(data, offset, length, "UTF-8");
         }
         XContentParser parser = null;
         try {
-            parser = XContentFactory.xContent(xContentType).createParser(data, offset, length);
+            parser = xContent.createParser(data, offset, length);
             parser.nextToken();
-            XContentBuilder builder = XContentFactory.jsonBuilder();
-            if (prettyPrint) {
-                builder.prettyPrint();
-            }
-            builder.copyCurrentStructure(parser);
-            return builder.string();
-        } finally {
-            if (parser != null) {
-                parser.close();
-            }
-        }
-    }
-
-    public static String convertToXml(byte[] data, int offset, int length) throws IOException {
-        return convertToXml(XmlXParams.getDefaultParams(), data, offset, length, false);
-    }
-
-    public static String convertToXml(byte[] data, int offset, int length, boolean prettyprint) throws IOException {
-        return convertToXml(XmlXParams.getDefaultParams(), data, offset, length, prettyprint);
-    }
-
-    public static String convertToXml(XmlXParams params, byte[] data, int offset, int length) throws IOException {
-        return convertToXml(params, data, offset, length, false);
-    }
-
-    public static String convertToXml(XmlXParams params, byte[] data, int offset, int length, boolean prettyPrint) throws IOException {
-        XContentType xContentType = XContentFactory.xContentType(data, offset, length);
-        XContentParser parser = null;
-        try {
-            parser = XContentFactory.xContent(xContentType).createParser(data, offset, length);
-            parser.nextToken();
-            XContentBuilder builder = XContentFactory.xmlBuilder(params);
+            XContentBuilder builder = jsonBuilder();
             if (prettyPrint) {
                 builder.prettyPrint();
             }
@@ -223,7 +187,7 @@ public class XContentHelper {
                     List mergedList = new ArrayList();
                     if (allListValuesAreMapsOfOne(defaultList) && allListValuesAreMapsOfOne(contentList)) {
                         // all are in the form of [ {"key1" : {}}, {"key2" : {}} ], merge based on keys
-                        Map<String, Map<String, Object>> processed = Maps.newLinkedHashMap();
+                        Map<String, Map<String, Object>> processed = new LinkedHashMap<>();
                         for (Object o : contentList) {
                             Map<String, Object> map = (Map<String, Object>) o;
                             Map.Entry<String, Object> entry = map.entrySet().iterator().next();
@@ -318,7 +282,15 @@ public class XContentHelper {
                 if (parser.hasTextCharacters()) {
                     generator.writeString(parser.textCharacters(), parser.textOffset(), parser.textLength());
                 } else {
-                    generator.writeString(parser.text());
+                    if (parser.isBase16Checks()) {
+                        try {
+                            generator.writeBinary(parseBase16(parser.text()));
+                        } catch (Exception e) {
+                            generator.writeString(parser.text());
+                        }
+                    } else {
+                        generator.writeString(parser.text());
+                    }
                 }
                 break;
             case VALUE_NUMBER:
@@ -355,6 +327,36 @@ public class XContentHelper {
             case VALUE_EMBEDDED_OBJECT:
                 generator.writeBinary(parser.binaryValue());
         }
+    }
+
+    public static byte[] parseBase16(String s) {
+        final int len = s.length();
+        if( len%2 != 0 ) {
+            throw new IllegalArgumentException("hex string needs to be of even length: " + s);
+        }
+        byte[] out = new byte[len/2];
+        for (int i = 0; i < len; i += 2) {
+            int h = hexToBin(s.charAt(i));
+            int l = hexToBin(s.charAt(i+1));
+            if( h==-1 || l==-1 ) {
+                throw new IllegalArgumentException("contains illegal character for hex string: " + s);
+            }
+            out[i/2] = (byte)(h*16+l);
+        }
+        return out;
+    }
+
+    private static int hexToBin(char ch) {
+        if ('0' <= ch && ch <= '9') {
+            return ch-'0';
+        }
+        if ('A' <= ch && ch <= 'F') {
+            return ch-'A'+10;
+        }
+        if ('a' <= ch && ch <= 'f') {
+            return ch-'a'+10;
+        }
+        return -1;
     }
 
 }

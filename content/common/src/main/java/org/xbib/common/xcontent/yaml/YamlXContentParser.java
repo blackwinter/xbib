@@ -2,7 +2,7 @@
 package org.xbib.common.xcontent.yaml;
 
 import com.fasterxml.jackson.core.JsonParser;
-import org.xbib.common.xcontent.XContentType;
+import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.json.JsonXContentParser;
 
 public class YamlXContentParser extends JsonXContentParser {
@@ -12,7 +12,7 @@ public class YamlXContentParser extends JsonXContentParser {
     }
 
     @Override
-    public XContentType contentType() {
-        return XContentType.YAML;
+    public XContent content() {
+        return YamlXContent.yamlXContent;
     }
 }

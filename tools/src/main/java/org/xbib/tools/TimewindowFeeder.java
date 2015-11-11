@@ -1,19 +1,27 @@
 package org.xbib.tools;
 
+import com.carrotsearch.hppc.cursors.ObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesAction;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequestBuilder;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesAction;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequestBuilder;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexAction;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
+import org.elasticsearch.action.admin.indices.get.GetIndexAction;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
-import org.elasticsearch.common.hppc.cursors.ObjectCursor;
-import org.elasticsearch.common.joda.time.DateTime;
-import org.elasticsearch.common.joda.time.format.DateTimeFormat;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.xbib.common.settings.Settings;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +56,7 @@ public abstract class TimewindowFeeder extends Feeder {
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    protected void prepareSink() throws IOException {
         if (ingest == null) {
             Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
             Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -69,13 +77,13 @@ public abstract class TimewindowFeeder extends Feeder {
 
     @Override
     protected TimewindowFeeder createIndex(String index) throws IOException {
-        ingest.init(ImmutableSettings.settingsBuilder()
+        ingest.init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
-                .build());
+                .build().getAsMap(), new LongAdderIngestMetric());
         if (ingest.client() != null) {
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             if (settings.getAsBoolean("onlyaliases", false)) {
@@ -97,7 +105,7 @@ public abstract class TimewindowFeeder extends Feeder {
                         indexSettingsInput, indexMappingsInput);
                 indexSettingsInput.close();
                 indexMappingsInput.close();
-                ingest.startBulk(getConcreteIndex());
+                ingest.startBulk(getConcreteIndex(), -1L, 1L);
             } catch (Exception e) {
                 if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
                     throw e;
@@ -113,7 +121,8 @@ public abstract class TimewindowFeeder extends Feeder {
         if (ingest.client() == null) {
             return alias;
         }
-        GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(alias).execute().actionGet();
+        GetAliasesRequestBuilder getAliasesRequestBuilder = new GetAliasesRequestBuilder(ingest.client(), GetAliasesAction.INSTANCE);
+        GetAliasesResponse getAliasesResponse = getAliasesRequestBuilder.setAliases(alias).execute().actionGet();
         if (!getAliasesResponse.getAliases().isEmpty()) {
             return getAliasesResponse.getAliases().keys().iterator().next().value;
         }
@@ -127,8 +136,9 @@ public abstract class TimewindowFeeder extends Feeder {
         String index = getIndex();
         String concreteIndex = getConcreteIndex();
         if (!index.equals(concreteIndex)) {
-            IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
-            GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(index).execute().actionGet();
+            IndicesAliasesRequestBuilder requestBuilder = new IndicesAliasesRequestBuilder(ingest.client(), IndicesAliasesAction.INSTANCE);
+            GetAliasesRequestBuilder getAliasesRequestBuilder = new GetAliasesRequestBuilder(ingest.client(), GetAliasesAction.INSTANCE);
+            GetAliasesResponse getAliasesResponse = getAliasesRequestBuilder.setAliases(index).execute().actionGet();
             if (getAliasesResponse.getAliases().isEmpty()) {
                 logger.info("adding alias {} to index {}", index, concreteIndex);
                 requestBuilder.addAlias(concreteIndex, index);
@@ -167,9 +177,8 @@ public abstract class TimewindowFeeder extends Feeder {
         if (index.equals(concreteIndex)) {
             return;
         }
-        GetIndexResponse getIndexResponse = ingest.client().admin().indices()
-                .prepareGetIndex()
-                .execute().actionGet();
+        GetIndexRequestBuilder getIndexRequestBuilder = new GetIndexRequestBuilder(ingest.client(), GetIndexAction.INSTANCE);
+        GetIndexResponse getIndexResponse = getIndexRequestBuilder.execute().actionGet();
         Pattern pattern = Pattern.compile("^(.*?)(\\d+)$");
         List<String> indices = new ArrayList<>();
         logger.info("{} indices", getIndexResponse.getIndices().length);
@@ -214,7 +223,7 @@ public abstract class TimewindowFeeder extends Feeder {
             return;
         }
         String[] s = indicesToDelete.toArray(new String[indicesToDelete.size()]);
-        DeleteIndexRequestBuilder requestBuilder = ingest.client().admin().indices().prepareDelete(s);
+        DeleteIndexRequestBuilder requestBuilder = new DeleteIndexRequestBuilder(ingest.client(), DeleteIndexAction.INSTANCE, s);
         DeleteIndexResponse response = requestBuilder.execute().actionGet();
         if (!response.isAcknowledged()) {
             logger.warn("retention delete index operation was not acknowledged");

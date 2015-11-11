@@ -50,12 +50,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 
-/**
- * Write RDF Turtle
- * <p>
- * See <a href="http://www.w3.org/TeamSubmission/turtle/">Turtle - Terse RDF
- * Triple Language</a>
- */
 public class TurtleContentGenerator
         implements RdfContentGenerator<TurtleContentParams>, Flushable {
 

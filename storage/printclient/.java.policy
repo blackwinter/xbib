@@ -1,4 +1,0 @@
-grant {
-	permission java.net.SocketPermission "localhost:631", "connect,resolve";
-	permission java.lang.RuntimePermission "queuePrintJob";
-};

@@ -39,13 +39,12 @@ import org.xbib.oai.rdf.RdfSimpleMetadataHandler;
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.pipeline.element.URIPipelineElement;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.tools.OAIHarvester;
+import org.xbib.util.concurrent.URIWorkerRequest;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -77,9 +76,9 @@ public class FromOAI2CSV extends OAIHarvester {
             throw new IllegalArgumentException("no input given");
         }
         for (String uri : inputs) {
-            URIPipelineElement element = new URIPipelineElement();
-            element.set(URI.create(uri));
-            queue.offer(element);
+            URIWorkerRequest request = new URIWorkerRequest();
+            request.set(URI.create(uri));
+            getQueue().offer(request);
         }
     }
 
@@ -92,13 +91,8 @@ public class FromOAI2CSV extends OAIHarvester {
     }
 
     @Override
-    protected PipelineProvider pipelineProvider() {
-        return new PipelineProvider<Pipeline>() {
-            @Override
-            public Pipeline get() {
-                return new FromOAI2CSV();
-            }
-        };
+    protected WorkerProvider provider() {
+        return FromOAI2CSV::new;
     }
 
     protected SimpleMetadataHandler xmlMetadataHandler() {

@@ -1,0 +1,615 @@
+ZDB-Id: 2076831-X
+Treffer: 612
+
+B 785	DE-B785	Berlin Abgeordnetenhaus	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Po 62	DE-Po62	Potsdam MPI Gravitationsphys.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 33	DE-B33	Potsdam Astrophysik	k		n		1998	117	0		0	0	
+B 33	DE-B33	Potsdam Astrophysik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bv 2	DE-Bv2	Bremerhaven A.-Wegener-Inst.	k	p			2004	123	0	2012	131	0	
+Bv 2	DE-Bv2	Bremerhaven A.-Wegener-Inst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+D 161	DE-D161	Dresden Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+D 275	DE-D275	Dresden EHS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Gla 1	DE-Gla1	Glauchau Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hed 2	DE-Hed2	Heidenheim DHBW Bibliothek	k	p			2003	122	0		0	0	
+Hed 2	DE-Hed2	Heidenheim DHBW Bibliothek	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hed 2	DE-Hed2	Heidenheim DHBW Bibliothek	k	p			1998	117	0	2014	133	0	
+Bn 3	DE-Bn3	Bautzen Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lör 2	DE-Loer2	Lörrach Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lör 2	DE-Loer2	Lörrach Berufsakademie	k	p			2003	122	0		0	0	
+B 43	DE-B43	Berlin BAM	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mh 35	DE-Mh35	Mannheim Berufsakademie	k	p			2003	122	0		0	0	
+Mh 35	DE-Mh35	Mannheim Berufsakademie	k	p			1998	117	0	2014	133	0	
+Mh 35	DE-Mh35	Mannheim Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+941	DE-941	Mosbach Duale Hochschule	k	p			2003	122	0		0	0	
+941	DE-941	Mosbach Duale Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Rs 1	DE-Rs1	Riesa Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Rav 1	DE-Rav1	Ravensburg Berufsakademie	k	p			2003	122	0		0	0	
+Rav 1	DE-Rav1	Ravensburg Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Rav 1	DE-Rav1	Ravensburg Berufsakademie	k	p			1998	117	0	2014	133	0	
+Vil 2	DE-Vil2	Villingen-S. Berufsakad.	k	p			2003	122	0		0	0	
+Vil 2	DE-Vil2	Villingen-S. Berufsakad.	k	p			1998	117	0	2014	133	0	
+B 4	DE-B4	Berlin AdW <strong>B</strong>	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+H 140	DE-H140	Hamburg vTI, FIZ Fischerei	k	p			1857	1	1		0	0	
+H 140	DE-H140	Hamburg vTI, FIZ Fischerei	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1512	DE-B1512	Bonn BfArM	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 29	DE-Ki29	Kiel MRI, BID	k	p			1857	1	1		0	0	
+Ka 51	DE-Ka51	Karlsruhe MRI, BID	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ku 1	DE-Ku1	Kulmbach MRI, BID	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ka 51	DE-Ka51	Karlsruhe MRI, BID	k	p			1857	1	1		0	0	
+Det 2	DE-Det2	Detmold MRI, BID	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ku 1	DE-Ku1	Kulmbach MRI, BID	k	p			1857	1	1		0	0	
+Ki 29	DE-Ki29	Kiel MRI, BID	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Det 2	DE-Det2	Detmold MRI, BID	k	p			1857	1	1		0	0	
+H 105	DE-H105	Hamburg vTI, FIZ Wald	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+H 105	DE-H105	Hamburg vTI, FIZ Wald	k	p			1857	1	1		0	0	
+208	DE-208	Karlsruhe BGH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 12	DE-B12	Berlin BI Risikobewertung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 12	DE-B12	Berlin BI Risikobewertung	k	p			1857	1	1		0	0	
+B 1509	DE-B1509	Bonn BI f. Berufsbildung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lan 1	DE-Lan1	Landau UB	k	p			1997	0	0		0	0	
+Lan 1	DE-Lan1	Landau UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Kob 7	DE-Kob7	Koblenz UB	k	p			1997	0	0		0	0	
+Kob 7	DE-Kob7	Koblenz UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+715	DE-715	Oldenburg IBIT	k		n		1997	116	0		0	0	
+715	DE-715	Oldenburg IBIT	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+31	DE-31	Karlsruhe LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+12	DE-12	München BSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+12	DE-12	München BSB	k				1998	117	0		0	0	
+12	DE-12	München BSB	k				2002	121	0	2003	122	0	
+82	DE-82	Aachen BTH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bo 408	DE-Bo408	Bonn Stiftung caesar	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+D 267	DE-D267	Dresden MPI Mol.Zellbiol.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+D 210	DE-D210	Dresden MPI Chem. Physik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+982	DE-982	Wadern IBF für Informatik WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 491	DE-M491	München ArchäologInst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 2	DE-Ha2	Halle/S Dt. Akad. Naturfor.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1503	DE-B1503	Bonn Inst. Entwicklpol.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lg 3	DE-Lg3	Ludwigsburg Dt.-Franz. Inst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Y 7	DE-Y7	Paris DFK	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+90/8	DE-90-8	Fachbibliothek der Dualen Hochschule Baden-Württemberg Karlsruhe (FBD	k	p			2003	122	0		0	0	
+Po 6	DE-Po6	Nuthetal/Bergh.-Rehbr.DIfE WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1547	DE-B1547	Berlin InstMenschenrechte	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 554	DE-B554	Berlin DIW WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mar 1	DE-Mar1	Marbach Dt. Literaturarchiv	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+210	DE-210	München Deutsches Museum WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 23	DE-B23	Offenbach Meteorolog. Bibl.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+201	DE-201	München PatAmt	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1531	DE-B1531	Berlin Dt. RheumaforschZ	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1126	DE-1126	Idstein HS Fresenius	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1126	DE-1126	Idstein HS Fresenius	k	p	n		1998	117	0		0	0	
+1052	DE-1052	Nürnberg Evang. HS	k				1998	117	0		0	0	
+521	DE-521	Frankfurt/O UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Dm 1	DE-Dm1	Dortmund MPI f. mol. Physiol.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+H 256	DE-H256	Hamburg Führungsakad.Bundesw.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+253	DE-253	Braunschweig vTI,FIZ LändlRäum	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+253	DE-253	Braunschweig vTI,FIZ LändlRäum	k	p			1857	1	1		0	0	
+90/4	DE-90-4	Karlsruhe KIT-B./FB TuW	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+90/4	DE-90-4	Karlsruhe KIT-B./FB TuW	k	p			2003	122	0		0	0	
+90/4	DE-90-4	Karlsruhe KIT-B./FB TuW	k	p			1998	117	0	2014	133	0	
+R 48	DE-R48	Dummerstorf Inst Nutztierbiol.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bo 133	DE-Bo133	Bonn F.-Ebert-Stiftung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+944	DE-944	Aalen HS	k	p			1998	117	0	2014	133	0	
+944	DE-944	Aalen HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+944	DE-944	Aalen HS	k	p			2003	122	0		0	0	
+A 96	DE-A96	Aachen FHB	k		n			0	0		2014	0	
+A 96	DE-A96	Aachen FHB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1043	DE-1043	Aschaffenburg HS	k				1998	117	0		0	0	
+1102	DE-1102	Ansbach HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1047	DE-1047	Weiden FH Amberg	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1046	DE-1046	Amberg/Oberpfalz HS	k				1998	117	0		0	0	
+1047	DE-1047	Weiden FH Amberg	k				1998	117	0		0	0	
+1046	DE-1046	Amberg/Oberpfalz HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+949	DE-949	Biberach HBC	k	p			2003	122	0		0	0	
+949	DE-949	Biberach HBC	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+949	DE-949	Biberach HBC	k	p			1998	117	0	2014	133	0	
+858	DE-858	Coburg FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+858	DE-858	Coburg FH	k				1998	117	0		0	0	
+Dm 13	DE-Dm13	Dortmund FH	k		n			0	0		2014	0	
+Dm 13	DE-Dm13	Dortmund FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1010	DE-1010	Gelsenkirchen FH	k		n			0	0		2014	0	
+1010	DE-1010	Gelsenkirchen FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1051	DE-1051	Hof HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bi 10	DE-Bi10	Bielefeld FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bi 10	DE-Bi10	Bielefeld FH	k		n			0	0		2014	0	
+573	DE-573	Ingolstadt HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+573	DE-573	Ingolstadt HS	k				1998	117	0		0	0	
+832	DE-832	Köln FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+859	DE-859	Kempten FH	k				1998	117	0		0	0	
+859	DE-859	Kempten FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+860	DE-860	Landshut FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+860	DE-860	Landshut FH	k				1998	117	0		0	0	
+836	DE-836	Münster FH	k		n			0	0		2014	0	
+836	DE-836	Münster FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1049	DE-1049	Neu-Ulm FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ofb 1	DE-Ofb1	Offenburg HS	k	p			2003	122	0		0	0	
+Ofb 1	DE-Ofb1	Offenburg HS	k	p			1998	117	0	2014	133	0	
+Ofb 1	DE-Ofb1	Offenburg HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+898	DE-898	Regensburg HSBR	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+898	DE-898	Regensburg HSBR	k				1998	117	0		0	0	
+522	DE-522	Brandenburg FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+861	DE-861	Rosenheim HSB	k				1998	117	0		0	0	
+1044	DE-1044	St. Augustin FH	k		n			0	0		2014	0	
+1044	DE-1044	St. Augustin FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+862	DE-862	Schweinfurt FH Würzburg	k				1998	117	0		0	0	
+863	DE-863	Würzburg FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+863	DE-863	Würzburg FH	k				1998	117	0		0	0	
+862	DE-862	Schweinfurt FH Würzburg	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Dü 62	DE-Due62	Düsseldorf FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Dü 62	DE-Due62	Düsseldorf FH	k		n			0	0		2014	0	
+1050	DE-1050	Deggendorf HochschulB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+546	DE-546	Erfurt FH	k	p	n		1998	117	1		0	0	
+546	DE-546	Erfurt FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+946	DE-946	Frankfurt/M FH	k	p	n		1998	117	0		0	0	
+946	DE-946	Frankfurt/M FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+66	DE-66	Fulda HLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+66	DE-66	Fulda HLB	k	p	n		1998	117	0		0	0	
+Fn 1/VS	DE-Fn1-VS	Villingen-S. HS Furtwangen	k	p			2003	122	0		0	0	
+Fn 1/VS	DE-Fn1-VS	Villingen-S. HS Furtwangen	k	p			1998	117	0	2014	133	0	
+Fn 1	DE-Fn1	Furtwangen HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Fn 1/TUT	DE-Fn1-TUT	Tuttlingen HS Furtwangen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Fn 1	DE-Fn1	Furtwangen HS	k	p			2003	122	0		0	0	
+Fn 1/VS	DE-Fn1-VS	Villingen-S. HS Furtwangen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Fn 1	DE-Fn1	Furtwangen HS	k	p			1998	117	0	2014	133	0	
+Fn 1/TUT	DE-Fn1-TUT	Tuttlingen HS Furtwangen	k	p			2003	122	0		0	0	
+Fn 1/TUT	DE-Fn1-TUT	Tuttlingen HS Furtwangen	k	p			1998	117	0	2014	133	0	
+974	DE-974	Gießen FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+974	DE-974	Gießen FH	k	p	n		1998	117	0		0	0	
+960/1	DE-960-1	Hannover HS ZentralB Linden	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+960/1	DE-960-1	Hannover HS ZentralB Linden	k		n		1997	116	0		0	0	
+840	DE-840	Heilbronn HS	k	p			2003	122	0		0	0	
+840	DE-840	Heilbronn HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+840	DE-840	Heilbronn HS	k	p			1998	117	0	2014	133	0	
+B 113	DE-B113	Berlin F.-Haber-Inst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+J 59	DE-J59	Jena FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 95	DE-Ki95	Kiel FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 95	DE-Ki95	Kiel FH	k	p	n		1998	117	1		0	0	
+Kon 4	DE-Kon4	Konstanz HS Techn.Wirt.Gestalt	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Kon 4	DE-Kon4	Konstanz HS Techn.Wirt.Gestalt	k	p			2003	122	0		0	0	
+Kon 4	DE-Kon4	Konstanz HS Techn.Wirt.Gestalt	k	p			1998	117	0	2014	133	0	
+1147	DE-1147	Ludwigsburg HVF	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1147	DE-1147	Ludwigsburg HVF	k	p			2003	122	0		0	0	
+743	DE-743	Lemgo HS OWL S(KIM)	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+743	DE-743	Lemgo HS OWL S(KIM)	k		n			0	0		2014	0	
+M 347	DE-M347	München HMB	k				1998	117	0		0	0	
+M 347	DE-M347	München HMB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+953	DE-953	Mannheim Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+953	DE-953	Mannheim Hochschule	k	p			1998	117	0	2014	133	0	
+953	DE-953	Mannheim Hochschule	k	p			2003	122	0		0	0	
+542	DE-542	Merseburg FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+542	DE-542	Merseburg FH	k	p	n		1998	117	1		0	0	
+92	DE-92	Nürnberg Ohm-HSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+92	DE-92	Nürnberg Ohm-HSB	k				1998	117	0		0	0	
+519	DE-519	Neubrandenburg HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+755	DE-755	Emden FH Emden/Leer	k		n		1997	116	0		0	0	
+755	DE-755	Emden FH Emden/Leer	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+959	DE-959	Osnabrück HS ZentralB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+959	DE-959	Osnabrück HS ZentralB	k		n		1997	116	0		0	0	
+525	DE-525	Potsdam FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Rt 2	DE-Rt2	Reutlingen HSB	k	p			1998	117	0	2014	133	0	
+Rt 2	DE-Rt2	Reutlingen HSB	k	p			2003	122	0		0	0	
+Rt 2	DE-Rt2	Reutlingen HSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Shm 2	DE-Shm2	Schmalkalden FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+943	DE-943	Ulm Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+943	DE-943	Ulm Hochschule	k	p			1998	117	0	2014	133	0	
+943	DE-943	Ulm Hochschule	k	p			2003	122	0		0	0	
+1029	DE-1029	Triesdorf HSWT	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1028	DE-1028	Freising HSWT	k				1998	117	0		0	0	
+1028	DE-1028	Freising HSWT	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1029	DE-1029	Triesdorf HSWT	k				1998	117	0		0	0	
+916	DE-916	Wolfenbüttel FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+916	DE-916	Wolfenbüttel FH	k		n		1997	116	0		0	0	
+1117	DE-1117	Worms FH	k	p			1997	0	0		0	0	
+1117	DE-1117	Worms FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+897/1	DE-897-1	Elsfleth Jade Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+839	DE-839	Wilhelmshaven Jade Hochschule	k		n		1997	116	0		0	0	
+897	DE-897	Oldenburg Jade Hochschule	k		n		1997	116	0		0	0	
+897/1	DE-897-1	Elsfleth Jade Hochschule	k		n		1997	116	0		0	0	
+839	DE-839	Wilhelmshaven Jade Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+897	DE-897	Oldenburg Jade Hochschule	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Stg 191	DE-Stg191	Stuttgart FHG:IAO	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+188/e	DE-188-e	Berlin FU E-Medien	k	p			1998	117	0		0	0	
+188/e	DE-188-e	Berlin FU E-Medien	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+188	DE-188	Berlin UBFU	k	p			1998	117	0		0	0	
+188	DE-188	Berlin UBFU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+708	DE-708	Hagen FernUB	k		n			0	0		2014	0	
+708	DE-708	Hagen FernUB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 131	DE-Ki131	Kiel FA Bundesw.f.Wasserschall	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Jül 1	DE-Juel1	Jülich ForschZ	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Jül 1	DE-Juel1	Jülich ForschZ	k	p			2003	122	0		0	0	
+Ka 85	DE-Ka85	Karlsruhe KIT Campus Nord	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+D 120	DE-D120	Dresden HZDR	k	p			2004	123	0	2012	131	0	
+D 120	DE-D120	Dresden HZDR	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bs 80	DE-Bs80	Braunschweig HZI	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bs 80	DE-Bs80	Braunschweig HZI	k	p			2004	123	0	2012	131	0	
+Bs 78	DE-Bs78	Braunschweig Georg-Eckert-Inst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+H 221	DE-H221	Hamburg GIGA FB Afrika	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+H 222	DE-H222	Hamburg GIGA FB Asien	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Gt 1	DE-Gt1	Geesthacht HZG	k	p			2004	123	0	2012	131	0	
+Gt 1	DE-Gt1	Geesthacht HZG	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ds 200	DE-Ds200	Darmstadt GSI	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+35	DE-35	Hannover NLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+185	DE-185	Leipzig Inst. Länderkunde WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+18/285	DE-18-285	Hamburg FB Design	k	p	n		1998	117	1		0	0	
+18/287	DE-18-287	Hamburg FB Soziale Arbeit	k	p	n		1998	117	1		0	0	
+18/302	DE-18-302	Hamburg HAW FB Technik Wirtsch	k	p	n		1998	117	1		0	0	
+18/284	DE-18-284	Hamburg FB Life Sciences	k	p	n		1998	117	1		0	0	
+Hil 3/1	DE-Hil3-1	Göttingen HAWK Bibliothek N	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hil 3/1	DE-Hil3-1	Göttingen HAWK Bibliothek N	k		n		1997	116	0		0	0	
+753	DE-753	Esslingen HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+972	DE-972	Göppingen HS Esslingen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+753	DE-753	Esslingen HS	k	p			1998	117	0	2014	133	0	
+972	DE-972	Göppingen HS Esslingen	k	p			1998	117	0	2014	133	0	
+753	DE-753	Esslingen HS	k	p			2003	122	0		0	0	
+972	DE-972	Göppingen HS Esslingen	k	p			2003	122	0		0	0	
+551	DE-551	Magdeburg FHB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+551	DE-551	Magdeburg FHB	k	p			1998	117	1		0	0	
+747	DE-747	Weingarten HSB	k	p			2003	122	0		0	0	
+747	DE-747	Weingarten HSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+747	DE-747	Weingarten HSB	k	p			1998	117	0	2014	133	0	
+1373	DE-1373	Hamburg HC,Uni Baukunst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Fl 3	DE-Fl3	Flensburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+958	DE-958	Stuttgart HdM Nobelstraße	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+958	DE-958	Stuttgart HdM Nobelstraße	k	p			2003	122	0		0	0	
+Y 2	DE-Y2	Rom Hertziana MPI	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Po 75	DE-Po75	Potsdam Filmuniversität	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1866	DE-1866	Bochum HSG	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1866	DE-1866	Bochum HSG	k		n			0	0		2014	0	
+955	DE-955	Rottenburg HS Forstw	k	p			1998	117	0	2014	133	0	
+955	DE-955	Rottenburg HS Forstw	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+955	DE-955	Rottenburg HS Forstw	k	p			2003	122	0		0	0	
+1033	DE-1033	Stuttgart HS Technik	k	p			1998	117	0	2014	133	0	
+1033	DE-1033	Stuttgart HS Technik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1033	DE-1033	Stuttgart HS Technik	k	p			2003	122	0		0	0	
+950	DE-950	Nürtingen HS Wirts.Umwelt	k	p			2003	122	0		0	0	
+1090	DE-1090	Geislingen HS Wirtsch.Nürt.-G.	k	p			2003	122	0		0	0	
+950	DE-950	Nürtingen HS Wirts.Umwelt	k	p			1998	117	0	2014	133	0	
+950	DE-950	Nürtingen HS Wirts.Umwelt	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1090	DE-1090	Geislingen HS Wirtsch.Nürt.-G.	k	p			1998	117	0	2014	133	0	
+1090	DE-1090	Geislingen HS Wirtsch.Nürt.-G.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+43	DE-43	Wiesbaden LB	k	p	n		1998	117	0		0	0	
+43	DE-43	Wiesbaden LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1505	DE-B1505	Berlin Helmholtz-Zentrum	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1505	DE-B1505	Berlin Helmholtz-Zentrum	k	p			2004	123	0	2012	131	0	
+L 152	DE-L152	Leipzig HS Musik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 29	DE-M29	München, HS f. Musik u.Theater	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1393	DE-1393	Mülheim/Ruhr HS Ruhr West	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+991	DE-991	Sigmaringen HS Albstadt-Sigmar	k	p			1998	117	0	2014	133	0	
+991	DE-991	Sigmaringen HS Albstadt-Sigmar	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+991	DE-991	Sigmaringen HS Albstadt-Sigmar	k	p			2003	122	0		0	0	
+Kt 1	DE-Kt1	Köthen FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+751	DE-751	Karlsruhe HSB	k	p			1998	117	0	2014	133	0	
+751	DE-751	Karlsruhe HSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+751	DE-751	Karlsruhe HSB	k	p			2003	122	0		0	0	
+747	DE-747	Weingarten HSB	k	p			1998	117	0	2014	133	0	
+747	DE-747	Weingarten HSB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+747	DE-747	Weingarten HSB	k	p			2003	122	0		0	0	
+B 1570	DE-B1570	Berlin HertieSchool	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+527	DE-527	Wernigerode HS Harz	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Wis 1	DE-Wis1	Wismar HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+829	DE-829	Mönchengladbach HS Niederrhein	k		n			0	0		2014	0	
+829	DE-829	Mönchengladbach HS Niederrhein	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+523	DE-523	Berlin HTW	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+520	DE-520	Dresden HS TuW	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+L 189	DE-L189	Leipzig FH HTWK	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mit 1	DE-Mit1	Mittweida HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Sa 16	DE-Sa16	Saarbrücken HTW/Goebenstr	k	p			1997	0	0		0	0	
+Sa 16	DE-Sa16	Saarbrücken HTW/Goebenstr	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+206 H	DE-206H	Hamburg ZBW WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Zi 4	DE-Zi4	Zittau/Görlitz HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+N 38	DE-N38	Nürnberg Fachb.Arbeitsmarktfor	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mh 39	DE-Mh39	Mannheim IDS WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Dm 21	DE-Dm21	Dortmund IfADo WGL	k		n		1998	117	0		0	0	
+Dm 21	DE-Dm21	Dortmund IfADo WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 109	DE-Ki109	Kiel GEOMAR Bibl.West	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 130	DE-Ki130	Kiel GEOMAR Bibl.Ost	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 352	DE-M352	München Inst.f.Zeitgeschichte	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 259	DE-B259	Berlin Gewässerökologie WGL	k		n		1998	117	0		0	0	
+B 259	DE-B259	Berlin Gewässerökologie WGL	k		n		1998	117	0		0	0	
+B 259	DE-B259	Berlin Gewässerökologie WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+291/415	DE-291-415	Saarbrücken INM WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Wa 1	DE-Wa1	Rostock Inst.f.Ostseefor. WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Stg 183	DE-Stg183	Stuttgart Fraunhofer IPA	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 93	DE-Ha93	Halle/S Pflanzenbiochemie	k		n		1998	117	0		0	0	
+Ha 93	DE-Ha93	Halle/S Pflanzenbiochemie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 93	DE-Ha93	Halle/S Pflanzenbiochemie	k		n		1998	117	0		0	0	
+Gat 1	DE-Gat1	Gatersleben Pflanzengenetik	k		n		1998	117	0		0	0	
+Gat 1	DE-Gat1	Gatersleben Pflanzengenetik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 382	DE-M382	München MPIs Im.GüterR/SteuerR	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ki 128	DE-Ki128	Kiel IPN	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1826	DE-1826	Berlin Bibliothek der IPU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 567	DE-B567	Erkner IRS WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+918	DE-918	St.Augustin K-Adenauer-Stiftg.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 125	DE-Ha125	Halle/S HS Kunst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Y 3	DE-Y3	Florenz Kunsthist. Inst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+1032	DE-1032	Köln Kath. HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+90	DE-90	Karlsruhe KIT-Bibliothek	k	p			1857	1	1		0	0	
+Ka 85	DE-Ka85	Karlsruhe KIT Campus Nord	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ka 93	DE-Ka93	Karlsruher Institut für Technologie, KIT-Archiv	k	p			1998	117	0	2014	133	0	
+90	DE-90	Karlsruhe KIT-Bibliothek	k	p			2003	122	0		0	0	
+Ka 85	DE-Ka85	Karlsruhe KIT Campus Nord	k	p			1857	1	1		0	0	
+Ka 93	DE-Ka93	Karlsruher Institut für Technologie, KIT-Archiv	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ka 85	DE-Ka85	Karlsruhe KIT Campus Nord	k	p			2003	122	0		0	0	
+Ka 93	DE-Ka93	Karlsruher Institut für Technologie, KIT-Archiv	k	p			1857	1	1		0	0	
+Ka 93	DE-Ka93	Karlsruher Institut für Technologie, KIT-Archiv	k	p			2003	122	0		0	0	
+90	DE-90	Karlsruhe KIT-Bibliothek	k	p			1998	117	0	2014	133	0	
+90	DE-90	Karlsruhe KIT-Bibliothek	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ka 85	DE-Ka85	Karlsruhe KIT Campus Nord	k	p			1998	117	0	2014	133	0	
+70	DE-70	Coburg LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+33	DE-33	Schwerin LBMV	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+45	DE-45	Oldenburg LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ma 45	DE-Ma45	Magdeburg Inst. Neurobiologie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+51	DE-51	Detmold LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+578/M	DE-578-M	Berlin Charité Med.Bib.Magazin	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+578/821	DE-578-821	Berlin Charité Med.Bib. ZMK	k		n		1857	1	1		0	0	
+578/M	DE-578-M	Berlin Charité Med.Bib.Magazin	k		n		1857	1	1		0	0	
+578/e	DE-578-e	Berlin Charité Med.Bibl.eZsn	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+578/3	DE-578-3	Berlin Charité Med. Bibl. CVK	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+578/e	DE-578-e	Berlin Charité Med.Bibl.eZsn	k		n		1857	1	1		0	0	
+578/821	DE-578-821	Berlin Charité Med.Bib. ZMK	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+578/3	DE-578-3	Berlin Charité Med. Bibl. CVK	k		n		1857	1	1		0	0	
+Hag 4/4	DE-Hag4-4	Soest FH Südwestfalen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hag 4/2	DE-Hag4-2	Iserlohn FH Südwestfalen	k		n			0	0		2014	0	
+Hag 4/E	DE-Hag4-E	Hagen FH Südwestf.E-Ressourcen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hag 4/4	DE-Hag4-4	Soest FH Südwestfalen	k		n			0	0		2014	0	
+Hag 4/3	DE-Hag4-3	Meschede FH Südwestfalen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hag 4/E	DE-Hag4-E	Hagen FH Südwestf.E-Ressourcen	k		n			0	0		2014	0	
+Hag 4	DE-Hag4	Hagen FH Südwestfalen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hag 4/3	DE-Hag4-3	Meschede FH Südwestfalen	k		n			0	0		2014	0	
+Hag 4/2	DE-Hag4-2	Iserlohn FH Südwestfalen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Hag 4	DE-Hag4	Hagen FH Südwestfalen	k		n			0	0		2014	0	
+B 16	DE-B16	Berlin Museum für Naturkunde	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Frei 3c	DE-Frei3c	Oberwolfach Math. FI	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+354	DE-354	Hannover MedHS	k		n		1997	116	0		0	0	
+354	DE-354	Hannover MedHS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Trs 1	DE-Trs1	Trossingen HS Musik	k	p			2003	122	0		0	0	
+B 787	DE-B787	Berlin MPI Molek.Genetik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lin 1b	DE-Lin1b	Katlenburg MPI Sonnensystem	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 161a	DE-B161a	Garching AstroB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Frei 85	DE-Frei85	Freiburg MPI Ausländ.Recht	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Star 1	DE-Star1	Seewiesen MPI Ornithologie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+2177	DE-2177	Frankfurt/M MPI f.emp.Ästhetik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+He 81	DE-He81	Heidelberg MPI f. Astronomie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1532	DE-B1532	Berlin MPI Bildungsforschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Gö 116	DE-Goe116	Göttingen Otto-Hahn-B	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mz 4	DE-Mz4	Mainz MPI Chemie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ma 54	DE-Ma54	Magdeburg MPI DKTS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Dü 57	DE-Due57	Düsseldorf MPI Eisenforschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 163	DE-Ha163	Halle/S. MPI Ethnol. Forschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Gö 134	DE-Goe134	Göttingen MPI exp. Med.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+F 137	DE-F137	Frankfurt/M MPI Rechtgesch.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+J 152	DE-J152	Jena MPI Menschheitsgeschichte	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Kn 188	DE-Kn188	Köln MPI Gesellschaftsforsch.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bo 146	DE-Bo146	Bonn MPI Radioastronomie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Gö 164	DE-Goe164	Göttingen MPI Erforsch.multi.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Sa 18	DE-Sa18	Saarbrücken MPI Informatik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Frei 106	DE-Frei106	Freiburg MPI f. Immunbiologie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Po 81	DE-Po81	Potsdam MPI Grenzflächenforsch	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+He 74	DE-He74	Heidelberg MPI Kernphysik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Pn 1	DE-Pn1	Plön MPI Evolutionsbiologie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bo 206	DE-Bo206	Bonn MPI Mathematik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+He 43	DE-He43	Heidelberg MPI Med.Forschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bre 11	DE-Bre11	Bremen MPI Marine Mikrobiol.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+L 323	DE-L323	Leipzig MPI Mathematik Naturw.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Po 80	DE-Po80	Potsdam MPI Pflanzenphysiolog.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ha 94	DE-Ha94	Halle/S MPI Mikrostrukturph.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+L 322	DE-L322	Leipzig MPI Neurowiss.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mz 116	DE-Mz116	Mainz MPI Polymerforschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Nau 1	DE-Nau1	Bad Nauheim MPI Herz/Lungen	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Y 4	DE-Y4	Nijmegen MPI Psycholinguistik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 359	DE-M359	Garching MPI Plasmaphysik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 212	DE-B212	Hamburg MPI IntPrivatrecht	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 477	DE-M477	München MPI Sozialrecht	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 107	DE-B107	Tübingen MP-Haus	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mb 105	DE-Mb105	Marburg MPI f. terre Mikrob.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 208	DE-B208	Heidelberg MPI Völkerrecht	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Vol 1	DE-Vol1	Köln MPI Züchtungsforschung	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bo 407	DE-Bo407	Bonn MPI Gemeinschaftsgüter	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 484	DE-M484	Garching MPI Quantenoptik	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mh 31	DE-Mh31	Mannheim HS Musik	k	p			2003	122	0		0	0	
+1933	DE-1933	Mannheim Popakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Frei 129	DE-Frei129	Freiburg PH	k	p			2003	122	0		0	0	
+Frei 129	DE-Frei129	Freiburg PH	k	p			1998	117	0	2014	133	0	
+Frei 129	DE-Frei129	Freiburg PH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+752	DE-752	Schwäbisch Gmünd PH	k	p			2003	122	0		0	0	
+752	DE-752	Schwäbisch Gmünd PH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+He 76	DE-He76	Heidelberg PH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+He 76	DE-He76	Heidelberg PH	k	p			1998	117	0	2014	133	0	
+He 76	DE-He76	Heidelberg PH	k	p			2003	122	0		0	0	
+Lg 1	DE-Lg1	Ludwigsburg PH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lg 1	DE-Lg1	Ludwigsburg PH	k	p			2003	122	0		0	0	
+D 206	DE-D206	Dresden MPI Phys.komplex.Syst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+107	DE-107	Speyer Pfälzische LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+107	DE-107	Speyer Pfälzische LB	k	p			1997	0	0		0	0	
+B 106	DE-B106	Berlin R. Koch-Inst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+929	DE-929	Koblenz LB	k	p			1997	0	0		0	0	
+929	DE-929	Koblenz LB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+294	DE-294	Bochum UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+36	DE-36	Mainz StBi	k	p			1997	0	0		0	0	
+36	DE-36	Mainz StBi	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+150	DE-150	Neuburg/Donau SB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+14	DE-14	Dresden SLUB, ZB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Stg 265	DE-Stg265	Stuttgart Mus.f.Naturkunde	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+L 229	DE-L229	Leipzig Berufsakademie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+155	DE-155	Regensburg SB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+282	DE-282	Wiesbaden StaBA	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+7	DE-7	Göttingen SUB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+7	DE-7	Göttingen SUB	k		n		1998	117	0		0	0	
+18	DE-18	Hamburg SUB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+18	DE-18	Hamburg SUB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1998	117	1		0	0	
+291	DE-291	Saarbrücken SULB	k	p			1997	0	0		0	0	
+291	DE-291	Saarbrücken SULB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+37	DE-37	Augsburg SuStB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 768	DE-B768	Berlin Technische FH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 768	DE-B768	Berlin Technische FH	k		n		1857	1	1		0	0	
+526	DE-526	Wildau TH	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+27	DE-27	Jena UuLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+95	DE-95	Hannover TierHS	k		n		1997	116	0		0	0	
+95	DE-95	Hannover TierHS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Wim 7	DE-Wim7	Weimar TLDA	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+83	DE-83	Berlin UBTU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+105	DE-105	Freiberg TU BA	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+84	DE-84	Braunschweig UB	k		n		1997	116	0		0	0	
+84	DE-84	Braunschweig UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Co 1	DE-Co1	Cottbus BTU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Ch 1	DE-Ch1	Chemnitz UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+17	DE-17	Darmstadt ULB	k	p	n		1998	117	0		0	0	
+17	DE-17	Darmstadt ULB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+830	DE-830	Hamburg TU	k	p		Nur für den persönlichen Gebrauch oder für wissenschaftliche, Bildungs- oder Forschungszwecke, nicht jedoch zu gewerblichen Zwecken.	1998	117	1		0	0	
+830	DE-830	Hamburg TU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+91 S	DE-91S	München TU/TeilB Straubing	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+M 49	DE-M49	Freising TU München/Weihenst	k				1998	117	0		0	0	
+M 49	DE-M49	Freising TU München/Weihenst	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+91	DE-91	München UBTU	k				1998	117	0		0	0	
+91 G	DE-91G	München TU/TeilB Garching	k				1998	117	0		0	0	
+91	DE-91	München UBTU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+91 S	DE-91S	München TU/TeilB Straubing	k				1998	117	0		0	0	
+91 G	DE-91G	München TU/TeilB Garching	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+384	DE-384	Augsburg UB	k				1998	117	0		0	0	
+384	DE-384	Augsburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+473	DE-473	Bamberg UB	k				1998	117	0		0	0	
+473	DE-473	Bamberg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+703	DE-703	Bayreuth UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+703	DE-703	Bayreuth UB	k				1998	117	0		0	0	
+361	DE-361	Bielefeld UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+361	DE-361	Bielefeld UB	k		n			0	0		2014	0	
+Wim 2	DE-Wim2	Weimar UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+104	DE-104	Clausthal-Z. UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+104	DE-104	Clausthal-Z. UB	k		n		1997	116	0		0	0	
+290	DE-290	Dortmund UB	k		n			0	0		2014	0	
+290	DE-290	Dortmund UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+464	DE-464	Duisburg UB	k		n			0	0		2014	0	
+464	DE-464	Duisburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+824	DE-824	Eichstätt UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+945	DE-945	Ingolstadt UB Eichstätt/Wirt.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+N 2	DE-N2	Nürnberg WSZB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+29	DE-29	Erlangen-N UB	k				1998	117	0		0	0	
+N 32	DE-N32	Nürnberg UB Erlangen-N/Erzwiss	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+N 2	DE-N2	Nürnberg WSZB	k				1998	117	0		0	0	
+29 T	DE-29T	Erlangen-N UB Technik/Naturw.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+N 32	DE-N32	Nürnberg UB Erlangen-N/Erzwiss	k				1998	117	0		0	0	
+29 T	DE-29T	Erlangen-N UB Technik/Naturw.	k				1998	117	0		0	0	
+29	DE-29	Erlangen-N UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+F 21	DE-F21	Frankfurt/M Med. HauptBi	k	p	n		1998	117	0		0	0	
+30	DE-30	Frankfurt/M UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+F 21	DE-F21	Frankfurt/M Med. HauptBi	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+30	DE-30	Frankfurt/M UB	k	p	n		1998	117	0		0	0	
+25	DE-25	Freiburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+25	DE-25	Freiburg UB	k	p			2003	122	0		0	0	
+25	DE-25	Freiburg UB	k	p			1998	117	0	2014	133	0	
+26	DE-26	Gießen UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+26	DE-26	Gießen UB	k	p	n		1998	117	0		0	0	
+9	DE-9	Greifswald UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+16	DE-16	Heidelberg UB	k	p			2003	122	0		0	0	
+16	DE-16	Heidelberg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+16	DE-16	Heidelberg UB	k	p			1998	117	0	2014	133	0	
+Hil 2	DE-Hil2	Hildesheim UB	k		n		1997	116	0		0	0	
+Hil 2	DE-Hil2	Hildesheim UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+841	DE-841	Lübeck ZHB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+100	DE-100	Stuttgart-Hoh. KIM	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+100	DE-100	Stuttgart-Hoh. KIM	k	p			2003	122	0		0	0	
+11/10	DE-11-10	Berlin UBHU, Elektron. Res.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+11/10	DE-11-10	Berlin UBHU, Elektron. Res.	k		n		1857	1	1		0	0	
+11	DE-11	Berlin UB Humboldt	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+11	DE-11	Berlin UB Humboldt	k		n		1857	1	1		0	0	
+Ilm 1	DE-Ilm1	Ilmenau UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+8	DE-8	Kiel UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+8	DE-8	Kiel UB	k	p	n		1998	117	1		0	0	
+34	DE-34	Kassel UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+34	DE-34	Kassel UB	k	p	n		1998	117	0		0	0	
+386	DE-386	Kaiserslautern UB	k	p			1997	0	0		0	0	
+386	DE-386	Kaiserslautern UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+352	DE-352	Konstanz UB	k	p			1998	117	0	2014	133	0	
+352	DE-352	Konstanz UB	k	p			2003	122	0		0	0	
+352	DE-352	Konstanz UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+15	DE-15	Leipzig UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+15/292	DE-15-292	Leipzig ZB Medizin	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Lün 4	DE-Luen4	Lüneburg UB	k		n		1997	116	0		0	0	
+Lün 4	DE-Luen4	Lüneburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+19	DE-19	München UB	k				1998	117	0		0	0	
+19	DE-19	München UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+4	DE-4	Marburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+4	DE-4	Marburg UB	k	p	n		1998	117	0		0	0	
+180	DE-180	Mannheim UB	k	p			2003	122	0		0	0	
+180	DE-180	Mannheim UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+180	DE-180	Mannheim UB	k	p			1998	117	0	2014	133	0	
+Ma 9	DE-Ma9	Magdeburg UB	k	p			1857	1	1		0	0	
+Ma 9	DE-Ma9	Magdeburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+77	DE-77	Mainz UB	k	p	n		1998	117	0		0	0	
+Mz 19	DE-Mz19	Mainz FB TSK	k	p	n		1998	117	0		0	0	
+77	DE-77	Mainz UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mz 19	DE-Mz19	Mainz FB TSK	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+700	DE-700	Osnabrück UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+700	DE-700	Osnabrück UB	k		n		1997	116	0		0	0	
+739	DE-739	Passau UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+739	DE-739	Passau UB	k				1998	117	0		0	0	
+466	DE-466	Paderborn UB	k		n			0	0		2014	0	
+466	DE-466	Paderborn UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+517	DE-517	Potsdam UB	k		n		1857	1	1		0	0	
+517	DE-517	Potsdam UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+355	DE-355	Regensburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+355	DE-355	Regensburg UB	k				1998	117	0		0	0	
+28	DE-28	Rostock UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+93	DE-93	Stuttgart UB	k	p			2003	122	0		0	0	
+93	DE-93	Stuttgart UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+93	DE-93	Stuttgart UB	k	p			1998	117	0	2014	133	0	
+467	DE-467	Siegen UB	k		n			0	0		2014	0	
+467	DE-467	Siegen UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+89	DE-89	Hannover TIB/UB	k		n		1997	116	0		0	0	
+89	DE-89	Hannover TIB/UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+385	DE-385	Trier UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+385	DE-385	Trier UB	k	p			1997	0	0		0	0	
+21	DE-21	Tübingen UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+21	DE-21	Tübingen UB	k	p			2003	122	0		0	0	
+21	DE-21	Tübingen UB	k	p			1998	117	0	2014	133	0	
+289	DE-289	Ulm UB	k	p			1998	117	0	2014	133	0	
+289	DE-289	Ulm UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+289	DE-289	Ulm UB	k	p			2003	122	0		0	0	
+Va 1	DE-Va1	Vechta UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Va 1	DE-Va1	Vechta UB	k		n		1997	116	0		0	0	
+20	DE-20	Würzburg UB	k			keine Fernleihe an kommerzielle Bibliotheken liefern	2002	121	1	2003	122	4	
+20	DE-20	Würzburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+705	DE-705	Hamburg HSU	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+706	DE-706	Neubiberg UniBundeswehr	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+468	DE-468	Wuppertal UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+468	DE-468	Wuppertal UB	k		n			0	0		2014	0	
+L 97	DE-L97	Leipzig Helmholtz-Zentrum UFZ	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+L 97	DE-L97	Leipzig Helmholtz-Zentrum UFZ	k	p			2004	123	0	2012	131	0	
+465	DE-465	Essen UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+464	DE-464	Duisburg UB	k		n			0	0		2014	0	
+464	DE-464	Duisburg UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+465 M	DE-465M	Essen Duisburg-Essen FB Med.	k		n			0	0		2014	0	
+465 M	DE-465M	Essen Duisburg-Essen FB Med.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+465	DE-465	Essen UB	k		n			0	0		2014	0	
+18/64	DE-18-64	Hamburg Ärztl. ZB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1998	117	1		0	0	
+18/64	DE-18-64	Hamburg Ärztl. ZB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+5	DE-5	Bonn ULB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+61	DE-61	Düsseldorf UuLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+61	DE-61	Düsseldorf UuLB	k		n			0	0		2014	0	
+3	DE-3	Halle/S UuLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+6	DE-6	Münster UuLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+6	DE-6	Münster UuLB	k		n			0	0		2014	0	
+1018	DE-1018	Witten UB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+38	DE-38	Köln USB	k		n			0	0		2014	0	
+38	DE-38	Köln USB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Zwi 2	DE-Zwi2	Zwickau HS	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 513	DE-B513	Berlin Weierstraß-Inst.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+24	DE-24	Stuttgart WLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 1543	DE-B1543	Berlin WZB WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+38 M	DE-38M	Köln ZBMedizin	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+98	DE-98	Bonn ZB MED	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+38 M	DE-38M	Köln ZBMedizin	k	p	n	non-commercial libraries<br> (Springer) 	1857	1	1		0	0	
+98	DE-98	Bonn ZB MED	k	p	n	non-commercial libraries<br> (Springer) 	1857	1	1		0	0	
+Kn 41	DE-Kn41	Köln SportHS ZB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Kn 41	DE-Kn41	Köln SportHS ZB	k	p			1857	1	1	2011	130	6	
+206	DE-206	Kiel ZBW WGL	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mh 36	DE-Mh36	Mannheim ZEW	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+255	DE-255	München ZI Kunstgeschichte	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Mh 32	DE-Mh32	Mannheim ZI Seel. Gesundh.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+109	DE-109	Berlin ZLB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+B 2138	DE-B2138	Berlin Zentrum Modern. Orient	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bre 14	DE-Bre14	Bremen Zentr. Tropenökologie	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Bre 14	DE-Bre14	Bremen Zentr. Tropenökologie	k		n		1998	117	0		0	0	
+Bre 14	DE-Bre14	Bremen Zentr. Tropenökologie	k		n		1998	117	0		0	0	
+B 1536	DE-B1536	Berlin ZIB	k		n		1857	1	1		0	0	
+B 1536	DE-B1536	Berlin ZIB	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	
+Po 82	DE-Po82	Potsdam Zeithist.Forsch.	k	p	n	keine Fernleihe an kommerzielle Bibliotheken liefern	1857	1	0	2002	121	0	

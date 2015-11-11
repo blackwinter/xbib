@@ -1,21 +1,25 @@
 package org.xbib.tools.feed.elasticsearch.mab;
 
+import com.carrotsearch.hppc.cursors.ObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesAction;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequestBuilder;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesAction;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequestBuilder;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.common.hppc.cursors.ObjectCursor;
-import org.elasticsearch.common.joda.time.DateTime;
-import org.elasticsearch.common.joda.time.format.DateTimeFormat;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.xbib.common.settings.Settings;
 import org.xbib.common.unit.ByteSizeValue;
-import org.xbib.entities.marc.dialects.mab.MABEntityBuilderState;
-import org.xbib.entities.marc.dialects.mab.MABEntityQueue;
-import org.xbib.entities.support.ClasspathURLStreamHandler;
-import org.xbib.entities.support.ValueMaps;
+import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
+import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
+import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
+import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -27,15 +31,16 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -83,12 +88,13 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 Runtime.getRuntime().availableProcessors());
         ingest.maxActionsPerRequest(maxbulkactions)
                 .maxConcurrentRequests(maxconcurrentbulkrequests);
-        ingest.init(ImmutableSettings.settingsBuilder()
+        ingest.init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .build());
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build().getAsMap(), new LongAdderIngestMetric());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
         concreteIndex = resolveAlias(getIndex() + timeWindow);
@@ -143,8 +149,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 logger.warn("index creation error, but configured to ignore", e);
             }
         }
-        ingest.startBulk(getConcreteIndex());
-        ingest.startBulk(getConcreteHoldingsIndex());
+        ingest.startBulk(getConcreteIndex(), -1L, 1L);
+        ingest.startBulk(getConcreteHoldingsIndex(), -1L, 1L);
         return this;
     }
 
@@ -154,7 +160,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             return;
         }
         // set identifier prefix (ISIL)
-        Map<String,Object> params = newHashMap();
+        Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-605"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
@@ -174,7 +180,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         queue.execute();
         String fileName = uri.getSchemeSpecificPart();
         InputStream in = new FileInputStream(fileName);
-        ByteSizeValue bufferSize = settings.getAsByteSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
         if (fileName.endsWith(".gz")) {
             in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
         }
@@ -193,7 +199,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     }
 
     protected String resolveAlias(String alias) {
-        GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(alias).execute().actionGet();
+        GetAliasesRequestBuilder getAliasesRequestBuilder = new GetAliasesRequestBuilder(ingest.client(), GetAliasesAction.INSTANCE);
+        GetAliasesResponse getAliasesResponse = getAliasesRequestBuilder.setAliases(alias).execute().actionGet();
         if (!getAliasesResponse.getAliases().isEmpty()) {
             return getAliasesResponse.getAliases().keys().iterator().next().value;
         }
@@ -207,8 +214,9 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         String concreteHoldingsIndex = getConcreteHoldingsIndex();
 
         if (!titleIndex.equals(concreteIndex)) {
-            IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
-            GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(titleIndex).execute().actionGet();
+            IndicesAliasesRequestBuilder requestBuilder = new IndicesAliasesRequestBuilder(ingest.client(), IndicesAliasesAction.INSTANCE);
+            GetAliasesRequestBuilder getAliasesRequestBuilder = new GetAliasesRequestBuilder(ingest.client(), GetAliasesAction.INSTANCE);
+            GetAliasesResponse getAliasesResponse = getAliasesRequestBuilder.setAliases(titleIndex).execute().actionGet();
             if (getAliasesResponse.getAliases().isEmpty()) {
                 logger.info("adding alias {} to index {}", titleIndex, concreteIndex);
                 requestBuilder.addAlias(concreteIndex, titleIndex);
@@ -230,7 +238,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 }
             }
             // holdings
-            getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(holdingsIndex).execute().actionGet();
+            getAliasesResponse = getAliasesRequestBuilder.setAliases(holdingsIndex).execute().actionGet();
             if (getAliasesResponse.getAliases().isEmpty()) {
                 logger.info("adding alias {} to index {}", holdingsIndex, concreteHoldingsIndex);
                 requestBuilder.addAlias(concreteHoldingsIndex, holdingsIndex);
@@ -244,7 +252,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             requestBuilder.execute().actionGet();
         } else if (settings.get("identifier") != null) {
             // identifier is alias for title
-            IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
+            IndicesAliasesRequestBuilder requestBuilder = new IndicesAliasesRequestBuilder(ingest.client(), IndicesAliasesAction.INSTANCE);
             logger.debug("adding alias {} to index {}",  settings.get("identifier"), titleIndex);
             requestBuilder.addAlias(titleIndex, settings.get("identifier"));
             // identifier is alias fo holdings
@@ -256,20 +264,21 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             // for union catalog, create aliases for "main ISILs" using xbib.identifier
             Map<String, String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
                     settings.get("sigel2isil", "/org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
-            final List<String> newAliases = newLinkedList();
-            final List<String> switchedAliases = newLinkedList();
-            IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
+            final List<String> newAliases = new LinkedList<>();
+            final List<String> switchedAliases = new LinkedList<>();
+            IndicesAliasesRequestBuilder requestBuilder = new IndicesAliasesRequestBuilder(ingest.client(), IndicesAliasesAction.INSTANCE);
             for (String isil : sigel2isil.values()) {
                 // only one (or none) hyphen = "main ISIL"
                 if (isil.indexOf("-") == isil.lastIndexOf("-")) {
-                    GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(isil).execute().actionGet();
+                    GetAliasesRequestBuilder getAliasesRequestBuilder = new GetAliasesRequestBuilder(ingest.client(), GetAliasesAction.INSTANCE);
+                    GetAliasesResponse getAliasesResponse = getAliasesRequestBuilder.setAliases(isil).execute().actionGet();
                     if (getAliasesResponse.getAliases().isEmpty()) {
-                        requestBuilder.addAlias(concreteIndex, isil, FilterBuilders.termsFilter("xbib.identifier", isil));
+                        requestBuilder.addAlias(concreteIndex, isil, termsQuery("xbib.identifier", isil));
                         newAliases.add(isil);
                     } else for (ObjectCursor<String> indexName : getAliasesResponse.getAliases().keys()) {
                         if (indexName.value.startsWith(titleIndex)) {
                             requestBuilder.removeAlias(indexName.value, isil)
-                                    .addAlias(concreteIndex, isil, FilterBuilders.termsFilter("xbib.identifier", isil));
+                                    .addAlias(concreteIndex, isil, termsQuery("xbib.identifier", isil));
                             switchedAliases.add(isil);
                         }
                     }
@@ -332,9 +341,6 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 resource.newResource("xbib").add("uid", state.getRecordIdentifier());
                 builder.receive(resource);
                 docs++;
-            }
-            if (executor != null) {
-                executor.metric().mark(docs);
             }
         }
     }

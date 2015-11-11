@@ -39,14 +39,13 @@ import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.xml.SimpleMetadataHandler;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.Feeder;
 import org.xbib.util.DateUtil;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -71,7 +70,7 @@ public class RdfXml extends Feeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return RdfXml::new;
     }
 

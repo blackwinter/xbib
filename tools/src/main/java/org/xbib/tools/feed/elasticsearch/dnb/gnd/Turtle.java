@@ -31,15 +31,15 @@
  */
 package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
-import org.xbib.io.InputService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -51,13 +51,15 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public class Turtle extends Feeder {
 
+    private final static Logger logger = LogManager.getLogger(Turtle.class);
+
     @Override
     public String getName() {
         return "dnb-gnd-turtle-elasticsearch";
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return Turtle::new;
     }
 
@@ -84,14 +86,26 @@ public class Turtle extends Feeder {
         RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                 settings.get("index", "gnd"),
                 settings.get("type", "gnd"));
-        params.setIdPredicate("gnd:gndIdentifier");
-        params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-        RdfContentBuilder builder = routeRdfXContentBuilder(params);
-        IRI id = IRI.builder().scheme("http").host("d-nb.info").path("/gnd/").build();
+        params.setIdPredicate("gndo:gndIdentifier");
+        params.setHandler((content, p) -> {
+            int pos = p.getId().lastIndexOf('/');
+            String docid = p.getId().substring(pos + 1);
+            if (settings.getAsBoolean("mock", false)) {
+                logger.info("{}", content);
+            } else {
+                ingest.index(p.getIndex(), p.getType(), docid, content);
+            }
+        });
+        IRI base = IRI.builder().scheme("http").host("d-nb.info").path("/gnd/").build();
         InputStream in = InputService.getInputStream(uri);
-        TurtleContentParser reader = new TurtleContentParser(in);
-        reader.setBaseIRI(id).context(namespaceContext);
-        reader.builder(builder);
+        TurtleContentParser reader = new TurtleContentParser(in)
+                .setBaseIRI(base)
+                .context(namespaceContext);
+        reader.setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params));
+        reader.setRdfContentBuilderHandler(b -> {
+            IRI iri = b.getSubject();
+            String s = b.string();
+        });
         reader.parse();
         in.close();
     }

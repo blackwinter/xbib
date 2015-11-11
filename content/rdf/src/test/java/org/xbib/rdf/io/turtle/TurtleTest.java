@@ -32,21 +32,28 @@
 package org.xbib.rdf.io.turtle;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.memory.MemoryResource;
 
-import static org.testng.Assert.assertEquals;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class TurtleTest extends StreamTester {
+
+    private final static Logger logger = LogManager.getLogger(TurtleTest.class.getName());
 
     @Test
     public void testTurtleGND() throws Exception {
@@ -57,6 +64,33 @@ public class TurtleTest extends StreamTester {
                 .setBaseIRI(IRI.create("http://d-nb.info/gnd/"))
                 .context(context);
         reader.parse();
+        in.close();
+    }
+
+    @Test
+    public void testTurtleGND2() throws Exception {
+        IRINamespaceContext context = IRINamespaceContext.newInstance();
+        InputStream in = getClass().getResourceAsStream("gnd2.ttl");
+        TurtleContentParser reader = new TurtleContentParser(in)
+                .setBaseIRI(IRI.create("http://d-nb.info/gnd/"))
+                .context(context);
+        reader.parse();
+        in.close();
+    }
+
+    @Test
+    public void testTurtleGND3() throws Exception {
+        IRINamespaceContext context = IRINamespaceContext.newInstance();
+        InputStream in = getClass().getResourceAsStream("gnd2.ttl");
+        TurtleContentParser reader = new TurtleContentParser(in)
+                .setBaseIRI(IRI.create("http://d-nb.info/gnd/"))
+                .context(context);
+        reader.setRdfContentBuilderProvider(RdfContentFactory::ntripleBuilder);
+        reader.setRdfContentBuilderHandler(b -> {
+            logger.info("doc id={} content={}", b.getSubject(), b.string());
+        });
+        reader.parse();
+        in.close();
     }
 
     @Test
@@ -85,6 +119,7 @@ public class TurtleTest extends StreamTester {
         builder.receive(resource);
         String s2 = builder.string().trim();
         assertEquals(s2, s1);
+        in.close();
     }
 
     private Resource createResource() {

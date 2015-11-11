@@ -1,10 +1,6 @@
 
 package org.xbib.common.geo;
 
-
-/**
- *
- */
 public final class GeoPoint {
 
     private double lat;

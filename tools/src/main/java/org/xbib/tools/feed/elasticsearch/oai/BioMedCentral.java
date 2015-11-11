@@ -36,13 +36,12 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.tools.OAIFeeder;
+import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -73,7 +72,7 @@ public class BioMedCentral extends OAIFeeder {
     }
 
     @Override
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return BioMedCentral::new;
     }
 

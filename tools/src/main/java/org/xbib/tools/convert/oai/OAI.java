@@ -31,18 +31,18 @@
  */
 package org.xbib.tools.convert.oai;
 
-import org.xbib.pipeline.Pipeline;
-import org.xbib.pipeline.PipelineProvider;
 import org.xbib.tools.OAIHarvester;
+import org.xbib.util.concurrent.WorkerProvider;
 
 /**
  * Harvest OAI. Write records to tar archive.
  */
 public class OAI extends OAIHarvester {
 
-    protected PipelineProvider<Pipeline> pipelineProvider() {
+    protected WorkerProvider provider() {
         return OAI::new;
     }
+
     @Override
     public String getName() {
         return "oai-tar";
