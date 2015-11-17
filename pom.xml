@@ -456,6 +456,11 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
+                <artifactId>xbib-io-ftp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
                 <artifactId>xbib-io-memcached</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -755,6 +760,7 @@
         <module>io/archive</module>
         <module>io/http</module>
         <module>io/jdbc</module>
+        <module>io/ftp</module>
 
         <module>compiler/jacc</module>
         <module>compiler/cql</module>
