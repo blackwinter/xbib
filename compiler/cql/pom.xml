@@ -19,6 +19,14 @@
         <plugins>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.xbib</groupId>
+                        <artifactId>xbib-jacc</artifactId>
+                        <type>jar</type>
+                        <version>2.0.0-SNAPSHOT</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>

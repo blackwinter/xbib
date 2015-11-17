@@ -1,6 +1,4 @@
 {
-
-      "title" : {
         "dynamic_templates" : [
             {
                 "string_template" : {
@@ -14,5 +12,4 @@
                 }
             }
         ]
-      }
 }

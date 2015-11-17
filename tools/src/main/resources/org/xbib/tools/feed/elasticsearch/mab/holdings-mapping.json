@@ -1,6 +1,5 @@
 {
         "date_detection" : false,
-        "_timestamp" : { "enabled" : true },
         "properties" : {
           "xbib" : {
              "properties" : {

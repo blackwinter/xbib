@@ -1,8 +1,4 @@
 {
-    "_timestamp" : {
-      "enabled" : true,
-      "store" : true
-    },
     "date_detection" : false,
     "properties" : {
       "leader" : {

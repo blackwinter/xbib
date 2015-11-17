@@ -1,7 +1,3 @@
 {
-  "date_detection": false,
-  "_timestamp": {
-    "enabled": true,
-    "store": true
-  }
+  "date_detection": false
 }

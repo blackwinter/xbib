@@ -138,4 +138,10 @@ public class XContentBuilderTest {
         assertEquals(map.toString(), "{value=4AC3B67267}");
     }
 
+    @Test(expectedExceptions = IOException.class)
+    public void testNullKey() throws IOException {
+        XContentBuilder builder = jsonBuilder();
+        builder.field((String)null);
+    }
+
 }

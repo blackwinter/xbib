@@ -78,11 +78,11 @@ public abstract class TimewindowFeeder extends Feeder {
     @Override
     protected TimewindowFeeder createIndex(String index) throws IOException {
         ingest.init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
+                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                .put("host", settings.get("elasticsearch.host", "localhost"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build().getAsMap(), new LongAdderIngestMetric());
         if (ingest.client() != null) {
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));

@@ -239,6 +239,9 @@ public final class XContentBuilder implements BytesStream, ToXContent {
             }
             name = Strings.toCamelCase(name, cachedStringBuilder);
         }
+        if (name == null) {
+            throw new IOException("null key not allowed");
+        }
         generator.writeFieldName(name);
         return this;
     }
@@ -254,6 +257,9 @@ public final class XContentBuilder implements BytesStream, ToXContent {
                 cachedStringBuilder = new StringBuilder();
             }
             name = Strings.toCamelCase(name, cachedStringBuilder);
+        }
+        if (name == null) {
+            throw new IOException("null key not allowed");
         }
         generator.writeFieldName(name);
         return this;

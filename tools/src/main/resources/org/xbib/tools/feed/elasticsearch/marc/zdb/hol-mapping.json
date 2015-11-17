@@ -1,7 +1,4 @@
 {
-    "_timestamp" : {
-      "enabled" : true
-    },
     "date_detection" : false,
     "properties" : {
       "leader" : {
