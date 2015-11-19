@@ -99,8 +99,9 @@ public abstract class FTPConnector implements Closeable {
         socket.setSoTimeout(readTimeout * 1000);
         socket.setSoLinger(true, closeTimeout);
         socket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to comm socket {} {}",
-                socket.getLocalAddress(), socket.getInetAddress());
+        logger.info("connected to comm socket {} -> {}",
+                socket.getLocalSocketAddress(),
+                socket.getRemoteSocketAddress());
         return socket;
     }
 
@@ -129,7 +130,9 @@ public abstract class FTPConnector implements Closeable {
         socket.setReceiveBufferSize(8 * 1024);
         socket.setSendBufferSize(8 * 1024);
         socket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to data socket {}", socket.getLocalAddress(), socket.getInetAddress());
+        logger.info("connected to data socket {} -> {}",
+                socket.getLocalSocketAddress(),
+                socket.getRemoteSocketAddress());
         return socket;
     }
 

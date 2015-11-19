@@ -276,7 +276,6 @@ public class FTPClient {
      * Builds and initializes the client.
      */
     public FTPClient() {
-        this.connector = new DirectConnector(communicationlogger);
         addListParser(new UnixListParser());
         addListParser(new DOSListParser());
         addListParser(new EPLFListParser());
@@ -360,9 +359,7 @@ public class FTPClient {
         }
         synchronized (lock) {
             if (connected) {
-                throw new IllegalArgumentException(
-                        "The security level of the connection can't be "
-                                + "changed while the client is connected");
+                throw new IllegalArgumentException("The security level of the connection can't be changed while the client is connected");
             }
             this.security = security;
         }
@@ -805,6 +802,10 @@ public class FTPClient {
             }
             Socket connection = null;
             try {
+                if (this.connector != null) {
+                    this.connector.close();
+                }
+                this.connector = new DirectConnector(communicationlogger);
                 connection = connector.connectForCommunicationChannel(host, port);
                 if (security == SECURITY_FTPS) {
                     connection = ssl(connection, host, port);
@@ -851,6 +852,7 @@ public class FTPClient {
      */
     public void close() {
         connector.close();
+        connector = null;
     }
 
     /**
@@ -1073,14 +1075,12 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void logout() throws IOException, FTPException {
+    public void rein() throws IOException, FTPException {
         ensureConnected();
         synchronized (lock) {
             communication.sendFTPCommand("REIN");
             FTPReply r = communication.readFTPReply();
-            if (!r.isSuccessCode()) {
-                throw new FTPException(r);
-            } else {
+            if (r.isSuccessCode()) {
                 stopAutoNoopTimer();
                 authenticated = false;
                 username = null;

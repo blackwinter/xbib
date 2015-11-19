@@ -30,6 +30,7 @@ public class FTPTest {
             logger.info(f.getAbsolutePath());
             client.retr(entries.get("textfile.txt"), fileOutputStream);
             fileOutputStream.close();
+            client.rein();
             client.disconnect(true);
         } catch (FTPException | IOException e) {
             logger.warn(e.getMessage());
