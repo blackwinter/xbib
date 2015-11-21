@@ -60,23 +60,30 @@ import java.util.Stack;
  */
 public class JsonXmlStreamer {
 
-    private QName root = new QName("root");
+    private final JsonFactory jsonFactory;
 
-    private XmlNamespaceContext context = XmlNamespaceContext.getDefaultInstance();
+    private final XMLEventFactory eventFactory;
 
-    private final static JsonFactory jsonFactory = new JsonFactory();
+    private final XMLOutputFactory outputFactory;
 
-    private final static XMLEventFactory eventFactory = XMLEventFactory.newInstance();
+    private QName root;
 
-    private final static XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+    private XmlNamespaceContext context;
 
-    static {
-        outputFactory.setProperty("javax.xml.stream.isNamespaceAware", Boolean.TRUE);
-    }
-
-    private Stack<QName> elements = new Stack<QName>();
+    private Stack<QName> elements;
 
     public JsonXmlStreamer() {
+        context = XmlNamespaceContext.getDefaultInstance();
+        root = new QName("root");
+        eventFactory = XMLEventFactory.newInstance();
+        outputFactory = XMLOutputFactory.newInstance();
+        try {
+            outputFactory.setProperty("javax.xml.stream.isNamespaceAware", Boolean.TRUE);
+        } catch (IllegalArgumentException e) {
+            // ignore
+        }
+        jsonFactory = new JsonFactory();
+        elements = new Stack<QName>();
     }
 
     public JsonXmlStreamer root(QName root) {

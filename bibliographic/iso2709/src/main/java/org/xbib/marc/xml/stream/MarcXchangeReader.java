@@ -67,7 +67,7 @@ import java.util.Stack;
  */
 public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXchangeConstants, MarcXchangeListener {
 
-    private final Reader reader;
+    private XMLEventReader xmlEventReader;
 
     private Stack<Field> stack = new Stack<Field>();
 
@@ -109,8 +109,13 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
         this(new InputStreamReader(in, "UTF-8"));
     }
 
-    public MarcXchangeReader(Reader reader) {
-        this.reader = reader;
+    public MarcXchangeReader(Reader reader) throws IOException {
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        try {
+            this.xmlEventReader = inputFactory.createXMLEventReader(reader);
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
     }
 
     public MarcXchangeReader setMarcXchangeListener(String type, MarcXchangeListener listener) {
@@ -165,8 +170,6 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
 
     public void parse() throws IOException {
         try {
-            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-            XMLEventReader xmlEventReader = inputFactory.createXMLEventReader(reader);
             while (xmlEventReader.hasNext()) {
                 add(xmlEventReader.nextEvent());
             }

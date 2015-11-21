@@ -44,6 +44,8 @@ public class FTPCommunicationChannel {
      */
     private NetworkVirtualTerminalASCIIWriter writer;
 
+    private Socket dataSocket;
+
     /**
      * It builds a FTP communication channel.
      *

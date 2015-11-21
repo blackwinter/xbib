@@ -29,15 +29,10 @@ public class MarcXchangeEventConsumerTest extends StreamTester {
             MarcXchangeReader consumer = new MarcXchangeReader(in)
                     .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd")
                     .setMarcXchangeListener(writer);
-            XMLEventReader xmlReader = XMLInputFactory.newInstance().createXMLEventReader(in);
-            while (xmlReader.hasNext()) {
-                XMLEvent event = xmlReader.nextEvent();
-                consumer.add(event);
-            }
+            consumer.parse();
         } catch (Exception e) {
             throw new IOException(e);
         }
-
         writer.endCollection();
         writer.endDocument();
         sw.close();

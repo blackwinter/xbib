@@ -51,7 +51,7 @@ public class SearchRetrieveTest {
     private final static ConnectionService<ZSession> service = ConnectionService.getInstance();
 
     @Test
-    public void testSearchRetrieve() {
+    public void testCopac() {
         String address = "z3950://z3950.copac.ac.uk:210";
         String database = "COPAC";
         String resultSetName = "default";
