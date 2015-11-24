@@ -68,7 +68,6 @@ import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;

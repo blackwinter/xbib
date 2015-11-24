@@ -476,6 +476,11 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
+                <artifactId>xbib-content-csv</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xbib</groupId>
                 <artifactId>xbib-content-rdf</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -521,7 +526,7 @@
             </dependency>
             <dependency>
                 <groupId>org.xbib</groupId>
-                <artifactId>xbib-util</artifactId>
+                <artifactId>xbib-time</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -751,6 +756,7 @@
         <module>datastructures/forkjoin</module>
 
         <module>content/common</module>
+        <module>content/csv</module>
         <module>content/xml</module>
         <module>content/json</module>
         <module>content/rdf</module>
@@ -773,7 +779,7 @@
         <module>matching</module>
         <module>etl</module>
 
-        <module>util</module>
+        <module>time</module>
         <module>tools</module>
 
     </modules>

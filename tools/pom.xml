@@ -49,7 +49,12 @@
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-util</artifactId>
+            <artifactId>xbib-time</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.xbib</groupId>
+            <artifactId>xbib-content-csv</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -86,6 +91,36 @@
             <groupId>org.xbib.elasticsearch.plugin</groupId>
             <artifactId>elasticsearch-helper</artifactId>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>serializer</artifactId>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <type>jar</type>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
