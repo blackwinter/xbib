@@ -32,7 +32,7 @@ public class FTPTest {
             File f = File.createTempFile("ftpfile.", ".bin");
             FileOutputStream fileOutputStream = new FileOutputStream(f);
             logger.info(f.getAbsolutePath());
-            client.retr(entries.get("test.txt"), fileOutputStream);
+            client.retr("test.txt", fileOutputStream);
             fileOutputStream.close();
             client.rein();
             client.disconnect(true);

@@ -1967,27 +1967,20 @@ public class FTPClient {
             communication.sendFTPCommand("APPE " + name);
             try {
                 Socket socket = connection.openDataConnection();
-                // Change the operation status.
                 synchronized (abortLock) {
                     ongoingDataTransfer = true;
                     aborted = false;
                     consumeAborCommandReply = false;
                 }
-                // Upload the stream.
                 try {
-                    // Skips.
                     inputStream.skip(streamOffset);
-                    // Opens the data transfer connection.
                     outputStream = socket.getOutputStream();
-                    // MODE Z enabled?
                     if (modezEnabled) {
                         outputStream = new DeflaterOutputStream(outputStream);
                     }
-                    // Listeners.
                     if (listener != null) {
                         listener.started();
                     }
-                    // Let's do it!
                     if (tp == TYPE_TEXTUAL) {
                         Reader reader = new InputStreamReader(inputStream);
                         Writer writer = new OutputStreamWriter(
@@ -2027,7 +2020,6 @@ public class FTPClient {
                         }
                     }
                 } finally {
-                    // Closing stream and data connection.
                     if (outputStream != null) {
                         try {
                             outputStream.close();
@@ -2081,14 +2073,14 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param out      The local file.
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream out)
+    public void retr(String name, OutputStream out)
             throws IOException, FTPException {
-        retr(entry, out, 0, null);
+        retr(name, out, 0, null);
     }
 
     /**
@@ -2099,15 +2091,15 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param output      The local file.
      * @param listener       The listener for the operation. Could be null.
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream output, FTPDataTransferListener listener)
+    public void retr(String name, OutputStream output, FTPDataTransferListener listener)
             throws IOException, FTPException {
-        retr(entry, output, 0, listener);
+        retr(name, output, 0, listener);
     }
 
     /**
@@ -2119,7 +2111,7 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param output      The local file.
      * @param restartAt      The restart point (number of bytes already downloaded). Use
      *                       {@link FTPClient#isResumeSupported()} to check if the server
@@ -2127,9 +2119,9 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream output, long restartAt)
+    public void retr(String name, OutputStream output, long restartAt)
             throws IOException, FTPException {
-        retr(entry, output, restartAt, null);
+        retr(name, output, restartAt, null);
     }
 
     /**
@@ -2140,7 +2132,7 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry     The name of the remote file.
+     * @param name     The name of the remote file.
      * @param outputStream The destination stream of data read during the download.
      * @param restartAt    The restart point (number of bytes already downloaded). Use
      *                     {@link FTPClient#isResumeSupported()} to check if the server
@@ -2149,15 +2141,14 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream outputStream,
+    public void retr(String name, OutputStream outputStream,
                          long restartAt, FTPDataTransferListener listener)
             throws IOException, FTPException {
-        if (entry == null) {
+        if (name == null) {
             return;
         }
         ensureConnected();
         synchronized (lock) {
-            String name = entry.getName();
             int tp = type;
             if (tp == TYPE_TEXTUAL) {
                 communication.sendFTPCommand("TYPE A");
