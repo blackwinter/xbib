@@ -90,9 +90,8 @@ public abstract class FTPConnector implements Closeable {
     protected Socket createCommSocket(String host, int port)
             throws IOException {
         if (commSocket != null) {
-            logger.warn("comm socket not null?");
             if (commSocket.isClosed()) {
-                logger.info("closing comm socket {}", commSocket.getLocalAddress());
+                logger.debug("closing comm socket {}", commSocket.getLocalAddress());
                 commSocket.close();
             }
         }
@@ -102,7 +101,7 @@ public abstract class FTPConnector implements Closeable {
         commSocket.setSoTimeout(readTimeout * 1000);
         commSocket.setSoLinger(true, closeTimeout);
         commSocket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to comm socket {} -> {}",
+        logger.debug("connected to comm socket {} -> {}",
                 commSocket.getLocalSocketAddress(),
                 commSocket.getRemoteSocketAddress());
         return commSocket;
@@ -128,7 +127,7 @@ public abstract class FTPConnector implements Closeable {
             throws IOException {
         if (dataSocket != null) {
             if (!dataSocket.isClosed()) {
-                logger.info("closing data socket {}", dataSocket.getLocalAddress());
+                logger.debug("closing data socket {}", dataSocket.getLocalAddress());
                 dataSocket.close();
             }
         }
@@ -139,7 +138,7 @@ public abstract class FTPConnector implements Closeable {
         dataSocket.setReceiveBufferSize(8 * 1024);
         dataSocket.setSendBufferSize(8 * 1024);
         dataSocket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to data socket {} -> {}",
+        logger.debug("connected to data socket {} -> {}",
                 dataSocket.getLocalSocketAddress(),
                 dataSocket.getRemoteSocketAddress());
         return dataSocket;
@@ -154,7 +153,7 @@ public abstract class FTPConnector implements Closeable {
             try {
                 if (!commSocket.isClosed()) {
                     commSocket.close();
-                    logger.info("comm socket closed {}", commSocket.getLocalAddress());
+                    logger.debug("comm socket closed {}", commSocket.getLocalAddress());
                 }
             } catch (Throwable t) {
                 logger.error(t.getMessage(), t);
@@ -164,7 +163,7 @@ public abstract class FTPConnector implements Closeable {
             try {
                 if (!dataSocket.isClosed()) {
                     dataSocket.close();
-                    logger.info("data socket closed {}", dataSocket.getLocalAddress());
+                    logger.debug("data socket closed {}", dataSocket.getLocalAddress());
                 }
             } catch (Throwable t) {
                 logger.error(t.getMessage(), t);

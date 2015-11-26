@@ -1528,7 +1528,7 @@ public class FTPClient {
                     try {
                         if (!socket.isClosed()) {
                             socket.close();
-                            logger.info("socket close {}", socket.getLocalAddress());
+                            logger.debug("socket close {}", socket.getLocalAddress());
                         }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
@@ -1616,7 +1616,6 @@ public class FTPClient {
             FTPReply r = communication.readFTPReply();
             touchAutoNoopTimer();
             if (!r.isSuccessCode()) {
-                logger.info("throwing exception 1");
                 throw new FTPException(r);
             }
             List<String> lines = new ArrayList<>();
@@ -1665,7 +1664,7 @@ public class FTPClient {
                     try {
                         if (!socket.isClosed()) {
                             socket.close();
-                            logger.info("socket close {}", socket.getLocalAddress());
+                            logger.debug("socket close {}", socket.getLocalAddress());
                         }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
@@ -1804,7 +1803,7 @@ public class FTPClient {
                     inputStream.skip(streamOffset);
                     outputStream = new BufferedOutputStream(socket.getOutputStream(), SEND_AND_RECEIVE_BUFFER_SIZE);
                     if (modezEnabled) {
-                        logger.info("using compressed output");
+                        logger.debug("using compressed output");
                         outputStream = new DeflaterOutputStream(outputStream);
                     }
                     if (listener != null) {
@@ -1826,9 +1825,7 @@ public class FTPClient {
                         byte[] buffer = new byte[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
                         while ((l = inputStream.read(buffer)) != -1) {
-                            //logger.info("read buffer {}", l);
                             outputStream.write(buffer, 0, l);
-                            //logger.info("wrote buffer {}", l);
                             if (listener != null) {
                                 listener.transferred(l);
                             }
@@ -1860,7 +1857,7 @@ public class FTPClient {
                     try {
                         if (!socket.isClosed()) {
                             socket.close();
-                            logger.info("socket closed {}", socket.getLocalAddress());
+                            logger.debug("socket closed {}", socket.getLocalAddress());
                         }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
@@ -2030,7 +2027,7 @@ public class FTPClient {
                     try {
                         if (!socket.isClosed()) {
                             socket.close();
-                            logger.info("socket closed {}", socket.getLocalAddress());
+                            logger.debug("socket closed {}", socket.getLocalAddress());
                         }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
@@ -2234,7 +2231,7 @@ public class FTPClient {
                     try {
                         if (!socket.isClosed()) {
                             socket.close();
-                            logger.info("socket closed {}", socket.getLocalAddress());
+                            logger.debug("socket closed {}", socket.getLocalAddress());
                         }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);

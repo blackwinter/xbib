@@ -123,7 +123,7 @@ public class FTPCommunicationChannel {
      * @throws IOException If an I/O error occurs.
      */
     public void sendFTPCommand(String command) throws IOException {
-        logger.info("{}", command);
+        logger.debug("{}", command);
         writer.writeLine(command);
         for (FTPCommunicationListener l : communicationListeners) {
             l.sent(command);
@@ -144,7 +144,7 @@ public class FTPCommunicationChannel {
             String statement;
             do {
                 statement = read();
-                logger.info("{}", statement);
+                logger.debug("{}", statement);
             } while (statement.trim().length() == 0);
             if (statement.startsWith("\n")) {
                 statement = statement.substring(1);

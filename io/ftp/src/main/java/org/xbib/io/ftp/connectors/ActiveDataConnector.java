@@ -31,7 +31,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
                     serverSocket = new ServerSocket();
                     serverSocket.setReceiveBufferSize(8192);
                     serverSocket.bind(new InetSocketAddress(port));
-                    logger.info("bind server socket {} {}",
+                    logger.debug("bind server socket {} {}",
                             serverSocket.getLocalSocketAddress(),
                             serverSocket.getLocalPort());
                     done = true;
@@ -58,7 +58,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
     public void run() {
         int timeout = 15000;
         try {
-            logger.info("waiting for accept on socket {} {}",
+            logger.debug("waiting for accept on socket {} {}",
                     serverSocket.getLocalSocketAddress(),
                     serverSocket.getLocalPort());
             serverSocket.setSoTimeout(timeout);
@@ -82,7 +82,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
             try {
                 if (!socket.isClosed()) {
                     socket.close();
-                    logger.info("socket closed {}", socket.getLocalAddress());
+                    logger.debug("socket closed {}", socket.getLocalAddress());
                 }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
@@ -92,7 +92,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
             try {
                 if (!serverSocket.isClosed()) {
                     serverSocket.close();
-                    logger.info("server socket closed {}", serverSocket.getInetAddress());
+                    logger.debug("server socket closed {}", serverSocket.getInetAddress());
                 }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);

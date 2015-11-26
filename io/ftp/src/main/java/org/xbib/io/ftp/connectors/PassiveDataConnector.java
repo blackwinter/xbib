@@ -34,7 +34,7 @@ public class PassiveDataConnector implements DataConnector {
             try {
                 if (!socket.isClosed()) {
                     socket.close();
-                    logger.info("passive data socket closed {}", socket.getLocalAddress());
+                    logger.debug("passive data socket closed {}", socket.getLocalAddress());
                 }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
