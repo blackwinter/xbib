@@ -1,19 +1,3 @@
-/*
- * Copyright 2002-2004 Jeremias Maerki.
- * Copyright 2005 Jeremias Maerki, Dietmar B�rkle.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.impl.code128;
 
 import org.xbib.graphics.barcode.BarcodeDimension;
@@ -27,7 +11,6 @@ import org.xbib.graphics.barcode.output.CanvasProvider;
 /**
  * This class is an implementation of the Code 128 barcode.
  * 
- * @author Jeremias Maerki, Dietmar B�rkle
  */
 public class EAN128Generator extends Code128Generator {
 
@@ -112,15 +95,6 @@ public class EAN128Generator extends Code128Generator {
         groupSeparator = c;
         impl.setGroupSeparator(c);
     }
-    
-    /*
-    public EAN128LogicImpl getImpl() {
-        return impl;
-    }
-
-    public void setImpl(EAN128LogicImpl impl) {
-        this.impl = impl;
-    }*/
 
     /**
      * @return the message template with the fields for the EAN message

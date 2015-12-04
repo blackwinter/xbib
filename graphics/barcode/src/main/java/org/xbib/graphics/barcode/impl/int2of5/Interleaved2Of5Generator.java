@@ -1,20 +1,6 @@
-/*
- * Copyright 2002-2004 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.impl.int2of5;
 
+import org.xbib.common.settings.Settings;
 import org.xbib.graphics.barcode.BarcodeDimension;
 import org.xbib.graphics.barcode.ChecksumMode;
 import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
@@ -26,9 +12,6 @@ import org.xbib.graphics.barcode.output.CanvasProvider;
 
 /**
  * This class is an implementation of the Interleaved 2 of 5 barcode.
- * 
- * @author Jeremias Maerki
- * @version $Id: Interleaved2Of5Bean.java,v 1.5 2008/05/13 13:00:46 jmaerki Exp $
  */
 public class Interleaved2Of5Generator extends AbstractBarcodeGenerator {
 
@@ -67,7 +50,12 @@ public class Interleaved2Of5Generator extends AbstractBarcodeGenerator {
     public void setDisplayChecksum(boolean value) {
         this.displayChecksum = value;
     }
-    
+
+    @Override
+    public void configure(Settings settings) throws Exception {
+
+    }
+
     /**
      * @see BarcodeGenerator#generateBarcode(CanvasProvider, String)
      */

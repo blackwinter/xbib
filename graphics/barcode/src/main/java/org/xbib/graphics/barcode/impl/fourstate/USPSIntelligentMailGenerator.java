@@ -1,5 +1,6 @@
 package org.xbib.graphics.barcode.impl.fourstate;
 
+import org.xbib.common.settings.Settings;
 import org.xbib.graphics.barcode.BarcodeDimension;
 import org.xbib.graphics.barcode.HumanReadablePlacement;
 import org.xbib.graphics.barcode.TextAlignment;
@@ -9,7 +10,6 @@ import org.xbib.graphics.barcode.tools.UnitConv;
 
 /**
  * Implements the USPS Intelligent Mail Barcode (Four State Customer Barcode).
- * 
  */
 public class USPSIntelligentMailGenerator extends AbstractFourStateGenerator {
 
@@ -39,7 +39,6 @@ public class USPSIntelligentMailGenerator extends AbstractFourStateGenerator {
         setAscenderHeight(UnitConv.in2mm(DEFAULT_ASCENDER_HEIGHT_INCH)); //0.0435 - 0.0555in
     }
 
-    /** {@inheritDoc} */
     public double getVerticalQuietZone() {
         if (this.quietZoneVertical != null) {
             return this.quietZoneVertical.doubleValue();
@@ -56,8 +55,12 @@ public class USPSIntelligentMailGenerator extends AbstractFourStateGenerator {
     public void setVerticalQuietZone(double height) {
         this.quietZoneVertical = new Double(height);
     }
-    
-    /** {@inheritDoc} */
+
+    @Override
+    public void configure(Settings settings) throws Exception {
+
+    }
+
     public void generateBarcode(CanvasProvider canvas, String msg) {
         if ((msg == null) 
                 || (msg.length() == 0)) {
@@ -72,7 +75,6 @@ public class USPSIntelligentMailGenerator extends AbstractFourStateGenerator {
         impl.generateBarcodeLogic(handler, msg);
     }
 
-    /** {@inheritDoc} */
     public BarcodeDimension calcDimensions(String msg) {
         final int barCount = 65;
         final double width = (barCount * getModuleWidth()) 

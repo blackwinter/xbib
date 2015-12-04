@@ -15,7 +15,6 @@ import org.w3c.dom.Element;
 
 /**
  * Implementation that outputs to a W3C DOM.
- *
  */
 public class SVGCanvasProvider extends AbstractSVGGeneratingCanvasProvider {
 
@@ -157,11 +156,10 @@ public class SVGCanvasProvider extends AbstractSVGGeneratingCanvasProvider {
         return frag;
     }
 
-    /** {@inheritDoc} */
     public void establishDimensions(BarcodeDimension dim) {
         super.establishDimensions(dim);
         int orientation = BarcodeDimension.normalizeOrientation(getOrientation());
-        Element svg = (Element)doc.getDocumentElement();
+        Element svg = doc.getDocumentElement();
         svg.setAttribute("width", addUnit(dim.getWidthPlusQuiet(orientation)));
         svg.setAttribute("height", addUnit(dim.getHeightPlusQuiet(orientation)));
         String w = getDecimalFormat().format(dim.getWidthPlusQuiet(orientation));

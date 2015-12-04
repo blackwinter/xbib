@@ -8,7 +8,6 @@ import org.xbib.common.settings.Settings;
 
 /**
  * This class is an implementation of the Code 128 barcode.
- *
  */
 public class Code128 extends ConfigurableBarcodeGenerator {
 
@@ -17,13 +16,12 @@ public class Code128 extends ConfigurableBarcodeGenerator {
     }
 
     public void configure(Settings cfg) throws Exception {
-        //Module width (MUST ALWAYS BE FIRST BECAUSE QUIET ZONE MAY DEPEND ON IT)
-        Length mw = new Length(cfg.getChild("module-width").getValue("0.21mm"), "mm");
+        Length mw = new Length(cfg.get("module-width", "0.21mm"), "mm");
         getCode128Bean().setModuleWidth(mw.getValueAsMillimeter());
 
         super.configure(cfg);
 
-        String codesets = cfg.getChild("codesets").getValue(null);
+        String codesets = cfg.get("codesets");
         if (codesets != null) {
             codesets = codesets.toUpperCase();
             int bits = 0;

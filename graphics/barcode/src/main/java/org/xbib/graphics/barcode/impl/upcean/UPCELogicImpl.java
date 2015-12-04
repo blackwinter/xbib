@@ -1,18 +1,4 @@
-/*
- * Copyright 2002-2004 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package org.xbib.graphics.barcode.impl.upcean;
 
 import org.xbib.graphics.barcode.BarGroup;
@@ -21,9 +7,6 @@ import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
 
 /**
  * This class is an implementation of the UPC-E barcode.
- * 
- * @author Jeremias Maerki
- * @version $Id: UPCELogicImpl.java,v 1.2 2004/10/24 11:45:53 jmaerki Exp $
  */
 public class UPCELogicImpl extends UPCEANLogicImpl {
 
@@ -69,7 +52,7 @@ public class UPCELogicImpl extends UPCEANLogicImpl {
             return null;
         }
         final byte check = Byte.parseByte(upca.substring(11, 12));
-        StringBuffer upce = new StringBuffer();
+        StringBuilder upce = new StringBuilder();
         upce.append(Byte.toString(numberSystem));
         try {
             String manufacturer = substring(upca, 1, 5);
@@ -78,7 +61,7 @@ public class UPCELogicImpl extends UPCEANLogicImpl {
             //Rule 1
             mtemp = substring(manufacturer, 2, 3);
             ptemp = substring(product, 0, 2);
-            if (("000|100|200".indexOf(mtemp) >= 0) 
+            if (("000|100|200".contains(mtemp))
                     && ("00".equals(ptemp))) {
                 upce.append(substring(manufacturer, 0, 2));
                 upce.append(substring(product, 2, 3));
@@ -86,7 +69,7 @@ public class UPCELogicImpl extends UPCEANLogicImpl {
             } else {
                 //Rule 2
                 ptemp = substring(product, 0, 3);
-                if (("300|400|500|600|700|800|900".indexOf(mtemp) >= 0) 
+                if (("300|400|500|600|700|800|900".contains(mtemp))
                         && ("000".equals(ptemp))) {
                     upce.append(substring(manufacturer, 0, 3));
                     upce.append(substring(product, 3, 2));
@@ -95,7 +78,7 @@ public class UPCELogicImpl extends UPCEANLogicImpl {
                     //Rule 3
                     mtemp = substring(manufacturer, 3, 2);
                     ptemp = substring(product, 0, 4);
-                    if (("10|20|30|40|50|60|70|80|90".indexOf(mtemp) >= 0) 
+                    if (("10|20|30|40|50|60|70|80|90".contains(mtemp))
                             && ("0000".equals(ptemp))) {
                         upce.append(substring(manufacturer, 0, 4));
                         upce.append(substring(product, 4, 1));

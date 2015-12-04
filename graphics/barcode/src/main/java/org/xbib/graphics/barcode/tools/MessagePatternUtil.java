@@ -20,7 +20,7 @@ public class MessagePatternUtil {
      */
     public static String applyCustomMessagePattern(String msg, String pattern) {
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
 
         // if there is no pattern then return the original message
         if ((pattern == null) || "".equals(pattern)
@@ -38,9 +38,9 @@ public class MessagePatternUtil {
 
         // iterate trough pattern chars
         boolean msgFinished = false;
-        for (int patternIndex = 0; patternIndex < patternBytes.length; patternIndex++) {
+        for (byte patternByte : patternBytes) {
 
-            currentPatternChar = (char) patternBytes[patternIndex];
+            currentPatternChar = (char) patternByte;
 
             // if the currentPatternChar is escape character and the
             // escapeCharEncountered flag is down
@@ -101,7 +101,6 @@ public class MessagePatternUtil {
      * Returns true if the input parameter is escape character
      * @param c char
      * @return boolean
-     * @author Dimitar Vlasev
      */
     private static boolean isEscapeChar(char c) {
         boolean result = false;

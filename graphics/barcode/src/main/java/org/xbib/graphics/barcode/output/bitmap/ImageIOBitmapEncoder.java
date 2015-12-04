@@ -1,18 +1,3 @@
-/*
- * Copyright 2002-2004,2010 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.output.bitmap;
 
 import java.awt.image.BufferedImage;
@@ -28,14 +13,11 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.xbib.graphics.barcode.tools.DebugUtil;
 import org.xbib.graphics.barcode.tools.MimeTypes;
 import org.xbib.graphics.barcode.tools.UnitConv;
 
 /**
  * BitmapEncoder implementation using ImageIO.
- *
- * @author Jeremias Maerki
  */
 public class ImageIOBitmapEncoder implements BitmapEncoder {
 
@@ -174,14 +156,6 @@ public class ImageIOBitmapEncoder implements BitmapEncoder {
         if (iiometa.isReadOnly()) {
             //System.out.println("Metadata is read-only");
             throw new IOException("Metadata is read-only. Cannot modify");
-        }
-    }
-
-    private void dumpMetadata(IIOMetadata iiometa) {
-        String[] metanames = iiometa.getMetadataFormatNames();
-        for (int j = 0; j < metanames.length; j++) {
-            System.out.println("--->" + metanames[j]);
-            DebugUtil.dumpNode(iiometa.getAsTree(metanames[j]));
         }
     }
 

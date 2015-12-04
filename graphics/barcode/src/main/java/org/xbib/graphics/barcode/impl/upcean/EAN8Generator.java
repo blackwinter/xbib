@@ -1,6 +1,7 @@
 
 package org.xbib.graphics.barcode.impl.upcean;
 
+import org.xbib.common.settings.Settings;
 import org.xbib.graphics.barcode.BarcodeDimension;
 
 /**
@@ -12,6 +13,11 @@ public class EAN8Generator extends UPCEANGenerator {
     /** @see org.xbib.graphics.barcode.impl.upcean.UPCEAN */
     public UPCEANLogicImpl createLogicImpl() {
         return new EAN8LogicImpl(getChecksumMode());
+    }
+
+    @Override
+    public void configure(Settings settings) throws Exception {
+
     }
 
     /** @see org.xbib.graphics.barcode.impl.upcean.UPCEAN */

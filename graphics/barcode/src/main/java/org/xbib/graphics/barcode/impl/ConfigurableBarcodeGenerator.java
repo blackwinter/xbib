@@ -66,7 +66,7 @@ public abstract class ConfigurableBarcodeGenerator implements BarcodeGenerator {
         elements.add("codesets"); //Code128
         elements.add("bearer-bar-width"); //ITF-14
         elements.add("bearer-box"); //ITF-14
-        BARCODE_ELEMENTS = (String[])elements.toArray(new String[elements.size()]);
+        BARCODE_ELEMENTS = elements.toArray(new String[elements.size()]);
     }
 
     protected AbstractBarcodeGenerator bean;

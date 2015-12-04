@@ -1,21 +1,6 @@
-/*
- * Copyright 2002-2005,2009 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.impl.code128;
 
-
+import org.xbib.common.settings.Settings;
 import org.xbib.graphics.barcode.BarcodeDimension;
 import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
 import org.xbib.graphics.barcode.impl.AbstractBarcodeGenerator;
@@ -25,8 +10,6 @@ import org.xbib.graphics.barcode.output.CanvasProvider;
 
 /**
  * This class is an implementation of the Code 128 barcode.
- *
- * @version $Id: Code128Bean.java,v 1.9 2009/02/18 16:09:04 jmaerki Exp $
  */
 public class Code128Generator extends AbstractBarcodeGenerator {
 
@@ -66,12 +49,10 @@ public class Code128Generator extends AbstractBarcodeGenerator {
         return this.codeset;
     }
 
-    /** {@inheritDoc} */
     protected boolean hasFontDescender() {
         return true;
     }
 
-    /** {@inheritDoc} */
     public double getBarWidth(int width) {
         if ((width >= 1) && (width <= 4)) {
             return width * moduleWidth;
@@ -80,7 +61,6 @@ public class Code128Generator extends AbstractBarcodeGenerator {
         }
     }
 
-    /** {@inheritDoc} */
     public BarcodeDimension calcDimensions(String msg) {
         Code128LogicImpl impl = createLogicImpl();
         int msgLen = 0;
@@ -89,7 +69,7 @@ public class Code128Generator extends AbstractBarcodeGenerator {
 
         final double width = ((msgLen * 11) + 13) * getModuleWidth();
         final double qz = (hasQuietZone() ? quietZone : 0);
-        final double vqz = (hasQuietZone() ? quietZoneVertical.doubleValue() : 0);
+        final double vqz = (hasQuietZone() ? quietZoneVertical : 0);
 
         return new BarcodeDimension(width, getHeight(),
                 width + (2 * qz), getHeight() + (2 * vqz),
@@ -98,6 +78,11 @@ public class Code128Generator extends AbstractBarcodeGenerator {
 
     private Code128LogicImpl createLogicImpl() {
         return new Code128LogicImpl(getCodeset());
+    }
+
+    @Override
+    public void configure(Settings settings) throws Exception {
+
     }
 
     /** {@inheritDoc} */

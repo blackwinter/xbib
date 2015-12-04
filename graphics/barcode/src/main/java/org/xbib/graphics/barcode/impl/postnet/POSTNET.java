@@ -13,45 +13,36 @@ import org.xbib.common.settings.Settings;
  */
 public class POSTNET extends ConfigurableBarcodeGenerator  {
 
-    /** Create a new instance. */
     public POSTNET() {
         this.bean = new POSTNETGenerator();
     }
     
-    /** {@inheritDoc} */
     public void configure(Settings cfg) throws Exception {
-        //Module width (MUST ALWAYS BE FIRST BECAUSE QUIET ZONE MAY DEPEND ON IT)
-        Length mw = new Length(cfg.getChild("module-width").getValue(
-                POSTNETGenerator.DEFAULT_MODULE_WIDTH + Length.INCH), Length.MM);
+        Length mw = new Length(cfg.get("module-width", POSTNETGenerator.DEFAULT_MODULE_WIDTH + Length.INCH), Length.MM);
         getPOSTNETBean().setModuleWidth(mw.getValueAsMillimeter());
 
         super.configure(cfg);
     
         //Checksum mode    
         getPOSTNETBean().setChecksumMode(ChecksumMode.byName(
-            cfg.getChild("checksum").getValue(ChecksumMode.CP_AUTO.getName())));
+            cfg.get("checksum", ChecksumMode.CP_AUTO.getName())));
     
         //Inter-character gap width    
-        Length igw = new Length(cfg.getChild("interchar-gap-width").getValue(
-                POSTNETGenerator.DEFAULT_MODULE_WIDTH + Length.INCH), Length.MM);
+        Length igw = new Length(cfg.get("interchar-gap-width", POSTNETGenerator.DEFAULT_MODULE_WIDTH + Length.INCH), Length.MM);
         getPOSTNETBean().setIntercharGapWidth(igw.getValueAsMillimeter());
 
-        Length h = new Length(cfg.getChild("tall-bar-height").getValue(
-                POSTNETGenerator.DEFAULT_TALL_BAR_HEIGHT + Length.INCH), Length.MM);
+        Length h = new Length(cfg.get("tall-bar-height", POSTNETGenerator.DEFAULT_TALL_BAR_HEIGHT + Length.INCH), Length.MM);
         getPOSTNETBean().setBarHeight(h.getValueAsMillimeter());
         
-        Length hbh = new Length(cfg.getChild("short-bar-height").getValue(
-                POSTNETGenerator.DEFAULT_SHORT_BAR_HEIGHT + Length.INCH), Length.MM);
+        Length hbh = new Length(cfg.get("short-bar-height", POSTNETGenerator.DEFAULT_SHORT_BAR_HEIGHT + Length.INCH), Length.MM);
         getPOSTNETBean().setShortBarHeight(hbh.getValueAsMillimeter());
 
         getPOSTNETBean().setBaselinePosition(BaselineAlignment.byName(
-            cfg.getChild("baseline-alignment").getValue(BaselineAlignment.ALIGN_BOTTOM.getName())));
+            cfg.get("baseline-alignment", BaselineAlignment.ALIGN_BOTTOM.getName())));
 
-        Settings hr = cfg.getChild("human-readable", false);
-        if (hr != null) {
+        if (cfg.containsSetting("human-readable")) {
             //Display checksum in hr-message or not
-            getPOSTNETBean().setDisplayChecksum(
-                    hr.getChild("display-checksum").getValueAsBoolean(false));
+            getPOSTNETBean().setDisplayChecksum(cfg.getAsBoolean("human-readable.display-checksum", false));
         }
     }
    

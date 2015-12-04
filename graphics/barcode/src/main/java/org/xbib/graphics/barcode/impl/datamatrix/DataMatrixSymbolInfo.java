@@ -1,21 +1,3 @@
-/*
- * Copyright 2006 Jeremias Maerki
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* $Id: DataMatrixSymbolInfo.java,v 1.5 2008/09/22 08:59:08 jmaerki Exp $ */
-
 package org.xbib.graphics.barcode.impl.datamatrix;
 
 import java.awt.Dimension;
@@ -23,7 +5,6 @@ import java.awt.Dimension;
 /**
  * Symbol info table for DataMatrix.
  *
- * @version $Id: DataMatrixSymbolInfo.java,v 1.5 2008/09/22 08:59:08 jmaerki Exp $
  */
 public class DataMatrixSymbolInfo {
 
@@ -209,15 +190,12 @@ public class DataMatrixSymbolInfo {
         return rsBlockError;
     }
 
-    /** @see java.lang.Object#toString() */
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-        sb.append(rectangular ? "Rectangular Symbol:" : "Square Symbol:");
-        sb.append(" data region " + matrixWidth + "x" + matrixHeight);
-        sb.append(", symbol size " + getSymbolWidth() + "x" + getSymbolHeight());
-        sb.append(", symbol data size " + getSymbolDataWidth() + "x" + getSymbolDataHeight());
-        sb.append(", codewords " + dataCapacity + "+" + errorCodewords);
-        return sb.toString();
+        return (rectangular ? "Rectangular Symbol:" : "Square Symbol:") +
+                " data region " + matrixWidth + "x" + matrixHeight +
+                ", symbol size " + getSymbolWidth() + "x" + getSymbolHeight() +
+                ", symbol data size " + getSymbolDataWidth() + "x" + getSymbolDataHeight() +
+                ", codewords " + dataCapacity + "+" + errorCodewords;
     }
 
     private static class DataMatrixSymbolInfo144 extends DataMatrixSymbolInfo {

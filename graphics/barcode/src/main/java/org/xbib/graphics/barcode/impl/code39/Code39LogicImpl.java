@@ -1,18 +1,4 @@
-/*
- * Copyright 2002-2004 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package org.xbib.graphics.barcode.impl.code39;
 
 import org.xbib.graphics.barcode.BarGroup;
@@ -21,10 +7,6 @@ import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
 
 /**
  * This class is an implementation of the Code39 barcode.
- *
- * @author Jeremias Maerki
- * @todo Add ASCII-7bit encoding table
- * @version $Id: Code39LogicImpl.java,v 1.5 2009/02/20 09:33:43 jmaerki Exp $
  */
 public class Code39LogicImpl {
 
@@ -253,7 +235,7 @@ public class Code39LogicImpl {
      * @param c the character to encode
      */
     protected void encodeChar(ClassicBarcodeLogicHandler logic, char c) {
-        logic.startBarGroup(BarGroup.MSG_CHARACTER, new Character(c).toString());
+        logic.startBarGroup(BarGroup.MSG_CHARACTER, Character.toString(c));
         for (byte i = 0; i < 9; i++) {
             int width = widthAt(c, i);
             boolean black = (i % 2 == 0);
@@ -321,7 +303,7 @@ public class Code39LogicImpl {
         logic.startBarcode(sb.toString(), displayMsg);
 
         //Start character
-        logic.startBarGroup(BarGroup.START_CHARACTER, new Character(STARTSTOP).toString());
+        logic.startBarGroup(BarGroup.START_CHARACTER, Character.toString(STARTSTOP));
         encodeChar(logic, STARTSTOP);
         logic.endBarGroup();
 
@@ -338,7 +320,7 @@ public class Code39LogicImpl {
         addIntercharacterGap(logic);
 
         //Start character
-        logic.startBarGroup(BarGroup.STOP_CHARACTER, new Character(STARTSTOP).toString());
+        logic.startBarGroup(BarGroup.STOP_CHARACTER, Character.toString(STARTSTOP));
         encodeChar(logic, STARTSTOP);
         logic.endBarGroup();
 

@@ -1,20 +1,3 @@
-/*
- * Copyright 2005 Dietmar B�rkle.
- * generateBarcodeLogic:
- * Copyright 2002-2004 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.impl.code128;
 
 import java.util.StringTokenizer;
@@ -24,8 +7,6 @@ import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
 
 /**
  * This class is an implementation of the EAN 128 barcode.
- *
- * @author Dietmar B�rkle, Jeremias Maerki (generateBarcodeLogic)
  */
 public class EAN128LogicImpl { //extends Code128LogicImpl{
     private static final byte MAX_LENGTH = 48; // Max according to EAN128 specification.
@@ -93,7 +74,6 @@ public class EAN128LogicImpl { //extends Code128LogicImpl{
      * Encodes a message into an array of character set indexes.
      * @param msg the message to encode
      * @return the requested array of character set indexes
-     * @see #getEncoder()
      */
     public int[] getEncodedMessage(String msg) {
         setMessage(msg);
@@ -110,8 +90,8 @@ public class EAN128LogicImpl { //extends Code128LogicImpl{
 
         Code128LogicImpl c128 = new Code128LogicImpl();
         logic.startBarcode(msg, getHumanReadableMsg());
-        for (int i = 0; i < encodedMsg.length; i++) {
-            c128.encodeChar(logic, encodedMsg[i]);
+        for (int anEncodedMsg : encodedMsg) {
+            c128.encodeChar(logic, anEncodedMsg);
         }
 
         //Calculate checksum
@@ -400,23 +380,14 @@ public class EAN128LogicImpl { //extends Code128LogicImpl{
             throw new RuntimeException("Internal error");
         }
     }
-    /**
-     * @return
-     */
     public char getGroupSeparator() {
         return groupSeparator;
     }
 
-    /**
-     * @param c
-     */
     public void setGroupSeparator(char c) {
         groupSeparator = c;
     }
 
-    /**
-     * @param string
-     */
     public void setTemplate(String string) {
         EAN128AI[] newTemplates = null;
         if (string == null || string.trim().length() == 0) {
@@ -434,30 +405,18 @@ public class EAN128LogicImpl { //extends Code128LogicImpl{
         }
         ais = newTemplates;
     }
-    /**
-     * @return
-     */
     public char getCheckDigitMarker() {
         return checkDigitMarker;
     }
 
-    /**
-     * @param c
-     */
     public void setCheckDigitMarker(char c) {
         checkDigitMarker = c;
     }
 
-    /**
-     * @return
-     */
     public boolean isOmitBrackets() {
         return omitBrackets;
     }
 
-    /**
-     * @param b
-     */
     public void setOmitBrackets(boolean b) {
         omitBrackets = b;
     }

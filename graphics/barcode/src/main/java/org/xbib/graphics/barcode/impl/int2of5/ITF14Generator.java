@@ -1,21 +1,3 @@
-/*
- * Copyright 2008 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* $Id: ITF14Bean.java,v 1.1 2009/02/19 10:14:54 jmaerki Exp $ */
-
 package org.xbib.graphics.barcode.impl.int2of5;
 
 import org.xbib.graphics.barcode.BarcodeDimension;
@@ -29,7 +11,6 @@ import org.xbib.graphics.barcode.output.CanvasProvider;
  * <a href="http://www.gs1.org">GS1 standards organization</a>).
  * ITF-14 is basically an Interleaved 2 of 5 barcode with an added, so-called bearer bar.
  *
- * @version $Id: ITF14Bean.java,v 1.1 2009/02/19 10:14:54 jmaerki Exp $
  */
 public class ITF14Generator extends Interleaved2Of5Generator {
 

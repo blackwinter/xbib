@@ -24,14 +24,13 @@ public class Code39 extends ConfigurableBarcodeGenerator {
     
         //Checksum mode    
         getCode39Bean().setChecksumMode(ChecksumMode.byName(
-            cfg.getChild("checksum").getValue(ChecksumMode.CP_AUTO.getName())));
+            cfg.get("checksum", ChecksumMode.CP_AUTO.getName())));
     
         //Wide factor    
-        getCode39Bean().setWideFactor(
-            cfg.getChild("wide-factor").getValueAsFloat((float) Code39Generator.DEFAULT_WIDE_FACTOR));
+        getCode39Bean().setWideFactor(cfg.getAsFloat("wide-factor", (float) Code39Generator.DEFAULT_WIDE_FACTOR));
     
         //Inter-character gap width    
-        Length igw = new Length(cfg.getChild("interchar-gap-width").getValue("1mw"), "mw");
+        Length igw = new Length(cfg.get("interchar-gap-width", "1mw"), "mw");
         if (igw.getUnit().equalsIgnoreCase("mw")) {
             getCode39Bean().setIntercharGapWidth(
                     igw.getValue() * getCode39Bean().getModuleWidth());
@@ -39,18 +38,16 @@ public class Code39 extends ConfigurableBarcodeGenerator {
             getCode39Bean().setIntercharGapWidth(igw.getValueAsMillimeter());
         }
         
-        if (cfg.getChild("extended-charset", false) != null) {
-            getCode39Bean().setExtendedCharSetEnabled(
-                    cfg.getChild("extended-charset").getValueAsBoolean());
+        if (cfg.containsSetting("extended-charset")) {
+            getCode39Bean().setExtendedCharSetEnabled(cfg.getAsBoolean("extended-charset", false));
         }
         
-        Settings hr = cfg.getChild("human-readable", false);
-        if (hr != null) {
+        if (cfg.containsSetting("human-readable")) {
             //Display start/stop character and checksum in hr-message or not
             getCode39Bean().setDisplayStartStop(
-                    hr.getChild("display-start-stop").getValueAsBoolean(false));
+                    cfg.getAsBoolean("human-readable.display-start-stop", false));
             getCode39Bean().setDisplayChecksum(
-                    hr.getChild("display-checksum").getValueAsBoolean(false));
+                    cfg.getAsBoolean("human-readable.display-checksum", false));
         }
     }
 

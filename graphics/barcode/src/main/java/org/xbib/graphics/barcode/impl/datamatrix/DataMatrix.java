@@ -17,9 +17,9 @@ public class DataMatrix extends ConfigurableBarcodeGenerator {
         this.bean = new DataMatrixGenerator();
     }
 
-    public void configure(Settings settings) throws Exception {
+    public void configure(Settings cfg) throws Exception {
         //Module width (MUST ALWAYS BE FIRST BECAUSE QUIET ZONE MAY DEPEND ON IT)
-        String mws = cfg.getChild("module-width").getValue(null);
+        String mws = cfg.get("module-width", null);
         if (mws != null) {
             Length mw = new Length(mws, "mm");
             getDataMatrixBean().setModuleWidth(mw.getValueAsMillimeter());
@@ -27,19 +27,15 @@ public class DataMatrix extends ConfigurableBarcodeGenerator {
 
         super.configure(cfg);
 
-        String shape = cfg.getChild("shape").getValue(null);
-        if (shape != null) {
-            getDataMatrixBean().setShape(SymbolShapeHint.byName(shape));
+        if (cfg.containsSetting("shape")) {
+            getDataMatrixBean().setShape(SymbolShapeHint.byName(cfg.get("shape")));
         }
 
-        String size;
-        size = cfg.getChild("min-symbol-size").getValue(null);
-        if (size != null) {
-            getDataMatrixBean().setMinSize(parseSymbolSize(size));
+        if (cfg.containsSetting("min-symbol-size")) {
+            getDataMatrixBean().setMinSize(parseSymbolSize(cfg.get("min-symbol-size")));
         }
-        size = cfg.getChild("max-symbol-size").getValue(null);
-        if (size != null) {
-            getDataMatrixBean().setMaxSize(parseSymbolSize(size));
+        if (cfg.containsSetting("max-symbol-size")) {
+            getDataMatrixBean().setMaxSize(parseSymbolSize(cfg.get("max-symbol-size")));
         }
     }
 

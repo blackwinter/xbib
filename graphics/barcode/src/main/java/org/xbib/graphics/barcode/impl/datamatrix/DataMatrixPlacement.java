@@ -1,27 +1,9 @@
-/*
- * Copyright 2006 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* $Id: DataMatrixPlacement.java,v 1.2 2006/12/01 13:29:43 jmaerki Exp $ */
 
 package org.xbib.graphics.barcode.impl.datamatrix;
 
 /**
  * Symbol Character Placement Program. Adapted from Annex M.1 in ISO/IEC 16022:2000(E). 
  * 
- * @version $Id: DataMatrixPlacement.java,v 1.2 2006/12/01 13:29:43 jmaerki Exp $
  */
 public abstract class DataMatrixPlacement {
 
@@ -57,7 +39,7 @@ public abstract class DataMatrixPlacement {
             if ((row == numrows - 2) && (col == 0) && ((numcols % 8 == 4))) {
                 corner3(pos++);
             }
-            if ((row == numrows + 4) && (col == 2) && (!((numcols % 8) != 0))) {
+            if ((row == numrows + 4) && (col == 2) && ((numcols % 8) == 0)) {
                 corner4(pos++);
             }
             /* sweep upward diagonally, inserting successive characters... */

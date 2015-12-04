@@ -1,21 +1,5 @@
-/*
- * Copyright 2002-2004,2006,2008 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.output.java2d;
 
-import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.font.FontRenderContext;
@@ -26,35 +10,24 @@ import java.awt.geom.Rectangle2D;
 import org.xbib.graphics.barcode.BarcodeDimension;
 import org.xbib.graphics.barcode.TextAlignment;
 import org.xbib.graphics.barcode.output.AbstractCanvasProvider;
-import org.xbib.graphics.barcode.tools.UnitConv;
 
 /**
  * CanvasProvider implementation that renders to Java2D (AWT).
- * 
- * @author Jeremias Maerki
- * @version $Id: Java2DCanvasProvider.java,v 1.7 2008/05/13 13:00:46 jmaerki Exp $
  */
 public class Java2DCanvasProvider extends AbstractCanvasProvider {
-
-    private static final boolean DEBUG = false; 
 
     private Graphics2D g2d;
 
     /**
      * Creates a new Java2DCanvasProvider.
-     * <p>
      * This class internally operates with millimeters (mm) as units. This
      * means you have to apply the necessary transformation before rendering
      * a barcode to obtain the expected size. See the source code for 
      * BitmapBuilder.java for an example.
-     * <p>
      * To improve the quality of text output it is recommended that fractional
      * font metrics be enabled on the Graphics2D object passed in:
-     * <br>
-     * <code>
-     * g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, 
+     * g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
      * RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-     * </code>
      * @param g2d Graphics2D object to paint on
      */
     public Java2DCanvasProvider(Graphics2D g2d, int orientation) {
@@ -122,13 +95,7 @@ public class Java2DCanvasProvider extends AbstractCanvasProvider {
             String fontName,
             double fontSize,
             TextAlignment textAlign) {
-        if (DEBUG) {
-            System.out.println("deviceText " + x1 + " " + x2 + " " 
-                    + (x2 - x1) + " " + y1 + " " + text);
-            System.out.println("fontSize: " 
-                    + fontSize + "mm (" + UnitConv.mm2pt(fontSize) + "pt)");
-        }
-        Font font = new Font(fontName, Font.PLAIN, 
+        Font font = new Font(fontName, Font.PLAIN,
             (int)Math.round(fontSize));
         FontRenderContext frc = g2d.getFontRenderContext();
         GlyphVector gv = font.createGlyphVector(frc, text);
@@ -140,13 +107,6 @@ public class Java2DCanvasProvider extends AbstractCanvasProvider {
             intercharSpace = distributableSpace / (gv.getNumGlyphs() - 1);
         } else {
             intercharSpace = 0.0f;
-        }
-        if (DEBUG) {
-            System.out.println(gv.getLogicalBounds()
-                    + " " + gv.getVisualBounds());
-            System.out.println("textwidth=" + textwidth);
-            System.out.println("distributableSpace=" + distributableSpace);
-            System.out.println("intercharSpace=" + intercharSpace);
         }
         final float indent;
         if (textAlign == TextAlignment.TA_JUSTIFY) {
@@ -170,24 +130,10 @@ public class Java2DCanvasProvider extends AbstractCanvasProvider {
                 Point2D point = gv.getGlyphPosition(i);
                 point.setLocation(point.getX() + i * intercharSpace, point.getY());
                 gv.setGlyphPosition(i, point);
-                if (DEBUG) {
-                    System.out.println(i + " " + point 
-                            + " " + gv.getGlyphLogicalBounds(i).getBounds2D());
-                    System.out.println(i + " " + text.substring(i, i + 1) 
-                        + " " + gv.getGlyphMetrics(i).getBounds2D());
-                }
             }
         }
         g2d.drawGlyphVector(gv, (float)x1 + indent, (float)y1);
         g2d.setFont(oldFont);
-        if (DEBUG) {
-            g2d.setStroke(new BasicStroke(0.01f));
-            g2d.draw(new Rectangle2D.Double(x1, y1 - fontSize, 
-                x2 - x1, fontSize));
-            g2d.draw(new Rectangle2D.Double(x1 + indent, 
-                y1 - fontSize, 
-                textwidth, fontSize));
-        }
     }
 
 }

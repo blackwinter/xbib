@@ -1,21 +1,3 @@
-/*
- * Copyright 2006 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* $Id: PDF417HighLevelEncoder.java,v 1.8 2010/08/19 13:52:22 jmaerki Exp $ */
-
 package org.xbib.graphics.barcode.impl.pdf417;
 
 import java.io.UnsupportedEncodingException;
@@ -25,8 +7,6 @@ import java.util.Arrays;
 /**
  * PDF417 high-level encoder following the algorithm described in ISO/IEC 15438:2001(E) in
  * annex P.
- *
- * @version $Id: PDF417HighLevelEncoder.java,v 1.8 2010/08/19 13:52:22 jmaerki Exp $
  */
 public class PDF417HighLevelEncoder implements PDF417Constants {
 
@@ -138,7 +118,7 @@ public class PDF417HighLevelEncoder implements PDF417Constants {
      */
     public static int encodeText(String msg, int startpos, int count, StringBuffer sb,
             int initialSubmode) {
-        StringBuffer tmp = new StringBuffer(count);
+        StringBuilder tmp = new StringBuilder(count);
         int submode = initialSubmode;
         int idx = 0;
         while (true) {
@@ -346,18 +326,6 @@ public class PDF417HighLevelEncoder implements PDF417Constants {
                 || ch == 13 //CR
                 || (ch >= 32 && ch <= 126));
     }
-    /*
-    private boolean isByte(int pos) {
-        char ch = msg.charAt(pos);
-        //Sun returns a ASCII 31 (?) for a character that cannot be mapped. Let's hope all
-        //other VMs do the same
-        return (byteMap[pos] != 31 || ch == '?');
-    }
-
-    private boolean isEncodableCharacter(int pos) {
-        char ch = msg.charAt(pos);
-        return isText(ch) || isByte(pos);
-    }*/
 
     /**
      * Determines the number of consecutive characters that are encodable using numeric compaction.

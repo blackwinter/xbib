@@ -1,20 +1,3 @@
-/*
- * Copyright 2008 Jeremias Maerki.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* $Id: USPSIntelligentMailLogicImpl.java,v 1.3 2010/10/12 08:20:04 jmaerki Exp $ */
 
 package org.xbib.graphics.barcode.impl.fourstate;
 
@@ -307,7 +290,7 @@ public class USPSIntelligentMailLogicImpl extends AbstractFourStateLogicImpl {
     }
 
     static String convertToBars(char[] chars) {
-        StringBuffer bars = new StringBuffer(65);
+        StringBuilder bars = new StringBuilder(65);
         bars.setLength(65);
         for (int i = 0; i < bars.length(); i++) {
             BarToCharacterMapping mapping = TABLE_BAR_TO_CHARACTER[i];
@@ -342,7 +325,7 @@ public class USPSIntelligentMailLogicImpl extends AbstractFourStateLogicImpl {
 
     /** {@inheritDoc} */
     protected String normalizeMessage(String msg) {
-        StringBuffer sb = new StringBuffer(msg.length());
+        StringBuilder sb = new StringBuilder(msg.length());
         for (int i = 0, c = msg.length(); i < c; i++) {
             char ch = msg.charAt(i);
             if (Character.isDigit(ch)) {

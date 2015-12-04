@@ -1,18 +1,3 @@
-/*
- * Copyright 2002-2004,2006,2008 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.output;
 
 import org.xbib.graphics.barcode.BarcodeDimension;
@@ -22,9 +7,6 @@ import org.xbib.graphics.barcode.TextAlignment;
  * This class is used by barcode rendering classes that paint a barcode using 
  * a coordinate system. The class delegates the call to a CanvasProvider and
  * provides some convenience methods.
- * 
- * @author Jeremias Maerki
- * @version $Id: Canvas.java,v 1.4 2008/05/13 13:00:45 jmaerki Exp $
  */
 public class Canvas {
 
@@ -94,39 +76,7 @@ public class Canvas {
      */
     public void drawCenteredChar(char ch, double x1, double x2, double y1, 
                 String fontName, double fontSize) {
-        drawCenteredText(new Character(ch).toString(), 
-                x1, x2, y1, 
-                fontName, fontSize);
-    }
-
-    /**
-     * Draws justified text.
-     * @param text the text to draw
-     * @param x1 the left boundary
-     * @param x2 the right boundary
-     * @param y1 the y coordinate
-     * @param fontName the name of the font
-     * @param fontSize the size of the font
-     * @deprecated Use {@link #drawText(String, double, double, double, String, double, TextAlignment)} instead.
-     */
-    public void drawJustifiedText(String text, double x1, double x2, double y1, 
-                String fontName, double fontSize) {
-        drawText(text, x1, x2, y1, fontName, fontSize, TextAlignment.TA_JUSTIFY);
-    }
-
-    /**
-     * Draws centered text.
-     * @param text the text to draw
-     * @param x1 the left boundary
-     * @param x2 the right boundary
-     * @param y1 the y coordinate
-     * @param fontName the name of the font
-     * @param fontSize the size of the font
-     * @deprecated Use {@link #drawText(String, double, double, double, String, double, TextAlignment)} instead.
-     */
-    public void drawCenteredText(String text, double x1, double x2, double y1, 
-                String fontName, double fontSize) {
-        drawText(text, x1, x2, y1, fontName, fontSize, TextAlignment.TA_CENTER);
+        drawText(Character.toString(ch), x1, x2, y1, fontName, fontSize, TextAlignment.TA_CENTER);
     }
 
     /**

@@ -1,6 +1,7 @@
 
 package org.xbib.graphics.barcode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Map;
  */
 public class BarGroup {
 
-    private static final Map MAP = new java.util.HashMap();
+    private static final Map<String, BarGroup> MAP = new HashMap<>();
 
     /** Bar group is represents a start character */
     public static final BarGroup START_CHARACTER = new BarGroup("start-char", MAP);
@@ -52,9 +53,9 @@ public class BarGroup {
      * @return the requested BarGroup instance
      */
     public static BarGroup byName(String name) {
-        final BarGroup bg = (BarGroup)MAP.get(name);
+        final BarGroup bg = MAP.get(name);
         if (bg == null) {
-            throw new IllegalArgumentException("Invalid BarGroup: " + name);
+            throw new IllegalArgumentException("invalid bar group " + name);
         }
         return bg;
     }

@@ -21,9 +21,8 @@ public class ITF14 extends Interleaved2Of5 {
         super.configure(cfg);
 
         //Bearer bar width
-        Settings c = cfg.getChild("bearer-bar-width", false);
-        if (c != null) {
-            Length w = new Length(c.getValue(), "mw");
+        if (cfg.containsSetting("bearer-bar-width")) {
+            Length w = new Length(cfg.get("bearer-bar-width"), "mw");
             if (w.getUnit().equalsIgnoreCase("mw")) {
                 getITFBean().setBearerBarWidth(w.getValue() * getGenerator().getModuleWidth());
             } else {
@@ -31,10 +30,9 @@ public class ITF14 extends Interleaved2Of5 {
             }
         }
 
-        //Bearer ox
-        c = cfg.getChild("bearer-box", false);
-        if (c != null) {
-            getITFBean().setBearerBox(c.getValueAsBoolean());
+        //Bearer box
+        if (cfg.containsSetting("bearer-box")) {
+            getITFBean().setBearerBox(cfg.getAsBoolean("bearer-box", false));
         }
     }
 

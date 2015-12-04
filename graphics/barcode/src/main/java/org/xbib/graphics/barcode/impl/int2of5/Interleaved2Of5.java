@@ -9,7 +9,6 @@ import org.xbib.common.settings.Settings;
 
 /**
  * This class is an implementation of the Interleaved 2 of 5 barcode.
- *
  */
 public class Interleaved2Of5 extends ConfigurableBarcodeGenerator {
 
@@ -29,25 +28,22 @@ public class Interleaved2Of5 extends ConfigurableBarcodeGenerator {
     public void configure(Settings cfg) throws Exception {
         Interleaved2Of5Generator bean = getInterleaved2Of5Bean();
         //Module width (MUST ALWAYS BE FIRST BECAUSE QUIET ZONE MAY DEPEND ON IT)
-        Length mw = new Length(cfg.getChild("module-width")
-                        .getValue(bean.getModuleWidth() + "mm"), "mm");
+        Length mw = new Length(cfg.get("module-width", bean.getModuleWidth() + "mm"), "mm");
         bean.setModuleWidth(mw.getValueAsMillimeter());
 
         super.configure(cfg);
 
         //Checksum mode
         bean.setChecksumMode(ChecksumMode.byName(
-            cfg.getChild("checksum").getValue(ChecksumMode.CP_AUTO.getName())));
+            cfg.get("checksum", ChecksumMode.CP_AUTO.getName())));
 
         //Wide factor
-        bean.setWideFactor(
-            cfg.getChild("wide-factor").getValueAsFloat((float)bean.getWideFactor()));
+        bean.setWideFactor(cfg.getAsFloat("wide-factor", (float)bean.getWideFactor()));
 
-        Settings hr = cfg.getChild("human-readable", false);
-        if (hr != null) {
+        if (cfg.containsSetting("human-readable")) {
             //Display checksum in hr-message or not
             bean.setDisplayChecksum(
-                    hr.getChild("display-checksum").getValueAsBoolean(false));
+                    cfg.getAsBoolean("human-readable.display-checksum", false));
         }
     }
 

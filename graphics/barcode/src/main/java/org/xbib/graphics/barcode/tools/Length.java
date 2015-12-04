@@ -1,26 +1,9 @@
-/*
- * Copyright 2002-2004,2008 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.tools;
 
 /**
  * This class represents a length (value plus unit). It is used to parse 
  * expressions like "0.21mm".
  * 
- * @author Jeremias Maerki
- * @version $Id: Length.java,v 1.3 2008/05/13 13:00:46 jmaerki Exp $
  */
 public class Length {
     
@@ -73,7 +56,7 @@ public class Length {
         if (s.length() == 0) {
             throw new IllegalArgumentException("Length is empty");
         }
-        StringBuffer sb = new StringBuffer(s.length());
+        StringBuilder sb = new StringBuilder(s.length());
         int mode = 0;
         int i = 0;
         while (i < s.length()) {
@@ -99,7 +82,7 @@ public class Length {
                     continue;
                 }
                 mode = 2;
-            } else if (mode == 2) {
+            } else {
                 //Parse unit
                 if (!Character.isWhitespace(c)) {
                     sb.append(c);
@@ -116,7 +99,7 @@ public class Length {
             mode = 1;
         }
         if (mode != 2) {
-            if ((mode > 0) && (defaultUnit != null)) {
+            if ((defaultUnit != null)) {
                 this.unit = defaultUnit.toLowerCase();
                 return;
             }
@@ -147,17 +130,18 @@ public class Length {
      * @return the value (in mm)
      */
     public double getValueAsMillimeter() {
-        if (this.unit.equals(MM)) {
-            return this.value;
-        } else if (this.unit.equals(CM)) {
-            return this.value * 10;
-        } else if (this.unit.equals(POINT)) {
-            return UnitConv.pt2mm(this.value);
-        } else if (this.unit.equals(INCH)) {
-            return UnitConv.in2mm(this.value);
-        } else {
-            throw new IllegalStateException("Don't know how to convert " 
-                    + this.unit + " to mm");
+        switch (this.unit) {
+            case MM:
+                return this.value;
+            case CM:
+                return this.value * 10;
+            case POINT:
+                return UnitConv.pt2mm(this.value);
+            case INCH:
+                return UnitConv.in2mm(this.value);
+            default:
+                throw new IllegalStateException("Don't know how to convert "
+                        + this.unit + " to mm");
         }
     }
     

@@ -1,18 +1,3 @@
-/*
- * Copyright 2002-2004 Jeremias Maerki.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.xbib.graphics.barcode.impl.upcean;
 
 import org.xbib.graphics.barcode.BarGroup;
@@ -21,9 +6,6 @@ import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
 
 /**
  * This class is an implementation of the EAN-13 barcode.
- * 
- * @author Jeremias Maerki
- * @version $Id: EAN13LogicImpl.java,v 1.3 2009/07/03 06:23:49 jmaerki Exp $
  */
 public class EAN13LogicImpl extends UPCEANLogicImpl {
 
@@ -150,7 +132,7 @@ public class EAN13LogicImpl extends UPCEANLogicImpl {
 
         //Checksum
         final char check = s.charAt(12);
-        logic.startBarGroup(BarGroup.UPC_EAN_CHECK, new Character(check).toString());
+        logic.startBarGroup(BarGroup.UPC_EAN_CHECK, Character.toString(check));
         encodeChar(logic, check, RIGHT_HAND);
         logic.endBarGroup();
 

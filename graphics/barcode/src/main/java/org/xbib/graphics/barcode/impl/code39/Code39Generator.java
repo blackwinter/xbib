@@ -1,6 +1,7 @@
 
 package org.xbib.graphics.barcode.impl.code39;
 
+import org.xbib.common.settings.Settings;
 import org.xbib.graphics.barcode.BarcodeDimension;
 import org.xbib.graphics.barcode.ChecksumMode;
 import org.xbib.graphics.barcode.ClassicBarcodeLogicHandler;
@@ -158,6 +159,11 @@ public class Code39Generator extends AbstractBarcodeGenerator {
         } else {
             throw new IllegalArgumentException("Only widths 1 and 2 allowed");
         }
+    }
+
+    @Override
+    public void configure(Settings settings) throws Exception {
+
     }
 
     /** {@inheritDoc} */
