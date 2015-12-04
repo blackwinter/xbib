@@ -149,9 +149,7 @@ public class WithHoldingsAndLicenses
         this.size = settings.getAsInt("scrollsize", 10);
         this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         this.identifier = settings.get("identifier");
-
-        this.ingest = settings.getAsBoolean("mock", false) ?
-                new MockTransportClient() :
+        this.ingest = settings.getAsBoolean("mock", false) ? new MockTransportClient() :
                 "ingest".equals(settings.get("client")) ?
                         new IngestTransportClient() :
                         new BulkTransportClient();
@@ -162,11 +160,10 @@ public class WithHoldingsAndLicenses
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .put("transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("transport.ping_timeout", TimeValue.timeValueSeconds(60))
-                .put("transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60))
+                .put("client.transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("client.transport.ping_timeout", TimeValue.timeValueSeconds(60))
+                .put("client.transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60))
                 .build(), new LongAdderIngestMetric());
-
         String index = settings.get("index");
         try {
             String packageName = getClass().getPackage().getName().replace('.','/');
@@ -226,13 +223,11 @@ public class WithHoldingsAndLicenses
             }
         });
         super.setConcurrency(settings.getAsInt("concurrency", 1));
-
-        prepare();
-
         // here we do the work!
         try {
+            prepare();
             execute();
-            // poison elements
+            // send poison elements
             waitFor(new TitelRecordRequest());
         } finally {
             logger.info("shutdown in progress");

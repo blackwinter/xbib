@@ -11,9 +11,7 @@ import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.common.hppc.cursors.ObjectCursor;
 import org.elasticsearch.common.joda.time.DateTime;
 import org.elasticsearch.common.joda.time.format.DateTimeFormat;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -31,22 +29,6 @@ public abstract class TimewindowFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(TimewindowFeeder.class.getSimpleName());
 
-    private String index;
-
-    private String concreteIndex;
-
-    protected void setIndex(String index) {
-        this.index = index;
-    }
-
-    protected void setConcreteIndex(String concreteIndex) {
-        this.concreteIndex = concreteIndex;
-    }
-
-    protected String getConcreteIndex() {
-        return concreteIndex;
-    }
-
     @Override
     protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
         return new ConfiguredPipeline();
@@ -59,6 +41,9 @@ public abstract class TimewindowFeeder extends Feeder {
         public String getConcreteIndex() {
             return concreteIndex;
         }
+        public String getType() {
+            return type;
+        }
     }
 
     @Override
@@ -68,6 +53,7 @@ public abstract class TimewindowFeeder extends Feeder {
             ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
             setIndex(configuredPipeline.getIndex());
             setConcreteIndex(configuredPipeline.getConcreteIndex());
+            setType(configuredPipeline.getType());
         }
         return this;
     }
@@ -75,62 +61,72 @@ public abstract class TimewindowFeeder extends Feeder {
     @Override
     protected void prepareSink() throws IOException {
         if (ingest == null) {
-            Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-            Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                    Runtime.getRuntime().availableProcessors());
+            // for resolveAlias
             ingest = createIngest();
-            ingest.maxActionsPerRequest(maxbulkactions)
-                    .maxConcurrentRequests(maxconcurrentbulkrequests);
         }
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
-        concreteIndex = resolveAlias(settings.get("index") + timeWindow);
-        Pattern pattern = Pattern.compile("^(.*)\\d+$");
-        Matcher m = pattern.matcher(concreteIndex);
-        index = m.matches() ? m.group(1) : concreteIndex;
-        logger.info("base index name = {}, concrete index name = {}", index, concreteIndex);
+        String resolvedIndex = resolveAlias(settings.get(getIndexParameterName()) + timeWindow);
+        logger.info("resolved index = {}", resolvedIndex);
+        setConcreteIndex(resolvedIndex);
+        Pattern pattern = Pattern.compile("^(.*?)\\d*$");
+        Matcher m = pattern.matcher(resolvedIndex);
+        setIndex(m.matches() ? m.group(1) : resolvedIndex);
+        logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
         super.prepareSink();
     }
 
     @Override
-    protected TimewindowFeeder createIndex(String index) throws IOException {
-        ingest.init(ImmutableSettings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodicover", false))
-                .build(), new LongAdderIngestMetric());
-        if (ingest.client() != null) {
-            ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-            if (settings.getAsBoolean("onlyaliases", false)) {
-                updateAliases();
-                return this;
-            }
-            try {
-                String indexSettings = settings.get("index-settings",
-                        "classpath:org/xbib/tools/feed/elasticsearch/settings.json");
-                InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
-                        new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
-                        new URL(indexSettings)).openStream();
-                String indexMappings = settings.get("index-mapping",
-                        "classpath:org/xbib/tools/feed/elasticsearch/mapping.json");
-                InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
-                        new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
-                        new URL(indexMappings)).openStream();
-                ingest.newIndex(concreteIndex, getType(),
-                        indexSettingsInput, indexMappingsInput);
-                indexSettingsInput.close();
-                indexMappingsInput.close();
-                ingest.startBulk(concreteIndex);
-            } catch (Exception e) {
-                if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
-                    throw e;
-                } else {
-                    logger.warn("index creation error, but configured to ignore", e);
-                }
+    protected TimewindowFeeder createIndex(String index, String concreteIndex) throws IOException {
+        if (ingest.client() == null) {
+            return this;
+        }
+        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
+        try {
+            String indexSettings = settings.get(getIndexParameterName() + "-settings", getIndexSettingsSpec());
+            logger.info("using index settings from {}", indexSettings);
+            InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
+                    new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
+                    new URL(indexSettings)).openStream();
+            String indexMappings = settings.get(getIndexParameterName() + "-mapping", getIndexMappingsSpec() );
+            logger.info("using index mappings from {}", indexMappings);
+            InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
+                    new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
+                    new URL(indexMappings)).openStream();
+            logger.info("creating index {}", concreteIndex);
+            ingest.newIndex(concreteIndex, getType(), indexSettingsInput, indexMappingsInput);
+            indexSettingsInput.close();
+            indexMappingsInput.close();
+            ingest.startBulk(concreteIndex);
+        } catch (Exception e) {
+            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
+                throw e;
+            } else {
+                logger.warn("index creation error, but configured to ignore", e);
             }
         }
+        return this;
+    }
+
+    protected String getIndexSettingsSpec() {
+        return  "classpath:org/xbib/tools/feed/elasticsearch/settings.json";
+    }
+
+    protected String getIndexMappingsSpec() {
+        return "classpath:org/xbib/tools/feed/elasticsearch/mapping.json";
+    }
+
+    @Override
+    public TimewindowFeeder cleanup() throws IOException {
+        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
+            updateAliases(getIndex(), getConcreteIndex());
+        } else {
+            logger.info("not doing alias settings");
+        }
+        if (ingest.client() != null && getConcreteIndex() != null) {
+            ingest.stopBulk(getConcreteIndex());
+        }
+        super.cleanup();
         return this;
     }
 
@@ -145,7 +141,7 @@ public abstract class TimewindowFeeder extends Feeder {
         return alias;
     }
 
-    protected void updateAliases() {
+    protected void updateAliases(String index, String concreteIndex) {
         if (ingest.client() == null) {
             return;
         }

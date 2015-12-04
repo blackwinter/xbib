@@ -192,11 +192,11 @@ public class WorksWithHoldingsAndLicensesWorker implements Worker<Pipeline<Works
         TitelRecordRequest element = null;
         TitleRecord titleRecord = null;
         try {
-            element = withHoldingsAndLicenses.getQueue().poll(5, TimeUnit.SECONDS);
+            element = withHoldingsAndLicenses.getQueue().take();
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
                 process(titleRecord);
-                element = withHoldingsAndLicenses.getQueue().poll(5, TimeUnit.SECONDS);
+                element = withHoldingsAndLicenses.getQueue().take();
                 titleRecord = element != null ? element.get() : null;
             }
         } catch (InterruptedException e) {

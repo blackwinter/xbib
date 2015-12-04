@@ -2,28 +2,17 @@ package org.xbib.tools.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequestBuilder;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.common.hppc.cursors.ObjectCursor;
-import org.elasticsearch.common.joda.time.DateTime;
-import org.elasticsearch.common.joda.time.format.DateTimeFormat;
-import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.common.unit.ByteSizeValue;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.TimewindowFeeder;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,90 +25,42 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 /**
  * Elasticsearch indexer tool for MARC holdings entity queues
  */
-public abstract class HoldingsFeeder extends Feeder {
+public abstract class HoldingsFeeder extends TimewindowFeeder {
 
     private final static Logger logger = LogManager.getLogger(HoldingsFeeder.class);
 
-    private static String concreteIndex;
-
-    protected String getIndex() {
-        return settings.get("hol-index");
-    }
-
-    protected String getConcreteIndex() {
-        return concreteIndex;
+    @Override
+    protected String getIndexParameterName() {
+        return "hol-index";
     }
 
     @Override
-    protected String getType() {
-        return settings.get("hol-type");
+    protected String getIndexTypeParameterName() {
+        return "hol-type";
     }
 
     @Override
-    public void prepareSink() throws IOException {
-        ingest = createIngest();
-        Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-        Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                Runtime.getRuntime().availableProcessors());
-        ingest.maxActionsPerRequest(maxbulkactions)
-                .maxConcurrentRequests(maxconcurrentbulkrequests);
-        ingest.init(ImmutableSettings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .build(), new LongAdderIngestMetric());
-        String timeWindow = settings.get("timewindow") != null ?
-                DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
-        concreteIndex = resolveAlias(getIndex() + timeWindow);
-        logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
-        super.prepareSink();
+    protected String getIndexSettingsSpec() {
+        return  "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-settings.json";
     }
 
     @Override
-    protected HoldingsFeeder createIndex(String index) throws IOException {
-        if (ingest.client() != null) {
-            ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-            if (settings.getAsBoolean("onlyalias", false)) {
-                updateAliases();
-                return this;
-            }
-            try {
-                String indexSettings = settings.get("hol-index-settings",
-                        "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-settings.json");
-                InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
-                        new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
-                        new URL(indexSettings)).openStream();
-                String indexMappings = settings.get("hol-index-mapping",
-                        "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-mapping.json");
-                InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
-                        new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
-                        new URL(indexMappings)).openStream();
-                ingest.newIndex(getConcreteIndex(), getType(), indexSettingsInput, indexMappingsInput);
-                indexSettingsInput.close();
-                indexMappingsInput.close();
-            } catch (Exception e) {
-                if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
-                    throw e;
-                } else {
-                    logger.warn("index creation error, but configured to ignore", e);
-                }
-            }
-            ingest.startBulk(getConcreteIndex());
-        }
-        return this;
+    protected String getIndexMappingsSpec() {
+        return "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-mapping.json";
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        if (settings.getAsBoolean("onlyalias", false)) {
+        if (settings.getAsBoolean("onlyaliases", false)) {
             return;
         }
         // set identifier prefix (ISIL)
         Map<String,Object> params = new HashMap<>();
-        params.put("identifier", settings.get("identifier", "DE-605"));
-        params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+        if (settings.containsSetting("catalogid")) {
+            params.put("catalogid", settings.get("catalogid"));
+            params.put("_prefix", "(" + settings.get("catalogid") + ")");
+        }
+        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         final MARCEntityQueue queue = createQueue(params);
         queue.setUnmappedKeyListener((id,key) -> {
                     if ((settings.getAsBoolean("detect-unknown", false))) {
@@ -138,52 +79,6 @@ public abstract class HoldingsFeeder extends Feeder {
         queue.close();
         if (settings.getAsBoolean("detect-unknown", false)) {
             logger.info("unknown keys={}", unmapped);
-        }
-    }
-
-    @Override
-    public HoldingsFeeder cleanup() throws IOException {
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases();
-        } else {
-            logger.info("not doing alias settings");
-        }
-        ingest.stopBulk(getConcreteIndex());
-        super.cleanup();
-        return this;
-    }
-
-    protected String resolveAlias(String alias) {
-        if (ingest.client() == null) {
-            logger.warn("no client for resolving alias");
-            return alias;
-        }
-        GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(alias).execute().actionGet();
-        if (!getAliasesResponse.getAliases().isEmpty()) {
-            return getAliasesResponse.getAliases().keys().iterator().next().value;
-        }
-        return alias;
-    }
-
-    protected void updateAliases() {
-        String holIndex = getIndex();
-        String concreteIndex = getConcreteIndex();
-        if (!holIndex.equals(concreteIndex)) {
-            IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
-            GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(holIndex).execute().actionGet();
-            if (getAliasesResponse.getAliases().isEmpty()) {
-                logger.info("adding alias {} to index {}", holIndex, concreteIndex);
-                requestBuilder.addAlias(concreteIndex, holIndex);
-            } else {
-                for (ObjectCursor<String> indexName : getAliasesResponse.getAliases().keys()) {
-                    if (indexName.value.startsWith(holIndex)) {
-                        logger.info("switching alias {} from index {} to index {}", holIndex, indexName.value, concreteIndex);
-                        requestBuilder.removeAlias(indexName.value, holIndex)
-                                .addAlias(concreteIndex, holIndex);
-                    }
-                }
-            }
-            requestBuilder.execute().actionGet();
         }
     }
 

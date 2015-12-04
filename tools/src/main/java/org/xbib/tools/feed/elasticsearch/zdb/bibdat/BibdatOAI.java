@@ -165,7 +165,7 @@ public final class BibdatOAI extends OAIFeeder {
             logger.info("unknown keys = {}", unmapped);
         }
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases();
+            updateAliases(getIndex(), getConcreteIndex());
         } else {
             logger.info("not doing alias settings");
         }

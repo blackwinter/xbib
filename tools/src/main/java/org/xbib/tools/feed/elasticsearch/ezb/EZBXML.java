@@ -96,7 +96,7 @@ public final class EZBXML extends TimewindowFeeder {
     @Override
     public EZBXML cleanup() throws IOException {
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest != null && ingest.client() != null) {
-            updateAliases();
+            updateAliases(getIndex(), getConcreteIndex());
         } else {
             logger.info("not doing alias settings");
         }

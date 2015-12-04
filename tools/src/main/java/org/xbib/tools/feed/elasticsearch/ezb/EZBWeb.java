@@ -195,7 +195,7 @@ public class EZBWeb extends TimewindowFeeder {
         }
         ingest.stopBulk(getConcreteIndex());
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases();
+            updateAliases(getIndex(), getConcreteIndex());
         } else {
             logger.info("not doing alias settings");
         }
