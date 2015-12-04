@@ -9,6 +9,7 @@ import org.xbib.io.Session;
 import org.xbib.io.archive.tar.TarSession;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * This class reads from a TAR archive, without knowing of the concrete content type.
  * Processing TAR packets are delegated to an implementing class.
  */
-public abstract class AbstractTarReader extends AbstractWorker<LongWorkerRequest> {
+public abstract class AbstractTarReader extends AbstractWorker<Pipeline,LongWorkerRequest> {
 
     private final static Logger logger = LogManager.getLogger(AbstractTarReader.class.getName());
 
@@ -36,9 +37,6 @@ public abstract class AbstractTarReader extends AbstractWorker<LongWorkerRequest
     protected Packet packet;
 
     private boolean prepared;
-
-    public AbstractTarReader() {
-    }
 
     public AbstractTarReader setURI(URI uri) {
         this.uri = uri;
@@ -66,7 +64,7 @@ public abstract class AbstractTarReader extends AbstractWorker<LongWorkerRequest
     }
 */
     @Override
-    public void newRequest(Worker<LongWorkerRequest> worker, LongWorkerRequest request) {
+    public void newRequest(Worker<Pipeline, LongWorkerRequest> worker, LongWorkerRequest request) {
 
     }
 

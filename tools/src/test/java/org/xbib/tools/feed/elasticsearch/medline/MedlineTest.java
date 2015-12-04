@@ -43,6 +43,7 @@ import org.xbib.rdf.content.RdfXContentParams;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,8 +64,7 @@ public class MedlineTest {
                     .put("uri", url.toString())
                     .put("mock", true)
                     .build();
-            medline.setSettings(settings);
-            medline.run();
+            medline.bootstrap(settings.getAsReader(), new StringWriter());
         } else {
             logger.warn("not found");
         }

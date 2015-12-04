@@ -50,13 +50,8 @@ public class NatLizCrawler extends Feeder {
     private final static Logger logger = LogManager.getLogger(NatLizCrawler.class);
 
     @Override
-    public String getName() {
-        return "natliz-crawler";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return NatLizCrawler::new;
+        return p -> new NatLizCrawler().setPipeline(p);
     }
 
     @Override

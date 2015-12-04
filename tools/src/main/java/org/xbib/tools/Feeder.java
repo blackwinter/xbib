@@ -49,7 +49,6 @@ import org.xbib.util.FormatUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -59,18 +58,6 @@ public abstract class Feeder extends Converter {
     private final static Logger logger = LogManager.getLogger(Feeder.class);
 
     protected static Ingest ingest;
-
-    @Override
-    public Feeder reader(Reader reader) {
-        super.reader(reader);
-        return this;
-    }
-
-    @Override
-    public Feeder writer(Writer writer) {
-        super.writer(writer);
-        return this;
-    }
 
     protected String getIndex() {
         return settings.get("index");
@@ -216,4 +203,5 @@ public abstract class Feeder extends Converter {
     protected Feeder beforeIndexCreation(Ingest output) throws IOException {
         return this;
     }
+
 }

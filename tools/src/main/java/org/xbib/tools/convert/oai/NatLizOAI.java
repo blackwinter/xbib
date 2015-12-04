@@ -37,11 +37,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 public class NatLizOAI extends OAIHarvester {
 
     protected WorkerProvider provider() {
-        return NatLizOAI::new;
-    }
-
-    @Override
-    public String getName() {
-        return "oai-natliz";
+        return p -> new NatLizOAI().setPipeline(p);
     }
 }

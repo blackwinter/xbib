@@ -72,13 +72,8 @@ public class EZBWeb extends TimewindowFeeder {
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getName());
 
     @Override
-    public String getName() {
-        return "ezb-web-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return EZBWeb::new;
+        return p -> new EZBWeb().setPipeline(p);
     }
 
     protected String getIndex() {
@@ -179,7 +174,8 @@ public class EZBWeb extends TimewindowFeeder {
                             .add("xbib:comment", comment);
                     RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                             getConcreteIndex(), getType());
-                    params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), key, content));
+                    params.setHandler((content, p) ->
+                            ingest.index(p.getIndex(), p.getType(), key, content));
                     RdfContentBuilder builder = routeRdfXContentBuilder(params);
                     builder.receive(resource);
                     if (settings.getAsBoolean("mock", false)) {

@@ -56,12 +56,8 @@ public class VIAF extends Feeder {
     private final static Logger logger = LogManager.getLogger(VIAF.class);
 
     @Override
-    public String getName() {
-        return "viaf-to-elasticsearch";
-    }
-    @Override
     protected WorkerProvider provider() {
-        return VIAF::new;
+        return p -> new VIAF().setPipeline(p);
     }
 
     /**

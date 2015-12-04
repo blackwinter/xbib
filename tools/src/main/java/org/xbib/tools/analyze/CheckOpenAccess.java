@@ -40,7 +40,7 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -52,28 +52,20 @@ import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckOpenAccess implements CommandLineInterpreter {
+public class CheckOpenAccess implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getName());
 
     private static Settings settings;
-
-    public CheckOpenAccess reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
 
     public CheckOpenAccess settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public CheckOpenAccess writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

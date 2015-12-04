@@ -4,6 +4,7 @@ import org.xbib.io.Packet;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.xml.stream.MarcXchangeReader;
 import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import javax.xml.stream.XMLEventReader;
@@ -22,9 +23,6 @@ public class MarcXmlTarReader extends AbstractTarReader {
     private MarcXchangeListener listener;
 
     private MarcXchangeReader consumer;
-
-    public MarcXmlTarReader() {
-    }
 
     public MarcXmlTarReader setURI(URI uri) {
         super.setURI(uri);
@@ -57,7 +55,7 @@ public class MarcXmlTarReader extends AbstractTarReader {
     }
 
     @Override
-    public void newRequest(Worker<LongWorkerRequest> pipeline, LongWorkerRequest request) {
+    public void newRequest(Worker<Pipeline, LongWorkerRequest> pipeline, LongWorkerRequest request) {
         try {
             StringReader sr = new StringReader(packet.toString());
             XMLEventReader xmlReader = factory.createXMLEventReader(sr);

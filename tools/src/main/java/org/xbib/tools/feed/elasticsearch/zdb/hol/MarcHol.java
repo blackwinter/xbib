@@ -55,13 +55,8 @@ public class MarcHol extends HoldingsFeeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "marc-hol-zdb-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return MarcHol::new;
+        return p -> new MarcHol().setPipeline(p);
     }
 
     @Override

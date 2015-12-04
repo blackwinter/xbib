@@ -66,13 +66,8 @@ public class Unimarc extends Feeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "serres-unimarc-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Unimarc::new;
+        return p -> new Unimarc().setPipeline(p);
     }
 
     @Override

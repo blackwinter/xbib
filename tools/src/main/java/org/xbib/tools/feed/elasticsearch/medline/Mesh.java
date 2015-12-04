@@ -35,13 +35,8 @@ public final class Mesh extends Feeder {
     private final static Logger logger = LogManager.getLogger(Mesh.class);
 
     @Override
-    public String getName() {
-        return "mesh-xml-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Mesh::new;
+        return p -> new Mesh().setPipeline(p);
     }
 
     @Override

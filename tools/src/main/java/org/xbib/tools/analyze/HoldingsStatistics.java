@@ -44,7 +44,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.Reader;
@@ -59,7 +59,7 @@ import java.util.TreeSet;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class HoldingsStatistics implements CommandLineInterpreter {
+public class HoldingsStatistics implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(HoldingsStatistics.class.getName());
 
@@ -71,22 +71,14 @@ public class HoldingsStatistics implements CommandLineInterpreter {
 
     private Map<String,Integer> singles = new HashMap<>();
 
-    public HoldingsStatistics reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
     public HoldingsStatistics settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public HoldingsStatistics writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

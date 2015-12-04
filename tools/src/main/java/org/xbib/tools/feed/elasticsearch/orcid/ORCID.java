@@ -61,13 +61,8 @@ public class ORCID extends Feeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    public String getName() {
-        return "orcid-to-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return ORCID::new;
+        return p -> new ORCID().setPipeline(p);
     }
 
     @Override

@@ -70,13 +70,8 @@ public class DirectHol extends Feeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "direct-hol-zdb-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return DirectHol::new;
+        return p -> new DirectHol().setPipeline(p);
     }
 
     @Override

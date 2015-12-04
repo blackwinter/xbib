@@ -64,13 +64,8 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 public class SpringerCitations extends Feeder {
 
     @Override
-    public String getName() {
-        return "springer-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return SpringerCitations::new;
+        return p -> new SpringerCitations().setPipeline(p);
     }
 
     @Override

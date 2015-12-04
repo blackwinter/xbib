@@ -54,13 +54,8 @@ public class Turtle extends Feeder {
     private final static Logger logger = LogManager.getLogger(Turtle.class);
 
     @Override
-    public String getName() {
-        return "dnb-gnd-turtle-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Turtle::new;
+        return p -> new Turtle().setPipeline(p);
     }
 
     @Override

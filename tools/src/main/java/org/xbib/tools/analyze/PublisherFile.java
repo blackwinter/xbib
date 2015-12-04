@@ -45,7 +45,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.Reader;
@@ -64,30 +64,13 @@ import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class PublisherFile implements CommandLineInterpreter {
+public class PublisherFile implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
-    private final static Map<String,Collection<Object>> publishers = new TreeMap<>();
-
-    private static Settings settings;
-
-    public PublisherFile reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
-    public PublisherFile settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
-    }
-
-    public PublisherFile writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -96,6 +79,7 @@ public class PublisherFile implements CommandLineInterpreter {
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
         Client client = search.client();
+        Map<String,Collection<Object>> publishers = new TreeMap<>();
         try {
             SearchRequestBuilder searchRequest = client.prepareSearch()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
@@ -171,16 +155,16 @@ public class PublisherFile implements CommandLineInterpreter {
         } finally {
             search.shutdown();
         }
-        FileWriter writer = new FileWriter(settings.get("output","publishers.tsv"));
+        FileWriter fileWriter = new FileWriter(settings.get("output","publishers.tsv"));
         for (Map.Entry<String,Collection<Object>> entry : publishers.entrySet()) {
-            writer.write(entry.getKey());
+            fileWriter.write(entry.getKey());
             for (Object o : entry.getValue()) {
-                writer.write("\t");
-                writer.write(o.toString());
+                fileWriter.write("\t");
+                fileWriter.write(o.toString());
             }
-            writer.write("\n");
+            fileWriter.write("\n");
         }
-        writer.close();
+        fileWriter.close();
     }
 
 }

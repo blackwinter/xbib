@@ -78,12 +78,7 @@ public final class BibdatOAI extends OAIFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return BibdatOAI::new;
-    }
-
-    @Override
-    public String getName() {
-        return "zdb-bibdat-oai";
+        return p -> new BibdatOAI().setPipeline(p);
     }
 
     @Override

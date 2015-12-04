@@ -53,6 +53,7 @@ import org.xbib.tools.merge.serials.entities.MonographVolumeHolding;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
@@ -67,7 +68,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -77,7 +77,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
-public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest> {
+public class WithHoldingsAndLicensesWorker implements Worker<Pipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest>, TitelRecordRequest> {
 
     enum State {
         COLLECTING_CANDIDATES, PROCESSING, INDEXING
@@ -109,8 +109,6 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
     private final String serviceIndexType;
 
     private State state;
-
-    private BlockingQueue<TitelRecordRequest> queue;
 
     private Set<TitleRecord> candidates;
 
@@ -167,14 +165,19 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
     }
 
     @Override
-    public Worker<TitelRecordRequest> setQueue(BlockingQueue<TitelRecordRequest> queue) {
-        this.queue = queue;
+    public Worker<Pipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest>, TitelRecordRequest> setPipeline(Pipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest> pipeline) {
+        // unused
         return this;
     }
 
+    public Pipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest> getPipeline() {
+        return withHoldingsAndLicenses;
+    }
+
     @Override
-    public BlockingQueue<TitelRecordRequest> getQueue() {
-        return queue;
+    public WithHoldingsAndLicensesWorker setMetric(MeterMetric metric) {
+        // ignore
+        return this;
     }
 
     @Override
@@ -196,11 +199,11 @@ public class WithHoldingsAndLicensesWorker implements Worker<TitelRecordRequest>
         TitelRecordRequest element = null;
         TitleRecord titleRecord = null;
         try {
-            element = queue.poll(10, TimeUnit.SECONDS);
+            element = withHoldingsAndLicenses.getQueue().poll(5, TimeUnit.SECONDS);
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
                 process(titleRecord);
-                element = queue.poll(10, TimeUnit.SECONDS);
+                element = withHoldingsAndLicenses.getQueue().poll(5, TimeUnit.SECONDS);
                 titleRecord = element != null ? element.get() : null;
             }
         } catch (InterruptedException e) {

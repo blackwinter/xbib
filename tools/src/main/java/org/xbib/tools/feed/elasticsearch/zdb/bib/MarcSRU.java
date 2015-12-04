@@ -39,28 +39,18 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.io.Request;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-/*import org.xbib.sru.client.SRUClient;
-import org.xbib.sru.client.SRUClientFactory;
-import org.xbib.sru.searchretrieve.SearchRetrieveListener;
-import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
-import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
-import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;*/
 import org.xbib.tools.Feeder;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
-import org.xbib.xml.stream.SaxEventConsumer;
 
-import javax.xml.stream.util.XMLEventConsumer;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.net.URI;
 import java.text.Normalizer;
 import java.util.Collections;
@@ -73,19 +63,9 @@ public class MarcSRU extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(MarcSRU.class.getName());
 
-    //private SRUClient client;
-
-    MarcSRU() {
-        super();
-    }
-
-    MarcSRU(boolean b) {
-        //client = SRUClientFactory.newClient();
-    }
-
     @Override
-    public String getName() {
-        return "zdb-sru-elasticsearch";
+    protected WorkerProvider provider() {
+        return p -> new MarcSRU().setPipeline(p);
     }
 
     @Override
@@ -135,11 +115,6 @@ public class MarcSRU extends Feeder {
                         .build(), new LongAdderIngestMetric());
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         ingest.newIndex(index);
-    }
-
-    @Override
-    protected WorkerProvider provider() {
-        return () -> new MarcSRU(true);
     }
 
     @Override

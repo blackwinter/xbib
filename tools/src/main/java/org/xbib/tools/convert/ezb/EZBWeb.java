@@ -67,12 +67,7 @@ public class EZBWeb extends Converter {
 
     @Override
     protected WorkerProvider provider() {
-        return EZBWeb::new;
-    }
-
-    @Override
-    public String getName() {
-        return "ezb-web-turtle";
+        return p -> new EZBWeb().setPipeline(p);
     }
 
     @Override

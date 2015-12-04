@@ -48,13 +48,8 @@ import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 public class Freebase extends Feeder {
 
     @Override
-    public String getName() {
-        return "freebase-ntriples-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Freebase::new;
+        return p -> new Freebase().setPipeline(p);
     }
 
     @Override

@@ -31,6 +31,7 @@
  */
 package org.xbib.tools.convert.ezb;
 
+import org.xbib.tools.Feeder;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
@@ -65,13 +66,8 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 public class EZBXML extends Converter {
 
     @Override
-    public String getName() {
-        return "ezbxml-turtle";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return EZBXML::new;
+        return p -> new EZBXML().setPipeline(p);
     }
 
     @Override

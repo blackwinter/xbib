@@ -110,13 +110,8 @@ public class Jade extends Feeder implements ArticleVocabulary {
     private String citation;
 
     @Override
-    public String getName() {
-        return "jade-to-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Jade::new;
+        return p -> new Jade().setPipeline(p);
     }
 
     @Override

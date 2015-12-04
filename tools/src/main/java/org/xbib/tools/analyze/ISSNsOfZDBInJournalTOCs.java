@@ -50,7 +50,7 @@ import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -67,32 +67,16 @@ import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class ISSNsOfZDBInJournalTOCs implements CommandLineInterpreter {
+public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDBInJournalTOCs.class.getName());
 
-    private final static Set<String> issns = new TreeSet<>();
-
-    private static Settings settings;
-
-    private String issn;
-
-    public ISSNsOfZDBInJournalTOCs reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
-    public ISSNsOfZDBInJournalTOCs settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
-    }
-
-    public ISSNsOfZDBInJournalTOCs writer(Writer writer) {
-        return this;
-    }
+    String issn;
 
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
+        Set<String> issns = new TreeSet<>();
         NettyHttpSession session = new NettyHttpSession();
         session.open(Session.Mode.READ);
         HttpRequest httpRequest = session.newRequest();
@@ -185,12 +169,12 @@ public class ISSNsOfZDBInJournalTOCs implements CommandLineInterpreter {
             search.shutdown();
         }
         session.close();
-        FileWriter writer = new FileWriter(settings.get("output","journaltocs-issns.txt"));
-        for (String issn : issns) {
-            writer.write(issn);
-            writer.write("\n");
+        FileWriter fileWriter = new FileWriter(settings.get("output","journaltocs-issns.txt"));
+        for (String s : issns) {
+            fileWriter.write(s);
+            fileWriter.write("\n");
         }
-        writer.close();
+        fileWriter.close();
     }
 
 }

@@ -101,17 +101,12 @@ public class JsonCoins extends Feeder {
     private final static SerialsDB serialsdb = new SerialsDB();
 
     @Override
-    public String getName() {
-        return "json-coins-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return JsonCoins::new;
+        return p -> new JsonCoins().setPipeline(p);
     }
 
     @Override
-    public void prepareSource() throws IOException {
+    public void prepareSource() throws IOException, InterruptedException {
         try {
             Queue<URI> input = new Finder(settings.get("serials"))
                     .find(settings.get("path"))

@@ -51,13 +51,8 @@ public class GeonamesFromZIP extends Converter {
 
     private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
 
-    @Override
-    public String getName() {
-        return "geonames-tsv";
-    }
-
     protected WorkerProvider provider() {
-        return GeonamesFromZIP::new;
+        return p -> new GeonamesFromZIP().setPipeline(p);
     }
 
     @Override

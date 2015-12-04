@@ -39,8 +39,8 @@ import org.xbib.util.concurrent.WorkerProvider;
 public class NatLiz extends OAIFeeder {
 
     @Override
-    public String getName() {
-        return "oai-natliz-elasticsearch";
+    protected WorkerProvider provider() {
+        return p -> new NatLiz().setPipeline(p);
     }
 
     @Override
@@ -53,10 +53,6 @@ public class NatLiz extends OAIFeeder {
         return settings.get("type");
     }
 
-    @Override
-    protected WorkerProvider provider() {
-        return NatLiz::new;
-    }
 
     @Override
     protected RdfResourceHandler rdfResourceHandler() {

@@ -52,11 +52,14 @@ import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
+import org.xbib.tools.merge.serials.TitelRecordRequest;
+import org.xbib.tools.merge.serials.WithHoldingsAndLicensesWorker;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -86,8 +89,8 @@ import static org.xbib.common.settings.Settings.settingsBuilder;
  * Merge serial manifestations with articles
  */
 public class WithArticles
-        extends ForkJoinPipeline<SerialItemRequest, WithArticlesWorker>
-        implements CommandLineInterpreter {
+        extends ForkJoinPipeline<WithArticlesWorker, SerialItemRequest>
+        implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(WithArticles.class.getName());
 
@@ -107,27 +110,14 @@ public class WithArticles
 
     private String identifier;
 
-    public WithArticles reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
     public WithArticles settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public WithArticles writer(Writer writer) {
-        return this;
-    }
-
-    public WithArticles prepare() {
-        super.prepare();
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
@@ -172,20 +162,21 @@ public class WithArticles
             ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                     indexSettingsInput, indexMappingsInput);
             ingest.startBulk(settings.get("target-index"));
-            super.setProvider(new WorkerProvider<WithArticlesWorker>() {
+            super.setWorkerProvider(new WorkerProvider<WithArticlesWorker>() {
                 int i = 0;
 
                 @Override
-                public WithArticlesWorker get() {
+                public WithArticlesWorker get(Pipeline pipeline) {
                     return new WithArticlesWorker(service, i++);
                 }
             });
             super.setConcurrency(settings.getAsInt("concurrency", 1));
             this.prepare();
             this.execute();
+            // poison element
+            this.waitFor(new SerialItemRequest());
             logger.info("shutdown in progress");
-            shutdown(new SerialItemRequest().set(null));
-
+            shutdown();
             long total = 0L;
             for (Worker worker : getWorkers()) {
                 WithArticlesWorker p = (WithArticlesWorker)worker;
@@ -206,6 +197,12 @@ public class WithArticles
             ingest.waitForResponses(TimeValue.timeValueSeconds(60));
             ingest.shutdown();
         }
+    }
+
+    @Override
+    public WithArticles prepare() {
+        super.prepare();
+        return this;
     }
 
     @Override

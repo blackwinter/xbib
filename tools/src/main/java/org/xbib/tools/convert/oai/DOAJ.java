@@ -63,13 +63,8 @@ public class DOAJ extends OAIHarvester {
 
     private final static Logger logger = LogManager.getLogger(DOAJ.class);
 
-    @Override
-    public String getName() {
-        return "doaj";
-    }
-
     protected WorkerProvider provider() {
-        return DOAJ::new;
+        return p -> new DOAJ().setPipeline(p);
     }
 
     protected SimpleMetadataHandler newMetadataHandler() {

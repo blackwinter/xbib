@@ -63,13 +63,8 @@ public final class FromMARC extends Converter {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "zdb-marc-ntriple";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return FromMARC::new;
+        return p -> new FromMARC().setPipeline(p);
     }
 
     @Override

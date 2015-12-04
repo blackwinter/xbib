@@ -35,12 +35,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.tools.Converter;
 import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
@@ -71,13 +74,8 @@ public class DirectBib extends Feeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "direct-bib-zdb-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider<Worker> provider() {
-        return DirectBib::new;
+        return p -> new DirectBib().setPipeline(p);
     }
 
     @Override

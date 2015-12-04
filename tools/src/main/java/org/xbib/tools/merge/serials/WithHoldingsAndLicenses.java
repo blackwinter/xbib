@@ -55,7 +55,7 @@ import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.support.BibdatLookup;
 import org.xbib.tools.merge.serials.support.BlackListedISIL;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
@@ -65,6 +65,7 @@ import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -83,8 +84,8 @@ import static org.xbib.common.settings.Settings.settingsBuilder;
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicenses
-        extends ForkJoinPipeline<TitelRecordRequest, WithHoldingsAndLicensesWorker>
-        implements CommandLineInterpreter {
+        extends ForkJoinPipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest>
+        implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
 
@@ -124,69 +125,9 @@ public class WithHoldingsAndLicenses
 
     private StatusCodeMapper statusCodeMapper;
 
-    public WithHoldingsAndLicenses reader(Reader reader) {
+    @Override
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
         settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
-    public WithHoldingsAndLicenses writer(Writer writer) {
-        return this;
-    }
-
-    @Override
-    public WithHoldingsAndLicenses prepare() {
-        super.prepare();
-
-        logger.info("preparing bibdat lookup...");
-        bibdatLookup = new BibdatLookup();
-        try {
-            bibdatLookup.buildLookup(client, settings.get("index-bibdat", "bibdat"));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        logger.info("bibdat prepared, {} names, {} organizations, {} regions, {} other",
-                bibdatLookup.lookupName().size(),
-                bibdatLookup.lookupOrganization().size(),
-                bibdatLookup.lookupRegion().size(),
-                bibdatLookup.lookupOther().size());
-
-        logger.info("preparing ISIL blacklist...");
-        isilbl = new BlackListedISIL();
-        try {
-            isilbl.buildLookup(getClass().getResourceAsStream("isil.blacklist"));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        logger.info("ISIL blacklist prepared, size = {}", isilbl.lookup().size());
-
-        logger.info("preparing mapped ISIL...");
-        isilMapped = new MappedISIL();
-        try {
-            isilMapped.buildLookup(getClass().getResourceAsStream("isil.map"));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
-
-        logger.info("preparing status code mapper...");
-        Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
-                "org/xbib/analyzer/mab/status.json", "status");
-        statusCodeMapper = new StatusCodeMapper();
-        statusCodeMapper.add(statuscodes);
-        logger.info("status code mapper prepared");
-
-        // prepare "national license" / consortia ISIL expansion
-        consortiaLookup = new ConsortiaLookup();
-        try {
-            consortiaLookup.buildLookup(client, settings.get("index-consortia", "nlzisil"));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return this;
-    }
-
-    @Override
-    public void run() throws Exception {
         logger.info("run starts");
         this.sourceTitleIndex = settings.get("bib-index");
 
@@ -274,14 +215,14 @@ public class WithHoldingsAndLicenses
         queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
 
-        super.setProvider(new WorkerProvider<WithHoldingsAndLicensesWorker>() {
+        super.setWorkerProvider(new WorkerProvider<WithHoldingsAndLicensesWorker>() {
             int i = 0;
 
             @Override
-            public WithHoldingsAndLicensesWorker get() {
-                WithHoldingsAndLicensesWorker worker = new WithHoldingsAndLicensesWorker(service, i++);
-                worker.setQueue(getQueue());
-                return worker;
+            public WithHoldingsAndLicensesWorker get(Pipeline pipeline) {
+                WithHoldingsAndLicensesWorker w = new WithHoldingsAndLicensesWorker(service, i++);
+                //worker.setQueue(getQueue());
+                return w;
             }
         });
         super.setConcurrency(settings.getAsInt("concurrency", 1));
@@ -291,10 +232,11 @@ public class WithHoldingsAndLicenses
         // here we do the work!
         try {
             execute();
+            // poison elements
+            waitFor(new TitelRecordRequest());
         } finally {
             logger.info("shutdown in progress");
-            shutdown(new TitelRecordRequest().set(null));
-
+            shutdown();
             logger.info("query: started {}, ended {}, took {}, count = {}",
                     DateUtil.formatDateISO(queryMetric.startedAt()),
                     DateUtil.formatDateISO(queryMetric.stoppedAt()),
@@ -317,6 +259,58 @@ public class WithHoldingsAndLicenses
             logger.info("run complete");
 
         }
+    }
+
+    @Override
+    public WithHoldingsAndLicenses prepare() {
+        super.prepare();
+
+        logger.info("preparing bibdat lookup...");
+        bibdatLookup = new BibdatLookup();
+        try {
+            bibdatLookup.buildLookup(client, settings.get("index-bibdat", "bibdat"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("bibdat prepared, {} names, {} organizations, {} regions, {} other",
+                bibdatLookup.lookupName().size(),
+                bibdatLookup.lookupOrganization().size(),
+                bibdatLookup.lookupRegion().size(),
+                bibdatLookup.lookupOther().size());
+
+        logger.info("preparing ISIL blacklist...");
+        isilbl = new BlackListedISIL();
+        try {
+            isilbl.buildLookup(getClass().getResourceAsStream("isil.blacklist"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("ISIL blacklist prepared, size = {}", isilbl.lookup().size());
+
+        logger.info("preparing mapped ISIL...");
+        isilMapped = new MappedISIL();
+        try {
+            isilMapped.buildLookup(getClass().getResourceAsStream("isil.map"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
+
+        logger.info("preparing status code mapper...");
+        Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
+                "org/xbib/analyzer/mab/status.json", "status");
+        statusCodeMapper = new StatusCodeMapper();
+        statusCodeMapper.add(statuscodes);
+        logger.info("status code mapper prepared");
+
+        // prepare "national license" / consortia ISIL expansion
+        consortiaLookup = new ConsortiaLookup();
+        try {
+            consortiaLookup.buildLookup(client, settings.get("index-consortia", "nlzisil"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return this;
     }
 
     @Override

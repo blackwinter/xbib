@@ -61,13 +61,8 @@ public final class BibdatZDB extends Converter {
 
     private final static Logger logger = LogManager.getLogger(BibdatZDB.class.getName());
 
-    @Override
-    public String getName() {
-        return "zdb-bibdat";
-    }
-
     protected WorkerProvider provider() {
-        return BibdatZDB::new;
+        return p -> new BibdatZDB().setPipeline(p);
     }
 
     @Override

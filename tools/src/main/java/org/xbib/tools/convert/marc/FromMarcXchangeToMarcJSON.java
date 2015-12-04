@@ -19,13 +19,8 @@ import java.util.zip.GZIPOutputStream;
 public class FromMarcXchangeToMarcJSON extends Converter {
 
     @Override
-    public String getName() {
-        return getClass().getName();
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return FromMarcXchangeToMarcJSON::new;
+        return p -> new FromMarcXchangeToMarcJSON().setPipeline(p);
     }
 
     @SuppressWarnings("unchecked")

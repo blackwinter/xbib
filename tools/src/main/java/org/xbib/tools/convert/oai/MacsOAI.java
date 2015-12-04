@@ -36,13 +36,8 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 public class MacsOAI extends OAIHarvester {
 
-    @Override
-    public String getName() {
-        return "oai-macs";
-    }
-
     protected WorkerProvider provider() {
-        return MacsOAI::new;
+        return p -> new MacsOAI().setPipeline(p);
     }
 
 }

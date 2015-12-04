@@ -15,6 +15,9 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,16 +31,12 @@ public abstract class TimewindowFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(TimewindowFeeder.class.getSimpleName());
 
-    private static String index;
+    private String index;
 
-    private static String concreteIndex;
+    private String concreteIndex;
 
     protected void setIndex(String index) {
         this.index = index;
-    }
-
-    protected String getIndex() {
-        return index;
     }
 
     protected void setConcreteIndex(String concreteIndex) {
@@ -46,6 +45,31 @@ public abstract class TimewindowFeeder extends Feeder {
 
     protected String getConcreteIndex() {
         return concreteIndex;
+    }
+
+    @Override
+    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
+        return new ConfiguredPipeline();
+    }
+
+    class ConfiguredPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+        public String getIndex() {
+            return index;
+        }
+        public String getConcreteIndex() {
+            return concreteIndex;
+        }
+    }
+
+    @Override
+    public TimewindowFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof ConfiguredPipeline) {
+            ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
+            setIndex(configuredPipeline.getIndex());
+            setConcreteIndex(configuredPipeline.getConcreteIndex());
+        }
+        return this;
     }
 
     @Override
@@ -60,11 +84,11 @@ public abstract class TimewindowFeeder extends Feeder {
         }
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
-        setConcreteIndex(resolveAlias(getIndex() + timeWindow));
+        concreteIndex = resolveAlias(settings.get("index") + timeWindow);
         Pattern pattern = Pattern.compile("^(.*)\\d+$");
-        Matcher m = pattern.matcher(getConcreteIndex());
-        setIndex(m.matches() ? m.group(1) : getConcreteIndex());
-        logger.info("base index name = {}, concrete index name = {}", getIndex(), getConcreteIndex());
+        Matcher m = pattern.matcher(concreteIndex);
+        index = m.matches() ? m.group(1) : concreteIndex;
+        logger.info("base index name = {}, concrete index name = {}", index, concreteIndex);
         super.prepareSink();
     }
 
@@ -94,11 +118,11 @@ public abstract class TimewindowFeeder extends Feeder {
                 InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
                         new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
                         new URL(indexMappings)).openStream();
-                ingest.newIndex(getConcreteIndex(), getType(),
+                ingest.newIndex(concreteIndex, getType(),
                         indexSettingsInput, indexMappingsInput);
                 indexSettingsInput.close();
                 indexMappingsInput.close();
-                ingest.startBulk(getConcreteIndex());
+                ingest.startBulk(concreteIndex);
             } catch (Exception e) {
                 if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
                     throw e;
@@ -125,8 +149,6 @@ public abstract class TimewindowFeeder extends Feeder {
         if (ingest.client() == null) {
             return;
         }
-        String index = getIndex();
-        String concreteIndex = getConcreteIndex();
         if (!index.equals(concreteIndex)) {
             IndicesAliasesRequestBuilder requestBuilder = ingest.client().admin().indices().prepareAliases();
             GetAliasesResponse getAliasesResponse = ingest.client().admin().indices().prepareGetAliases(index).execute().actionGet();
@@ -153,8 +175,8 @@ public abstract class TimewindowFeeder extends Feeder {
             requestBuilder.execute().actionGet();
             if (settings.getAsBoolean("retention.enabled", false)) {
                 performRetentionPolicy(
-                        getIndex(),
-                        getConcreteIndex(),
+                        index,
+                        concreteIndex,
                         settings.getAsInt("retention.diff", 48),
                         settings.getAsInt("retention.mintokeep", 2));
             }

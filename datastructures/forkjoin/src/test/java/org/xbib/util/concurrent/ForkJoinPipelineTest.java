@@ -1,7 +1,15 @@
 package org.xbib.util.concurrent;
 
-/**
- * Created by joerg on 03.12.15.
- */
-public class ForkJoinPipelineTest {
+import org.junit.Assert;
+import org.junit.Test;
+
+public class ForkJoinPipelineTest extends Assert {
+
+    @Test
+    public void testForkJoin() throws Exception {
+        MockWorker worker = new MockWorker();
+        worker.bootstrap();
+        assertTrue(worker.getCount() == 3);
+    }
+
 }

@@ -49,8 +49,6 @@ import java.util.Set;
 
 public class NatLizMapper implements ArticleVocabulary {
 
-    private final static Logger logger = LogManager.getLogger(NatLizMapper.class);
-
     private Resource journal;
 
     private Set<Author> authors = new LinkedHashSet<>();

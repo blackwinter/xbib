@@ -45,21 +45,14 @@ import java.net.URI;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
-import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
-
 /**
  * Convert GND from RDF/XML to Turtle
  */
 public class RdfXml extends Converter {
 
     @Override
-    public String getName() {
-        return "gnd-turtle";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return RdfXml::new;
+        return p -> new RdfXml().setPipeline(p);
     }
 
     @Override

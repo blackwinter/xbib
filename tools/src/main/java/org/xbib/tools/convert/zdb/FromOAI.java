@@ -69,16 +69,13 @@ public class FromOAI extends Converter {
 
     private OAIClient client;
 
-    public FromOAI() {
-    }
-
     public FromOAI(boolean b) {
         client = OAIClientFactory.newClient();
     }
 
     @Override
-    public String getName() {
-        return "zdb-fromoai";
+    protected WorkerProvider provider() {
+        return p -> new FromOAI(true).setPipeline(p);
     }
 
     @Override
@@ -105,11 +102,6 @@ public class FromOAI extends Converter {
 
         }
         logger.info("uris = {}", getQueue().size());
-    }
-
-    @Override
-    protected WorkerProvider provider() {
-        return () -> new FromOAI(true);
     }
 
     @Override
@@ -143,20 +135,15 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    public void run() throws Exception {
-        super.run();
-        if (session != null) {
-            try {
-                session.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-    }
-
-    @Override
     public FromOAI cleanup() {
         try {
+            if (session != null) {
+                try {
+                    session.close();
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
             if (client != null) {
                 client.close();
             }

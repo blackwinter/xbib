@@ -17,13 +17,8 @@ import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 public class NatLizMembers extends Feeder {
 
     @Override
-    public String getName() {
-        return "nlz-members-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return NatLizMembers::new;
+        return p -> new NatLizMembers().setPipeline(p);
     }
 
     @SuppressWarnings("unchecked")

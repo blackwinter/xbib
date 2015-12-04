@@ -82,13 +82,8 @@ public class RdfXml extends Feeder {
     }
 
     @Override
-    public String getName() {
-        return "dnb-gnd-rdfxml-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return RdfXml::new;
+        return p -> new RdfXml().setPipeline(p);
     }
 
     @Override

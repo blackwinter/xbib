@@ -33,25 +33,13 @@ package org.xbib.tools.convert.viaf;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.util.InputService;
-import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.net.URI;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
-
-import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 /**
  * VIAF converter
@@ -60,43 +48,31 @@ public class VIAF extends Converter {
 
     private final static Logger logger = LogManager.getLogger(VIAF.class.getSimpleName());
 
-    private static BlockingQueue<String> pump;
-
-    private static ExecutorService pumpService;
-
     public static void main(String[] args) {
         try {
-            Converter viaf = new VIAF()
-                    .reader(new InputStreamReader(System.in, "UTF-8"))
-                    .writer(new OutputStreamWriter(System.out, "UTF-8"));
-            pump = new SynchronousQueue(true);
-            pumpService = Executors.newFixedThreadPool(settings.getAsInt("pumps", 1));
-            viaf.run();
+            VIAF viaf = new VIAF();
+            viaf.bootstrap(new InputStreamReader(System.in, "UTF-8"), new OutputStreamWriter(System.out, "UTF-8"));
+            //pump = new SynchronousQueue(true);
+            //pumpService = Executors.newFixedThreadPool(settings.getAsInt("pumps", 1));
+            //viaf.run();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            pumpService.shutdownNow();
+            //pumpService.shutdownNow();
         }
         System.exit(0);
     }
 
-    private VIAF() {
-    }
-
-    @Override
-    public String getName() {
-        return "viaf-rdf-ntriple";
-    }
-
     @Override
     protected WorkerProvider provider() {
-        return VIAF::new;
+        return p -> new VIAF().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
+        // TODO
+        /*InputStream in = InputService.getInputStream(uri);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         for (int i = 0; i < settings.getAsInt("pumps", 1); i++) {
             pumpService.submit(new VIAFPipeline());
@@ -113,14 +89,15 @@ public class VIAF extends Converter {
         in.close();
         for (int i = 0; i < settings.getAsInt("pumps", 1); i++) {
             pump.put("|");
-        }
+        }*/
     }
 
     private class VIAFPipeline implements Callable<Boolean> {
 
         @Override
         public Boolean call() throws Exception {
-            FileOutputStream out = new FileOutputStream(settings.get("output"));
+            // TODO
+            /*FileOutputStream out = new FileOutputStream(settings.get("output"));
             try {
                 while (true) {
                     String line = pump.take();
@@ -135,7 +112,7 @@ public class VIAF extends Converter {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 return false;
-            }
+            }*/
             return true;
         }
     }
