@@ -1,0 +1,68 @@
+
+package org.xbib.graphics.barcode.tools;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLDecoder;
+
+/**
+ * Utility functions for handling URLs.
+ */
+public class URLUtil {
+
+    private static final String DATA_PROTOCOL = "data:";
+
+    /**
+     * Returns the data pointed at by a URL as a byte array.
+     * @param url the URL
+     * @param encoding the encoding to use for converting text content to binary content
+     * @return the data as a byte array
+     * @throws IOException if an I/O error occurs
+     */
+    public static byte[] getData(String url, String encoding) throws IOException {
+        if (url.startsWith(DATA_PROTOCOL)) {
+            return parseDataURL(url, encoding);
+        } else {
+            URL u = new URL(url);
+            InputStream in = u.openStream();
+            try {
+                ByteArrayOutputStream baout = new ByteArrayOutputStream();
+                IOUtil.copy(in, baout);
+                return baout.toByteArray();
+            } finally {
+                IOUtil.closeQuietly(in);
+            }
+        }
+    }
+
+    private static byte[] parseDataURL(String url, String encoding) throws IOException {
+        int commaPos = url.indexOf(',');
+        // header is of the form data:[<mediatype>][;base64]
+        String header = url.substring(0, commaPos);
+        String data = url.substring(commaPos + 1);
+        if (header.endsWith(";base64")) {
+            Base64InputStream in = new Base64InputStream(
+                    new java.io.StringReader(data));
+            ByteArrayOutputStream baout = new ByteArrayOutputStream();
+            IOUtil.copy(in, baout);
+            IOUtil.closeQuietly(in);
+            return baout.toByteArray();
+        } else {
+            String urlEncoding = "US-ASCII";
+            final int charsetpos = header.indexOf(";charset=");
+            if (charsetpos > 0) {
+                urlEncoding = header.substring(charsetpos + 9);
+                int pos = urlEncoding.indexOf(';');
+                if (pos > 0) {
+                    urlEncoding = urlEncoding.substring(0, pos);
+                }
+            }
+            final String unescapedString = URLDecoder.decode(data, urlEncoding);
+            byte[] bytes = unescapedString.getBytes(encoding);
+            return bytes;
+        }
+    }
+
+}

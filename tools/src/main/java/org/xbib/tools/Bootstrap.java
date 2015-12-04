@@ -31,38 +31,11 @@
  */
 package org.xbib.tools;
 
-import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.WeakHashMap;
+import java.io.Reader;
+import java.io.Writer;
 
-public interface Provider extends CommandLineInterpreter {
+public interface Bootstrap {
 
-    String getName();
-
-    class Factory {
-
-        private final static Map<String, Provider> providers = new WeakHashMap<String, Provider>();
-
-        static {
-            ServiceLoader<Provider> loader = ServiceLoader.load(Provider.class);
-            for (Provider provider : loader) {
-                if (!providers.containsKey(provider.getName())) {
-                    providers.put(provider.getName(), provider);
-                }
-            }
-        }
-
-        public static Provider get(String name) {
-            if (providers.containsKey(name)) {
-                return providers.get(name);
-            }
-            throw new RuntimeException("not found: " + name);
-        }
-
-        public static Map<String, Provider> getProviders() {
-            return providers;
-        }
-
-    }
+    void bootstrap(Reader reader, Writer writer) throws Exception;
 
 }
