@@ -39,9 +39,11 @@ import org.xbib.oai.OAISession;
 import org.xbib.util.DateUtil;
 import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
+import org.xbib.util.URIUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.Date;
 
 /**
@@ -49,8 +51,6 @@ import java.util.Date;
  */
 public class ClientOAIRequest<R extends ClientOAIRequest>
         extends NettyHttpRequest implements HttpRequest, OAIRequest<R> {
-
-    //private final static Charset UTF8 = Charset.forName("UTF-8");
 
     private ResumptionToken token;
 
@@ -144,8 +144,9 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
 
     public R setResumptionToken(ResumptionToken token) {
         this.token = token;
-        if (token != null) {
-            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, token.toString());
+        if (token != null && token.toString() != null) {
+            // resumption token may have characters that are illegal in URIs like '|'
+            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, URIUtil.encode(token.toString(), Charset.forName("UTF-8")));
         }
         return (R) this;
     }

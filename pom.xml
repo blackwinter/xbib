@@ -84,7 +84,7 @@
         <maven.build.timestamp.format>dd.MM.yyyy HH:mm</maven.build.timestamp.format>
         <java.compiler.source>1.8</java.compiler.source>
         <xbib.version>${project.version}</xbib.version>
-        <xbib.elasticsearch.helper.plugin.version>1.5.2.6</xbib.elasticsearch.helper.plugin.version>
+        <xbib.elasticsearch.helper.plugin.version>1.5.2.7</xbib.elasticsearch.helper.plugin.version>
         <jackson.version>2.6.3</jackson.version>
         <netty.version>4.1.0.Beta7</netty.version>
         <jetty.version>9.3.0.M2</jetty.version>
@@ -540,6 +540,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.xbib</groupId>
+                <artifactId>xbib-graphics-barcode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.xbib.elasticsearch.plugin</groupId>
                 <artifactId>elasticsearch-helper</artifactId>
                 <version>${xbib.elasticsearch.helper.plugin.version}</version>
@@ -754,6 +759,7 @@
         <module>datastructures/keyvalue</module>
         <module>datastructures/collection</module>
         <module>datastructures/forkjoin</module>
+        <module>datastructures/cluster</module>
 
         <module>content/common</module>
         <module>content/csv</module>
@@ -775,6 +781,8 @@
         <module>bibliographic/iso23950</module>
         <module>bibliographic/oai</module>
         <module>bibliographic/sru</module>
+
+        <module>graphics/barcode</module>
 
         <module>matching</module>
         <module>etl</module>

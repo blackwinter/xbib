@@ -18,7 +18,7 @@
     <scm>
         <connection>scm:git:git@github.com:xbib/datastructures-keyvalue.git</connection>
         <developerConnection>scm:git:git@github.com:xbib/datastructures-keyvalue.git</developerConnection>
-        <url>http://github.com/xbib/keyvalue</url>
+        <url>http://github.com/xbib/datastructures-keyvalue</url>
     </scm>
 
 </project>
