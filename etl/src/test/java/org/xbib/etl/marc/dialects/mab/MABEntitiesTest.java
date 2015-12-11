@@ -2,7 +2,7 @@ package org.xbib.etl.marc.dialects.mab;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
@@ -13,6 +13,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,7 +35,9 @@ public class MABEntitiesTest {
     public void testSetupOfMABElements() throws Exception {
         MyQueue queue = new MyQueue();
         queue.execute();
-        Writer writer = new FileWriter("mab-hbz-tit-elements.json");
+        File file = File.createTempFile("mab-hbz-tit-elements", ".json");
+        file.deleteOnExit();
+        Writer writer = new FileWriter(file);
         queue.specification().dump("org/xbib/analyzer/mab/titel.json", writer);
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
         Iso2709Reader reader = new Iso2709Reader(null).setMarcXchangeListener(kv);
@@ -47,7 +50,9 @@ public class MABEntitiesTest {
     public void testZDBMABElements() throws Exception {
         InputStream in = getClass().getResourceAsStream("1217zdbtit.dat");
         BufferedReader br = new BufferedReader(new InputStreamReader(in, "x-MAB"));
-        Writer w = new OutputStreamWriter(new FileOutputStream("zdb-mab-titel.xml"), "UTF-8");
+        File file = File.createTempFile("zdb-mab-titel",".xml");
+        file.deleteOnExit();
+        Writer w = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id,key) -> unmapped.add("\"" + key + "\""));
@@ -76,7 +81,6 @@ public class MABEntitiesTest {
         @Override
         public void afterCompletion(MABEntityBuilderState state) throws IOException {
             // write title resource
-            //RdfXContentParams params = new RdfXContentParams(IRINamespaceContext.getInstance(), true);
             RdfContentBuilder builder = rdfXContentBuilder();
             builder.receive(state.getResource());
             logger.info(builder.string());

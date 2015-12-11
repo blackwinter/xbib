@@ -33,8 +33,8 @@ package org.xbib.etl.marc.dialects.unimarc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.iri.IRI;
@@ -66,6 +66,7 @@ public class UNIMARCEntityTest extends Assert {
         MyQueue queue = new MyQueue();
         queue.execute();
         File file = File.createTempFile("unimarc-mapping.", ".json");
+        file.deleteOnExit();
         Writer writer = new FileWriter(file);
         queue.specification().dump("org/xbib/analyzer/unimarc/bib.json", writer);
         writer.close();

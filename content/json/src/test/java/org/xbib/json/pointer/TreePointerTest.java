@@ -1,7 +1,8 @@
 package org.xbib.json.pointer;
 
 import com.fasterxml.jackson.core.TreeNode;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,14 +14,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
-public final class TreePointerTest {
+public final class TreePointerTest extends Assert {
     @Test
     public void attemptToBuildTokensFromNullRaisesAnError()
             throws JsonPointerException {

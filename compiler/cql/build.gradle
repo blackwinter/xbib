@@ -1,0 +1,23 @@
+
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "http://xbib.org/repository"
+        }
+    }
+    dependencies {
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.0.0'
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jacc:1.0.2'
+    }
+}
+
+apply plugin: 'jflex'
+apply plugin: 'jacc'
+
+dependencies {
+    compile project(':content:common')
+    jflex 'de.jflex:jflex:1.6.0'
+    jacc 'org.xbib:xbib-jacc:1.0.0-SNAPSHOT'
+}

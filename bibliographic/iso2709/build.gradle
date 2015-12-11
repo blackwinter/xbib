@@ -1,0 +1,20 @@
+
+configurations {
+    provided
+    testCompile.extendsFrom(provided)
+}
+
+test {
+    classpath += configurations.provided
+}
+
+dependencies {
+    compile project(':datastructures:keyvalue')
+    compile project(':io:stream')
+    compile project(':content:xml')
+    testCompile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+    testCompile "xerces:xercesImpl:2.11.0"
+    testCompile "xalan:xalan:2.7.2"
+    testCompile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+    provided project(':io:charset') // for bibliographic charsets
+}

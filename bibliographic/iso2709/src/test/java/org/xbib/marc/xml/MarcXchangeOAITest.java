@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.xml;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;

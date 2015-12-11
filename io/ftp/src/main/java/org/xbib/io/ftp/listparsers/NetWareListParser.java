@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,10 +25,10 @@ public class NetWareListParser implements FTPListParser {
                     + "(?:(\\w{3})\\s+(\\d{1,2}))\\s+(?:(\\d{4})|(?:(\\d{1,2}):(\\d{1,2})))\\s+"
                     + "([^\\\\/*?\"<>|]+)$");
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
-            "MMM dd yyyy HH:mm", Locale.US);
-
-    public List<FTPEntry> parse(List<String> lines) throws FTPException {
+    @Override
+    public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy HH:mm", Locale.US);
+        dateFormat.setTimeZone(timeZone);
         Calendar now = Calendar.getInstance();
         int currentYear = now.get(Calendar.YEAR);
         List<FTPEntry> ret = new ArrayList<FTPEntry>();
@@ -90,9 +91,7 @@ public class NetWareListParser implements FTPListParser {
                 }
                 Date md;
                 try {
-                    synchronized (DATE_FORMAT) {
-                        md = DATE_FORMAT.parse(mdString.toString());
-                    }
+                    md = dateFormat.parse(mdString.toString());
                 } catch (ParseException e) {
                     throw new FTPException("date parse");
                 }

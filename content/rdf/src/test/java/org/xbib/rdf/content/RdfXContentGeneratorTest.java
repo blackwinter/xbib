@@ -31,19 +31,17 @@
  */
 package org.xbib.rdf.content;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
-import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 
 import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
-public class RdfXContentGeneratorTest
-    extends Assert {
+public class RdfXContentGeneratorTest extends Assert {
 
     @Test
     public void testContentBuilder() throws Exception {

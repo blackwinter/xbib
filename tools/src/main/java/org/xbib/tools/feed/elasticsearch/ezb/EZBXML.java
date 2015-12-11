@@ -93,20 +93,6 @@ public final class EZBXML extends TimewindowFeeder {
         in.close();
     }
 
-    @Override
-    public EZBXML cleanup() throws IOException {
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest != null && ingest.client() != null) {
-            updateAliases(getIndex(), getConcreteIndex());
-        } else {
-            logger.info("not doing alias settings");
-        }
-        if (ingest != null) {
-            ingest.stopBulk(getConcreteIndex());
-        }
-        super.cleanup();
-        return this;
-    }
-
     class EZBHandler extends AbstractXmlResourceHandler {
 
         private String id;

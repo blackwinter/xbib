@@ -1,8 +1,6 @@
 package org.xbib.rdf.io.sink;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentBuilderProvider;
@@ -20,9 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-
 public class RdfContentBuilderSinkTest {
-    private final static Logger logger = LogManager.getLogger(RdfContentBuilderSinkTest.class);
 
     @Test
     public void ntripleBuilderSink() throws Exception {

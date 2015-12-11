@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':content:xml')
+    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+}

@@ -1,6 +1,6 @@
 package org.xbib.marc.xml.mapper;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xbib.marc.xml.stream.mapper.MarcXchangeFieldMapperReader;
@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.testng.Assert.assertNull;
 
 public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
 

@@ -69,7 +69,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -206,8 +205,6 @@ public class WithHoldingsAndLicensesWorker implements Worker<Pipeline<WithHoldin
                 element = withHoldingsAndLicenses.getQueue().take();
                 titleRecord = element != null ? element.get() : null;
             }
-        } catch (InterruptedException e) {
-            logger.warn("timeout while waiting for element");
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             logger.error(ExceptionFormatter.format(e));
@@ -275,7 +272,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<Pipeline<WithHoldin
                 continueClusterBuild(candidates, cont, 0);
             }
             if (retry) {
-                logger.info("{} {}: retrying before indexing", this, titleRecord);
+                logger.info("{}: retrying before indexing", titleRecord);
                 continue;
             }
             state = State.INDEXING;
@@ -293,7 +290,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<Pipeline<WithHoldin
                 continueClusterBuild(candidates, cont, 0);
             }
             if (retry) {
-                logger.info("{} {}: retrying after indexing", this, titleRecord);
+                logger.info("{}: retrying after indexing", titleRecord);
             }
         } while (retry);
     }
@@ -388,8 +385,7 @@ public class WithHoldingsAndLicensesWorker implements Worker<Pipeline<WithHoldin
             WithHoldingsAndLicensesWorker pipeline = (WithHoldingsAndLicensesWorker)worker;
             Set<TitleRecord> set = pipeline.getCandidates();
             if (set != null && set.contains(titleRecord)) {
-                logger.warn("{}: collision detected for {} with {} state={}",
-                        this,
+                logger.warn("collision detected for {} with {} state={}",
                         titleRecord,
                         pipeline,
                         pipeline.state.name()

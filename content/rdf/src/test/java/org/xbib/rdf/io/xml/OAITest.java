@@ -1,6 +1,6 @@
 package org.xbib.rdf.io.xml;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;

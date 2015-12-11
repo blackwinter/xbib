@@ -1,6 +1,7 @@
 package org.xbib.tools.merge.serials;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.tools.merge.serials.support.BlackListedISIL;
@@ -9,9 +10,7 @@ import org.xbib.tools.merge.serials.support.MappedISIL;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.testng.Assert.assertFalse;
-
-public class WithHoldingAndLicensesTest {
+public class WithHoldingAndLicensesTest extends Assert {
 
     @Test
     public void test() throws IOException {

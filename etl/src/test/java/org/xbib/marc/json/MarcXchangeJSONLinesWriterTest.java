@@ -33,7 +33,7 @@ package org.xbib.marc.json;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.helper.StreamTester;
@@ -58,7 +58,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.testng.Assert.assertEquals;
 import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
 public class MarcXchangeJSONLinesWriterTest extends StreamTester {
@@ -78,7 +77,9 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
         MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id, key) -> unmapped.add(key.toString()));
         queue.execute();
-        FileOutputStream out = new FileOutputStream("zdbtit.marc.jsonl");
+        File file = File.createTempFile("zdbtit.marc",".jsonl");
+        file.deleteOnExit();
+        FileOutputStream out = new FileOutputStream(file);
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
                 .addListener(queue);
@@ -99,7 +100,8 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
     @Test
     public void testMAB2JSON() throws Exception {
         InputStream in = getClass().getResourceAsStream("DE-605-aleph500-publish.xml");
-        File file = new File("DE-605-aleph500-publish.jsonl");
+        File file = File.createTempFile("DE-605-aleph500-publish", ".jsonl");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         MarcXchangeJSONLinesWriter marcXchangeJSONLinesWriter = new MarcXchangeJSONLinesWriter(out);
         MarcXchangeReader reader = new MarcXchangeReader(in)

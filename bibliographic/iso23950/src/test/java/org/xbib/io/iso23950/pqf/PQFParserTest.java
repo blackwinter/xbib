@@ -36,12 +36,8 @@ import java.io.StringReader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
-/**
- * PQF parser test
- *
- */
 public class PQFParserTest extends ParserTest {
 
     private static final Logger logger = LogManager.getLogger(PQFParserTest.class.getName());

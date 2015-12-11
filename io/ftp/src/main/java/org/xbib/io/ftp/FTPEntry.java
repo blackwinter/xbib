@@ -26,17 +26,17 @@ public class FTPEntry {
     /**
      * The name of the file.
      */
-    private String name = null;
+    private String name;
 
     /**
      * The path of the linked file, if this one is a link.
      */
-    private String link = null;
+    private String link;
 
     /**
      * The last modified date of the file.
      */
-    private Date modifiedDate = null;
+    private Date modifiedDate;
 
     /**
      * The size of the file (bytes).

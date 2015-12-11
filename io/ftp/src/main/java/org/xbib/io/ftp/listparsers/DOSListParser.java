@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,14 +22,12 @@ public class DOSListParser implements FTPListParser {
             .compile("^(\\d{2})-(\\d{2})-(\\d{2})\\s+(\\d{2}):(\\d{2})(AM|PM)\\s+"
                     + "(<DIR>|\\d+)\\s+([^\\\\/*?\"<>|]+)$");
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
-            "MM/dd/yy hh:mm a");
-
-    public List<FTPEntry> parse(List<String> lines) throws FTPException {
-        int size = lines.size();
-        List<FTPEntry> ret = new ArrayList<FTPEntry>();
-        for (int i = 0; i < size; i++) {
-            Matcher m = PATTERN.matcher(lines.get(i));
+    @Override
+    public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yy hh:mm a");
+        List<FTPEntry> ret = new ArrayList<>();
+        for (String line : lines) {
+            Matcher m = PATTERN.matcher(line);
             if (m.matches()) {
                 String month = m.group(1);
                 String day = m.group(2);
@@ -57,13 +56,11 @@ public class DOSListParser implements FTPListParser {
                         + ":" + minute + " " + ampm;
                 Date md;
                 try {
-                    synchronized (DATE_FORMAT) {
-                        md = DATE_FORMAT.parse(mdString);
-                    }
+                    md = dateFormat.parse(mdString);
+                    ftpEntry.setModifiedDate(md);
                 } catch (ParseException e) {
-                    throw new FTPException("parse");
+                    // ignore
                 }
-                ftpEntry.setModifiedDate(md);
                 ret.add(ftpEntry);
             } else {
                 throw new FTPException("parse");

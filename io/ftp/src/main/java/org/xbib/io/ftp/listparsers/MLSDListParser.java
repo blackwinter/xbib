@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * This parser can handle the standard MLST/MLSD responses (RFC 3659).
@@ -20,17 +21,18 @@ public class MLSDListParser implements FTPListParser {
     /**
      * Date format 1 for MLSD date facts (supports millis).
      */
-    private static final DateFormat MLSD_DATE_FORMAT_1 = new SimpleDateFormat("yyyyMMddhhmmss.SSS Z");
+    //private static final
 
     /**
      * Date format 2 for MLSD date facts (doesn't support millis).
      */
-    private static final DateFormat MLSD_DATE_FORMAT_2 = new SimpleDateFormat("yyyyMMddhhmmss Z");
+    //private static final
 
-    public List<FTPEntry> parse(List<String> lines) throws FTPException {
+    @Override
+    public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
         List<FTPEntry> list = new ArrayList<>();
         for (String line : lines) {
-            FTPEntry file = parseLine(line);
+            FTPEntry file = parseLine(line, timeZone);
             if (file != null) {
                 list.add(file);
             }
@@ -45,8 +47,11 @@ public class MLSDListParser implements FTPListParser {
      * @return The file, or null if the line has to be ignored.
      * @throws FTPException If the line is not a valid MLSD entry.
      */
-    private FTPEntry parseLine(String line) throws FTPException {
-        // Divides facts and name.
+    private FTPEntry parseLine(String line, TimeZone timeZone) throws FTPException {
+        DateFormat dateFormat1 = new SimpleDateFormat("yyyyMMddhhmmss.SSS Z");
+        dateFormat1.setTimeZone(timeZone);
+        DateFormat dateFormat2 = new SimpleDateFormat("yyyyMMddhhmmss Z");
+        dateFormat2.setTimeZone(timeZone);
         List<String> list = new ArrayList<>();
         StringTokenizer st = new StringTokenizer(line, ";");
         while (st.hasMoreElements()) {
@@ -99,14 +104,10 @@ public class MLSDListParser implements FTPListParser {
         if (modifyString != null) {
             modifyString += " +0000";
             try {
-                synchronized (MLSD_DATE_FORMAT_1) {
-                    modifiedDate = MLSD_DATE_FORMAT_1.parse(modifyString);
-                }
+                modifiedDate = dateFormat1.parse(modifyString);
             } catch (ParseException e1) {
                 try {
-                    synchronized (MLSD_DATE_FORMAT_2) {
-                        modifiedDate = MLSD_DATE_FORMAT_2.parse(modifyString);
-                    }
+                    modifiedDate = dateFormat2.parse(modifyString);
                 } catch (ParseException e2) {
                     //
                 }

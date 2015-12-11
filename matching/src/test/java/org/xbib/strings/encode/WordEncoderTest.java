@@ -1,10 +1,11 @@
 package org.xbib.strings.encode;
 
+import org.junit.Test;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import org.testng.annotations.Test;
 
 public class WordEncoderTest {
 

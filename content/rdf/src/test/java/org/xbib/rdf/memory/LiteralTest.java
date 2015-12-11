@@ -31,8 +31,8 @@
  */
 package org.xbib.rdf.memory;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 
 public class LiteralTest extends Assert {

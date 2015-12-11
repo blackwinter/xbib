@@ -33,7 +33,7 @@ package org.xbib.oai.client;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
@@ -52,8 +52,6 @@ import java.io.StringWriter;
 import java.net.ConnectException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
-import static org.testng.Assert.assertTrue;
 
 /**
  * DOAJ client test

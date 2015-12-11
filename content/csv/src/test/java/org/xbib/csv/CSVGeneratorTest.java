@@ -32,7 +32,7 @@
 
 package org.xbib.csv;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;

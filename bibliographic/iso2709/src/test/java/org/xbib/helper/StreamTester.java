@@ -1,11 +1,10 @@
 package org.xbib.helper;
 
+import org.junit.Assert;
+
 import java.io.InputStream;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-public class StreamTester {
+public class StreamTester extends Assert {
 
     protected static void assertStream(String name, InputStream expected, InputStream actual) {
         int offset = 0;

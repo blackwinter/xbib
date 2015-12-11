@@ -1,18 +1,13 @@
 package org.xbib.csv;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 public class TSVParserTest {
-
-    private final static Logger logger = LogManager.getLogger("test");
 
     @Test
     public void testTabSeparated() throws IOException {

@@ -33,7 +33,7 @@ package org.xbib.rdf.jsonld;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentBuilderProvider;

@@ -1,0 +1,52 @@
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '1.2.2'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'maven-publish'
+
+configurations {
+    provided
+    testCompile.extendsFrom(provided)
+}
+
+test {
+    classpath += configurations.provided
+}
+
+dependencies {
+    compile project(':time')
+    compile project(':matching')
+    compile project(':etl')
+    compile project(':content:csv')
+    compile project(':bibliographic:oai')
+    compile project(':bibliographic:sru')
+    compile project(':io:charset')
+    compile project(':io:archive')
+    compile project(':io:jdbc')
+    compile 'org.xbib.elasticsearch.plugin:elasticsearch-helper:1.5.2.7'
+    compile "xerces:xercesImpl:2.11.0"
+    compile "xalan:xalan:2.7.2"
+    compile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+    provided project(':io:charset') // for bibliographic charsets
+}
+
+shadowJar {
+    baseName = 'xbib-' + project.name
+    classifier = 'standalone'
+}
+
+artifacts {
+    archives shadowJar
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.shadow
+            artifactId = 'xbib-' + project.name
+        }
+    }
+}

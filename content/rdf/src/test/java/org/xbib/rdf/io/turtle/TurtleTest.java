@@ -32,15 +32,13 @@
 package org.xbib.rdf.io.turtle;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;

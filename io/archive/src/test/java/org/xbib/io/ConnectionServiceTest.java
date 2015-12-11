@@ -1,15 +1,12 @@
 
 package org.xbib.io;
 
+import org.junit.Test;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.testng.annotations.Test;
 
-/**
- * Test connection manager
- *
- */
 public class ConnectionServiceTest {
 
     @Test
@@ -19,7 +16,7 @@ public class ConnectionServiceTest {
                 .getConnection(URI.create("file:///tmp"));
     }
 
-    @Test(expectedExceptions = java.util.ServiceConfigurationError.class)
+    @Test(expected = java.util.ServiceConfigurationError.class)
     public void testUnkownScheme() throws URISyntaxException, IOException {
         URI uri = URI.create("unknownscheme://localhost");
         ConnectionService.getInstance()

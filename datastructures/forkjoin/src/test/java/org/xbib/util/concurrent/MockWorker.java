@@ -67,7 +67,6 @@ public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequ
             pushSource();
             getPipeline().waitFor(new URIWorkerRequest());
             logger.info("execution completed");
-            getPipeline().shutdown();
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         } finally {

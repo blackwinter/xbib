@@ -1,0 +1,7 @@
+dependencies {
+    compile project(':content:common')
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${versions.jackson}"
+    testCompile "xerces:xercesImpl:2.11.0"
+    testCompile "xalan:xalan:2.7.2"
+    testCompile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+}

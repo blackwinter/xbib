@@ -33,7 +33,7 @@ package org.xbib.io.iso23950;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.io.Connection;
 import org.xbib.io.ConnectionService;
 import org.xbib.io.iso23950.client.ZClient;

@@ -1,11 +1,10 @@
 package org.xbib.marc.xml;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
 import java.io.InputStream;
 
 public class MarcXchangeSRUTest extends StreamTester {
@@ -78,11 +77,6 @@ public class MarcXchangeSRUTest extends StreamTester {
         reader.setContentHandler(handler);
         reader.parse();
         in.close();
-
-        FileWriter fw = new FileWriter("zdb-sru-marcxmlplus.txt");
-        fw.write(sb.toString());
-        fw.close();
-
         assertStream(s, getClass().getResource("zdb-sru-marcxmlplus.txt").openStream(),
                 new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
     }

@@ -1,0 +1,8 @@
+
+dependencies {
+    compile project(':io:http')
+    compile project(':content:rdf')
+    testCompile "xerces:xercesImpl:2.11.0"
+    testCompile "xalan:xalan:2.7.2"
+    testCompile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+}

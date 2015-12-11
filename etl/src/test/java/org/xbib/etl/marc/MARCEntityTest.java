@@ -33,8 +33,8 @@ package org.xbib.etl.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class MARCEntityTest extends Assert {
 
     private static final Logger logger = LogManager.getLogger(MARCEntityTest.class.getName());
@@ -57,6 +56,7 @@ public class MARCEntityTest extends Assert {
     @Test
     public void testSetup() throws Exception {
         File file = File.createTempFile("marc-bib-entities.", ".json");
+        file.deleteOnExit();
         Writer writer = new FileWriter(file);
         MyQueue queue = new MyQueue();
         queue.specification().dump("org/xbib/analyzer/marc/bib.json", writer);

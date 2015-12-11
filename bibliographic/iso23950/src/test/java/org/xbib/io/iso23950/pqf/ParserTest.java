@@ -31,18 +31,15 @@
  */
 package org.xbib.io.iso23950.pqf;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.testng.Assert;
 
-/**
- * Generator test
- *
- */
 public abstract class ParserTest extends Assert {
 
     /**
@@ -56,7 +53,7 @@ public abstract class ParserTest extends Assert {
      */
     protected Iterable<String> readFromResource(String path)
         throws IOException {
-        final ArrayList<String> lines = new ArrayList();
+        final ArrayList<String> lines = new ArrayList<>();
         InputStream in = getClass().getClassLoader().getResourceAsStream(path);
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
         String line;

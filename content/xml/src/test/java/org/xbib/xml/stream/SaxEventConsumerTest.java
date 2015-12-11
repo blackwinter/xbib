@@ -1,6 +1,6 @@
 package org.xbib.xml.stream;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.namespace.QName;

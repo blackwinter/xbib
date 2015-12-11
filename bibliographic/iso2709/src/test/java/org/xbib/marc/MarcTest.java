@@ -31,7 +31,7 @@
  */
 package org.xbib.marc;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xml.sax.SAXException;
@@ -42,8 +42,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import static org.testng.Assert.assertNull;
 
 public class MarcTest extends StreamTester {
 
@@ -60,6 +58,7 @@ public class MarcTest extends StreamTester {
                 }) {
             InputStream in = getClass().getResource(s).openStream();
             File file = File.createTempFile(s + ".", ".xml");
+            file.deleteOnExit();
             FileOutputStream out = new FileOutputStream(file);
             try (InputStreamReader r = new InputStreamReader(in, "ANSEL")) {
                 Iso2709Reader reader = new Iso2709Reader(r);
@@ -88,6 +87,7 @@ public class MarcTest extends StreamTester {
                 }) {
             InputStream in = getClass().getResource(s).openStream();
             File file = File.createTempFile(s +".", ".xml");
+            file.deleteOnExit();
             FileOutputStream out = new FileOutputStream(file);
             try (InputStreamReader r = new InputStreamReader(in, "ANSEL")) {
                 Iso2709Reader reader = new Iso2709Reader(r);
@@ -119,6 +119,7 @@ public class MarcTest extends StreamTester {
         String s = "amstransactions.mrc";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile(s +".", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         try (InputStreamReader r = new InputStreamReader(in, "ANSEL")) {
             Iso2709Reader reader = new Iso2709Reader(r);
@@ -143,6 +144,7 @@ public class MarcTest extends StreamTester {
         String s = "zdblokutf8.mrc";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile(s +".", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         try (InputStreamReader r = new InputStreamReader(in, "UTF-8")) {
             Iso2709Reader reader = new Iso2709Reader(r);

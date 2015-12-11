@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -267,6 +268,8 @@ public class FTPClient {
      */
     private FTPCommunicationChannel communication = null;
 
+    private TimeZone timeZone = TimeZone.getTimeZone("GMT");
+
     /**
      * Builds and initializes the client.
      */
@@ -276,6 +279,15 @@ public class FTPClient {
         addListParser(new EPLFListParser());
         addListParser(new NetWareListParser());
         addListParser(new MLSDListParser());
+    }
+
+    public FTPClient setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
+        return this;
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone;
     }
 
     /**
@@ -1558,12 +1570,12 @@ public class FTPClient {
             }
             if (mlsdCommand) {
                 MLSDListParser parser = new MLSDListParser();
-                ret = parser.parse(lines).stream()
+                ret = parser.parse(lines, timeZone).stream()
                         .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
             } else {
                 if (parser != null) {
                     try {
-                        ret = parser.parse(lines).stream()
+                        ret = parser.parse(lines, timeZone).stream()
                                 .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
                     } catch (FTPException e) {
                         parser = null;
@@ -1573,7 +1585,7 @@ public class FTPClient {
                     for (Object listParser : listParsers) {
                         FTPListParser aux = (FTPListParser) listParser;
                         try {
-                            ret = aux.parse(lines).stream()
+                            ret = aux.parse(lines, timeZone).stream()
                                     .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
                             parser = aux;
                             break;

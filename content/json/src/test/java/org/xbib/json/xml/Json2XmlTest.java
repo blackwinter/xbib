@@ -31,7 +31,7 @@
  */
 package org.xbib.json.xml;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 import org.xml.sax.InputSource;
 

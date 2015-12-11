@@ -31,8 +31,8 @@
  */
 package org.xbib.entities;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.etl.marc.MARCSpecification;
 import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;

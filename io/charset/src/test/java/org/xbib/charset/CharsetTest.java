@@ -1,13 +1,14 @@
 package org.xbib.charset;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Map;
 import java.util.SortedMap;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 public class CharsetTest extends Assert {
 

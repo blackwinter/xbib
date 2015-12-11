@@ -33,8 +33,8 @@ package org.xbib.etl.marc.zdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.iri.IRI;
@@ -68,7 +68,6 @@ public class ZDBBibTest extends Assert {
     @Test
     public void testZDBBib() throws Exception {
         InputStream in = getClass().getResourceAsStream("zdbtitutf8.mrc");
-            //new GZIPInputStream(new FileInputStream(System.getProperty("user.home") + "/Daten/zdb/1302zdbtitgesamt.mrc.gz"));
         BufferedReader br = new BufferedReader(new InputStreamReader(in, ISO88591));
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         MyQueue queue = new MyQueue();
@@ -77,20 +76,6 @@ public class ZDBBibTest extends Assert {
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
                 .addListener(queue);
-                /*.addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("start");
-                            for (Field f : key) {
-                                logger.debug("tag={} ind={} subf={} data={}",
-                                    f.tag(), f.indicator(), f.subfieldId(), f.data());
-                            }
-                            logger.debug("end");
-                        }
-                        return this;
-                    }
-                });*/
         Iso2709Reader reader = new Iso2709Reader(br).setMarcXchangeListener(kv);
         reader.setProperty(Iso2709Reader.FORMAT, "MARC");
         reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
@@ -111,20 +96,6 @@ public class ZDBBibTest extends Assert {
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .addListener(queue);
-                /*.addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("start");
-                            for (Field f : key) {
-                                logger.debug("tag={} ind={} subf={} data={}",
-                                    f.tag(), f.indicator(), f.subfieldId(), f.data());
-                            }
-                            logger.debug("end");
-                        }
-                        return this;
-                    }
-                });*/
         MarcXchangeReader reader = new MarcXchangeReader(in).setMarcXchangeListener(kv);
         reader.parse();
         in.close();

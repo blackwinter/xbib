@@ -31,7 +31,7 @@
  */
 package org.xbib.helper;
 
-import org.testng.Assert;
+import org.junit.Assert;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -44,11 +44,11 @@ public class StreamTester extends Assert {
             while (true) {
                 final int exp = expected.read();
                 if (exp == -1) {
-                    assertEquals(actual.read(), -1,  "Expecting end of actual stream at offset " + offset);
+                    assertEquals("Expecting end of actual stream at offset " + offset, -1, actual.read());
                     break;
                 } else {
                     final int act = actual.read();
-                    assertEquals(act, exp, "Expecting same data at offset " + offset);
+                    assertEquals("Expecting same data at offset " + offset, exp, act);
                 }
                 offset++;
             }
@@ -65,11 +65,11 @@ public class StreamTester extends Assert {
             while (true) {
                 final int exp = expected.read();
                 if (exp == -1) {
-                    assertEquals(actual.read(), -1, "Expecting end of actual stream at offset " + offset);
+                    assertEquals("Expecting end of actual stream at offset " + offset, -1, actual.read());
                     break;
                 } else {
                     final int act = actual.read();
-                    assertEquals(act, exp, "Expecting same data at offset " + offset);
+                    assertEquals("Expecting same data at offset " + offset, exp, act);
                 }
                 offset++;
             }

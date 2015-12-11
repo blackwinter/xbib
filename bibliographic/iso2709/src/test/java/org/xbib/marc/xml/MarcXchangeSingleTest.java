@@ -1,6 +1,6 @@
 package org.xbib.marc.xml;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
-
-import static org.testng.Assert.assertNull;
 
 public class MarcXchangeSingleTest extends StreamTester {
 

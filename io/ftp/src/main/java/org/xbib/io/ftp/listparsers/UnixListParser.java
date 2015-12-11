@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,10 +27,10 @@ public class UnixListParser implements FTPListParser {
                     + "(?:(\\d{4})|(?:(\\d{1,2}):(\\d{1,2})))\\s+"
                     + "([^\\\\*?\"<>|]+)(?: -> ([^\\\\*?\"<>|]+))?$");
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
-            "MMM dd yyyy HH:mm", Locale.US);
-
-    public List<FTPEntry> parse(List<String> lines) throws FTPException {
+    @Override
+    public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy HH:mm", Locale.US);
+        dateFormat.setTimeZone(timeZone);
         List<FTPEntry> ret = new ArrayList<>();
         int size = lines.size();
         if (size == 0) {
@@ -38,7 +39,7 @@ public class UnixListParser implements FTPListParser {
         // Removes the "total" line used in MAC style.
         if (lines.get(0).startsWith("total")) {
             size--;
-            List<String> lines2 = new ArrayList<String>();
+            List<String> lines2 = new ArrayList<>();
             for (int i = 0; i < size; i++) {
                 lines2.add(lines.get(i + 1));
             }
@@ -93,7 +94,7 @@ public class UnixListParser implements FTPListParser {
                 mdString.append(' ');
                 mdString.append(dayString);
                 mdString.append(' ');
-                boolean checkYear = false;
+                boolean checkYear;
                 if (yearString == null) {
                     mdString.append(currentYear);
                     checkYear = true;
@@ -117,9 +118,7 @@ public class UnixListParser implements FTPListParser {
                 }
                 Date md;
                 try {
-                    synchronized (DATE_FORMAT) {
-                        md = DATE_FORMAT.parse(mdString.toString());
-                    }
+                    md = dateFormat.parse(mdString.toString());
                 } catch (ParseException e) {
                     throw new FTPException("date parse");
                 }

@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.keyvalue;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;

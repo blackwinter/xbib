@@ -7,14 +7,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * This parser can handle the EPLF format.
  */
 public class EPLFListParser implements FTPListParser {
 
-
-    public List<FTPEntry> parse(List<String> lines) throws FTPException {
+    @Override
+    public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
         List<FTPEntry> ret = new ArrayList<>();
         for (String l : lines) {
             // Validate the plus sign.
@@ -53,12 +54,11 @@ public class EPLFListParser implements FTPListParser {
                                 //
                             }
                         } else if (c == 'm') {
-                            // Modified date.
                             try {
                                 long m = Long.parseLong(value);
                                 md = new Date(m * 1000);
                             } catch (Throwable t) {
-                                //
+                                // ignore
                             }
                         }
                     }

@@ -31,7 +31,6 @@
  */
 package org.xbib.rdf.io.turtle;
 
-import org.testng.annotations.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -43,9 +42,6 @@ import java.io.InputStream;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class TurtleConformanceTest extends StreamTester {
-
-    //private final Logger logger = LoggerFactory.getLogger(TurtleConformanceTest.class.getName());
-
 
     public void conformance() throws Exception {
         for (int n = 0; n < 30; n++) {

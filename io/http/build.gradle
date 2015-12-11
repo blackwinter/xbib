@@ -1,0 +1,9 @@
+
+dependencies {
+    compile project(':io:stream')
+    compile project(':io:archive')
+    compile "io.netty:netty-all:${versions.netty}"
+}
+
+compileTestJava.enabled = false
+test.enabled = false

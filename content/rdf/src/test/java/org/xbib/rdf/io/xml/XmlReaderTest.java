@@ -35,13 +35,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-import org.testng.annotations.Test;
+
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
-import org.xbib.rdf.RdfContentGenerator;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -50,7 +49,6 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.CharUtils.Profile;
 import org.xbib.text.UrlEncoding;
 
-import static org.testng.Assert.assertEquals;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class XmlReaderTest extends StreamTester {

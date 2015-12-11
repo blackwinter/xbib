@@ -31,7 +31,8 @@
  */
 package org.xbib.rdf.io.ntriple;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
@@ -39,11 +40,9 @@ import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.XSDResourceIdentifiers;
 import org.xbib.rdf.memory.MemoryResource;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
-public class NTripleTest {
+public class NTripleTest extends Assert {
 
     @Test
     public void testNTripleBuilder() throws Exception {

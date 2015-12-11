@@ -33,7 +33,7 @@ package org.xbib.rdf.content;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;

@@ -2,7 +2,7 @@ package org.xbib.sru.iso23950;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.iso23950.service.ZSRUServiceFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;

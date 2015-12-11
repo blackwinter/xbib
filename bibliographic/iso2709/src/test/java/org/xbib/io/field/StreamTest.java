@@ -1,13 +1,12 @@
 package org.xbib.io.field;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.InputStreamReader;
 import java.util.function.Consumer;
 
-import static org.testng.Assert.assertEquals;
-
-public class StreamTest {
+public class StreamTest extends Assert {
 
     @Test
     public void testStream() throws Exception {

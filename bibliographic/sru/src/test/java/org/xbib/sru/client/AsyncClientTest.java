@@ -34,7 +34,7 @@ package org.xbib.sru.client;
 import io.netty.channel.ConnectTimeoutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.io.Request;
 import org.xbib.sru.SRUResponse;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;

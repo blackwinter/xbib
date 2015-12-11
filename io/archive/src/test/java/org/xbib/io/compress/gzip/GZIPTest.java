@@ -1,6 +1,9 @@
 
 package org.xbib.io.compress.gzip;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -11,10 +14,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import static org.testng.AssertJUnit.*;
-import org.testng.annotations.Test;
 
-public class GZIPTest {
+public class GZIPTest extends Assert {
 
     @Test
     public void testHelloWorld() throws Exception {

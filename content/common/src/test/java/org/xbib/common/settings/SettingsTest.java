@@ -1,6 +1,7 @@
 package org.xbib.common.settings;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.common.xcontent.XContentHelper;
 
 import java.io.StringReader;
@@ -8,10 +9,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.testng.Assert.assertEquals;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class SettingsTest {
+public class SettingsTest extends Assert {
 
     @Test
     public void testArray() {

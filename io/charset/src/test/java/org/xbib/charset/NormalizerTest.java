@@ -1,8 +1,9 @@
 package org.xbib.charset;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.text.Normalizer;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 public class NormalizerTest extends Assert {
 

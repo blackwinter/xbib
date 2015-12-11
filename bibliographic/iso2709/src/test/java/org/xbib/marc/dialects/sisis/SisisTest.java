@@ -2,7 +2,7 @@ package org.xbib.marc.dialects.sisis;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.MarcXchangeConstants;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
@@ -13,8 +13,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
-
-import static org.testng.Assert.assertNull;
 
 public class SisisTest extends StreamTester {
 
