@@ -1,7 +1,6 @@
 
 package org.xbib.io.ftp.connectors;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.Closeable;
@@ -32,12 +31,9 @@ public abstract class FTPConnector implements Closeable {
      */
     protected int closeTimeout = 10;
 
+    private Socket dataSocket;
 
-    /**
-     * The socket of an ongoing connection attempt for a communication channel.
-     */
-    private Socket socket;
-
+    private Socket commSocket;
     /**
      * Builds the connector.
      *
@@ -93,15 +89,22 @@ public abstract class FTPConnector implements Closeable {
      */
     protected Socket createCommSocket(String host, int port)
             throws IOException {
-        socket = new Socket();
-        socket.setKeepAlive(true);
-        socket.setReuseAddress(true);
-        socket.setSoTimeout(readTimeout * 1000);
-        socket.setSoLinger(true, closeTimeout);
-        socket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to comm socket {} {}",
-                socket.getLocalAddress(), socket.getInetAddress());
-        return socket;
+        if (commSocket != null) {
+            if (commSocket.isClosed()) {
+                logger.debug("closing comm socket {}", commSocket.getLocalAddress());
+                commSocket.close();
+            }
+        }
+        commSocket = new Socket();
+        commSocket.setKeepAlive(true);
+        commSocket.setReuseAddress(true);
+        commSocket.setSoTimeout(readTimeout * 1000);
+        commSocket.setSoLinger(true, closeTimeout);
+        commSocket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
+        logger.debug("connected to comm socket {} -> {}",
+                commSocket.getLocalSocketAddress(),
+                commSocket.getRemoteSocketAddress());
+        return commSocket;
     }
 
     /**
@@ -122,31 +125,50 @@ public abstract class FTPConnector implements Closeable {
      */
     protected Socket createDataSocket(String host, int port)
             throws IOException {
-        Socket socket = new Socket();
-        socket.setSoTimeout(readTimeout * 1000);
-        socket.setSoLinger(true, closeTimeout);
-        socket.setReuseAddress(true);
-        socket.setReceiveBufferSize(8 * 1024);
-        socket.setSendBufferSize(8 * 1024);
-        socket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
-        logger.info("connected to data socket {}", socket.getLocalAddress(), socket.getInetAddress());
-        return socket;
+        if (dataSocket != null) {
+            if (!dataSocket.isClosed()) {
+                logger.debug("closing data socket {}", dataSocket.getLocalAddress());
+                dataSocket.close();
+            }
+        }
+        dataSocket = new Socket();
+        dataSocket.setSoTimeout(readTimeout * 1000);
+        dataSocket.setSoLinger(true, closeTimeout);
+        dataSocket.setReuseAddress(true);
+        dataSocket.setReceiveBufferSize(8 * 1024);
+        dataSocket.setSendBufferSize(8 * 1024);
+        dataSocket.connect(new InetSocketAddress(host, port), connectionTimeout * 1000);
+        logger.debug("connected to data socket {} -> {}",
+                dataSocket.getLocalSocketAddress(),
+                dataSocket.getRemoteSocketAddress());
+        return dataSocket;
     }
 
     /**
-     * Aborts an ongoing connection attempt for a communication channel.
+     * Aborts an ongoing connection attempt
      */
     @Override
     public void close() {
-        if (socket != null) {
+        if (commSocket != null) {
             try {
-                socket.close();
-                logger.info("socket closed {}", socket.getLocalAddress());
+                if (!commSocket.isClosed()) {
+                    commSocket.close();
+                    logger.debug("comm socket closed {}", commSocket.getLocalAddress());
+                }
             } catch (Throwable t) {
-                //
+                logger.error(t.getMessage(), t);
             }
         }
-    }
+        if (dataSocket != null) {
+            try {
+                if (!dataSocket.isClosed()) {
+                    dataSocket.close();
+                    logger.debug("data socket closed {}", dataSocket.getLocalAddress());
+                }
+            } catch (Throwable t) {
+                logger.error(t.getMessage(), t);
+            }
+        }    }
 
     /**
      * This methods returns an established connection to a remote host, suitable

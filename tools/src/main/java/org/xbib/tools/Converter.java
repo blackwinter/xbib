@@ -45,6 +45,7 @@ import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -60,13 +61,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.SynchronousQueue;
 
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public abstract class Converter<P extends Worker<URIWorkerRequest>>
-        extends AbstractWorker<URIWorkerRequest> implements Provider {
+public abstract class Converter
+        extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest> implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(Converter.class.getName());
 
@@ -78,46 +79,35 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
 
     protected static Session<StringPacket> session;
 
-    protected ForkJoinPipeline<URIWorkerRequest, Worker<URIWorkerRequest>> pipeline;
-
     @Override
-    public Converter<P> reader(Reader reader) {
-        this.reader = reader;
-        setSettings(settingsBuilder().loadFromReader(reader).build());
-        return this;
-    }
-
-    @Override
-    public Converter<P> writer(Writer writer) {
-        this.writer = writer;
-        return this;
-    }
-
-    @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
         try {
-            setQueue(newQueue());
+            this.reader = reader;
+            setSettings(settingsBuilder().loadFromReader(reader).build());
+            this.writer = writer;
+            int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors() * 2);
+            logger.info("executing with concurrency {}", concurrency);
+            ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline()
+                    .setQueue(new SynchronousQueue<>(true));
+            setPipeline(pipeline);
             logger.info("preparing sink");
             prepareSink();
+            logger.info("preparing execution");
+            getPipeline().setConcurrency(concurrency)
+                .setWorkerProvider(provider())
+                .prepare().execute();
             logger.info("preparing source");
             prepareSource();
-            int concurrency = settings.getAsInt("concurrency", 1);
-            logger.info("preparing pipeline");
-            pipeline = new ForkJoinPipeline<URIWorkerRequest, Worker<URIWorkerRequest>>()
-                    .setConcurrency(concurrency)
-                    .setQueue(getQueue())
-                    .setProvider(provider())
-                    .prepare();
-            logger.info("executing pipeline with {} workers", concurrency);
-            pipeline.execute().waitFor();
+            logger.info("source prepared");
+            getPipeline().waitFor(new URIWorkerRequest());
             logger.info("execution completed");
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         } finally {
             cleanup();
-            if (pipeline != null) {
-                pipeline.shutdown();
-                for (Worker worker : pipeline.getWorkers()) {
+            if (getPipeline() != null) {
+                getPipeline().shutdown();
+                for (Worker worker : getPipeline().getWorkers()) {
                     writeMetrics(worker.getMetric(), writer);
                 }
             }
@@ -130,7 +120,7 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
     }
 
     @Override
-    public void newRequest(Worker<URIWorkerRequest> worker, URIWorkerRequest request) {
+    public void newRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
         try {
             URI uri = request.get();
             logger.info("processing URI {}", uri);
@@ -144,13 +134,21 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
         settings = newSettings;
     }
 
+    @Override
+    public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        return this;
+    }
+
     protected void prepareSink() throws IOException {
     }
 
-    protected void prepareSource() throws IOException {
+    protected void prepareSource() throws IOException, InterruptedException {
+        // check if we only allowed to run on a certain host
         if (settings.get("runhost") != null) {
             logger.info("preparing input queue only on runhost={}", settings.get("runhost"));
             boolean found = false;
+            // not very smart...
             Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
             for (NetworkInterface netint : Collections.list(nets)) {
                 Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
@@ -169,26 +167,27 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
             logger.info("preparing input queue from uri array={}",
                     Arrays.asList(settings.getAsArray("uri")));
             String[] inputs = settings.getAsArray("uri");
-            setQueue(new ArrayBlockingQueue<URIWorkerRequest>(inputs.length, true));
             for (String input : inputs) {
                 URIWorkerRequest request = new URIWorkerRequest();
                 request.set(URI.create(input));
-                getQueue().offer(request);
+                getQueue().put(request);
             }
+            logger.info("put {} elements", inputs.length);
         } else if (settings.get("uri") != null) {
             logger.info("preparing input queue from uri={}", settings.get("uri"));
             String input = settings.get("uri");
             URIWorkerRequest element = new URIWorkerRequest();
             element.set(URI.create(input));
-            getQueue().offer(element);
+            getQueue().put(element);
             // parallel URI into queue?
             if (settings.getAsBoolean("parallel", false)) {
                 for (int i = 1; i < settings.getAsInt("concurrency", 1); i++) {
                     element = new URIWorkerRequest();
                     element.set(URI.create(input));
-                    getQueue().offer(element);
+                    getQueue().put(element);
                 }
             }
+            logger.info("put {} elements", settings.getAsBoolean("parallel", false) ? 1 +settings.getAsInt("concurrency", 1) : 1);
         } else if (settings.get("path") != null) {
             logger.info("preparing input queue from pattern={}", settings.get("pattern"));
             Queue<URI> uris = new Finder(settings.get("pattern"))
@@ -197,25 +196,26 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
                     .chronologicallySorted(settings.getAsBoolean("isChronologicallySorted", false))
                     .getURIs();
             logger.info("input from path = {}", uris);
-            setQueue(new ArrayBlockingQueue<URIWorkerRequest>(uris.size(), true));
             for (URI uri : uris) {
                 URIWorkerRequest element = new URIWorkerRequest();
                 element.set(uri);
-                getQueue().offer(element);
+                getQueue().put(element);
             }
+            logger.info("put {} elements", uris.size());
         } else if (settings.get("archive") != null) {
             logger.info("preparing input queue from archive={}", settings.get("archive"));
             URIWorkerRequest element = new URIWorkerRequest();
             element.set(URI.create(settings.get("archive")));
-            getQueue().offer(element);
+            getQueue().put(element);
             TarConnectionFactory factory = new TarConnectionFactory();
             Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
             session = connection.createSession();
             session.open(Session.Mode.READ);
+            logger.info("put 1 elements");
         }
     }
 
-    protected Converter<P> cleanup() throws IOException {
+    protected Converter cleanup() throws IOException, ExecutionException {
         if (session != null) {
             session.close();
         }
@@ -258,12 +258,13 @@ public abstract class Converter<P extends Worker<URIWorkerRequest>>
         }
     }
 
-    protected BlockingQueue<URIWorkerRequest> newQueue() {
-        return new ArrayBlockingQueue<URIWorkerRequest>(32, true);
+    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
+        return new ForkJoinPipeline<>();
     }
 
-    protected abstract WorkerProvider<Worker<URIWorkerRequest>> provider();
-
     protected abstract void process(URI uri) throws Exception;
+
+    protected abstract WorkerProvider provider();
+
 
 }

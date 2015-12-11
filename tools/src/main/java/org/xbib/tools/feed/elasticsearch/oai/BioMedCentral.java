@@ -57,11 +57,6 @@ public class BioMedCentral extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(BioMedCentral.class);
 
     @Override
-    public String getName() {
-        return "biomed-central-elasticsearch";
-    }
-
-    @Override
     protected String getIndex() {
         return settings.get("index");
     }
@@ -73,7 +68,7 @@ public class BioMedCentral extends OAIFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return BioMedCentral::new;
+        return p -> new BioMedCentral().setPipeline(p);
     }
 
     @Override

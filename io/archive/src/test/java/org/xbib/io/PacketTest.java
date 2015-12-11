@@ -1,16 +1,13 @@
 
 package org.xbib.io;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.FileInputStream;
 import java.net.URI;
 import java.util.zip.GZIPInputStream;
-import org.testng.annotations.Test;
-import org.testng.Assert;
 
-/**
- * Test packet write
- *
- */
 public class PacketTest extends Assert {
 
     @Test

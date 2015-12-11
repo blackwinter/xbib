@@ -4,20 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.json.jackson.JacksonUtils;
 import org.xbib.json.jackson.NodeType;
 import org.xbib.json.jackson.SampleNodeProvider;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-
-public final class JsonNodeResolverTest {
+public final class JsonNodeResolverTest extends Assert {
     private static final JsonNodeFactory FACTORY = JacksonUtils.nodeFactory();
 
     @Test
@@ -28,14 +24,10 @@ public final class JsonNodeResolverTest {
         assertNull(resolver.get(null));
     }
 
-    @DataProvider
-    public Iterator<Object[]> nonContainers() {
-        return SampleNodeProvider.getSamplesExcept(NodeType.ARRAY,
-                NodeType.OBJECT);
-    }
-
-    @Test(dataProvider = "nonContainers")
-    public void resolvingNonContainerNodeReturnsNull(final JsonNode node) {
+    @Test
+    public void resolvingNonContainerNodeReturnsNull() {
+        final JsonNode node = (JsonNode) SampleNodeProvider.getSamplesExcept(NodeType.ARRAY,
+                NodeType.OBJECT).next()[0];
         final JsonNodeResolver resolver
                 = new JsonNodeResolver(ReferenceToken.fromRaw("whatever"));
 
@@ -51,13 +43,13 @@ public final class JsonNodeResolverTest {
         ObjectNode node;
 
         node = FACTORY.objectNode();
-        node.put("a", target);
+        node.set("a", target);
 
         final JsonNode resolved = resolver.get(node);
         assertEquals(resolved, target);
 
         node = FACTORY.objectNode();
-        node.put("b", target);
+        node.set("b", target);
 
         assertNull(resolver.get(node));
     }
@@ -77,29 +69,23 @@ public final class JsonNodeResolverTest {
         assertEquals(target, resolver.get(node));
     }
 
-    @DataProvider
-    public Iterator<Object[]> invalidIndices() {
-        final List<Object[]> list = new ArrayList();
+    @Test
+    public void invalidIndicesYieldNull() {
+        final JsonNode target = FACTORY.textNode("b");
+        final ArrayNode node = FACTORY.arrayNode();
+        node.add(target);
 
+        List<Object[]> list = new ArrayList();
         list.add(new Object[]{"-1"});
         list.add(new Object[]{"232398087298731987987232"});
         list.add(new Object[]{"00"});
         list.add(new Object[]{"0 "});
         list.add(new Object[]{" 0"});
-
-        return list.iterator();
-    }
-
-
-    @Test(dataProvider = "invalidIndices")
-    public void invalidIndicesYieldNull(final String raw) {
-        final JsonNode target = FACTORY.textNode("b");
-        final ArrayNode node = FACTORY.arrayNode();
-
-        node.add(target);
-
-        final ReferenceToken refToken = ReferenceToken.fromRaw(raw);
-        final JsonNodeResolver resolver = new JsonNodeResolver(refToken);
-        assertNull(resolver.get(node));
+        for (Object[] o : list) {
+            final String raw = (String) o[0];
+            final ReferenceToken refToken = ReferenceToken.fromRaw(raw);
+            final JsonNodeResolver resolver = new JsonNodeResolver(refToken);
+            assertNull(resolver.get(node));
+        }
     }
 }

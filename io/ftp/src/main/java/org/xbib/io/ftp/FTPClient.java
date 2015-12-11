@@ -15,6 +15,8 @@ import org.xbib.io.ftp.listparsers.NetWareListParser;
 import org.xbib.io.ftp.listparsers.UnixListParser;
 
 import javax.net.ssl.SSLSocketFactory;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,7 +43,7 @@ import java.util.zip.InflaterInputStream;
 
 public class FTPClient {
 
-    private final static Logger logger = LogManager.getLogger(FTPClient.class.getName());
+    private final static Logger logger = LogManager.getLogger("org.xbib.io.ftp");
 
     private final static Logger communicationlogger = LogManager.getLogger("org.xbib.io.ftp");
 
@@ -250,14 +253,7 @@ public class FTPClient {
      * abortLock synchronization object.
      */
     private boolean ongoingDataTransfer = false;
-    /**
-     * The InputStream used for data transfer operations.
-     */
-    private InputStream dataTransferInputStream = null;
-    /**
-     * The OutputStream used for data transfer operations.
-     */
-    private OutputStream dataTransferOutputStream = null;
+
     /**
      * This flag turns to true when any data transfer stream is closed due to an
      * abort request.
@@ -272,16 +268,26 @@ public class FTPClient {
      */
     private FTPCommunicationChannel communication = null;
 
+    private TimeZone timeZone = TimeZone.getTimeZone("GMT");
+
     /**
      * Builds and initializes the client.
      */
     public FTPClient() {
-        this.connector = new DirectConnector(communicationlogger);
         addListParser(new UnixListParser());
         addListParser(new DOSListParser());
         addListParser(new EPLFListParser());
         addListParser(new NetWareListParser());
         addListParser(new MLSDListParser());
+    }
+
+    public FTPClient setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
+        return this;
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone;
     }
 
     /**
@@ -360,9 +366,7 @@ public class FTPClient {
         }
         synchronized (lock) {
             if (connected) {
-                throw new IllegalArgumentException(
-                        "The security level of the connection can't be "
-                                + "changed while the client is connected");
+                throw new IllegalArgumentException("The security level of the connection can't be changed while the client is connected");
             }
             this.security = security;
         }
@@ -805,6 +809,10 @@ public class FTPClient {
             }
             Socket connection = null;
             try {
+                if (this.connector != null) {
+                    this.connector.close();
+                }
+                this.connector = new DirectConnector(communicationlogger);
                 connection = connector.connectForCommunicationChannel(host, port);
                 if (security == SECURITY_FTPS) {
                     connection = ssl(connection, host, port);
@@ -851,6 +859,7 @@ public class FTPClient {
      */
     public void close() {
         connector.close();
+        connector = null;
     }
 
     /**
@@ -881,10 +890,8 @@ public class FTPClient {
                     throw new FTPException(r);
                 }
             }
-            logger.info("closing comm");
             communication.close();
             communication = null;
-            logger.info("closing connector");
             connector.close();
             connector = null;
             connected = false;
@@ -893,7 +900,7 @@ public class FTPClient {
 
     public void login()
             throws IOException, FTPException {
-        login("anonymous", "foobar", null);
+        login("anonymous", "foobar@foo.bar", null);
     }
 
     /**
@@ -1073,14 +1080,12 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void logout() throws IOException, FTPException {
+    public void rein() throws IOException, FTPException {
         ensureConnected();
         synchronized (lock) {
             communication.sendFTPCommand("REIN");
             FTPReply r = communication.readFTPReply();
-            if (!r.isSuccessCode()) {
-                throw new FTPException(r);
-            } else {
+            if (r.isSuccessCode()) {
                 stopAutoNoopTimer();
                 authenticated = false;
                 username = null;
@@ -1494,10 +1499,10 @@ public class FTPClient {
             }
             List<String> lines = new ArrayList<>();
             boolean wasAborted = false;
+            InputStream dataTransferInputStream = null;
             communication.sendFTPCommand(command);
             try {
                 Socket socket = connection.openDataConnection();
-                connection.close();
                 synchronized (abortLock) {
                     ongoingDataTransfer = true;
                     aborted = false;
@@ -1533,13 +1538,13 @@ public class FTPClient {
                         }
                     }
                     try {
-                        socket.close();
+                        if (!socket.isClosed()) {
+                            socket.close();
+                            logger.debug("socket close {}", socket.getLocalAddress());
+                        }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
                     }
-                    // Set to null the instance-level input stream.
-                    dataTransferInputStream = null;
-                    // Change the operation status.
                     synchronized (abortLock) {
                         wasAborted = aborted;
                         ongoingDataTransfer = false;
@@ -1565,12 +1570,12 @@ public class FTPClient {
             }
             if (mlsdCommand) {
                 MLSDListParser parser = new MLSDListParser();
-                ret = parser.parse(lines).stream()
+                ret = parser.parse(lines, timeZone).stream()
                         .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
             } else {
                 if (parser != null) {
                     try {
-                        ret = parser.parse(lines).stream()
+                        ret = parser.parse(lines, timeZone).stream()
                                 .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
                     } catch (FTPException e) {
                         parser = null;
@@ -1580,7 +1585,7 @@ public class FTPClient {
                     for (Object listParser : listParsers) {
                         FTPListParser aux = (FTPListParser) listParser;
                         try {
-                            ret = aux.parse(lines).stream()
+                            ret = aux.parse(lines, timeZone).stream()
                                     .collect(Collectors.toMap(FTPEntry::getName, entry -> entry));
                             parser = aux;
                             break;
@@ -1623,11 +1628,11 @@ public class FTPClient {
             FTPReply r = communication.readFTPReply();
             touchAutoNoopTimer();
             if (!r.isSuccessCode()) {
-                logger.info("throwing exception 1");
                 throw new FTPException(r);
             }
             List<String> lines = new ArrayList<>();
             boolean wasAborted = false;
+            InputStream dataTransferInputStream = null;
             DataConnector connection = openDataTransferChannel();
             communication.sendFTPCommand("NLST");
             try {
@@ -1669,11 +1674,13 @@ public class FTPClient {
                         }
                     }
                     try {
-                        socket.close();
+                        if (!socket.isClosed()) {
+                            socket.close();
+                            logger.debug("socket close {}", socket.getLocalAddress());
+                        }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
                     }
-                    dataTransferInputStream = null;
                     synchronized (abortLock) {
                         wasAborted = aborted;
                         ongoingDataTransfer = false;
@@ -1796,6 +1803,7 @@ public class FTPClient {
             }
             boolean wasAborted = false;
             communication.sendFTPCommand("STOR " + name);
+            OutputStream outputStream = null;
             try {
                 Socket socket = connection.openDataConnection();
                 synchronized (abortLock) {
@@ -1805,17 +1813,17 @@ public class FTPClient {
                 }
                 try {
                     inputStream.skip(streamOffset);
-                    dataTransferOutputStream = socket.getOutputStream();
+                    outputStream = new BufferedOutputStream(socket.getOutputStream(), SEND_AND_RECEIVE_BUFFER_SIZE);
                     if (modezEnabled) {
-                        dataTransferOutputStream = new DeflaterOutputStream(dataTransferOutputStream);
+                        logger.debug("using compressed output");
+                        outputStream = new DeflaterOutputStream(outputStream);
                     }
                     if (listener != null) {
                         listener.started();
                     }
                     if (tp == TYPE_TEXTUAL) {
                         Reader reader = new InputStreamReader(inputStream);
-                        Writer writer = new OutputStreamWriter(
-                                dataTransferOutputStream, pickCharset());
+                        Writer writer = new OutputStreamWriter(outputStream, pickCharset());
                         char[] buffer = new char[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
                         while ((l = reader.read(buffer)) != -1) {
@@ -1829,12 +1837,12 @@ public class FTPClient {
                         byte[] buffer = new byte[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
                         while ((l = inputStream.read(buffer)) != -1) {
-                            dataTransferOutputStream.write(buffer, 0, l);
-                            dataTransferOutputStream.flush();
+                            outputStream.write(buffer, 0, l);
                             if (listener != null) {
                                 listener.transferred(l);
                             }
                         }
+                        outputStream.flush();
                     }
                 } catch (IOException e) {
                     synchronized (abortLock) {
@@ -1851,19 +1859,21 @@ public class FTPClient {
                         }
                     }
                 } finally {
-                    if (dataTransferOutputStream != null) {
+                    if (outputStream != null) {
                         try {
-                            dataTransferOutputStream.close();
+                            outputStream.close();
                         } catch (Throwable t) {
                             logger.error(t.getMessage(), t);
                         }
                     }
                     try {
-                        socket.close();
+                        if (!socket.isClosed()) {
+                            socket.close();
+                            logger.debug("socket closed {}", socket.getLocalAddress());
+                        }
                     } catch (Throwable t) {
                         logger.error(t.getMessage(), t);
                     }
-                    dataTransferOutputStream = null;
                     synchronized (abortLock) {
                         wasAborted = aborted;
                         ongoingDataTransfer = false;
@@ -1962,34 +1972,28 @@ public class FTPClient {
             }
             boolean wasAborted = false;
             DataConnector connection = openDataTransferChannel();
+            OutputStream outputStream = null;
             communication.sendFTPCommand("APPE " + name);
             try {
                 Socket socket = connection.openDataConnection();
-                // Change the operation status.
                 synchronized (abortLock) {
                     ongoingDataTransfer = true;
                     aborted = false;
                     consumeAborCommandReply = false;
                 }
-                // Upload the stream.
                 try {
-                    // Skips.
                     inputStream.skip(streamOffset);
-                    // Opens the data transfer connection.
-                    dataTransferOutputStream = socket.getOutputStream();
-                    // MODE Z enabled?
+                    outputStream = socket.getOutputStream();
                     if (modezEnabled) {
-                        dataTransferOutputStream = new DeflaterOutputStream(dataTransferOutputStream);
+                        outputStream = new DeflaterOutputStream(outputStream);
                     }
-                    // Listeners.
                     if (listener != null) {
                         listener.started();
                     }
-                    // Let's do it!
                     if (tp == TYPE_TEXTUAL) {
                         Reader reader = new InputStreamReader(inputStream);
                         Writer writer = new OutputStreamWriter(
-                                dataTransferOutputStream, pickCharset());
+                                outputStream, pickCharset());
                         char[] buffer = new char[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
                         while ((l = reader.read(buffer)) != -1) {
@@ -2003,8 +2007,8 @@ public class FTPClient {
                         byte[] buffer = new byte[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
                         while ((l = inputStream.read(buffer)) != -1) {
-                            dataTransferOutputStream.write(buffer, 0, l);
-                            dataTransferOutputStream.flush();
+                            outputStream.write(buffer, 0, l);
+                            outputStream.flush();
                             if (listener != null) {
                                 listener.transferred(l);
                             }
@@ -2025,22 +2029,21 @@ public class FTPClient {
                         }
                     }
                 } finally {
-                    // Closing stream and data connection.
-                    if (dataTransferOutputStream != null) {
+                    if (outputStream != null) {
                         try {
-                            dataTransferOutputStream.close();
+                            outputStream.close();
                         } catch (Throwable t) {
-                            //
+                            logger.error(t.getMessage(), t);
                         }
                     }
                     try {
-                        socket.close();
+                        if (!socket.isClosed()) {
+                            socket.close();
+                            logger.debug("socket closed {}", socket.getLocalAddress());
+                        }
                     } catch (Throwable t) {
-                        //
+                        logger.error(t.getMessage(), t);
                     }
-                    // Set to null the instance-level input stream.
-                    dataTransferOutputStream = null;
-                    // Change the operation status.
                     synchronized (abortLock) {
                         wasAborted = aborted;
                         ongoingDataTransfer = false;
@@ -2079,14 +2082,14 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param out      The local file.
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream out)
+    public void retr(String name, OutputStream out)
             throws IOException, FTPException {
-        retr(entry, out, 0, null);
+        retr(name, out, 0, null);
     }
 
     /**
@@ -2097,15 +2100,15 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param output      The local file.
      * @param listener       The listener for the operation. Could be null.
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream output, FTPDataTransferListener listener)
+    public void retr(String name, OutputStream output, FTPDataTransferListener listener)
             throws IOException, FTPException {
-        retr(entry, output, 0, listener);
+        retr(name, output, 0, listener);
     }
 
     /**
@@ -2117,7 +2120,7 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry The name of the file to download.
+     * @param name The name of the file to download.
      * @param output      The local file.
      * @param restartAt      The restart point (number of bytes already downloaded). Use
      *                       {@link FTPClient#isResumeSupported()} to check if the server
@@ -2125,9 +2128,9 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream output, long restartAt)
+    public void retr(String name, OutputStream output, long restartAt)
             throws IOException, FTPException {
-        retr(entry, output, restartAt, null);
+        retr(name, output, restartAt, null);
     }
 
     /**
@@ -2138,7 +2141,7 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param entry     The name of the remote file.
+     * @param name     The name of the remote file.
      * @param outputStream The destination stream of data read during the download.
      * @param restartAt    The restart point (number of bytes already downloaded). Use
      *                     {@link FTPClient#isResumeSupported()} to check if the server
@@ -2147,15 +2150,14 @@ public class FTPClient {
      * @throws IOException              If an I/O error occurs.
      * @throws FTPException             If the operation fails.
      */
-    public void retr(FTPEntry entry, OutputStream outputStream,
+    public void retr(String name, OutputStream outputStream,
                          long restartAt, FTPDataTransferListener listener)
             throws IOException, FTPException {
-        if (entry == null) {
+        if (name == null) {
             return;
         }
         ensureConnected();
         synchronized (lock) {
-            String name = entry.getName();
             int tp = type;
             if (tp == TYPE_TEXTUAL) {
                 communication.sendFTPCommand("TYPE A");
@@ -2177,6 +2179,7 @@ public class FTPClient {
                 }
             }
             boolean wasAborted = false;
+            InputStream inputStream = null;
             communication.sendFTPCommand("RETR " + name);
             try {
                 Socket socket = connection.openDataConnection();
@@ -2186,15 +2189,15 @@ public class FTPClient {
                     consumeAborCommandReply = false;
                 }
                 try {
-                    dataTransferInputStream = socket.getInputStream();
+                    inputStream = new BufferedInputStream(socket.getInputStream());
                     if (modezEnabled) {
-                        dataTransferInputStream = new InflaterInputStream(dataTransferInputStream);
+                        inputStream = new InflaterInputStream(inputStream);
                     }
                     if (listener != null) {
                         listener.started();
                     }
                     if (tp == TYPE_TEXTUAL) {
-                        Reader reader = new InputStreamReader(dataTransferInputStream, pickCharset());
+                        Reader reader = new InputStreamReader(inputStream, pickCharset());
                         Writer writer = new OutputStreamWriter(outputStream);
                         char[] buffer = new char[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
@@ -2208,8 +2211,7 @@ public class FTPClient {
                     } else if (tp == TYPE_BINARY) {
                         byte[] buffer = new byte[SEND_AND_RECEIVE_BUFFER_SIZE];
                         int l;
-                        while ((l = dataTransferInputStream.read(buffer, 0,
-                                buffer.length)) != -1) {
+                        while ((l = inputStream.read(buffer, 0, buffer.length)) != -1) {
                             outputStream.write(buffer, 0, l);
                             if (listener != null) {
                                 listener.transferred(l);
@@ -2231,19 +2233,21 @@ public class FTPClient {
                         }
                     }
                 } finally {
-                    if (dataTransferInputStream != null) {
+                    if (inputStream != null) {
                         try {
-                            dataTransferInputStream.close();
+                            inputStream.close();
                         } catch (Throwable t) {
-                            //
+                            logger.error(t.getMessage(), t);
                         }
                     }
                     try {
-                        socket.close();
+                        if (!socket.isClosed()) {
+                            socket.close();
+                            logger.debug("socket closed {}", socket.getLocalAddress());
+                        }
                     } catch (Throwable t) {
-                        //
+                        logger.error(t.getMessage(), t);
                     }
-                    dataTransferInputStream = null;
                     synchronized (abortLock) {
                         wasAborted = aborted;
                         ongoingDataTransfer = false;
@@ -2256,18 +2260,15 @@ public class FTPClient {
                 if (r.getCode() != 150 && r.getCode() != 125) {
                     throw new FTPException(r);
                 }
-                // Consumes the result reply of the transfer.
                 r = communication.readFTPReply();
                 if (!wasAborted && r.getCode() != 226) {
                     throw new FTPException(r);
                 }
-                // ABOR command response (if needed).
                 if (consumeAborCommandReply) {
                     communication.readFTPReply();
                     consumeAborCommandReply = false;
                 }
             }
-            // Notifies the listener.
             if (listener != null) {
                 listener.completed();
             }
@@ -2278,7 +2279,6 @@ public class FTPClient {
             throws IOException, FTPException {
         if (modezSupported && compressionEnabled) {
             if (!modezEnabled) {
-                // Sends the MODE Z command.
                 communication.sendFTPCommand("MODE Z");
                 FTPReply r = communication.readFTPReply();
                 touchAutoNoopTimer();
@@ -2288,7 +2288,6 @@ public class FTPClient {
             }
         } else {
             if (modezEnabled) {
-                // Sends the MODE S command.
                 communication.sendFTPCommand("MODE S");
                 FTPReply r = communication.readFTPReply();
                 touchAutoNoopTimer();
@@ -2390,20 +2389,7 @@ public class FTPClient {
                     touchAutoNoopTimer();
                     consumeAborCommandReply = true;
                 }
-                if (dataTransferInputStream != null) {
-                    try {
-                        dataTransferInputStream.close();
-                    } catch (Throwable t) {
-                        //
-                    }
-                }
-                if (dataTransferOutputStream != null) {
-                    try {
-                        dataTransferOutputStream.close();
-                    } catch (Throwable t) {
-                        //
-                    }
-                }
+                connector.close();
                 aborted = true;
             }
         }

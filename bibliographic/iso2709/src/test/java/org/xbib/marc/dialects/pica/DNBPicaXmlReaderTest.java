@@ -31,11 +31,10 @@
  */
 package org.xbib.marc.dialects.pica;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
 
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -103,10 +102,6 @@ public class DNBPicaXmlReaderTest {
         DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
         reader.setMarcXchangeListener(listener);
         reader.parse();
-
-        FileWriter fw = new FileWriter("zdb-oai-bib-keyvalue.txt");
-        fw.write(sb.toString());
-        fw.close();
     }
 
 }

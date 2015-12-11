@@ -1,11 +1,9 @@
 package org.xbib.io.archives.tar;
 
-import java.io.File;
 import java.net.URI;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.testng.annotations.Test;
 import org.xbib.io.Connection;
 import org.xbib.io.ConnectionService;
 import org.xbib.io.Session;

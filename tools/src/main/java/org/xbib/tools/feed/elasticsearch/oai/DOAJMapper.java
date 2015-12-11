@@ -31,8 +31,6 @@
  */
 package org.xbib.tools.feed.elasticsearch.oai;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.util.ArticleVocabulary;

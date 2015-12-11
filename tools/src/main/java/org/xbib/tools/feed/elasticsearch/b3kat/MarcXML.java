@@ -68,13 +68,8 @@ public final class MarcXML extends Feeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "b3kat-marcxml";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return MarcXML::new;
+        return p -> new MarcXML().setPipeline(p);
     }
 
     @Override

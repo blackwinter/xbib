@@ -12,7 +12,7 @@ public class MarcXchangeJSONLines extends TitleHoldingsFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return MarcXchangeJSONLines::new;
+        return p -> new MarcXchangeJSONLines().setPipeline(p);
     }
 
     @Override
@@ -24,8 +24,4 @@ public class MarcXchangeJSONLines extends TitleHoldingsFeeder {
         in.close();
     }
 
-    @Override
-    public String getName() {
-        return getClass().getName();
-    }
 }

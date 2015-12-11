@@ -55,13 +55,8 @@ public class MarcBib extends BibliographicFeeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "marc-bib-zdb-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return MarcBib::new;
+        return p -> new MarcBib().setPipeline(p);
     }
 
     @Override

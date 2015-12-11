@@ -41,7 +41,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.io.BufferedReader;
@@ -56,7 +56,7 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckDelivery implements CommandLineInterpreter {
+public class CheckDelivery implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
 
@@ -64,23 +64,15 @@ public class CheckDelivery implements CommandLineInterpreter {
 
     private Set<String> notfoundset = new HashSet<>();
 
-    public CheckDelivery reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
     public CheckDelivery settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public CheckDelivery writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))

@@ -108,9 +108,13 @@ public class MarcXchangeWriter extends MarcXchangeContentHandler
     }
 
     public MarcXchangeWriter(OutputStream out, boolean indent) throws IOException {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
         try {
-            XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
             outputFactory.setProperty("com.ctc.wstx.useDoubleQuotesInXmlDecl", Boolean.TRUE);
+        } catch (IllegalArgumentException e) {
+            // ignore
+        }
+        try {
             this.xmlEventConsumer = indent ? new IndentingXMLEventWriter(outputFactory.createXMLEventWriter(out))
                     : outputFactory.createXMLEventWriter(out);
             this.namespaces = Collections.singletonList(namespace).iterator();
@@ -124,9 +128,13 @@ public class MarcXchangeWriter extends MarcXchangeContentHandler
     }
 
     public MarcXchangeWriter(Writer writer, boolean indent) throws IOException {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
         try {
-            XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
             outputFactory.setProperty("com.ctc.wstx.useDoubleQuotesInXmlDecl", Boolean.TRUE);
+        } catch (IllegalArgumentException e) {
+            // ignore
+        }
+        try {
             this.xmlEventConsumer = indent ? new IndentingXMLEventWriter(outputFactory.createXMLEventWriter(writer))
                     : outputFactory.createXMLEventWriter(writer);
             this.namespaces = Collections.singletonList(namespace).iterator();

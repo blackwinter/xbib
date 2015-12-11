@@ -2,10 +2,11 @@ package org.xbib.rdf.jsonld;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.rdf.io.nquads.NQuadsSerializer;
 import org.xbib.rdf.io.sink.CharOutputSink;
 import org.xbib.rdf.io.source.StreamProcessor;
-import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,9 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 
-import static org.testng.Assert.assertEquals;
-
-public class JsonLdParserTest {
+public class JsonLdParserTest extends Assert {
 
     private final static Logger logger = LogManager.getLogger(JsonLdParserTest.class);
 
@@ -50,7 +49,7 @@ public class JsonLdParserTest {
                 //logger.info("{}", s1);
                 //logger.info("{}", s2);
                 try {
-                    assertEquals(s1, s2, "i=" + i);
+                    assertEquals("i=" + i, s1, s2);
                 } catch (AssertionError e) {
                     logger.info("{} {}", i, s1);
                     logger.info("{} {}", i, s2);
@@ -79,7 +78,7 @@ public class JsonLdParserTest {
                 copy(new InputStreamReader(in2, "UTF-8"), writer2);
                 Collection<String> s1 = sortByLines(writer.toString().trim());
                 Collection<String> s2 = sortByLines(writer2.toString().trim());
-                assertEquals(s1, s2, "normalize i=" + i);
+                assertEquals( "normalize i=" + i, s1, s2);
             }
         }
     }

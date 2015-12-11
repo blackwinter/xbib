@@ -1,11 +1,10 @@
 package org.xbib.xml.util;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.xml.XMLUtil;
 
-import static org.testng.Assert.assertEquals;
-
-public class XMLUtilTest {
+public class XMLUtilTest extends Assert {
 
     @Test
     public void testWhitespaceCleaner() {

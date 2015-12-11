@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':datastructures:collection')
+    compile project(':content:json')
+}

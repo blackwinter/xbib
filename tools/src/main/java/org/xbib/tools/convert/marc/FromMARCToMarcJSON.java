@@ -24,13 +24,8 @@ public class FromMARCToMarcJSON extends Converter {
     private final static Charset UTF8 = Charset.forName("UTF-8");
 
     @Override
-    public String getName() {
-        return getClass().getName();
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return FromMARCToMarcJSON::new;
+        return p -> new FromMARCToMarcJSON().setPipeline(p);
     }
 
     @SuppressWarnings("unchecked")

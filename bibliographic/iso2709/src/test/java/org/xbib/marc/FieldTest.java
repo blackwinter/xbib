@@ -31,13 +31,12 @@
  */
 package org.xbib.marc;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.io.field.FieldSortable;
 import org.xbib.marc.label.RecordLabel;
 
-import static org.testng.Assert.assertEquals;
-
-public class FieldTest {
+public class FieldTest extends Assert {
 
     @Test
     public void testFieldData() {

@@ -45,7 +45,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -62,28 +62,20 @@ import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckMapping implements CommandLineInterpreter {
+public class CheckMapping implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
     private static Settings settings;
-
-    public CheckMapping reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
 
     public CheckMapping settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public CheckMapping writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

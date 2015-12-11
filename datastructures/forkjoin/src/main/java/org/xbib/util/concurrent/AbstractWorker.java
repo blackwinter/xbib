@@ -39,59 +39,42 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Basic pipeline for pipeline requests.
- * This abstract class can be used for creating custom Pipeline classes.
+ * This abstract class can be used for creating custom workers.
  *
- * @param <R> the pipeline request type
+ * @param <R> the worker request type
  */
-public abstract class AbstractWorker<R extends WorkerRequest>
-        implements Worker<R> {
+public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest>
+    implements Worker<P, R> {
 
     private final static Logger logger = LogManager.getLogger(AbstractWorker.class);
 
-    private BlockingQueue<R> queue;
+    private P pipeline;
 
     private MeterMetric metric;
 
     @Override
-    public Worker<R> setQueue(BlockingQueue<R> queue) {
-        this.queue = queue;
+    public Worker<P, R> setPipeline(P pipeline) {
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline must not be null");
+        }
+        this.pipeline = pipeline;
         return this;
     }
 
-    public BlockingQueue<R> getQueue() {
-        return queue;
+    @Override
+    public P getPipeline() {
+        return pipeline;
     }
 
-    /**
-     * Call this thread. Take next request and pass them to request listeners.
-     * At least, this pipeline itself can listen to requests and handle errors.
-     * Only PipelineExceptions are handled for each listener. Other execptions will quit the
-     * pipeline request executions.
-     * @return a metric about the pipeline request executions.
-     * @throws Exception if pipeline execution was sborted by a non-PipelineException
-     */
+    @SuppressWarnings("unchecked")
+    public BlockingQueue<R> getQueue() {
+        return pipeline != null ? pipeline.getQueue() : null;
+    }
+
     @Override
-    public R call() throws Exception {
-        metric = new MeterMetric(5L, TimeUnit.SECONDS);
-        R r = null;
-        try {
-            r = queue.poll(5L, TimeUnit.SECONDS);
-            while (r != null) {
-                newRequest(this, r);
-                metric.mark();
-                r = queue.poll(5L, TimeUnit.SECONDS);
-            }
-            close();
-        } catch (InterruptedException e) {
-            logger.warn("interrupted");
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw t;
-        } finally {
-            metric.stop();
-        }
-        return r;
+    public Worker<P, R> setMetric(MeterMetric metric) {
+        this.metric = metric;
+        return this;
     }
 
     /**
@@ -105,10 +88,41 @@ public abstract class AbstractWorker<R extends WorkerRequest>
     }
 
     /**
+     * Call this thread. Take next request and pass them to request listeners.
+     * At least, this pipeline itself can listen to requests and handle errors.
+     * Only PipelineExceptions are handled for each listener. Other execptions will quit the
+     * pipeline request executions.
+     * @return a metric about the pipeline request executions.
+     * @throws Exception if pipeline execution was sborted by a non-PipelineException
+     */
+    @Override
+    public R call() throws Exception {
+        if (metric == null) {
+            setMetric(new MeterMetric(5L, TimeUnit.SECONDS));
+        }
+        R r = null;
+        try {
+            r = getQueue().take();
+            while (r != null && r.get() != null) {
+                newRequest(this, r);
+                metric.mark();
+                r = getQueue().take();
+            }
+            close();
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            throw t;
+        } finally {
+            metric.stop();
+        }
+        return r;
+    }
+
+    /**
      * A new request for the pipeline is processed.
      * @param worker the pipeline
      * @param request the pipeline request
      */
-    public abstract void newRequest(Worker<R> worker, R request);
+    public abstract void newRequest(Worker<P,R> worker, R request);
 
 }

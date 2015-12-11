@@ -1,0 +1,77 @@
+package org.xbib.graphics.barcode.output;
+
+import org.xbib.graphics.barcode.BarcodeDimension;
+import org.xbib.graphics.barcode.TextAlignment;
+
+/**
+ * This interface is implemented to provide an output format that is using
+ * a coordinate system.
+ * 
+ */
+public interface CanvasProvider {
+
+    /**
+     * Sets the dimensions of the barcode.
+     * @param dim the dimensions of the barcode
+     */
+    void establishDimensions(BarcodeDimension dim);
+
+    /**
+     * Returns the barcode dimensions once established.
+     * @return the barcode dimensions
+     */
+    BarcodeDimension getDimensions();
+
+    /**
+     * Returns the orientation of the barcode.
+     * @return the orientation (0, 90, 180 or 270)
+     */
+    int getOrientation();
+    
+    /**
+     * Paints a filled rectangle.
+     * @param x x coordinate of the upper left corner
+     * @param y y coordinate of the upper left corner
+     * @param w the width
+     * @param h the height
+     */
+    void deviceFillRect(double x, double y, double w, double h);
+    
+    /**
+     * Draws justified text.
+     * @param text the text to draw
+     * @param x1 the left boundary
+     * @param x2 the right boundary
+     * @param y1 the y coordinate
+     * @param fontName the name of the font
+     * @param fontSize the size of the font
+     */
+    void deviceJustifiedText(String text, double x1, double x2, double y1, 
+            String fontName, double fontSize);
+            
+    /**
+     * Draws centered text.
+     * @param text the text to draw
+     * @param x1 the left boundary
+     * @param x2 the right boundary
+     * @param y1 the y coordinate
+     * @param fontName the name of the font
+     * @param fontSize the size of the font
+     */
+    void deviceCenteredText(String text, double x1, double x2, double y1, 
+            String fontName, double fontSize);
+
+    /**
+     * Draws text.
+     * @param text the text to draw
+     * @param x1 the left boundary
+     * @param x2 the right boundary
+     * @param y1 the y coordinate
+     * @param fontName the name of the font
+     * @param fontSize the size of the font
+     * @param textAlign the text alignment
+     */
+    void deviceText(String text, double x1, double x2, double y1, 
+            String fontName, double fontSize, TextAlignment textAlign);
+
+}

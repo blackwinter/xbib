@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.dialects.mab;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
@@ -189,13 +189,13 @@ public class DE468MABTest extends StreamTester {
         reader.setSubfieldCodeLength(2);
 
         // drop all "700$g" fields
-        Map<String,Object> subf = new HashMap();
+        Map<String,Object> subf = new HashMap<>();
         subf.put("", null);
         subf.put(" ", null);
         subf.put("a", null);
-        Map<String,Object> indicators = new HashMap();
+        Map<String,Object> indicators = new HashMap<>();
         indicators.put("g", null);
-        Map<String,Object> fields = new HashMap();
+        Map<String,Object> fields = new HashMap<>();
         fields.put("700", indicators);
 
         reader.addFieldMap("dropper", fields);

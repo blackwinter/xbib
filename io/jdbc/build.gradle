@@ -1,0 +1,5 @@
+
+dependencies {
+    compile project(':io:archive')
+    compile "commons-dbcp:commons-dbcp:1.4"
+}

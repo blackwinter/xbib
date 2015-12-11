@@ -31,7 +31,8 @@
  */
 package org.xbib.marc.dialects.unimarc;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xbib.xml.XMLUtil;
@@ -44,9 +45,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
-import static org.testng.Assert.assertNull;
-
-public class UNIMARCGreekTest {
+public class UNIMARCGreekTest extends Assert {
 
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1"); // 8 bit
 

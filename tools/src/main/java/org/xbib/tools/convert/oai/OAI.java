@@ -40,11 +40,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 public class OAI extends OAIHarvester {
 
     protected WorkerProvider provider() {
-        return OAI::new;
+        return p -> new OAI().setPipeline(p);
     }
 
-    @Override
-    public String getName() {
-        return "oai-tar";
-    }
 }

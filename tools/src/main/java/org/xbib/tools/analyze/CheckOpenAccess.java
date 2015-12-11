@@ -39,7 +39,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -50,29 +50,21 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckOpenAccess implements CommandLineInterpreter {
+public class CheckOpenAccess implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getName());
 
     private static Settings settings;
-
-    public CheckOpenAccess reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
 
     public CheckOpenAccess settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public CheckOpenAccess writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -98,7 +90,8 @@ public class CheckOpenAccess implements CommandLineInterpreter {
                 continue;
             }
             int count = s.length == 3 ? Integer.parseInt(s[2]) : 1;
-            QueryBuilder queryBuilder = boolQuery().must(termQuery("_id", zdbid)).filter(termQuery("openaccess", true));
+            QueryBuilder queryBuilder =
+                    boolQuery().must(termQuery("_id", zdbid)).filter(termQuery("openaccess", true));
             CountRequestBuilder countRequestBuilder = client.prepareCount()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))

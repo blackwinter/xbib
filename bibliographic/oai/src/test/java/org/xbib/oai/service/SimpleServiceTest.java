@@ -32,7 +32,8 @@
 package org.xbib.oai.service;
 
 import java.io.StringWriter;
-import org.testng.annotations.Test;
+
+import org.junit.Test;
 import org.xbib.oai.OAISession;
 import org.xbib.oai.server.identify.IdentifyServerRequest;
 import org.xbib.oai.server.OAIServer;

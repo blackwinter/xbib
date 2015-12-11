@@ -37,13 +37,13 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.Reader;
@@ -61,31 +61,15 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class PublisherFile implements CommandLineInterpreter {
+public class PublisherFile implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
-    private final static Map<String,Collection<Object>> publishers = new TreeMap<>();
-
-    private static Settings settings;
-
-    public PublisherFile reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
-    public PublisherFile settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
-    }
-
-    public PublisherFile writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
-        SearchClient search = new SearchClient().init(org.elasticsearch.common.settings.Settings.settingsBuilder()
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        org.xbib.common.settings.Settings settings =
+                settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -93,6 +77,7 @@ public class PublisherFile implements CommandLineInterpreter {
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build());
         Client client = search.client();
+        Map<String,Collection<Object>> publishers = new TreeMap<>();
         try {
             SearchRequestBuilder searchRequest = client.prepareSearch()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
@@ -102,7 +87,7 @@ public class PublisherFile implements CommandLineInterpreter {
                     .setScroll(TimeValue.timeValueMillis(1000));
 
             QueryBuilder queryBuilder = matchAllQuery();
-            // default: filter all manifestations that have a service with dates
+            // default: filter all manifestations that have a service
             QueryBuilder filterBuilder = existsQuery("dates");
             if (settings.getAsBoolean("issnonly", false)) {
                 filterBuilder = boolQuery()
@@ -114,10 +99,8 @@ public class PublisherFile implements CommandLineInterpreter {
                         .must(existsQuery("dates"))
                         .must(termQuery("mediatype", "computer"));
             }
-            //queryBuilder = // filterBuilder != null ? filteredQuery(queryBuilder, filterBuilder) : queryBuilder;
-            queryBuilder = boolQuery()
-                    .must(queryBuilder)
-                    .filter(filterBuilder);
+            queryBuilder = filterBuilder != null ?
+                    boolQuery().must(queryBuilder).filter(filterBuilder) : queryBuilder;
             searchRequest.setQuery(queryBuilder)
                     .addFields("publishedby", "publishedat", "identifiers.issn");
 
@@ -171,16 +154,16 @@ public class PublisherFile implements CommandLineInterpreter {
         } finally {
             search.shutdown();
         }
-        FileWriter writer = new FileWriter(settings.get("output","publishers.tsv"));
+        FileWriter fileWriter = new FileWriter(settings.get("output","publishers.tsv"));
         for (Map.Entry<String,Collection<Object>> entry : publishers.entrySet()) {
-            writer.write(entry.getKey());
+            fileWriter.write(entry.getKey());
             for (Object o : entry.getValue()) {
-                writer.write("\t");
-                writer.write(o.toString());
+                fileWriter.write("\t");
+                fileWriter.write(o.toString());
             }
-            writer.write("\n");
+            fileWriter.write("\n");
         }
-        writer.close();
+        fileWriter.close();
     }
 
 }

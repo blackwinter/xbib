@@ -3,8 +3,8 @@ package org.xbib.json.pointer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.json.jackson.JacksonUtils;
 import org.xbib.json.jackson.JsonLoader;
 import org.xbib.json.jackson.NodeType;
@@ -19,10 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
-public final class JsonPointerTest {
+public final class JsonPointerTest extends Assert {
 
     private final JsonNode testData;
     private final JsonNode document;
@@ -44,9 +41,10 @@ public final class JsonPointerTest {
         }
     }
 
-    @DataProvider
-    public Iterator<Object[]> rawPointers() {
-        final List<Object[]> list = new ArrayList();
+    @Test
+    public void rawPointerResolvingWorks()
+            throws JsonPointerException {
+        final List<Object[]> list = new ArrayList<>();
         final JsonNode testNode = testData.get("pointers");
         final Map<String, JsonNode> map = JacksonUtils.asMap(testNode);
 
@@ -54,39 +52,32 @@ public final class JsonPointerTest {
             list.add(new Object[]{entry.getKey(), entry.getValue()});
         }
 
-        return list.iterator();
+        for (Object[] o : list) {
+            final String input = (String) o[0];
+            final JsonNode expected = (JsonNode) o[1];
+            final JsonPointer pointer = new JsonPointer(input);
+            assertEquals(pointer.get(document), expected);
+        }
     }
 
-    @Test(dataProvider = "rawPointers")
-    public void rawPointerResolvingWorks(final String input,
-                                         final JsonNode expected)
-            throws JsonPointerException {
-        final JsonPointer pointer = new JsonPointer(input);
-
-        assertEquals(pointer.get(document), expected);
-    }
-
-    @DataProvider
-    public Iterator<Object[]> uriPointers() {
-        final List<Object[]> list = new ArrayList();
+    @Test
+    public void uriPointerResolvingWorks()
+            throws URISyntaxException, JsonPointerException {
+        final List<Object[]> list = new ArrayList<>();
         final JsonNode testNode = testData.get("uris");
         final Map<String, JsonNode> map = JacksonUtils.asMap(testNode);
 
         for (final Map.Entry<String, JsonNode> entry : map.entrySet()) {
             list.add(new Object[]{entry.getKey(), entry.getValue()});
         }
+        for (Object[] o : list) {
+            final String input = (String) o[0];
+            final JsonNode expected = (JsonNode) o[1];
+            final URI uri = new URI(input);
+            final JsonPointer pointer = new JsonPointer(uri.getFragment());
 
-        return list.iterator();
-    }
-
-    @Test(dataProvider = "uriPointers")
-    public void uriPointerResolvingWorks(final String input,
-                                         final JsonNode expected)
-            throws URISyntaxException, JsonPointerException {
-        final URI uri = new URI(input);
-        final JsonPointer pointer = new JsonPointer(uri.getFragment());
-
-        assertEquals(pointer.get(document), expected);
+            assertEquals(pointer.get(document), expected);
+        }
     }
 
     @Test
@@ -119,14 +110,14 @@ public final class JsonPointerTest {
         assertEquals(ptr.append(appended), expected);
     }
 
-    @DataProvider
-    public Iterator<Object[]> allInstanceTypes() {
-        return SampleNodeProvider.getSamples(EnumSet.allOf(NodeType.class));
-    }
-
-    @Test(dataProvider = "allInstanceTypes")
-    public void emptyPointerAlwaysReturnsTheSameInstance(final JsonNode node) {
-        assertEquals(JsonPointer.empty().get(node), node);
+    @Test
+    public void emptyPointerAlwaysReturnsTheSameInstance() {
+        Iterator<Object[]> it = SampleNodeProvider.getSamples(EnumSet.allOf(NodeType.class));
+        while (it.hasNext()) {
+            Object[] o = it.next();
+            final JsonNode node = (JsonNode) o[0];
+            assertEquals(JsonPointer.empty().get(node), node);
+        }
     }
 
     @Test
@@ -151,27 +142,21 @@ public final class JsonPointerTest {
         assertEquals(ptr1, ptr2);
     }
 
-    @DataProvider
-    public Iterator<Object[]> parentTestData() {
-        final List<Object[]> list = new ArrayList();
 
-        // Empty
+    @Test
+    public void parentComputationWorks() {
+        final List<Object[]> list = new ArrayList<>();
         list.add(new Object[]{JsonPointer.empty(), JsonPointer.empty()});
-        // Single token pointer
         list.add(new Object[]{JsonPointer.of(1), JsonPointer.empty()});
         list.add(new Object[]{JsonPointer.of("a"), JsonPointer.empty()});
-        // Multiple token pointer
         list.add(new Object[]{JsonPointer.of("a", "b"),
                 JsonPointer.of("a")});
         list.add(new Object[]{JsonPointer.of("a", "b", "c"),
                 JsonPointer.of("a", "b")});
-
-        return list.iterator();
-    }
-
-    @Test(dataProvider = "parentTestData")
-    public void parentComputationWorks(final JsonPointer child,
-                                       final JsonPointer parent) {
-        assertEquals(child.parent(), parent);
+        for (Object[] o : list) {
+            final JsonPointer child = (JsonPointer) o[0];
+            final JsonPointer parent = (JsonPointer) o[1];
+            assertEquals(child.parent(), parent);
+        }
     }
 }

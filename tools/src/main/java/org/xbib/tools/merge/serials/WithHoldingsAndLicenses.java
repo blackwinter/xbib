@@ -54,7 +54,7 @@ import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.support.BibdatLookup;
 import org.xbib.tools.merge.serials.support.BlackListedISIL;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
@@ -64,10 +64,10 @@ import org.xbib.util.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
@@ -77,14 +77,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
 /**
  * Merge ZDB title and holdings and EZB licenses
  */
 public class WithHoldingsAndLicenses
-        extends ForkJoinPipeline<TitelRecordRequest, WithHoldingsAndLicensesWorker>
-        implements CommandLineInterpreter {
+        extends ForkJoinPipeline<WithHoldingsAndLicensesWorker, TitelRecordRequest>
+        implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(WithHoldingsAndLicenses.class.getSimpleName());
 
@@ -124,13 +123,133 @@ public class WithHoldingsAndLicenses
 
     private StatusCodeMapper statusCodeMapper;
 
-    public WithHoldingsAndLicenses reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
+    @Override
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = Settings.settingsBuilder().loadFromReader(reader).build();
+        logger.info("run starts");
+        this.sourceTitleIndex = settings.get("bib-index");
 
-    public WithHoldingsAndLicenses writer(Writer writer) {
-        return this;
+        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
+            throw new IllegalArgumentException("no bib-index parameter given");
+        }
+        this.sourceTitleType = settings.get("bib-type");
+
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+                        .put("cluster.name", settings.get("elasticsearch.cluster"))
+                        .put("host", settings.get("elasticsearch.host"))
+                        .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                        .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                        .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                        .build().getAsMap());
+        this.service = this;
+        this.client = search.client();
+        this.size = settings.getAsInt("scrollsize", 10);
+        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
+        this.identifier = settings.get("identifier");
+        this.ingest = settings.getAsBoolean("mock", false) ? new MockTransportClient() :
+                "ingest".equals(settings.get("client")) ?
+                        new IngestTransportClient() :
+                        new BulkTransportClient();
+        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
+                .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
+        ingest.init(Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster"))
+                .put("host", settings.get("elasticsearch.host"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .put("client.transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("client.transport.ping_timeout", TimeValue.timeValueSeconds(60).getSeconds())
+                .put("client.transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60).getSeconds())
+                .build().getAsMap(), new LongAdderIngestMetric());
+        String index = settings.get("index");
+        try {
+            String packageName = getClass().getPackage().getName().replace('.','/');
+            String indexSettingsLocation = settings.get("index-settings",
+                    "classpath:" + packageName + "/settings.json");
+            logger.info("using index settings from {}", indexSettingsLocation);
+            URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
+                    new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
+                    new URL(indexSettingsLocation));
+            logger.info("creating index {}", index);
+            ingest.newIndex(index, org.elasticsearch.common.settings.Settings.settingsBuilder()
+                    .loadFromStream(indexSettingsUrl.toString(), indexSettingsUrl.openStream()).build(), null);
+
+            // add mappings
+            String indexMappingsLocation = settings.get("index-mapping",
+                    "classpath:" + packageName + "/mapping.json");
+            logger.info("using index mappings from {}", indexMappingsLocation);
+            URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
+                    new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
+                    new URL(indexMappingsLocation));
+            Map<String,Object> indexMappings = Settings.settingsBuilder()
+                    .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
+            if (indexMappings != null) {
+                for (Map.Entry<String,Object> me : indexMappings.entrySet()) {
+                    String type = me.getKey();
+                    Map<String, Object> mapping = (Map<String, Object>) me.getValue();
+                    logger.info("creating mapping for type {}: {}", type, mapping);
+                    if (mapping != null) {
+                        ingest.newMapping(index, me.getKey(), mapping);
+                    } else {
+                        logger.warn("no mapping found for {}", type);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
+                throw e;
+            } else {
+                logger.warn("index creation error, but configured to ignore", e);
+            }
+        }
+        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
+        ingest.startBulk(index, -1, 1);
+
+        queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+        indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+
+        super.setWorkerProvider(new WorkerProvider<WithHoldingsAndLicensesWorker>() {
+            int i = 0;
+
+            @Override
+            public WithHoldingsAndLicensesWorker get(Pipeline pipeline) {
+                WithHoldingsAndLicensesWorker w = new WithHoldingsAndLicensesWorker(service, i++);
+                //worker.setQueue(getQueue());
+                return w;
+            }
+        });
+        super.setConcurrency(settings.getAsInt("concurrency", 1));
+        // here we do the work!
+        try {
+            prepare();
+            execute();
+            // send poison elements
+            waitFor(new TitelRecordRequest());
+        } finally {
+            logger.info("shutdown in progress");
+            shutdown();
+            logger.info("query: started {}, ended {}, took {}, count = {}",
+                    DateUtil.formatDateISO(queryMetric.startedAt()),
+                    DateUtil.formatDateISO(queryMetric.stoppedAt()),
+                    TimeValue.timeValueMillis(queryMetric.elapsed() / 1000000).format(),
+                    queryMetric.count());
+            logger.info("index: started {}, ended {}, took {}, count = {}",
+                    DateUtil.formatDateISO(indexMetric.startedAt()),
+                    DateUtil.formatDateISO(indexMetric.stoppedAt()),
+                    TimeValue.timeValueMillis(indexMetric.elapsed() / 1000000).format(),
+                    indexMetric.count());
+
+            logger.info("ingest shutdown in progress");
+            ingest.flushIngest();
+            ingest.waitForResponses(TimeValue.timeValueSeconds(60));
+            ingest.shutdown();
+
+            logger.info("search shutdown in progress");
+            search.shutdown();
+
+            logger.info("run complete");
+
+        }
     }
 
     @Override
@@ -183,140 +302,6 @@ public class WithHoldingsAndLicenses
             logger.error(e.getMessage(), e);
         }
         return this;
-    }
-
-    @Override
-    public void run() throws Exception {
-        logger.info("run starts");
-        this.sourceTitleIndex = settings.get("bib-index");
-
-        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
-            throw new IllegalArgumentException("no bib-index parameter given");
-        }
-        this.sourceTitleType = settings.get("bib-type");
-
-        SearchClient search = new SearchClient().init(org.elasticsearch.common.settings.Settings.settingsBuilder()
-                        .put("cluster.name", settings.get("elasticsearch.cluster"))
-                        .put("host", settings.get("elasticsearch.host"))
-                        .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                        .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                        .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                        .build()
-        );
-        this.service = this;
-        this.client = search.client();
-        this.size = settings.getAsInt("scrollsize", 10);
-        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
-        this.identifier = settings.get("identifier");
-
-        this.ingest = settings.getAsBoolean("mock", false) ?
-                new MockTransportClient() :
-                "ingest".equals(settings.get("client")) ?
-                        new IngestTransportClient() :
-                        new BulkTransportClient();
-        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
-                .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
-        ingest.init(org.elasticsearch.common.settings.Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .put("transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("transport.ping_timeout", "60s")
-                .put("transport.nodes_sampler_interval", "60s")
-                .build(), new LongAdderIngestMetric());
-
-        String index = settings.get("index");
-        try {
-            String packageName = getClass().getPackage().getName().replace('.','/');
-            String indexSettingsLocation = settings.get("index-settings",
-                    "classpath:" + packageName + "/settings.json");
-            logger.info("using index settings from {}", indexSettingsLocation);
-            URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
-                    new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
-                    new URL(indexSettingsLocation));
-            org.elasticsearch.common.settings.Settings indexSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
-                    .loadFromStream("", indexSettingsUrl.openStream()).build();
-            logger.info("creating index {}", index);
-            ingest.newIndex(index, indexSettings, null);
-
-            // add mappings
-            String indexMappingsLocation = settings.get("index-mapping",
-                    "classpath:" + packageName + "/mapping.json");
-            logger.info("using index mappings from {}", indexMappingsLocation);
-            URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
-                    new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
-                    new URL(indexMappingsLocation));
-            Map<String,Object> indexMappings = org.elasticsearch.common.settings.Settings.settingsBuilder()
-                    .loadFromStream("", indexMappingsUrl.openStream()).build().getAsStructuredMap();
-            if (indexMappings != null) {
-                for (Map.Entry<String,Object> me : indexMappings.entrySet()) {
-                    String type = me.getKey();
-                    Map<String, Object> mapping = (Map<String, Object>) me.getValue();
-                    logger.info("creating mapping for type {}: {}", type, mapping);
-                    if (mapping != null) {
-                        ingest.newMapping(index, me.getKey(), mapping);
-                    } else {
-                        logger.warn("no mapping found for {}", type);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
-                throw e;
-            } else {
-                logger.warn("index creation error, but configured to ignore", e);
-            }
-        }
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        ingest.startBulk(index, -1L, 1L);
-
-        queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
-        indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
-
-        super.setProvider(new WorkerProvider<WithHoldingsAndLicensesWorker>() {
-            int i = 0;
-
-            @Override
-            public WithHoldingsAndLicensesWorker get() {
-                WithHoldingsAndLicensesWorker worker = new WithHoldingsAndLicensesWorker(service, i++);
-                worker.setQueue(getQueue());
-                return worker;
-            }
-        });
-        super.setConcurrency(settings.getAsInt("concurrency", 1));
-
-        prepare();
-
-        // here we do the work!
-        try {
-            execute();
-        } finally {
-            logger.info("shutdown in progress");
-            shutdown(new TitelRecordRequest().set(null));
-
-            logger.info("query: started {}, ended {}, took {}, count = {}",
-                    DateUtil.formatDateISO(queryMetric.startedAt()),
-                    DateUtil.formatDateISO(queryMetric.stoppedAt()),
-                    TimeValue.timeValueMillis(queryMetric.elapsed() / 1000000).format(),
-                    queryMetric.count());
-            logger.info("index: started {}, ended {}, took {}, count = {}",
-                    DateUtil.formatDateISO(indexMetric.startedAt()),
-                    DateUtil.formatDateISO(indexMetric.stoppedAt()),
-                    TimeValue.timeValueMillis(indexMetric.elapsed() / 1000000).format(),
-                    indexMetric.count());
-
-            logger.info("ingest shutdown in progress");
-            ingest.flushIngest();
-            ingest.waitForResponses(TimeValue.timeValueSeconds(60));
-            ingest.shutdown();
-
-            logger.info("search shutdown in progress");
-            search.shutdown();
-
-            logger.info("run complete");
-
-        }
     }
 
     @Override

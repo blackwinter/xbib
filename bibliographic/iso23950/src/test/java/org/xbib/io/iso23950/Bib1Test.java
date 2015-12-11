@@ -31,10 +31,11 @@
  */
 package org.xbib.io.iso23950;
 
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ResourceBundle;
-import org.testng.annotations.Test;
 
 public class Bib1Test {
 

@@ -17,21 +17,20 @@ import java.util.concurrent.TimeUnit;
 /**
  * A simple fork/join pipeline.
  *
- * @param <R> the request type
  * @param <W> the worker type
  */
-public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
-    implements Pipeline<R, W> {
+public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest>
+    implements Pipeline<W,R> {
 
-    private ExecutorService executorService;
+    private ExecutorService pool;
 
     private BlockingQueue<R> queue;
 
-    private Collection<Worker<R>> workers;
+    private Collection<W> workers;
 
     private Collection<Future<R>> futures;
 
-    private WorkerProvider<W> provider;
+    private WorkerProvider<W> workerProvider;
 
     private CountDownLatch latch;
 
@@ -44,67 +43,68 @@ public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
     private volatile boolean closed;
 
     @Override
-    public ForkJoinPipeline<R, W> setConcurrency(int concurrency) {
+    public ForkJoinPipeline<W, R> setConcurrency(int concurrency) {
         this.workerCount = concurrency;
         return this;
     }
 
     @Override
-    public ForkJoinPipeline<R, W> setProvider(WorkerProvider<W> provider) {
-        this.provider = provider;
+    public ForkJoinPipeline<W, R> setWorkerProvider(WorkerProvider<W> workerProvider) {
+        this.workerProvider = workerProvider;
         return this;
     }
 
     @Override
-    public ForkJoinPipeline<R, W> setQueue(BlockingQueue<R> queue) {
+    public ForkJoinPipeline<W, R> setQueue(BlockingQueue<R> queue) {
         this.queue = queue;
         return this;
     }
 
+    @Override
     public BlockingQueue<R> getQueue() {
         return queue;
     }
 
     @Override
-    public ForkJoinPipeline<R, W> setSink(Sink<R> sink) {
+    public ForkJoinPipeline<W,R> setSink(Sink<R> sink) {
         this.sink = sink;
         return this;
     }
 
     @Override
-    public ForkJoinPipeline<R, W> prepare() {
-        if (provider == null) {
-            throw new IllegalStateException("no provider set");
-        }
-        if (executorService == null) {
-            this.executorService = Executors.newFixedThreadPool(workerCount);
+    public ForkJoinPipeline<W,R> prepare() {
+        if (workerProvider == null) {
+            throw new IllegalArgumentException("no worker provider set");
         }
         if (queue == null) {
             this.queue = new SynchronousQueue<>(true);
         }
-        if (workers == null) {
-            this.workers = new LinkedList<>();
-        }
-        if (workerCount < 1) {
-            workerCount = 1;
-        }
-        workerCount = Math.min(workerCount, 256);
-        this.latch = new CountDownLatch(workerCount);
-        for (int i = 0; i < workerCount; i++) {
-            workers.add(provider.get().setQueue(queue));
+        if (pool == null) {
+            if (workerCount < 1) {
+                workerCount = 1;
+            }
+            this.workerCount = Math.min(workerCount, 256);
+            this.pool = Executors.newFixedThreadPool(workerCount);
         }
         return this;
     }
 
     @Override
-    public ForkJoinPipeline<R, W> execute() {
-        if (workers == null || workers.isEmpty()) {
-            throw new IllegalStateException("no workers");
+    public ForkJoinPipeline<W,R> execute() {
+        if (pool == null) {
+            throw new IllegalStateException("no pool");
         }
+        if (workerCount == 0) {
+            throw new IllegalStateException("no workers to create");
+        }
+        workers = new LinkedList<>();
         futures = new LinkedList<>();
-        for (Worker<R> worker : workers) {
-            futures.add(executorService.submit(worker));
+        for (int i = 0; i < workerCount; i++) {
+            W worker = workerProvider.get(this);
+            workers.add(worker);
+            futures.add(pool.submit(worker));
         }
+        this.latch = new CountDownLatch(workerCount);
         return this;
     }
 
@@ -116,12 +116,14 @@ public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
      * @throws ExecutionException
      */
     @Override
-    public ForkJoinPipeline<R, W> waitFor()
-            throws InterruptedException, ExecutionException {
-        if (executorService == null || workers == null || futures == null || futures.isEmpty()) {
+    public ForkJoinPipeline<W, R> waitFor(R poisonElement)
+            throws InterruptedException, ExecutionException, IOException {
+        if (pool == null || futures == null || futures.isEmpty()) {
             return this;
         }
-        exceptions = new LinkedList<Throwable>();
+        // send poison
+        poison(poisonElement);
+        exceptions = new LinkedList<>();
         for (Future<R> future : futures) {
             try {
                 R r = future.get();
@@ -130,35 +132,34 @@ public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
                 }
             } catch (Throwable e) {
                 exceptions.add(e);
+                latch.countDown();
             }
         }
         return this;
     }
 
-    @Override
-    public void shutdown() throws InterruptedException, IOException {
-        if (executorService == null) {
-            return;
-        }
-        executorService.shutdown();
-        if (!executorService.awaitTermination(15, TimeUnit.SECONDS)) {
-            executorService.shutdownNow();
-            if (!executorService.awaitTermination(15, TimeUnit.SECONDS)) {
-                throw new IOException("executor service did not terminate");
-            }
-        }
-    }
-
-    public void shutdown(R poisonElement) throws InterruptedException, ExecutionException, IOException {
+    protected void poison(R poisonElement) throws InterruptedException, ExecutionException, IOException {
         if (closed) {
             return;
         }
-        closed = true;
-        for (int i = 0; i < workers.size(); i++) {
-            queue.offer(poisonElement);
+        for (int i = 0; i < workerCount; i++) {
+            queue.put(poisonElement);
         }
-        waitFor();
-        shutdown();
+        closed = true;
+    }
+
+    @Override
+    public void shutdown() throws InterruptedException, IOException {
+        if (pool == null) {
+            return;
+        }
+        pool.shutdown();
+        if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+            pool.shutdownNow();
+            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+                throw new IOException("pool did not terminate");
+            }
+        }
     }
 
     /**
@@ -166,7 +167,7 @@ public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
      * @return the pipelines
      */
     @Override
-    public Collection<Worker<R>> getWorkers() {
+    public Collection<W> getWorkers() {
         return workers;
     }
 
@@ -183,7 +184,7 @@ public class ForkJoinPipeline<R extends WorkerRequest, W extends Worker<R>>
      * Called from a worker when it terminates.
      * @return this pipeline
      */
-    public ForkJoinPipeline<R, W> countDown() {
+    public ForkJoinPipeline<W,R> countDown() {
         latch.countDown();
         return this;
     }

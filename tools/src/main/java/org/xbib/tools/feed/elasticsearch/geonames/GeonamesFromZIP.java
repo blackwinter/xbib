@@ -55,13 +55,8 @@ public class GeonamesFromZIP extends Feeder {
     private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
 
     @Override
-    public String getName() {
-        return "geonames-zip-to-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return GeonamesFromZIP::new;
+        return p -> new GeonamesFromZIP().setPipeline(p);
     }
 
     @Override

@@ -2,8 +2,8 @@ package org.xbib.sru.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.io.negotiate.MediaRangeSpec;
 import org.xbib.sru.SRUContentTypeNegotiator;
 

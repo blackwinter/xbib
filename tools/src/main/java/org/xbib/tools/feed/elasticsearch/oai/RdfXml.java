@@ -65,13 +65,8 @@ public class RdfXml extends Feeder {
     private final static Logger logger = LogManager.getLogger(RdfXml.class.getSimpleName());
 
     @Override
-    public String getName() {
-        return "oai-rdfxml-es";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return RdfXml::new;
+        return p -> new RdfXml().setPipeline(p);
     }
 
     @Override

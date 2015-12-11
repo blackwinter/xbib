@@ -67,18 +67,12 @@ public final class FromMARC extends Feeder {
     private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     @Override
-    public String getName() {
-        return "marc-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return FromMARC::new;
+        return p -> new FromMARC().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
                 new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :

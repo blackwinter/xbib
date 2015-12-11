@@ -9,21 +9,21 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xbib-content-rdf</artifactId>
+    <artifactId>rdf</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-content-rdf</name>
+    <name>rdf</name>
     <description>RDF framework / Linked Data</description>
 
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-datastructures-collection</artifactId>
+            <artifactId>collection</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-content-json</artifactId>
+            <artifactId>json</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>

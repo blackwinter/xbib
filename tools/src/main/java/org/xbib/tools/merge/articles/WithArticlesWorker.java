@@ -46,6 +46,7 @@ import org.xbib.iri.IRI;
 import org.xbib.metric.MeterMetric;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
@@ -57,7 +58,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -67,7 +67,7 @@ import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-public class WithArticlesWorker implements Worker<SerialItemRequest> {
+public class WithArticlesWorker implements Worker<Pipeline<WithArticlesWorker, SerialItemRequest>, SerialItemRequest> {
 
     private final WithArticles service;
 
@@ -79,8 +79,6 @@ public class WithArticlesWorker implements Worker<SerialItemRequest> {
 
     private final Logger logger;
 
-    private BlockingQueue<SerialItemRequest> queue;
-
     private SerialItem serialItem;
 
     private MeterMetric metric;
@@ -89,6 +87,21 @@ public class WithArticlesWorker implements Worker<SerialItemRequest> {
         this.threadId = number;
         this.service = service;
         this.logger = LogManager.getLogger(toString());
+    }
+
+    @Override
+    public Worker<Pipeline<WithArticlesWorker, SerialItemRequest>, SerialItemRequest> setPipeline(Pipeline<WithArticlesWorker, SerialItemRequest> pipeline) {
+        // unused
+        return this;
+    }
+
+    public Pipeline<WithArticlesWorker, SerialItemRequest> getPipeline() {
+        return service;
+    }
+
+    public WithArticlesWorker setMetric(MeterMetric metric) {
+        this.metric = metric;
+        return this;
     }
 
     public MeterMetric getMetric() {
@@ -104,28 +117,19 @@ public class WithArticlesWorker implements Worker<SerialItemRequest> {
     }
 
     @Override
-    public WithArticlesWorker setQueue(BlockingQueue<SerialItemRequest> queue) {
-        this.queue = queue;
-        return this;
-    }
-
-    @Override
-    public BlockingQueue<SerialItemRequest> getQueue() {
-        return queue;
-    }
-
-    @Override
     public SerialItemRequest call() throws Exception {
         logger.info("pipeline starting");
-        this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        if (metric == null) {
+            this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        }
         SerialItemRequest element = null;
         try {
-            element = queue.poll();
+            element = service.getQueue().poll(5L, TimeUnit.SECONDS);
             serialItem = element.get();
             while (serialItem != null) {
                 process(serialItem);
                 metric.mark();
-                element = queue.poll();
+                element = service.getQueue().poll(5L, TimeUnit.SECONDS);
                 serialItem = element.get();
             }
         } catch (Throwable e) {

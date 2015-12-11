@@ -65,8 +65,8 @@ public class FromOAI2CSV extends OAIHarvester {
     private final static Logger logger = LogManager.getLogger(FromOAI2CSV.class.getName());
 
     @Override
-    public String getName() {
-        return "zdb-oai-csv";
+    protected WorkerProvider provider() {
+        return p -> new FromOAI2CSV().setPipeline(p);
     }
 
     @Override
@@ -88,11 +88,6 @@ public class FromOAI2CSV extends OAIHarvester {
             FileOutputStream out = new FileOutputStream(outputURI.getPath());
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
             CSVGenerator generator = new CSVGenerator(writer);
-    }
-
-    @Override
-    protected WorkerProvider provider() {
-        return FromOAI2CSV::new;
     }
 
     protected SimpleMetadataHandler xmlMetadataHandler() {

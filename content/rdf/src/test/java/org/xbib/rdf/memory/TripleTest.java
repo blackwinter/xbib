@@ -31,8 +31,8 @@
  */
 package org.xbib.rdf.memory;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.Resource;

@@ -2,12 +2,11 @@ package org.xbib.tools.feed.elasticsearch.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.rdf.content.RdfXContentFactory;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 

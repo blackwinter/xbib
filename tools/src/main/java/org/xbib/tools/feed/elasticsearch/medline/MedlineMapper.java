@@ -49,8 +49,6 @@ import java.util.Set;
 
 public class MedlineMapper implements ArticleVocabulary {
 
-    private final static Logger logger = LogManager.getLogger(MedlineMapper.class);
-
     private Set<Author> authors = new LinkedHashSet<>();
 
     private Author author;

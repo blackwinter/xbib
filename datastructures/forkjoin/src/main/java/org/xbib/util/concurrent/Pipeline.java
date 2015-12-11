@@ -7,27 +7,23 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 
 /**
+ * A pipeline
  *
- * @param <R> the request type
  * @param <W> the worker type
+ * @param <R> the request type
  */
-public interface Pipeline<R extends WorkerRequest, W extends Worker<R>> {
+public interface Pipeline<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest> {
 
     /**
      * Set the concurrency of this pipeline setExecutor
      * @param concurrency the concurrency, must be a positive integer
      * @return this setExecutor
      */
-    Pipeline<R, W> setConcurrency(int concurrency);
+    Pipeline<W,R> setConcurrency(int concurrency);
 
-    /**
-     * Set the provider of this pipeline setExecutor
-     * @param provider the pipeline provider
-     * @return this setExecutor
-     */
-    Pipeline<R, W> setProvider(WorkerProvider<W> provider);
+    Pipeline<W,R> setQueue(BlockingQueue<R> queue);
 
-    Pipeline<R, W> setQueue(BlockingQueue<R> queue);
+    Pipeline<W,R> setWorkerProvider(WorkerProvider<W> provider);
 
     BlockingQueue<R> getQueue();
 
@@ -36,19 +32,19 @@ public interface Pipeline<R extends WorkerRequest, W extends Worker<R>> {
      * @param sink the pipeline sink
      * @return this setExecutor
      */
-    Pipeline<R, W> setSink(Sink<R> sink);
+    Pipeline<W,R> setSink(Sink<R> sink);
 
     /**
      * Prepare the pipeline execution.
      * @return this setExecutor
      */
-    Pipeline<R, W> prepare();
+    Pipeline<W,R> prepare();
 
     /**
      * Execute the pipelines.
      * @return this setExecutor
      */
-    Pipeline<R, W> execute();
+    Pipeline<W,R> execute();
 
     /**
      * Execute the pipelines.
@@ -57,7 +53,7 @@ public interface Pipeline<R extends WorkerRequest, W extends Worker<R>> {
      * @throws ExecutionException
      * @throws IOException
      */
-    Pipeline<R, W> waitFor() throws InterruptedException, ExecutionException, IOException;
+    Pipeline<W,R> waitFor(R poison) throws InterruptedException, ExecutionException, IOException;
 
     /**
      * Shut down this pipeline executor.
@@ -71,5 +67,5 @@ public interface Pipeline<R extends WorkerRequest, W extends Worker<R>> {
      * Return pipelines
      * @return the pipelines
      */
-    Collection<Worker<R>> getWorkers();
+    Collection<W> getWorkers();
 }

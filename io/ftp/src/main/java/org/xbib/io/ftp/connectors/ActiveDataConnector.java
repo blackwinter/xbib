@@ -7,20 +7,20 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ActiveDataConnector implements Runnable, DataConnector {
 
-    private final static Logger logger = LogManager.getLogger(ActiveDataConnector.class.getName());
+    private final static Logger logger = LogManager.getLogger("org.xbib.io.ftp");
 
-    private ServerSocket serverSocket ;
-
+    private ServerSocket serverSocket;
     private Socket socket;
     private IOException exception;
-
     private ExecutorService threadPool;
-    private Thread thread;
+    private Future<?> future;
 
     public ActiveDataConnector(int start, int stop) throws IOException {
         this.threadPool = Executors.newFixedThreadPool(32);
@@ -31,7 +31,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
                     serverSocket = new ServerSocket();
                     serverSocket.setReceiveBufferSize(8192);
                     serverSocket.bind(new InetSocketAddress(port));
-                    logger.info("bind server socket {} {}",
+                    logger.debug("bind server socket {} {}",
                             serverSocket.getLocalSocketAddress(),
                             serverSocket.getLocalPort());
                     done = true;
@@ -41,9 +41,9 @@ public class ActiveDataConnector implements Runnable, DataConnector {
             }
         }
         if (!done) {
-            throw new IOException("cannot open the server ocket. " + "No available port found in range");
+            throw new IOException("cannot open the server socket. No available port found in range");
         }
-        threadPool.submit(this);
+        this.future = threadPool.submit(this);
     }
 
     /**
@@ -58,12 +58,12 @@ public class ActiveDataConnector implements Runnable, DataConnector {
     public void run() {
         int timeout = 15000;
         try {
-            logger.info("waiting for accept on socket {} {}",
+            logger.debug("waiting for accept on socket {} {}",
                     serverSocket.getLocalSocketAddress(),
                     serverSocket.getLocalPort());
             serverSocket.setSoTimeout(timeout);
             socket = serverSocket.accept();
-            socket.setSendBufferSize(8 * 1024);
+            socket.setSendBufferSize(8192);
         } catch (IOException e) {
             exception = e;
         } finally {
@@ -76,24 +76,38 @@ public class ActiveDataConnector implements Runnable, DataConnector {
         }
     }
 
+    @Override
     public void close() {
+        if (socket != null) {
+            try {
+                if (!socket.isClosed()) {
+                    socket.close();
+                    logger.debug("socket closed {}", socket.getLocalAddress());
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
         if (serverSocket != null) {
             try {
-                serverSocket.close();
+                if (!serverSocket.isClosed()) {
+                    serverSocket.close();
+                    logger.debug("server socket closed {}", serverSocket.getInetAddress());
+                }
             } catch (IOException e) {
-                //
+                logger.error(e.getMessage(), e);
             }
         }
         threadPool.shutdownNow();
     }
 
     public Socket openDataConnection () throws IOException {
-        if (socket == null && exception == null) {
-            try {
-                thread.join();
-            } catch (Exception e) {
-                //
-            }
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            throw new IOException("interrupted");
+        } catch (ExecutionException e) {
+            throw new IOException("execution exception", e);
         }
         if (exception != null) {
             throw new IOException("cannot receive the incoming connection", exception);

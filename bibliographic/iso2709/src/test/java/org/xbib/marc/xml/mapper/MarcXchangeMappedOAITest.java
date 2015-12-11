@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.xml.mapper;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
@@ -44,14 +44,13 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.testng.Assert.assertNull;
-
 public class MarcXchangeMappedOAITest extends StreamTester {
 
     @Test
     public void testMarcXMLFromOAI() throws Exception {
         final StringBuilder sb = new StringBuilder();
         File file = File.createTempFile("zdb-oai-marc-fieldmapper.", ".txt");
+        file.deleteOnExit();
         FileWriter fw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(fw);
 
@@ -121,9 +120,9 @@ public class MarcXchangeMappedOAITest extends StreamTester {
         reader.setMarcXchangeListener(writer);
 
         // just for fun: 084->085
-        Map<String,Object> indicators = new HashMap<String, Object>();
+        Map<String,Object> indicators = new HashMap<>();
         indicators.put("  ", "085$  ");
-        Map<String,Object> fields = new HashMap<String, Object>();
+        Map<String,Object> fields = new HashMap<>();
         fields.put("084", indicators);
         reader.addFieldMap("test", fields);
 

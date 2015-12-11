@@ -36,13 +36,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Arrays;
+import java.util.Collections;
 import javax.xml.stream.util.XMLEventConsumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
 
+import org.junit.Test;
 import org.xbib.io.Request;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.iso23950.service.ZSRUService;
@@ -58,7 +58,7 @@ public class SRUServiceTest {
 
     @Test
     public void testSearchRetrieve() throws Exception {
-        for (String name : Arrays.asList("OBVSG")) {
+        for (String name : Collections.singletonList("OBVSG")) {
             logger.info("trying " + name);
             ZSRUService service = ZSRUServiceFactory.getService(name);
             if (service != null) {

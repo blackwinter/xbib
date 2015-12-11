@@ -1,0 +1,89 @@
+
+def xbibGroup = 'org.xbib'
+def xbibVersion = '2.0.0-SNAPSHOT'
+
+group = xbibGroup
+version = xbibVersion
+
+println "Current JVM: " + org.gradle.internal.jvm.Jvm.current()
+
+ext {
+  versions = [
+    'jackson': '2.6.4',
+    'netty': '4.1.0.Beta7',
+    'log4j': '2.5',
+    'junit' : '4.12'
+  ]
+}
+
+allprojects {
+    apply plugin: 'maven'
+    group = xbibGroup
+    version = xbibVersion
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        jcenter()
+        maven {
+            url "http://xbib.org/repository"
+        }
+    }
+    configurations {
+        providedCompile
+        wagon
+    }
+    dependencies {
+        wagon 'org.apache.maven.wagon:wagon-ssh-external:2.10'
+    }
+    // TODO fix java compile warnings by enabling this
+    //tasks.withType(JavaCompile) {
+    //    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    //}
+}
+
+subprojects {
+    apply plugin: 'java'
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+    dependencies {
+        compile "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
+        compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
+        testCompile "junit:junit:${versions.junit}"
+    }
+    test {
+        testLogging {
+            showStandardStreams = true
+            exceptionFormat = 'full'
+        }
+    }
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+    artifacts {
+        archives sourcesJar
+    }
+    uploadArchives {
+        repositories {
+            if (project.hasProperty("xbibUsername")) {
+                mavenDeployer {
+                    configuration = configurations.wagon
+                    repository(
+                            id: 'xbib.org',
+                            url: uri('scpexe://xbib.org/repository'),
+                            authentication: [userName: xbibUsername, privateKey: xbibPrivateKey]
+                    )
+                }
+            }
+        }
+        dependsOn {
+            rootProject.subprojects.collect {
+                it.tasks.getByName 'test'
+            }
+        }
+    }
+}
+

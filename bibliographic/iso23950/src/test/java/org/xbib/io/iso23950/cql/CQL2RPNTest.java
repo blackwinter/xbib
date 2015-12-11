@@ -31,7 +31,7 @@
  */
 package org.xbib.io.iso23950.cql;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.query.cql.CQLParser;
 
 public class CQL2RPNTest {

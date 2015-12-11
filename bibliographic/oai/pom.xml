@@ -9,21 +9,21 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xbib-oai</artifactId>
+    <artifactId>oai</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-oai</name>
+    <name>oai</name>
     <description>OAI Open Archive Initiative client and server</description>
 
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-io-http</artifactId>
+            <artifactId>http</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-content-rdf</artifactId>
+            <artifactId>rdf</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>

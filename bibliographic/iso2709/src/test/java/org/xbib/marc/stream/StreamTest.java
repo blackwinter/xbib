@@ -31,7 +31,8 @@
  */
 package org.xbib.marc.stream;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.io.field.Separable;
 import org.xbib.marc.Iso2709Reader;
 
@@ -39,9 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
-import static org.testng.Assert.assertEquals;
-
-public class StreamTest {
+public class StreamTest extends Assert {
 
     @Test
     public void testZDB() throws IOException {

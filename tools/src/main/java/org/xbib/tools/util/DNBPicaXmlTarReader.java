@@ -44,6 +44,7 @@ import org.xbib.marc.dialects.pica.DNBPicaConstants;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.LongWorkerRequest;
+import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import javax.xml.namespace.QName;
@@ -64,7 +65,7 @@ import java.util.Stack;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DNBPicaXmlTarReader<P extends Packet>
-        extends AbstractWorker<LongWorkerRequest>
+        extends AbstractWorker<Pipeline,LongWorkerRequest>
         implements DNBPicaConstants, MarcXchangeListener {
 
     private final static Logger logger = LogManager.getLogger(DNBPicaXmlTarReader.class.getName());
@@ -92,9 +93,6 @@ public class DNBPicaXmlTarReader<P extends Packet>
     private StringBuilder sb = new StringBuilder();
 
     private MarcXchangeListener listener;
-
-    public DNBPicaXmlTarReader() {
-    }
 
     public DNBPicaXmlTarReader setURI(URI uri) {
         this.uri = uri;
@@ -205,7 +203,7 @@ public class DNBPicaXmlTarReader<P extends Packet>
     }
 */
     @Override
-    public void newRequest(Worker<LongWorkerRequest> pipeline, LongWorkerRequest request) {
+    public void newRequest(Worker<Pipeline, LongWorkerRequest> pipeline, LongWorkerRequest request) {
         try {
             try (StringReader sr = new StringReader(clob)) {
                 XMLEventReader xmlReader = factory.createXMLEventReader(sr);

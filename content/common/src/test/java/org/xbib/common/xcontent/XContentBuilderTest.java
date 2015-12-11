@@ -1,6 +1,7 @@
 package org.xbib.common.xcontent;
 
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.common.xcontent.json.JsonXContent;
 
 import java.io.IOException;
@@ -10,10 +11,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
-import static org.testng.Assert.assertEquals;
 import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
-public class XContentBuilderTest {
+public class XContentBuilderTest extends Assert {
 
     @Test
     public void testCopy() throws IOException {
@@ -138,7 +138,7 @@ public class XContentBuilderTest {
         assertEquals(map.toString(), "{value=4AC3B67267}");
     }
 
-    @Test(expectedExceptions = IOException.class)
+    @Test(expected = IOException.class)
     public void testNullKey() throws IOException {
         XContentBuilder builder = jsonBuilder();
         builder.field((String)null);

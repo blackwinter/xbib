@@ -53,13 +53,8 @@ import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 public class Freebase extends Converter {
 
     @Override
-    public String getName() {
-        return "freebase-turtle-ntriples";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Freebase::new;
+        return p -> new Freebase().setPipeline(p);
     }
 
     // TODO

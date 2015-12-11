@@ -9,16 +9,16 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xbib-content-json</artifactId>
+    <artifactId>json</artifactId>
     <packaging>jar</packaging>
 
-    <name>xbib-content-json</name>
+    <name>json</name>
     <description>JSON</description>
 
     <dependencies>
         <dependency>
             <groupId>org.xbib</groupId>
-            <artifactId>xbib-content-xml</artifactId>
+            <artifactId>xml</artifactId>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -30,12 +30,6 @@
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>serializer</artifactId>
             <type>jar</type>
             <scope>test</scope>
         </dependency>

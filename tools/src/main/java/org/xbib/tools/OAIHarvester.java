@@ -59,6 +59,7 @@ import java.net.URI;
 import java.text.Normalizer;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
@@ -122,7 +123,7 @@ public abstract class OAIHarvester extends Converter {
     }
 
     @Override
-    public OAIHarvester cleanup() throws IOException {
+    public OAIHarvester cleanup() throws IOException, ExecutionException {
         super.cleanup();
         session.close();
         return this;

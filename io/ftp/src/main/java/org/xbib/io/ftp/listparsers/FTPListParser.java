@@ -5,6 +5,7 @@ import org.xbib.io.ftp.FTPException;
 import org.xbib.io.ftp.FTPEntry;
 
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Implement this interface to build a new LIST parser. List parsers are called
@@ -22,6 +23,6 @@ public interface FTPListParser {
      * operation.
      * @throws FTPException If this parser cannot parse the given response.
      */
-    List<FTPEntry> parse(List<String> lines) throws FTPException;
+    List<FTPEntry> parse(List<String> lines, TimeZone tz) throws FTPException;
 
 }

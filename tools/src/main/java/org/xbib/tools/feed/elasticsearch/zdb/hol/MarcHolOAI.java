@@ -80,12 +80,7 @@ public class MarcHolOAI extends OAIFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return MarcHolOAI::new;
-    }
-
-    @Override
-    public String getName() {
-        return "marc-hol-oai-elasticsearch";
+        return p -> new MarcHolOAI().setPipeline(p);
     }
 
     @Override

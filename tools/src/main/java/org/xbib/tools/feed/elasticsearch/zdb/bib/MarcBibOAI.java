@@ -80,12 +80,7 @@ public class MarcBibOAI extends OAIFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return MarcBibOAI::new;
-    }
-
-    @Override
-    public String getName() {
-        return "marc-bib-oai-elasticsearch";
+        return p -> new MarcBibOAI().setPipeline(p);
     }
 
     @Override

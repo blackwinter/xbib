@@ -31,8 +31,6 @@
  */
 package org.xbib.tools.feed.elasticsearch.orcid;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentParams;
@@ -53,8 +51,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class ORCIDMapper implements ArticleVocabulary {
-
-    private final static Logger logger = LogManager.getLogger(ORCIDMapper.class);
 
     private String orcid;
 

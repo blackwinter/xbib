@@ -1,7 +1,7 @@
 package org.xbib.common.xcontent.xml;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.xml.namespace.XmlNamespaceContext;

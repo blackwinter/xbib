@@ -61,13 +61,8 @@ public final class FromMARCJson extends Feeder {
     private final static Logger logger = LogManager.getLogger(FromMARCJson.class.getName());
 
     @Override
-    public String getName() {
-        return "marc-json-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return FromMARCJson::new;
+        return p -> new FromMARCJson().setPipeline(p);
     }
 
     @Override

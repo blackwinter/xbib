@@ -1,7 +1,7 @@
 package org.xbib.iri;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class IRITest extends Assert {
 
@@ -12,7 +12,7 @@ public class IRITest extends Assert {
         assertEquals("@context",iri.getSchemeSpecificPart());
     }
 
-    @Test(expectedExceptions = org.xbib.iri.IRISyntaxException.class)
+    @Test(expected = org.xbib.iri.IRISyntaxException.class)
     public void testIllegalBlankNodeIRI() {
         IRI iri = IRI.create("_:a1");
         assertEquals("_", iri.getScheme());

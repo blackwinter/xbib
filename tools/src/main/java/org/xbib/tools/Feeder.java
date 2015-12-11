@@ -48,10 +48,10 @@ import org.xbib.util.FormatUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.concurrent.ExecutionException;
 
 public abstract class Feeder extends Converter {
 
@@ -59,56 +59,104 @@ public abstract class Feeder extends Converter {
 
     protected static Ingest ingest;
 
-    @Override
-    public Feeder reader(Reader reader) {
-        super.reader(reader);
-        return this;
-    }
+    protected String index;
 
-    @Override
-    public Feeder writer(Writer writer) {
-        super.writer(writer);
-        return this;
+    protected String type;
+
+    protected String concreteIndex;
+
+    private String indexParameterName;
+
+    private String indexTypeParameterName;
+
+    protected void setIndex(String index) {
+        this.index = index;
     }
 
     protected String getIndex() {
-        return settings.get("index");
+        return index;
+    }
+
+    protected void setType(String type) {
+        this.type = type;
     }
 
     protected String getType() {
-        return settings.get("type");
+        return type;
     }
 
-    protected Ingest createIngest() {
-        return settings.getAsBoolean("mock", false) ?
+    protected void setConcreteIndex(String concreteIndex) {
+        this.concreteIndex = concreteIndex;
+    }
+
+    protected String getConcreteIndex() {
+        return concreteIndex;
+    }
+
+    protected void setIndexParameterName(String indexParameterName) {
+        this.indexParameterName = indexParameterName;
+    }
+
+    protected String getIndexParameterName() {
+        return indexParameterName;
+    }
+
+    protected void setIndexTypeParameterName(String indexTypeParameterName) {
+        this.indexTypeParameterName = indexTypeParameterName;
+    }
+
+    protected String getIndexTypeParameterName() {
+        return indexTypeParameterName;
+    }
+
+    protected Ingest createIngest() throws IOException {
+        Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
+        Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
+                Runtime.getRuntime().availableProcessors());
+        Ingest ingest = settings.getAsBoolean("mock", false) ?
                 new MockTransportClient() :
                 "ingest".equals(settings.get("client")) ? new IngestTransportClient() :
                         new BulkTransportClient();
+        ingest.maxActionsPerRequest(maxbulkactions)
+                .maxConcurrentRequests(maxconcurrentbulkrequests);
+        ingest.init(Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                .put("host", settings.get("elasticsearch.host", "localhost"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build(), new LongAdderIngestMetric());
+        return ingest;
     }
 
     @Override
     protected void prepareSink() throws IOException {
         logger.info("preparing ingest");
-        if (ingest == null) {
-            Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-            Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                    Runtime.getRuntime().availableProcessors());
-            ingest = createIngest();
-            ingest.maxActionsPerRequest(maxbulkactions)
-                    .maxConcurrentRequests(maxconcurrentbulkrequests);
-            ingest.init(Settings.settingsBuilder()
-                    .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
-                    .put("host", settings.get("elasticsearch.host", "localhost"))
-                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build(), new LongAdderIngestMetric());
+        if (getIndexParameterName() == null) {
+            setIndexParameterName("index");
         }
-        createIndex(getIndex());
+        if (getIndexTypeParameterName() == null) {
+            setIndexTypeParameterName("type");
+        }
+        if (getIndex() == null) {
+            setIndex(settings.get(getIndexParameterName()));
+        }
+        if (getType() == null) {
+            setType(settings.get(getIndexTypeParameterName()));
+        }
+        if (getConcreteIndex() == null) {
+            // index = concrete index
+            setConcreteIndex(getIndex());
+        }
+        if (ingest == null) {
+            ingest = createIngest();
+        }
+        logger.info("creating index {} {}", getIndex(), getConcreteIndex());
+        createIndex(getIndex(), getConcreteIndex());
     }
 
     @Override
-    protected Feeder cleanup() throws IOException {
+    protected Feeder cleanup() throws IOException, ExecutionException {
         super.cleanup();
         if (ingest != null) {
             try {
@@ -137,9 +185,9 @@ public abstract class Feeder extends Converter {
         double oneminute = metric.oneMinuteRate();
         double fiveminute = metric.fiveMinuteRate();
         double fifteenminute = metric.fifteenMinuteRate();
-        //long bytes = ingest != null && ingest.getMetric() != null ?
-        //        ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
-        long bytes = 0;
+        long bytes = ingest != null && ingest.getMetric() != null ?
+                ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
+        //long bytes = 0;
         long elapsed = metric.elapsed() / 1000000;
         String elapsedhuman = DurationFormatUtil.formatDurationWords(elapsed, true, true);
         double avg = bytes / (docs + 1); // avoid div by zero
@@ -173,7 +221,7 @@ public abstract class Feeder extends Converter {
         }
     }
 
-    protected Feeder createIndex(String index) throws IOException {
+    protected Feeder createIndex(String index, String concreteIndex) throws IOException {
         if (ingest == null) {
             return this;
         }
@@ -189,17 +237,18 @@ public abstract class Feeder extends Converter {
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         try {
-            String indexSettings = settings.get("index-settings",
+            String indexSettings = settings.get(getIndexParameterName() + "-settings",
                     "classpath:org/xbib/tools/feed/elasticsearch/settings.json");
             InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
                     new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
                     new URL(indexSettings)).openStream();
-            String indexMappings = settings.get("index-mapping",
+            String indexMappings = settings.get(getIndexParameterName() + "-mapping",
                     "classpath:org/xbib/tools/feed/elasticsearch/mapping.json");
             InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
                     new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
                     new URL(indexMappings)).openStream();
-            ingest.newIndex(getIndex(), getType(),
+            logger.info("creating index {}", concreteIndex);
+            ingest.newIndex(concreteIndex, getType(),
                     indexSettingsInput, indexMappingsInput);
             beforeIndexCreation(ingest);
         } catch (Exception e) {
@@ -212,7 +261,8 @@ public abstract class Feeder extends Converter {
         return this;
     }
 
-    protected Feeder beforeIndexCreation(Ingest output) throws IOException {
+    protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
         return this;
     }
+
 }

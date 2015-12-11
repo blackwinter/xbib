@@ -43,7 +43,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.Reader;
@@ -55,7 +55,7 @@ import java.util.TreeSet;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class SerialsOfArticlesFile implements CommandLineInterpreter {
+public class SerialsOfArticlesFile implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(SerialsOfArticlesFile.class.getName());
 
@@ -63,22 +63,14 @@ public class SerialsOfArticlesFile implements CommandLineInterpreter {
 
     private static Settings settings;
 
-    public SerialsOfArticlesFile reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
     public SerialsOfArticlesFile settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public SerialsOfArticlesFile writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -122,12 +114,12 @@ public class SerialsOfArticlesFile implements CommandLineInterpreter {
         } finally {
             search.shutdown();
         }
-        FileWriter writer = new FileWriter(settings.get("output","serials.tsv"));
+        FileWriter fileWriter = new FileWriter(settings.get("output","serials.tsv"));
         for (String issn : issns) {
-            writer.write(issn);
-            writer.write("\n");
+            fileWriter.write(issn);
+            fileWriter.write("\n");
         }
-        writer.close();
+        fileWriter.close();
     }
 
 }

@@ -72,13 +72,8 @@ public final class Medline extends Feeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    public String getName() {
-        return "medline-xml-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return Medline::new;
+        return p -> new Medline().setPipeline(p);
     }
 
     @Override

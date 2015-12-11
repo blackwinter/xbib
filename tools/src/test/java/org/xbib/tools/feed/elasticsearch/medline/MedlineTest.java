@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.medline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -43,6 +43,7 @@ import org.xbib.rdf.content.RdfXContentParams;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,8 +64,7 @@ public class MedlineTest {
                     .put("uri", url.toString())
                     .put("mock", true)
                     .build();
-            medline.setSettings(settings);
-            medline.run();
+            medline.bootstrap(settings.getAsReader(), new StringWriter());
         } else {
             logger.warn("not found");
         }

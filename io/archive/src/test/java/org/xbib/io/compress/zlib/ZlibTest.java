@@ -1,12 +1,13 @@
 
 package org.xbib.io.compress.zlib;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 public class ZlibTest extends Assert {
 

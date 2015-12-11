@@ -1,6 +1,5 @@
 package org.xbib.io.compress.gzip;
 
-import org.testng.annotations.Test;
 import org.xbib.io.StreamCodecService;
 
 import java.io.FileInputStream;

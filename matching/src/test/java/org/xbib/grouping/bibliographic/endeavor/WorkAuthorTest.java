@@ -1,7 +1,7 @@
 package org.xbib.grouping.bibliographic.endeavor;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class WorkAuthorTest extends Assert {
 

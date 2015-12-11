@@ -103,11 +103,6 @@ public class JsonCoins extends Converter {
 
     private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
-    @Override
-    public String getName() {
-        return "json-coins-turtle";
-    }
-
     static {
         namespaceContext.add(new HashMap<String, String>() {{
             put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
@@ -121,7 +116,12 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    public void prepareSource() throws IOException {
+    protected WorkerProvider provider() {
+        return p -> new JsonCoins().setPipeline(p);
+    }
+
+    @Override
+    public void prepareSource() throws IOException, InterruptedException {
         logger.info("parsing initial set of serials...");
 
         try {
@@ -183,11 +183,6 @@ public class JsonCoins extends Converter {
             // skip
         }
         return this;
-    }
-
-    @Override
-    protected WorkerProvider provider() {
-        return JsonCoins::new;
     }
 
     @Override

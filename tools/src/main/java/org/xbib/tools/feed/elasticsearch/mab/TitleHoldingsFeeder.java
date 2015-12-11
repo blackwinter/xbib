@@ -23,7 +23,11 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.tools.Converter;
 import org.xbib.tools.Feeder;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,38 +54,93 @@ public abstract class TitleHoldingsFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(TitleHoldingsFeeder.class.getSimpleName());
 
-    private static String concreteIndex;
+    private String index;
 
-    private static String concreteHoldingsIndex;
+    private String concreteIndex;
+
+    private String holdingsIndex;
+
+    private String concreteHoldingsIndex;
+
+    protected void setIndex(String index) {
+        this.index = index;
+    }
 
     @Override
     protected String getIndex() {
-        return settings.get("title-index");
+        return index;
     }
 
+    protected void setConcreteIndex(String concreteIndex) {
+        this.concreteIndex = concreteIndex;
+    }
+
+    @Override
     protected String getConcreteIndex() {
         return concreteIndex;
     }
 
-    @Override
-    protected String getType() {
-        return settings.get("title-type");
+    protected void setHoldingsIndex(String holdingsIndex) {
+        this.holdingsIndex = holdingsIndex;
     }
 
     protected String getHoldingsIndex() {
-        return settings.get("holdings-index");
+        return holdingsIndex;
+    }
+
+    protected void setConcreteHoldingsIndex(String concreteHoldingsIndex) {
+        this.concreteHoldingsIndex = concreteHoldingsIndex;
     }
 
     protected String getConcreteHoldingsIndex() {
         return concreteHoldingsIndex;
     }
 
+    @Override
+    protected String getType() {
+        return settings.get("title-type");
+    }
     protected String getHoldingsType() {
         return settings.get("holdings-type");
     }
 
     @Override
+    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
+        return new TitleHoldingsFeederPipeline();
+    }
+
+    class TitleHoldingsFeederPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+        public String getIndex() {
+            return index;
+        }
+        public String getConcreteIndex() {
+            return concreteIndex;
+        }
+        public String getHoldingsIndex() {
+            return holdingsIndex;
+        }
+        public String getConcreteHoldingsIndex() {
+            return concreteHoldingsIndex;
+        }
+    }
+
+    @Override
+    public TitleHoldingsFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof TitleHoldingsFeederPipeline) {
+            TitleHoldingsFeederPipeline configuredPipeline = (TitleHoldingsFeederPipeline) pipeline;
+            setIndex(configuredPipeline.getIndex());
+            setConcreteIndex(configuredPipeline.getConcreteIndex());
+            setHoldingsIndex(configuredPipeline.getHoldingsIndex());
+            setConcreteHoldingsIndex(configuredPipeline.getConcreteHoldingsIndex());
+        }
+        return this;
+    }
+
+    @Override
     public void prepareSink() throws IOException {
+        setIndex(settings.get("title-index"));
+        setHoldingsIndex(settings.get("holdings-index"));
         ingest = createIngest();
         Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
         Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
@@ -97,15 +156,15 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 .build().getAsMap(), new LongAdderIngestMetric());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
-        concreteIndex = resolveAlias(getIndex() + timeWindow);
-        concreteHoldingsIndex = resolveAlias(getHoldingsIndex() + timeWindow);
+        setConcreteIndex(resolveAlias(getIndex() + timeWindow));
+        setConcreteHoldingsIndex(resolveAlias(getHoldingsIndex() + timeWindow));
         logger.info("base index name = {}, concrete index name = {}, concrete holdings index name",
                 getIndex(), getConcreteIndex(), getConcreteHoldingsIndex());
         super.prepareSink();
     }
 
     @Override
-    protected TitleHoldingsFeeder createIndex(String index) throws IOException {
+    protected TitleHoldingsFeeder createIndex(String index, String concreteIndex) throws IOException {
         if (ingest.client() == null) {
             return this;
         }

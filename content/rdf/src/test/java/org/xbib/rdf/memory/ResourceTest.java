@@ -34,10 +34,8 @@ package org.xbib.rdf.memory;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.Literal;
@@ -50,8 +48,6 @@ import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
 public class ResourceTest extends Assert {
-
-    private final static Logger logger = LogManager.getLogger(ResourceTest.class);
 
     @Test
     public void deleted() throws Exception {
@@ -144,6 +140,7 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testIterator() throws Exception {
+        MemoryResource.reset(); // for blank node counter
         Resource r = new MemoryResource();
         r.id(IRI.create("urn:doc1"))
                 .add("urn:valueURI", "Hello World")
@@ -162,10 +159,10 @@ public class ResourceTest extends Assert {
         assertEquals("urn:doc1 urn:valueURI Hello World", it.next().toString());
         assertEquals("urn:doc1 urn:name Smith", it.next().toString());
         assertEquals("urn:doc1 urn:name Jones", it.next().toString());
-        assertEquals("urn:doc1 urn:res1 _:b4", it.next().toString());
-        assertEquals("_:b4 urn:has a first res value", it.next().toString());
-        assertEquals("urn:doc1 urn:res1 _:b5", it.next().toString());
-        assertEquals("_:b5 urn:has a second res value", it.next().toString());
+        assertEquals("urn:doc1 urn:res1 _:b1", it.next().toString());
+        assertEquals("_:b1 urn:has a first res value", it.next().toString());
+        assertEquals("urn:doc1 urn:res1 _:b2", it.next().toString());
+        assertEquals("_:b2 urn:has a second res value", it.next().toString());
         assertFalse(it.hasNext());
         
         Iterator<IRI> itp = r.predicates().iterator();
@@ -183,8 +180,8 @@ public class ResourceTest extends Assert {
         pred = itp.next();
         assertEquals("urn:res1", pred.toString());
         values = r.objects(pred);
-        assertEquals("_:b4", values.next().toString());
-        assertEquals("_:b5", values.next().toString());
+        assertEquals("_:b1", values.next().toString());
+        assertEquals("_:b2", values.next().toString());
         assertFalse(values.hasNext());
         assertFalse(itp.hasNext());
     }
@@ -214,6 +211,7 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testAddingResources() throws Exception {
+        MemoryResource.reset(); // for blank node counter
         Resource r = new MemoryResource();
         r.id(IRI.create("urn:r"))
                 .add("urn:value", "Hello R");

@@ -1,13 +1,12 @@
 package org.xbib.marc.json;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.InputStream;
 
 public class MarcXchangeJSONLinesReaderTest extends StreamTester {

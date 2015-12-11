@@ -69,9 +69,10 @@ public class FromSRU extends Converter {
 
     //private SRUClient client;
 
+
     @Override
-    public String getName() {
-        return "zdb-sru";
+    protected WorkerProvider provider() {
+        return p -> new FromSRU(true).setPipeline(p);
     }
 
     public FromSRU(boolean b) {
@@ -115,11 +116,6 @@ public class FromSRU extends Converter {
     }
 
     @Override
-    protected WorkerProvider provider() {
-        return () -> new FromSRU(true);
-    }
-
-    @Override
     public void process(URI uri) throws Exception {
         StringWriter w = new StringWriter();
         /*SearchRetrieveRequest request = client.newSearchRetrieveRequest()
@@ -133,8 +129,7 @@ public class FromSRU extends Converter {
         }*/
     }
 
-    public void run() throws Exception {
-        super.run();
+    public FromSRU cleanup() {
         if (session != null) {
             try {
                 session.close();
@@ -142,9 +137,6 @@ public class FromSRU extends Converter {
                 logger.error(e.getMessage(), e);
             }
         }
-    }
-
-    public FromSRU cleanup() {
         /*try {
             if (client != null) {
                 client.close();

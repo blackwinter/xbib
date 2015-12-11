@@ -54,8 +54,8 @@ public class DOAJ extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(DOAJ.class);
 
     @Override
-    public String getName() {
-        return "doaj-elasticsearch";
+    protected WorkerProvider provider() {
+        return p -> new DOAJ().setPipeline(p);
     }
 
     @Override
@@ -66,11 +66,6 @@ public class DOAJ extends OAIFeeder {
     @Override
     protected String getType() {
         return settings.get("type");
-    }
-
-    @Override
-    protected WorkerProvider provider() {
-        return DOAJ::new;
     }
 
     @Override

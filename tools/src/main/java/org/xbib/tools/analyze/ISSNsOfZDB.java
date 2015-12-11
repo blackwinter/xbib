@@ -43,7 +43,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.tools.CommandLineInterpreter;
+import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
 import java.io.Reader;
@@ -57,7 +57,7 @@ import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class ISSNsOfZDB implements CommandLineInterpreter {
+public class ISSNsOfZDB implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDB.class.getName());
 
@@ -65,23 +65,15 @@ public class ISSNsOfZDB implements CommandLineInterpreter {
 
     private static Settings settings;
 
-    public ISSNsOfZDB reader(Reader reader) {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        return this;
-    }
-
     public ISSNsOfZDB settings(Settings newSettings) {
         settings = newSettings;
         return this;
     }
 
-    public ISSNsOfZDB writer(Writer writer) {
-        return this;
-    }
-
     @Override
-    public void run() throws Exception {
-        SearchClient search = new SearchClient().init(settingsBuilder()
+    public void bootstrap(Reader reader, Writer writer) throws Exception {
+        settings = settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -125,12 +117,12 @@ public class ISSNsOfZDB implements CommandLineInterpreter {
         } finally {
             search.shutdown();
         }
-        FileWriter writer = new FileWriter(settings.get("output","zdb-issns.txt"));
+        FileWriter fileWriter = new FileWriter(settings.get("output","zdb-issns.txt"));
         for (String issn : issns) {
-            writer.write(issn);
-            writer.write("\n");
+            fileWriter.write(issn);
+            fileWriter.write("\n");
         }
-        writer.close();
+        fileWriter.close();
     }
 
 }

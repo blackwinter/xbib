@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.dialects.mab;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.event.FieldEventLogger;
 import org.xbib.marc.xml.stream.mapper.MarcXchangeFieldMapperReader;

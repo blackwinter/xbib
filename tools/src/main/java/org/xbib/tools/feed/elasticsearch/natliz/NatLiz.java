@@ -34,13 +34,8 @@ public class NatLiz extends Feeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    public String getName() {
-        return "natliz-mabxml";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return NatLiz::new;
+        return p -> new NatLiz().setPipeline(p);
     }
 
     @Override

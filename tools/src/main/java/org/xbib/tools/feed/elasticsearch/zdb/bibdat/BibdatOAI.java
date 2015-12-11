@@ -78,12 +78,7 @@ public final class BibdatOAI extends OAIFeeder {
 
     @Override
     protected WorkerProvider provider() {
-        return BibdatOAI::new;
-    }
-
-    @Override
-    public String getName() {
-        return "zdb-bibdat-oai";
+        return p -> new BibdatOAI().setPipeline(p);
     }
 
     @Override
@@ -170,7 +165,7 @@ public final class BibdatOAI extends OAIFeeder {
             logger.info("unknown keys = {}", unmapped);
         }
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases();
+            updateAliases(getIndex(), getConcreteIndex());
         } else {
             logger.info("not doing alias settings");
         }

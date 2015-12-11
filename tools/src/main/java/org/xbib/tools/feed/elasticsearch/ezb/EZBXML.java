@@ -33,6 +33,9 @@ package org.xbib.tools.feed.elasticsearch.ezb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.index.IndexAction;
+import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.index.VersionType;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
@@ -53,14 +56,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
  * Elasticsearch indexer for "Elektronische Zeitschriftenbibliothek" (EZB)
- * <p>
- * Format documentation
- * <p>
+ * Format documentation:
  * http://www.zeitschriftendatenbank.de/fileadmin/user_upload/ZDB/pdf/services/Datenlieferdienst_ZDB_EZB_Lizenzdatenformat.pdf
  */
 public final class EZBXML extends TimewindowFeeder {
@@ -70,29 +73,20 @@ public final class EZBXML extends TimewindowFeeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    public String getName() {
-        return "ezb-xml-elasticsearch";
-    }
-
-    @Override
     protected WorkerProvider provider() {
-        return EZBXML::new;
-    }
-
-    protected String getIndex() {
-        return settings.get("index", "ezbxml");
-    }
-
-    protected String getType() {
-        return settings.get("type", "ezbxml");
+        return p -> new EZBXML().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
         RdfContentParams params = new RdfXContentParams(namespaceContext);
-        EZBHandler handler = new EZBHandler(params);
-        handler.setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
         InputStream in = InputService.getInputStream(uri);
+        Pattern pattern = Pattern.compile("(\\d{4,})");
+        Matcher matcher = pattern.matcher(uri.toString());
+        Long version = Long.parseLong(matcher.find() ? matcher.group(1) : "1");
+        logger.info("version of {} = {}", uri, version);
+        EZBHandler handler = new EZBHandler(params, version);
+        handler.setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
         new XmlContentParser(in)
                 .setNamespaces(false)
                 .setHandler(handler)
@@ -100,24 +94,15 @@ public final class EZBXML extends TimewindowFeeder {
         in.close();
     }
 
-    @Override
-    public EZBXML cleanup() throws IOException {
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases();
-        } else {
-            logger.info("not doing alias settings");
-        }
-        ingest.stopBulk(getConcreteIndex());
-        super.cleanup();
-        return this;
-    }
-
     class EZBHandler extends AbstractXmlResourceHandler {
 
         private String id;
 
-        public EZBHandler(RdfContentParams params) {
+        private long version;
+
+        public EZBHandler(RdfContentParams params, long version) {
             super(params);
+            this.version = version;
         }
 
         @Override
@@ -148,7 +133,18 @@ public final class EZBXML extends TimewindowFeeder {
             }
             RouteRdfXContentParams params = new RouteRdfXContentParams(getNamespaceContext(),
                     getConcreteIndex(), getType());
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), id, content));
+            params.setHandler((content, p) -> {
+                if (ingest.client() != null) {
+                    IndexRequestBuilder indexRequestBuilder = new IndexRequestBuilder(ingest.client(), IndexAction.INSTANCE)
+                            .setIndex(p.getIndex())
+                            .setType(p.getType())
+                            .setId(id)
+                            .setVersionType(VersionType.EXTERNAL)
+                            .setVersion(version)
+                            .setSource(content);
+                    ingest.bulkIndex(indexRequestBuilder.request());
+                }
+            });
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(getResource());
             if (settings.getAsBoolean("mock", false)) {
