@@ -10,7 +10,7 @@ println "Current JVM: " + org.gradle.internal.jvm.Jvm.current()
 ext {
   versions = [
     'jackson': '2.6.4',
-    'netty': '4.1.0.Beta7',
+    'netty': '4.0.33.Final',
     'log4j': '2.5',
     'junit' : '4.12'
   ]
@@ -84,6 +84,9 @@ subprojects {
                 it.tasks.getByName 'test'
             }
         }
+    }
+    clean {
+        delete "work"
     }
 }
 

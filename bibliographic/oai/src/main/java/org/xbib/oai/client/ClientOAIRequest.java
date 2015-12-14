@@ -71,18 +71,6 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     }
 
     @Override
-    public R setUser(String user) {
-        super.setUser(user);
-        return (R) this;
-    }
-
-    @Override
-    public R setPassword(String password) {
-        super.setPassword(password);
-        return (R) this;
-    }
-
-    @Override
     public R setURL(URI uri) throws URISyntaxException {
         super.setURL(uri);
         return (R) this;
