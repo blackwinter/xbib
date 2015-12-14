@@ -33,17 +33,17 @@ package org.xbib.io.http.netty;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.asynchttpclient.AsyncHandler;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.HttpResponseBodyPart;
-import org.asynchttpclient.HttpResponseHeaders;
-import org.asynchttpclient.HttpResponseStatus;
-import org.asynchttpclient.Request;
 import org.xbib.io.http.HttpFuture;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.PreparedHttpRequest;
+import org.xbib.io.http.client.AsyncHandler;
+import org.xbib.io.http.client.BoundRequestBuilder;
+import org.xbib.io.http.client.HttpResponseBodyPart;
+import org.xbib.io.http.client.HttpResponseHeaders;
+import org.xbib.io.http.client.HttpResponseStatus;
+import org.xbib.io.http.client.Request;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,15 +54,19 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
     private final HttpRequest request;
 
-    private final AsyncHttpClient.BoundRequestBuilder bound;
+    private final BoundRequestBuilder bound;
 
     private String encoding = System.getProperty("file.encoding");
 
     private OutputStream out;
 
-    NettyPreparedHttpRequest(HttpRequest request, AsyncHttpClient.BoundRequestBuilder bound) {
+    NettyPreparedHttpRequest(HttpRequest request, BoundRequestBuilder bound) {
         this.request = request;
         this.bound = bound;
+    }
+
+    public String getEncoding() {
+        return encoding;
     }
 
     @Override
@@ -71,8 +75,8 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
         return this;
     }
 
-    public String getEncoding() {
-        return encoding;
+    public OutputStream getOutputStream() {
+        return out;
     }
 
     @Override
@@ -81,15 +85,11 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
         return this;
     }
 
-    public OutputStream getOutputStream() {
-        return out;
-    }
-
     @Override
     public HttpFuture execute() throws IOException {
         Request r = bound.build();
         if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getRawUrl());
+            logger.debug("executing URL {}", r.getUrl());
         }
         return new NettyHttpFuture(bound.execute());
     }
@@ -98,7 +98,7 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
     public HttpFuture execute(HttpResponseListener listener) throws IOException {
         Request r = bound.build();
         if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getRawUrl());
+            logger.debug("executing URL {}", r.getUrl());
         }
         return new NettyHttpFuture(bound.execute(new Handler(listener)));
     }
@@ -115,28 +115,28 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
         }
 
         @Override
-        public STATE onStatusReceived(HttpResponseStatus hrs) throws Exception {
+        public State onStatusReceived(HttpResponseStatus hrs) throws Exception {
             result.setStatusCode(hrs.getStatusCode());
-            return STATE.CONTINUE;
+            return State.CONTINUE;
         }
 
         @Override
-        public STATE onHeadersReceived(HttpResponseHeaders hrh) throws Exception {
+        public State onHeadersReceived(HttpResponseHeaders hrh) throws Exception {
             result.setHeaders(hrh.getHeaders());
-            return STATE.CONTINUE;
+            return State.CONTINUE;
         }
 
         @Override
-        public STATE onBodyPartReceived(HttpResponseBodyPart hrbp) throws Exception {
+        public State onBodyPartReceived(HttpResponseBodyPart hrbp) throws Exception {
             if (out != null) {
-                hrbp.writeTo(out);
+                out.write(hrbp.getBodyPartBytes());
             } else {
                 String s = new String(hrbp.getBodyPartBytes(), encoding);
                 if (listener != null) {
                     listener.onReceive(request, s);
                 }
             }
-            return STATE.CONTINUE;
+            return State.CONTINUE;
         }
 
         @Override

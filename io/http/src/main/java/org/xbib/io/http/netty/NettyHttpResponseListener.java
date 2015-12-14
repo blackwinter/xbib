@@ -37,9 +37,6 @@ import org.xbib.io.http.HttpResponseListener;
 
 import java.io.IOException;
 
-/**
- * A default HTTP response listener
- */
 public class NettyHttpResponseListener implements HttpResponseListener {
 
     @Override

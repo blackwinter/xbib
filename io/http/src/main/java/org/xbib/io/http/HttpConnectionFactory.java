@@ -38,9 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-/**
- * HTTP connection factory
- */
 public final class HttpConnectionFactory implements ConnectionFactory<HttpSession> {
 
     public String getName() {

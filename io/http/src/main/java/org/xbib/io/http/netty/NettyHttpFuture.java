@@ -31,16 +31,13 @@
  */
 package org.xbib.io.http.netty;
 
-import org.asynchttpclient.ListenableFuture;
 import org.xbib.io.http.HttpFuture;
+import org.xbib.io.http.client.ListenableFuture;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-/**
- * Default HTTP future
- */
 public class NettyHttpFuture implements HttpFuture {
 
     private final ListenableFuture future;

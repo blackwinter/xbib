@@ -37,18 +37,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * A HTTP request
- */
 public interface HttpRequest extends Request {
-
-    HttpRequest setURL(URI uri) throws URISyntaxException;
 
     URI getURL();
 
-    HttpRequest setUser(String user);
-
-    HttpRequest setPassword(String password);
+    HttpRequest setURL(URI uri) throws URISyntaxException;
 
     HttpRequest setMethod(String method);
 

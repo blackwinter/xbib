@@ -33,9 +33,6 @@ package org.xbib.io.http;
 
 import org.xbib.io.Session;
 
-/**
- *
- */
 public interface HttpSession extends Session<HttpPacket> {
 
     HttpSession setProxy(String host, int port);

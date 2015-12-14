@@ -35,9 +35,6 @@ import org.xbib.io.ResponseListener;
 
 import java.io.IOException;
 
-/**
- *
- */
 public interface HttpResponseListener extends ResponseListener {
 
     void receivedResponse(HttpResponse response) throws IOException;

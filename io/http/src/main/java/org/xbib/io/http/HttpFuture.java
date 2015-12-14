@@ -35,9 +35,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-/**
- *
- */
 public interface HttpFuture {
 
     void waitFor() throws InterruptedException, ExecutionException, TimeoutException;
