@@ -34,9 +34,6 @@ package org.xbib.io.http;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 public interface HttpResponse {
 
     int getStatusCode();
@@ -45,9 +42,9 @@ public interface HttpResponse {
 
     Map<String, List<String>> getHeaders();
 
-    void setThrowable(Throwable t);
-
     Throwable getThrowable();
+
+    void setThrowable(Throwable t);
 
     boolean ok();
 

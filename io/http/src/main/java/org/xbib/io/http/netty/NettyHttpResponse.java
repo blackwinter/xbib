@@ -31,7 +31,7 @@
  */
 package org.xbib.io.http.netty;
 
-import org.asynchttpclient.FluentCaseInsensitiveStringsMap;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.xbib.io.http.HttpPacket;
 import org.xbib.io.http.HttpResponse;
 
@@ -40,16 +40,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A default HTTP response
- */
 public class NettyHttpResponse extends HttpPacket implements HttpResponse {
 
     private URI uri;
 
     private int statusCode;
 
-    private FluentCaseInsensitiveStringsMap headers;
+    private HttpHeaders headers;
 
     private String contentType;
 
@@ -57,23 +54,23 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
 
     private Throwable throwable;
 
-    public NettyHttpResponse setURI(URI uri) {
-        this.uri = uri;
-        return this;
-    }
-
     public URI getURI() {
         return uri;
     }
 
-    public NettyHttpResponse setStatusCode(int code) {
-        this.statusCode = code;
+    public NettyHttpResponse setURI(URI uri) {
+        this.uri = uri;
         return this;
     }
 
     @Override
     public int getStatusCode() {
         return statusCode;
+    }
+
+    public NettyHttpResponse setStatusCode(int code) {
+        this.statusCode = code;
+        return this;
     }
 
     @Override
@@ -85,32 +82,32 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
         return encoding;
     }
 
-    public NettyHttpResponse setHeaders(FluentCaseInsensitiveStringsMap headers) {
-        this.headers = headers;
-        parseContentType(headers.getFirstValue("content-type"));
-        return this;
-    }
-
     public Map<String, List<String>> getHeaders() {
-        Map<String, List<String>> map = new LinkedHashMap();
+        Map<String, List<String>> map = new LinkedHashMap<>();
         if (headers == null) {
             return map;
         }
-        for (String key : headers.keySet()) {
-            List<String> values = headers.get(key);
+        for (String key : headers.names()) {
+            List<String> values = headers.getAll(key);
             map.put(key, values);
         }
         return map;
     }
 
-    @Override
-    public void setThrowable(Throwable throwable) {
-        this.throwable = throwable;
+    public NettyHttpResponse setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+        parseContentType(headers.get("content-type"));
+        return this;
     }
 
     @Override
     public Throwable getThrowable() {
         return throwable;
+    }
+
+    @Override
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
     }
 
     @Override
@@ -140,10 +137,8 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[uri=").append(uri).append("]")
-                .append("[headers=]").append(getHeaders()).append("]");
-        return sb.toString();
+        return "[uri=" + uri + "]" +
+                "[headers=]" + getHeaders() + "]";
     }
 
 }

@@ -48,16 +48,15 @@ public final class URIUtil {
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private static final Charset LATIN1 = Charset.forName("ISO-8859-1");
-
-    private URIUtil() {
-    }
-
     /**
      * Used to convert to hex.  We don't use Integer.toHexString, since
      * it converts to lower case (and the Sun docs pretty clearly specify
      * upper case here), and because it doesn't provide a leading 0.
      */
     private static final String hex = "0123456789ABCDEF";
+
+    private URIUtil() {
+    }
 
     /**
      * This method adds a single key/value parameter to the query

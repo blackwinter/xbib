@@ -31,23 +31,20 @@
  */
 package org.xbib.io.http.netty;
 
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.AsyncHttpClientConfig;
-import org.asynchttpclient.ProxyServer;
-import org.asynchttpclient.providers.netty.NettyAsyncHttpProvider;
 import org.xbib.io.http.HttpPacket;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpSession;
 import org.xbib.io.http.PreparedHttpRequest;
+import org.xbib.io.http.client.AsyncHttpClient;
+import org.xbib.io.http.client.DefaultAsyncHttpClient;
+import org.xbib.io.http.client.DefaultAsyncHttpClientConfig;
+import org.xbib.io.http.client.proxy.ProxyServer;
 
 import java.io.IOException;
 
-/**
- * Default HTTP Session
- */
 public class NettyHttpSession implements HttpSession {
 
-    private AsyncHttpClientConfig.Builder config = new AsyncHttpClientConfig.Builder();
+    private DefaultAsyncHttpClientConfig.Builder config = new DefaultAsyncHttpClientConfig.Builder();
 
     private AsyncHttpClient client;
 
@@ -60,7 +57,7 @@ public class NettyHttpSession implements HttpSession {
         return new NettyPreparedHttpRequest(request, client.prepareRequest(request.getRequest()));
     }
 
-    public AsyncHttpClientConfig.Builder getConfig() {
+    public DefaultAsyncHttpClientConfig.Builder getConfig() {
         return config;
     }
 
@@ -69,7 +66,7 @@ public class NettyHttpSession implements HttpSession {
         if (host == null) {
             return this;
         }
-        config.setProxyServer(new ProxyServer(host, port));
+        config.setProxyServer(new ProxyServer(host, port, 0, null, null, false));
         return this;
     }
 
@@ -78,7 +75,7 @@ public class NettyHttpSession implements HttpSession {
         if (millis <= 0) {
             return this;
         }
-        config.setRequestTimeoutInMs(millis);
+        config.setRequestTimeout(millis);
         return this;
     }
 
@@ -97,38 +94,49 @@ public class NettyHttpSession implements HttpSession {
             switch (mode) {
                 case READ: {
                     // some reasonable defaults for web browsing
-                    config.setAllowPoolingConnection(true)
-                            .setAllowSslConnectionPool(true)
-                            .setMaximumConnectionsPerHost(16)
-                            .setMaximumConnectionsTotal(16)
-                            .setFollowRedirects(true)
+                    config.setFollowRedirect(true)
+                            //.setAllowPoolingConnection(true)
+                            //.setAllowSslConnectionPool(true)
+                            //.setMaximumConnectionsPerHost(16)
+                            //.setMaximumConnectionsTotal(16)
+                            //.setFollowRedirects(true)
                             .setMaxRequestRetry(3) // for slow DNB OAI
-                            .setUseRawUrl(true) // do not auto-encode HTTP GET params
-                            .setCompressionEnabled(true)
-                            .setConnectionTimeoutInMs(timeout)
-                            .setRequestTimeoutInMs(timeout)
-                            .setIdleConnectionTimeoutInMs(timeout)
-                            .setIdleConnectionInPoolTimeoutInMs(timeout);
+                            //.setUseRawUrl(true) // do not auto-encode HTTP GET params
+                            .setCompressionEnforced(true)
+                            //.setCompressionEnabled(true)
+                            //.setConnectionTimeoutInMs(timeout)
+                            .setConnectTimeout(timeout)
+                            .setReadTimeout(timeout)
+                            .setPooledConnectionIdleTimeout(timeout);
+                    //.setRequestTimeoutInMs(timeout)
+                    //.setIdleConnectionTimeoutInMs(timeout)
+                    //.setIdleConnectionInPoolTimeoutInMs(timeout)
+
                     break;
                 }
                 case CONTROL: {
                     // for crawling
-                    config.setAllowPoolingConnection(true)
-                            .setAllowSslConnectionPool(true)
-                            .setMaximumConnectionsPerHost(16)
-                            .setMaximumConnectionsTotal(16)
-                            .setFollowRedirects(false) // do not follow HTTP code 302
+                    config.setFollowRedirect(false)
+                            //setAllowPoolingConnection(true)
+                            //setAllowSslConnectionPool(true)
+                            //.setMaximumConnectionsPerHost(16)
+                            //.setMaximumConnectionsTotal(16)
+                            //.setFollowRedirects(false) // do not follow HTTP code 302
                             .setMaxRequestRetry(3) // for slow DNB OAI
-                            .setUseRawUrl(true) // do not auto-encode HTTP GET params
-                            .setCompressionEnabled(true)
-                            .setConnectionTimeoutInMs(timeout)
-                            .setRequestTimeoutInMs(timeout)
-                            .setIdleConnectionTimeoutInMs(timeout)
-                            .setIdleConnectionInPoolTimeoutInMs(timeout);
+                            //.setUseRawUrl(true) // do not auto-encode HTTP GET params
+                            //.setCompressionEnabled(true)
+                            .setConnectTimeout(timeout)
+                            .setReadTimeout(timeout)
+                            .setPooledConnectionIdleTimeout(timeout);
+                    //.setConnectionTimeoutInMs(timeout)
+                    //.setRequestTimeoutInMs(timeout)
+                    //.setIdleConnectionTimeoutInMs(timeout)
+                    //.setIdleConnectionInPoolTimeoutInMs(timeout);
                     break;
                 }
             }
-            this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config.build()));
+            this.client = new DefaultAsyncHttpClient(config.build());
+            //new AsyncHttpClient(new NettyAsyncHttpProvider(config.build()));
             this.isOpen = true;
         }
     }

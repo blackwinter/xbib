@@ -40,23 +40,20 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A HTTP connection
- */
 public class NettyHttpConnection implements HttpConnection {
 
     private URI uri;
-    private List<HttpSession> sessions = new ArrayList();
+    private List<HttpSession> sessions = new ArrayList<>();
+
+    @Override
+    public URI getURI() {
+        return uri;
+    }
 
     @Override
     public NettyHttpConnection setURI(URI uri) {
         this.uri = uri;
         return this;
-    }
-
-    @Override
-    public URI getURI() {
-        return uri;
     }
 
     @Override

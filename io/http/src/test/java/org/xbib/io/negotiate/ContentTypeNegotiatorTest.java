@@ -35,37 +35,37 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class ContentTypeNegotiatorTest extends Assert {
-    
+
     @Test
     public void testAddVariant() {
         ContentTypeNegotiator instance = new ContentTypeNegotiator();
-        MediaRangeSpec mrs= instance.getBestMatch("*/*");
+        MediaRangeSpec mrs = instance.getBestMatch("*/*");
         instance.addVariant("text/html;q=0.9")
-				.addAliasMediaType("application/xhtml+xml");
+                .addAliasMediaType("application/xhtml+xml");
         instance.addVariant("text/xml;q=0.95");
-        mrs=instance.getBestMatch("*/*");
-        assertEquals(mrs.getMediaType(),"text/html");
+        mrs = instance.getBestMatch("*/*");
+        assertEquals(mrs.getMediaType(), "text/html");
     }
 
     @Test
     public void testYetAnotherAddVariant() {
         ContentTypeNegotiator instance = new ContentTypeNegotiator();
         instance.addVariant("text/html;q=0.8")
-				.addAliasMediaType("application/xhtml+xml");
+                .addAliasMediaType("application/xhtml+xml");
         instance.addVariant("application/sru+xml;q=0.9").addAliasMediaType("application/xml");
-        MediaRangeSpec mrs=instance.getBestMatch("application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
-        assertEquals(mrs.getMediaType(),"text/html");
+        MediaRangeSpec mrs = instance.getBestMatch("application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
+        assertEquals(mrs.getMediaType(), "text/html");
     }
 
     @Test
     public void testSetDefaultAccept() {
         ContentTypeNegotiator instance = new ContentTypeNegotiator();
         instance.addVariant("text/html;q=0.9")
-				.addAliasMediaType("application/xhtml+xml");
+                .addAliasMediaType("application/xhtml+xml");
         instance.addVariant("text/xml;q=0.95");
         instance.setDefaultAccept("text/html");
-        MediaRangeSpec mrs=instance.getBestMatch(null);
-        assertEquals(mrs.getMediaType(),"text/html");
-    }    
-    
+        MediaRangeSpec mrs = instance.getBestMatch(null);
+        assertEquals(mrs.getMediaType(), "text/html");
+    }
+
 }

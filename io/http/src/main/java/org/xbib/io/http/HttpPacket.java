@@ -33,9 +33,6 @@ package org.xbib.io.http;
 
 import org.xbib.io.Packet;
 
-/**
- * A HTTP packet
- */
 public class HttpPacket implements Packet {
 
     @Override

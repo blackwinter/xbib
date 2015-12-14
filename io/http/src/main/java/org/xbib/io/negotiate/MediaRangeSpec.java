@@ -68,6 +68,23 @@ public class MediaRangeSpec {
         qValuePattern = Pattern.compile(qualityValue);
     }
 
+    private final String type;
+    private final String subtype;
+    private final List parameterNames;
+    private final List parameterValues;
+    private final String mediaType;
+    private final double quality;
+    private MediaRangeSpec(String type, String subtype,
+                           List parameterNames, List parameterValues,
+                           double quality) {
+        this.type = type;
+        this.subtype = subtype;
+        this.parameterNames = Collections.unmodifiableList(parameterNames);
+        this.parameterValues = parameterValues;
+        this.mediaType = buildMediaType();
+        this.quality = quality;
+    }
+
     /**
      * Parses a media type from a string such as <tt>text/html;charset=utf-8;q=0.9</tt>.
      */
@@ -96,8 +113,8 @@ public class MediaRangeSpec {
         if ("*".equals(type) && !"*".equals(subtype)) {
             return null;
         }
-        List<String> parameterNames = new ArrayList<String>();
-        List<String> parameterValues = new ArrayList<String>();
+        List<String> parameterNames = new ArrayList<>();
+        List<String> parameterValues = new ArrayList<>();
         while (m.find()) {
             String name = m.group(1).toLowerCase();
             String value = (m.group(3) == null) ? m.group(2) : unescape(m.group(3));
@@ -121,7 +138,7 @@ public class MediaRangeSpec {
      * @return A List of MediaRangeSpecs
      */
     public static List<MediaRangeSpec> parseAccept(String s) {
-        List<MediaRangeSpec> result = new ArrayList<MediaRangeSpec>();
+        List<MediaRangeSpec> result = new ArrayList<>();
         Matcher m = mediaRangePattern.matcher(s);
         while (m.find()) {
             result.add(parseRange(m.group()));
@@ -135,24 +152,6 @@ public class MediaRangeSpec {
 
     private static String escape(String s) {
         return s.replaceAll("[\\\\\"]", "\\\\$0");
-    }
-
-    private final String type;
-    private final String subtype;
-    private final List parameterNames;
-    private final List parameterValues;
-    private final String mediaType;
-    private final double quality;
-
-    private MediaRangeSpec(String type, String subtype,
-                           List parameterNames, List parameterValues,
-                           double quality) {
-        this.type = type;
-        this.subtype = subtype;
-        this.parameterNames = Collections.unmodifiableList(parameterNames);
-        this.parameterValues = parameterValues;
-        this.mediaType = buildMediaType();
-        this.quality = quality;
     }
 
     private String buildMediaType() {

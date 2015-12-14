@@ -31,12 +31,13 @@
  */
 package org.xbib.io.http.netty;
 
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
 import org.testng.annotations.Test;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
+
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class HttpSessionTest {
 
@@ -57,7 +58,7 @@ public class HttpSessionTest {
         });
         session.close();
     }
-    
+
     @Test
     public void testPost() throws Exception {
         NettyHttpSession session = new NettyHttpSession();
@@ -66,7 +67,7 @@ public class HttpSessionTest {
                 .setMethod("POST")
                 .setURL(URI.create("http://www.google.com/search"))
                 .addHeader("Content-Length", "0")
-                .addParameter("q", "köln");        
+                .addParameter("q", "köln");
         request.prepare().execute(new NettyHttpResponseListener() {
 
             @Override
@@ -75,5 +76,5 @@ public class HttpSessionTest {
             }
         }).waitFor(15, TimeUnit.SECONDS);
         session.close();
-    }     
+    }
 }

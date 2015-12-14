@@ -34,9 +34,6 @@ package org.xbib.io.http;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- *
- */
 public interface PreparedHttpRequest {
 
     PreparedHttpRequest setEncoding(String encoding);
