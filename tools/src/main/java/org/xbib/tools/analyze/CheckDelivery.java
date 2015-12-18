@@ -40,7 +40,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
@@ -60,19 +60,17 @@ public class CheckDelivery implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
 
-    private static Settings settings;
-
     private Set<String> notfoundset = new HashSet<>();
 
-    public CheckDelivery settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
     }
 
     @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))

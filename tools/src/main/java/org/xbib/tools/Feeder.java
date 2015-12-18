@@ -36,11 +36,9 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
@@ -110,23 +108,26 @@ public abstract class Feeder extends Converter {
     }
 
     protected Ingest createIngest() throws IOException {
-        Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-        Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                Runtime.getRuntime().availableProcessors());
-        Ingest ingest = settings.getAsBoolean("mock", false) ?
-                new MockTransportClient() :
-                "ingest".equals(settings.get("client")) ? new IngestTransportClient() :
-                        new BulkTransportClient();
-        ingest.maxActionsPerRequest(maxbulkactions)
-                .maxConcurrentRequests(maxconcurrentbulkrequests);
-        ingest.init(Settings.settingsBuilder()
+        Settings clientSettings = Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
                 .put("host", settings.get("elasticsearch.host", "localhost"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build(), new LongAdderIngestMetric());
-        return ingest;
+                .build();
+        ClientBuilder clientBuilder = ClientBuilder.builder()
+                .put(clientSettings)
+                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
+                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
+                        Runtime.getRuntime().availableProcessors()))
+                .setMetric(new LongAdderIngestMetric());
+        if (settings.getAsBoolean("mock", false)) {
+            return clientBuilder.toMockTransportClient();
+        }
+        if ("ingest".equals(settings.get("client"))) {
+            return clientBuilder.toIngestTransportClient();
+        }
+        return clientBuilder.toBulkTransportClient();
     }
 
     @Override
@@ -156,7 +157,7 @@ public abstract class Feeder extends Converter {
     }
 
     @Override
-    protected Feeder cleanup() throws IOException, ExecutionException {
+    protected Feeder cleanup() throws IOException {
         super.cleanup();
         if (ingest != null) {
             try {
@@ -166,6 +167,8 @@ public abstract class Feeder extends Converter {
                 ingest.waitForResponses(TimeValue.timeValueSeconds(120));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                logger.error(e.getMessage(), e);
+            } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
             logger.info("shutdown");

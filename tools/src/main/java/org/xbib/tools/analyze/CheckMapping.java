@@ -44,7 +44,7 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.Bootstrap;
 
 import java.io.IOException;
@@ -74,9 +74,14 @@ public class CheckMapping implements Bootstrap {
     }
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         settings = settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))

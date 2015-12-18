@@ -43,12 +43,10 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
+import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
@@ -110,9 +108,14 @@ public class WithArticles
     }
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         settings = settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
@@ -126,22 +129,7 @@ public class WithArticles
             this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(600)).millis();
             this.identifier = settings.get("identifier");
 
-            this.ingest = settings.getAsBoolean("mock", false) ?
-                    new MockTransportClient() :
-                    "ingest".equals(settings.get("client")) ?
-                            new IngestTransportClient() :
-                            new BulkTransportClient();
-            ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
-                    .maxConcurrentRequests(settings.getAsInt("maxconcurrentbulkrequests",
-                            2 * Runtime.getRuntime().availableProcessors()));
-
-            ingest.init(Settings.settingsBuilder()
-                    .put("cluster.name", settings.get("target.cluster"))
-                    .put("host", settings.get("target.host"))
-                    .put("port", settings.getAsInt("target.port", 9300))
-                    .put("sniff", settings.getAsBoolean("target.sniff", false))
-                    .put("autodiscover", settings.getAsBoolean("target.autodiscover", false))
-                    .build().getAsMap(), new LongAdderIngestMetric());
+            this.ingest = createIngest();
             ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
             String indexSettings = settings.get("target-index-settings",
                     "classpath:org/xbib/tools/merge/articles/settings.json");
@@ -191,6 +179,29 @@ public class WithArticles
             ingest.waitForResponses(TimeValue.timeValueSeconds(60));
             ingest.shutdown();
         }
+    }
+
+    protected Ingest createIngest() throws IOException {
+        org.elasticsearch.common.settings.Settings clientSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                .put("host", settings.get("elasticsearch.host", "localhost"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build();
+        ClientBuilder clientBuilder = ClientBuilder.builder()
+                .put(clientSettings)
+                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
+                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
+                        Runtime.getRuntime().availableProcessors()))
+                .setMetric(new LongAdderIngestMetric());
+        if (settings.getAsBoolean("mock", false)) {
+            return clientBuilder.toMockTransportClient();
+        }
+        if ("ingest".equals(settings.get("client"))) {
+            return clientBuilder.toIngestTransportClient();
+        }
+        return clientBuilder.toBulkTransportClient();
     }
 
     @Override

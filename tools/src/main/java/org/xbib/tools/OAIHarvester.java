@@ -123,7 +123,7 @@ public abstract class OAIHarvester extends Converter {
     }
 
     @Override
-    public OAIHarvester cleanup() throws IOException, ExecutionException {
+    public OAIHarvester cleanup() throws IOException {
         super.cleanup();
         session.close();
         return this;

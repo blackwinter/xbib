@@ -44,12 +44,10 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
+import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.elasticsearch.helper.client.ingest.IngestTransportClient;
-import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
-import org.xbib.elasticsearch.helper.client.transport.BulkTransportClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
@@ -124,6 +122,11 @@ public class WithHoldingsAndLicenses
     private StatusCodeMapper statusCodeMapper;
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         settings = Settings.settingsBuilder().loadFromReader(reader).build();
         logger.info("run starts");
@@ -134,7 +137,7 @@ public class WithHoldingsAndLicenses
         }
         this.sourceTitleType = settings.get("bib-type");
 
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                         .put("cluster.name", settings.get("elasticsearch.cluster"))
                         .put("host", settings.get("elasticsearch.host"))
                         .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -146,21 +149,7 @@ public class WithHoldingsAndLicenses
         this.size = settings.getAsInt("scrollsize", 10);
         this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         this.identifier = settings.get("identifier");
-        this.ingest = settings.getAsBoolean("mock", false) ? new MockTransportClient() :
-                "ingest".equals(settings.get("client")) ?
-                        new IngestTransportClient() :
-                        new BulkTransportClient();
-        ingest.maxActionsPerRequest(settings.getAsInt("maxbulkactions", 1000))
-                .maxConcurrentRequests(settings.getAsInt("maxConcurrentbulkrequests", Runtime.getRuntime().availableProcessors()));
-        ingest.init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .put("client.transport.sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("client.transport.ping_timeout", TimeValue.timeValueSeconds(60).getSeconds())
-                .put("client.transport.nodes_sampler_interval", TimeValue.timeValueSeconds(60).getSeconds())
-                .build().getAsMap(), new LongAdderIngestMetric());
+        this.ingest = createIngest();
         String index = settings.get("index");
         try {
             String packageName = getClass().getPackage().getName().replace('.','/');
@@ -250,6 +239,29 @@ public class WithHoldingsAndLicenses
             logger.info("run complete");
 
         }
+    }
+
+    protected Ingest createIngest() throws IOException {
+        org.elasticsearch.common.settings.Settings clientSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                .put("host", settings.get("elasticsearch.host", "localhost"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build();
+        ClientBuilder clientBuilder = ClientBuilder.builder()
+                .put(clientSettings)
+                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
+                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
+                        Runtime.getRuntime().availableProcessors()))
+                .setMetric(new LongAdderIngestMetric());
+        if (settings.getAsBoolean("mock", false)) {
+            return clientBuilder.toMockTransportClient();
+        }
+        if ("ingest".equals(settings.get("client"))) {
+            return clientBuilder.toIngestTransportClient();
+        }
+        return clientBuilder.toBulkTransportClient();
     }
 
     @Override

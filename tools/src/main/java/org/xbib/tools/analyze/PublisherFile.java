@@ -42,7 +42,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.Bootstrap;
 
 import java.io.FileWriter;
@@ -66,10 +66,15 @@ public class PublisherFile implements Bootstrap {
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         org.xbib.common.settings.Settings settings =
                 settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().init(Settings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))

@@ -3,8 +3,8 @@ package org.xbib.tools.feed.elasticsearch.gnd;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
+import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.mock.MockTransportClient;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -39,7 +39,7 @@ public class GNDTest {
         namespaceContext.addNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
         namespaceContext.addNamespace("skos", "http://www.w3.org/2004/02/skos/core#");
 
-        Ingest ingest = new MockTransportClient();
+        Ingest ingest = ClientBuilder.builder().toMockTransportClient();
 
         RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext, "gnd", "gnd");
         params.setIdPredicate("gndo:gndIdentifier");

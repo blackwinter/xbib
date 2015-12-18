@@ -48,7 +48,9 @@ public class License extends Holding {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
-    private final static Pattern movingWallPattern = Pattern.compile("^[+-](\\d+)Y$");
+    private final static Pattern movingWallYearPattern = Pattern.compile("^[+-](\\d+)Y$");
+
+    private final static Pattern movingWallMonthPattern = Pattern.compile("^[+-](\\d+)M$");
 
     public License(Map<String, Object> m) {
         super(m);
@@ -83,9 +85,14 @@ public class License extends Holding {
         this.delta = null;
         String movingWall = getString("ezb:license_period.ezb:moving_wall");
         if (movingWall != null) {
-            Matcher m = movingWallPattern.matcher(movingWall);
+            Matcher m = movingWallYearPattern.matcher(movingWall);
             if (m.find()) {
                 this.delta = Integer.parseInt(m.group(1));
+            } else {
+                m = movingWallMonthPattern.matcher(movingWall);
+                if (m.find()) {
+                    this.delta = Integer.parseInt(m.group(1)) / 12;
+                }
             }
         }
         String firstDateStr = getString("ezb:license_period.ezb:first_date");

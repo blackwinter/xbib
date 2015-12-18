@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,11 +36,11 @@ public abstract class TimewindowFeeder extends Feeder {
     private final static Logger logger = LogManager.getLogger(TimewindowFeeder.class.getSimpleName());
 
     @Override
-    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
+    protected ForkJoinPipeline newPipeline() {
         return new ConfiguredPipeline();
     }
 
-    class ConfiguredPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+    class ConfiguredPipeline extends ForkJoinPipeline {
         public String getIndex() {
             return index;
         }
@@ -124,7 +123,7 @@ public abstract class TimewindowFeeder extends Feeder {
     }
 
     @Override
-    public TimewindowFeeder cleanup() throws IOException, ExecutionException {
+    public TimewindowFeeder cleanup() throws IOException {
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
             updateAliases(getIndex(), getConcreteIndex());
         } else {
