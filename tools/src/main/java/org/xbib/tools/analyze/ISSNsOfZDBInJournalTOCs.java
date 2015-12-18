@@ -74,6 +74,11 @@ public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
     String issn;
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         Set<String> issns = new TreeSet<>();

@@ -69,6 +69,11 @@ public class PublisherFile implements Bootstrap {
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()

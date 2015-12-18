@@ -63,22 +63,20 @@ public class HoldingsStatistics implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(HoldingsStatistics.class.getName());
 
-    private static Settings settings;
-
     private Map<String,Integer> volume = new HashMap<>();
 
     private Map<String,Integer> online = new HashMap<>();
 
     private Map<String,Integer> singles = new HashMap<>();
 
-    public HoldingsStatistics settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
     }
 
     @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

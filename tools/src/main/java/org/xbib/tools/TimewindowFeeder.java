@@ -30,11 +30,11 @@ public abstract class TimewindowFeeder extends Feeder {
     private final static Logger logger = LogManager.getLogger(TimewindowFeeder.class.getSimpleName());
 
     @Override
-    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
+    protected ForkJoinPipeline newPipeline() {
         return new ConfiguredPipeline();
     }
 
-    class ConfiguredPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+    class ConfiguredPipeline extends ForkJoinPipeline {
         public String getIndex() {
             return index;
         }

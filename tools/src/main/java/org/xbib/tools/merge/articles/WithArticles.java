@@ -116,6 +116,11 @@ public class WithArticles
     }
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()

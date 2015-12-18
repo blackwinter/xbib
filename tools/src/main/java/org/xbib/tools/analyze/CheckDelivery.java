@@ -61,18 +61,16 @@ public class CheckDelivery implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
 
-    private static Settings settings;
-
     private Set<String> notfoundset = new HashSet<>();
 
-    public CheckDelivery settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
     }
 
     @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))

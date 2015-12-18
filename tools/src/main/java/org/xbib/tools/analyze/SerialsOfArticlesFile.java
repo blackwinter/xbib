@@ -62,16 +62,14 @@ public class SerialsOfArticlesFile implements Bootstrap {
 
     private final static Set<String> issns = new TreeSet<>();
 
-    private static Settings settings;
-
-    public SerialsOfArticlesFile settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
     }
 
     @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

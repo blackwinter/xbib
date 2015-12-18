@@ -67,16 +67,14 @@ public class CheckMapping implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
-    private static Settings settings;
-
-    public CheckMapping settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
     }
 
     @Override
     public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))

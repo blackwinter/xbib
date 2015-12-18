@@ -65,8 +65,9 @@ import java.util.concurrent.SynchronousQueue;
 
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public abstract class Converter
-        extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest> implements Bootstrap {
+public class Converter
+        extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest>
+        implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(Converter.class.getName());
 
@@ -74,19 +75,25 @@ public abstract class Converter
 
     protected Writer writer;
 
-    protected static Settings settings;
+    protected Settings settings;
 
-    protected static Session<StringPacket> session;
+    protected Session<StringPacket> session;
 
     @Override
+    public void bootstrap(Reader reader) throws Exception {
+        bootstrap(reader, null);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public void bootstrap(Reader reader, Writer writer) throws Exception {
         try {
             this.reader = reader;
-            setSettings(settingsBuilder().loadFromReader(reader).build());
+            this.settings = settingsBuilder().loadFromReader(reader).build();
             this.writer = writer;
             int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors() * 2);
             logger.info("executing with concurrency {}", concurrency);
-            ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline()
+            ForkJoinPipeline pipeline = newPipeline()
                     .setQueue(new SynchronousQueue<>(true));
             setPipeline(pipeline);
             logger.info("preparing sink");
@@ -129,13 +136,14 @@ public abstract class Converter
         }
     }
 
-    public void setSettings(Settings newSettings) {
-        settings = newSettings;
-    }
-
     @Override
     public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
+        if (pipeline instanceof Converter) {
+            Converter converter = (Converter)pipeline;
+            setSettings(converter.getSettings());
+            setSession(converter.getSession());
+        }
         return this;
     }
 
@@ -208,10 +216,29 @@ public abstract class Converter
             getQueue().put(element);
             TarConnectionFactory factory = new TarConnectionFactory();
             Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("archive")));
-            session = connection.createSession();
+            Session<StringPacket> session = connection.createSession();
             session.open(Session.Mode.READ);
+            setSession(session);
             logger.info("put 1 elements");
         }
+    }
+
+    protected Converter setSettings(Settings settings) {
+        this.settings = settings;
+        return this;
+    }
+
+    protected Settings getSettings() {
+        return settings;
+    }
+
+    protected Converter setSession(Session<StringPacket> session) {
+        this.session = session;
+        return this;
+    }
+
+    protected Session<StringPacket> getSession() {
+        return session;
     }
 
     protected Converter cleanup() throws IOException {
@@ -257,13 +284,14 @@ public abstract class Converter
         }
     }
 
-    protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
-        return new ForkJoinPipeline<>();
+    protected ForkJoinPipeline newPipeline() {
+        return new ForkJoinPipeline();
     }
 
-    protected abstract void process(URI uri) throws Exception;
+    protected void process(URI uri) throws Exception {
+    }
 
-    protected abstract WorkerProvider provider();
-
-
+    protected WorkerProvider provider() {
+        return null;
+    }
 }
