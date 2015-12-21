@@ -60,6 +60,8 @@ public class DefaultSpecification implements Specification {
 
     private final static Map<String, Map> maps = new TreeMap<>();
 
+    private final static Map<String, Entity> entities = new HashMap<>();
+
     private final static ReentrantLock lock = new ReentrantLock();
 
     private final static int DEFAULT_BUFFER_SIZE = 8192;
@@ -184,6 +186,7 @@ public class DefaultSpecification implements Specification {
                         }
                         if (entity != null) {
                             entity.setSettings(struct);
+                            entities.put(packageName + "." + key, entity);
                         }
                     }
                 }
@@ -197,6 +200,12 @@ public class DefaultSpecification implements Specification {
         }
     }
 
+    @Override
+    public Map<String,Entity> getEntities() {
+        return entities;
+    }
+
+    @Override
     public Entity getEntity(String key, Map map) {
         int pos = key != null ? key.indexOf('$') : 0;
         String h = pos > 0 ? key.substring(0, pos) : null;
