@@ -67,6 +67,8 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
     private final static IRI tempPredicate = IRI.create("tmp");
 
+    private final String packageName;
+
     private Map<IRI,RdfContentBuilderProvider> providers;
 
     private UnmappedKeyListener<FieldList> listener;
@@ -78,15 +80,16 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
     private ConfigurableClassifier classifier;
 
     public MABEntityQueue(String packageName, String... paths) {
-        this(packageName, new HashMap<String,Object>(), 1, paths);
+        this(packageName, new HashMap<>(), 1, paths);
     }
 
     public MABEntityQueue(String packageName, int workers, String... paths) {
-        this(packageName, new HashMap<String,Object>(), workers, paths);
+        this(packageName, new HashMap<>(), workers, paths);
     }
 
     public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) {
         super(new MARCSpecification().addParameters(params), workers, packageName, paths);
+        this.packageName = packageName;
         logger.info("identifier: {}", params.get("identifier"));
         this.identifierMapper = setupIdentifierMapper(params);
         logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
@@ -193,7 +196,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
         @Override
         public MABEntityBuilderState newState() {
-            return new MABEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders());
+            return new MABEntityBuilderState(packageName, new MemoryRdfGraph(), contentBuilderProviders());
         }
 
         @Override
