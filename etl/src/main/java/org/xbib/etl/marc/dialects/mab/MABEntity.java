@@ -34,6 +34,7 @@ package org.xbib.etl.marc.dialects.mab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.Entity;
+import org.xbib.etl.faceting.Facet;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
@@ -88,5 +89,9 @@ public abstract class MABEntity implements Entity {
 
     public Resource getResource(MABEntityQueue.MABWorker worker) throws IOException {
         return worker.state().getResource();
+    }
+
+    public Facet getDefaultFacet() {
+        return null;
     }
 }

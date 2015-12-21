@@ -31,10 +31,6 @@
  */
 package org.xbib.etl.marc.dialects.mab;
 
-import org.xbib.analyzer.mab.titel.Date;
-import org.xbib.analyzer.mab.titel.FormatCarrier;
-import org.xbib.analyzer.mab.titel.Language;
-import org.xbib.analyzer.mab.titel.TypeMonograph;
 import org.xbib.etl.DefaultEntityBuilderState;
 import org.xbib.etl.faceting.Facet;
 import org.xbib.etl.faceting.GregorianYearFacet;
@@ -58,6 +54,11 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private final Map<String, Facet> facets = new HashMap<>();
 
+    public final static String LANGUAGE_FACET = "dc.language";
+    public final static String DATE_FACET = "dc.date";
+    public final static String TYPE_FACET = "dc.type";
+    public final static String FORMAT_FACET = "dc.format";
+
     private final Map<String, Sequence> sequences = new HashMap<>();
 
     private String systemIdentifier;
@@ -76,8 +77,11 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private IRI uid;
 
-    public MABEntityBuilderState(RdfGraph<RdfGraphParams> graph, Map<IRI,RdfContentBuilderProvider> providers) {
+    private String packageName;
+
+    public MABEntityBuilderState(String packageName, RdfGraph<RdfGraphParams> graph, Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
+        this.packageName = packageName;
     }
 
     public Resource getResource() throws IOException {
@@ -194,21 +198,33 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         }
 
         // create default facets
-        Facet languageFacet = facets.get(Language.FACET);
+        Facet languageFacet = facets.get(LANGUAGE_FACET);
         if (languageFacet == null) {
-            facets.put(Language.FACET, Language.getInstance().getDefaultFacet());
+            languageFacet = getDefaultFacet("Language");
+            if (languageFacet != null) {
+                facets.put(LANGUAGE_FACET, languageFacet);
+            }
         }
-        Facet formatFacet = facets.get(FormatCarrier.FACET);
+        Facet formatFacet = facets.get(FORMAT_FACET);
         if (formatFacet == null) {
-            facets.put(FormatCarrier.FACET, FormatCarrier.getInstance().getDefaultFacet());
+            formatFacet = getDefaultFacet("FormatCarrier");
+            if (formatFacet != null) {
+                facets.put(FORMAT_FACET, formatFacet);
+            }
         }
-        Facet typeFacet = facets.get(TypeMonograph.FACET);
+        Facet typeFacet = facets.get(TYPE_FACET);
         if (typeFacet == null) {
-            facets.put(TypeMonograph.FACET, TypeMonograph.getInstance().getDefaultFacet());
+            typeFacet = getDefaultFacet("TypeMonograph");
+            if (typeFacet != null) {
+                facets.put(TYPE_FACET, typeFacet);
+            }
         }
-        GregorianYearFacet dateFacet = (GregorianYearFacet) facets.get(Date.FACET);
+        GregorianYearFacet dateFacet = (GregorianYearFacet) facets.get(DATE_FACET);
         if (dateFacet == null) {
-            facets.put(Date.FACET, Date.getInstance().getDefaultFacet());
+            dateFacet = (GregorianYearFacet) getDefaultFacet("Date");
+            if (dateFacet != null) {
+                facets.put(DATE_FACET, dateFacet);
+            }
         }
 
         for (Facet facet : facets.values()) {
@@ -262,6 +278,16 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
         // continue with completion in parent
         super.complete();
+    }
+
+    private Facet getDefaultFacet(String name) throws IOException {
+        try {
+            Class cl = getClass().getClassLoader().loadClass(packageName + "." + name);
+            MABEntity me = (MABEntity) cl.newInstance();
+            return me.getDefaultFacet();
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
 }
