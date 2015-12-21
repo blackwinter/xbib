@@ -143,7 +143,7 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
     }
 
     public Map<IRI,RdfContentBuilderProvider> contentBuilderProviders() {
-        return new HashMap<IRI,RdfContentBuilderProvider>();
+        return new HashMap<>();
     }
 
     public void beforeCompletion(S state) throws IOException {

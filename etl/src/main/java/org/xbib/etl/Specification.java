@@ -39,6 +39,8 @@ public interface Specification {
 
     Map getEntityMap(ClassLoader cl, String analyzerPackageName, String... path) throws Exception;
 
+    Map<String, Entity> getEntities();
+
     Entity getEntity(String spec, Map map);
 
     Entity getEntityByKey(String key, Map map);
