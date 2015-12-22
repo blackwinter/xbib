@@ -34,23 +34,12 @@ public abstract class TimewindowFeeder extends Feeder {
         return new ConfiguredPipeline();
     }
 
-    class ConfiguredPipeline extends ForkJoinPipeline {
-        public String getIndex() {
-            return index;
-        }
-        public String getConcreteIndex() {
-            return concreteIndex;
-        }
-        public String getType() {
-            return type;
-        }
-    }
-
     @Override
     public TimewindowFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
         if (pipeline instanceof ConfiguredPipeline) {
             ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
+            setSettings(configuredPipeline.getSettings());
             setIndex(configuredPipeline.getIndex());
             setConcreteIndex(configuredPipeline.getConcreteIndex());
             setType(configuredPipeline.getType());
@@ -240,4 +229,18 @@ public abstract class TimewindowFeeder extends Feeder {
         }
     }
 
+    class ConfiguredPipeline extends ForkJoinPipeline {
+        public org.xbib.common.settings.Settings getSettings() {
+            return settings;
+        }
+        public String getIndex() {
+            return index;
+        }
+        public String getConcreteIndex() {
+            return concreteIndex;
+        }
+        public String getType() {
+            return type;
+        }
+    }
 }
