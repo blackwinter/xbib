@@ -46,6 +46,9 @@ import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.util.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -265,6 +268,39 @@ public abstract class Feeder extends Converter {
 
     protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
         return this;
+    }
+
+    @Override
+    protected ForkJoinPipeline newPipeline() {
+        return new ConfiguredPipeline();
+    }
+
+    @Override
+    public Feeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof ConfiguredPipeline) {
+            ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
+            setSettings(configuredPipeline.getSettings());
+            setIndex(configuredPipeline.getIndex());
+            setConcreteIndex(configuredPipeline.getConcreteIndex());
+            setType(configuredPipeline.getType());
+        }
+        return this;
+    }
+
+    class ConfiguredPipeline extends ForkJoinPipeline {
+        public org.xbib.common.settings.Settings getSettings() {
+            return settings;
+        }
+        public String getIndex() {
+            return index;
+        }
+        public String getConcreteIndex() {
+            return concreteIndex;
+        }
+        public String getType() {
+            return type;
+        }
     }
 
 }

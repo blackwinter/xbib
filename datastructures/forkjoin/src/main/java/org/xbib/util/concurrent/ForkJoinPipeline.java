@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest>
     implements Pipeline<W,R> {
 
-    private ExecutorService pool;
+    private ExecutorService executorService;
 
     private BlockingQueue<R> queue;
 
@@ -79,20 +79,24 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
         if (queue == null) {
             this.queue = new SynchronousQueue<>(true);
         }
-        if (pool == null) {
+        if (executorService == null) {
             if (workerCount < 1) {
                 workerCount = 1;
             }
             this.workerCount = Math.min(workerCount, 256);
-            this.pool = Executors.newFixedThreadPool(workerCount);
+            this.executorService = Executors.newFixedThreadPool(workerCount, runnable -> {
+                Thread t = Executors.defaultThreadFactory().newThread(runnable);
+                t.setDaemon(true);
+                return t;
+            });
         }
         return this;
     }
 
     @Override
     public ForkJoinPipeline<W,R> execute() {
-        if (pool == null) {
-            throw new IllegalStateException("no pool");
+        if (executorService == null) {
+            throw new IllegalStateException("no executor service");
         }
         if (workerCount == 0) {
             throw new IllegalStateException("no workers to create");
@@ -102,7 +106,7 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
         for (int i = 0; i < workerCount; i++) {
             W worker = workerProvider.get(this);
             workers.add(worker);
-            futures.add(pool.submit(worker));
+            futures.add(executorService.submit(worker));
         }
         this.latch = new CountDownLatch(workerCount);
         return this;
@@ -118,7 +122,7 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
     @Override
     public ForkJoinPipeline<W, R> waitFor(R poisonElement)
             throws InterruptedException, ExecutionException, IOException {
-        if (pool == null || futures == null || futures.isEmpty()) {
+        if (executorService == null || futures == null || futures.isEmpty()) {
             return this;
         }
         // send poison
@@ -150,13 +154,13 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
 
     @Override
     public void shutdown() throws InterruptedException, IOException {
-        if (pool == null) {
+        if (executorService == null) {
             return;
         }
-        pool.shutdown();
-        if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
-            pool.shutdownNow();
-            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+        executorService.shutdown();
+        if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+            executorService.shutdownNow();
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
                 throw new IOException("pool did not terminate");
             }
         }
