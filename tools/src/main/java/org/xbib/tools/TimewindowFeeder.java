@@ -18,6 +18,7 @@ import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
+import org.xbib.common.settings.Settings;
 import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -40,23 +41,12 @@ public abstract class TimewindowFeeder extends Feeder {
         return new ConfiguredPipeline();
     }
 
-    class ConfiguredPipeline extends ForkJoinPipeline {
-        public String getIndex() {
-            return index;
-        }
-        public String getConcreteIndex() {
-            return concreteIndex;
-        }
-        public String getType() {
-            return type;
-        }
-    }
-
     @Override
     public TimewindowFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
         if (pipeline instanceof ConfiguredPipeline) {
             ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
+            setSettings(configuredPipeline.getSettings());
             setIndex(configuredPipeline.getIndex());
             setConcreteIndex(configuredPipeline.getConcreteIndex());
             setType(configuredPipeline.getType());
@@ -244,6 +234,21 @@ public abstract class TimewindowFeeder extends Feeder {
         DeleteIndexResponse response = requestBuilder.execute().actionGet();
         if (!response.isAcknowledged()) {
             logger.warn("retention delete index operation was not acknowledged");
+        }
+    }
+
+    class ConfiguredPipeline extends ForkJoinPipeline {
+        public Settings getSettings() {
+            return settings;
+        }
+        public String getIndex() {
+            return index;
+        }
+        public String getConcreteIndex() {
+            return concreteIndex;
+        }
+        public String getType() {
+            return type;
         }
     }
 
