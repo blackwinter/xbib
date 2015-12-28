@@ -12,7 +12,9 @@ ext {
     'jackson': '2.6.4',
     'netty': '4.0.33.Final',
     'log4j': '2.5',
-    'junit' : '4.12'
+    'junit' : '4.12',
+    'gradle-plugin-jflex': '1.0.0',
+    'gradle-plugin-jacc': '1.0.3'
   ]
 }
 
@@ -35,24 +37,24 @@ allprojects {
     dependencies {
         wagon 'org.apache.maven.wagon:wagon-ssh-external:2.10'
     }
-    // TODO fix java compile warnings by enabling this
-    //tasks.withType(JavaCompile) {
-    //    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-    //}
 }
 
 subprojects {
     apply plugin: 'java'
-    compileJava {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
-    }
-    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     dependencies {
         compile "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
         compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
         testCompile "junit:junit:${versions.junit}"
     }
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+    // TODO fix java compile warnings by enabling this
+    //tasks.withType(JavaCompile) {
+    //    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    //}
     test {
         testLogging {
             showStandardStreams = true

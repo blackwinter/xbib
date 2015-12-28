@@ -30,24 +30,6 @@ public abstract class TimewindowFeeder extends Feeder {
     private final static Logger logger = LogManager.getLogger(TimewindowFeeder.class.getSimpleName());
 
     @Override
-    protected ForkJoinPipeline newPipeline() {
-        return new ConfiguredPipeline();
-    }
-
-    @Override
-    public TimewindowFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
-        super.setPipeline(pipeline);
-        if (pipeline instanceof ConfiguredPipeline) {
-            ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
-            setSettings(configuredPipeline.getSettings());
-            setIndex(configuredPipeline.getIndex());
-            setConcreteIndex(configuredPipeline.getConcreteIndex());
-            setType(configuredPipeline.getType());
-        }
-        return this;
-    }
-
-    @Override
     protected void prepareSink() throws IOException {
         if (ingest == null) {
             // for resolveAlias
@@ -227,6 +209,24 @@ public abstract class TimewindowFeeder extends Feeder {
         if (!response.isAcknowledged()) {
             logger.warn("retention delete index operation was not acknowledged");
         }
+    }
+
+    @Override
+    protected ForkJoinPipeline newPipeline() {
+        return new ConfiguredPipeline();
+    }
+
+    @Override
+    public TimewindowFeeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof ConfiguredPipeline) {
+            ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
+            setSettings(configuredPipeline.getSettings());
+            setIndex(configuredPipeline.getIndex());
+            setConcreteIndex(configuredPipeline.getConcreteIndex());
+            setType(configuredPipeline.getType());
+        }
+        return this;
     }
 
     class ConfiguredPipeline extends ForkJoinPipeline {
