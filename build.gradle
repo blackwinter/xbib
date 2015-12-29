@@ -31,7 +31,6 @@ allprojects {
         }
     }
     configurations {
-        providedCompile
         wagon
     }
     dependencies {
@@ -41,14 +40,23 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    configurations {
+        provided
+        testCompile.extendsFrom(provided)
+    }
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        test.compileClasspath += configurations.provided
+        test.runtimeClasspath += configurations.provided
+    }
     dependencies {
-        compile "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
-        compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
+        provided "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
+        provided "org.apache.logging.log4j:log4j-core:${versions.log4j}"
         testCompile "junit:junit:${versions.junit}"
     }
     compileJava {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     // TODO fix java compile warnings by enabling this
@@ -56,6 +64,7 @@ subprojects {
     //    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     //}
     test {
+        classpath += configurations.provided
         testLogging {
             showStandardStreams = false
             exceptionFormat = 'full'
@@ -86,9 +95,6 @@ subprojects {
                 it.tasks.getByName 'test'
             }
         }
-    }
-    clean {
-        delete "work"
     }
 }
 

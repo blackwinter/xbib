@@ -7,15 +7,6 @@ plugins {
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'maven-publish'
 
-configurations {
-    provided
-    testCompile.extendsFrom(provided)
-}
-
-test {
-    classpath += configurations.provided
-}
-
 dependencies {
     compile project(':time')
     compile project(':matching')

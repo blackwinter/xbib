@@ -37,13 +37,12 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.Bootstrap;
 
 import java.io.FileReader;
@@ -88,13 +87,13 @@ public class HoldingsStatistics implements Bootstrap {
     @Override
     public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build());
+                .build().getAsMap());
         Client client = search.client();
         QueryBuilder queryBuilder = matchAllQuery();
         SearchRequestBuilder searchRequestBuilder = client.prepareSearch()

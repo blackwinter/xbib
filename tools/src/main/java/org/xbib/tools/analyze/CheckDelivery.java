@@ -38,10 +38,9 @@ import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.search.SearchClient;
+import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
@@ -81,13 +80,13 @@ public class CheckDelivery implements Bootstrap {
     @Override
     public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
-        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
+        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build());
+                .build().getAsMap());
         Client client = search.client();
         FileReader fileReader = new FileReader(settings.get("input"));
         BufferedReader bufferedReader = new BufferedReader(fileReader);

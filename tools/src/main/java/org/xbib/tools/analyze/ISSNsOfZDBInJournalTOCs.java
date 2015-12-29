@@ -51,6 +51,7 @@ import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
 import org.xbib.tools.Bootstrap;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -73,12 +74,22 @@ public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
     String issn;
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         Set<String> issns = new TreeSet<>();
         NettyHttpSession session = new NettyHttpSession();
@@ -180,6 +191,7 @@ public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
+        return 0;
     }
 
 }
