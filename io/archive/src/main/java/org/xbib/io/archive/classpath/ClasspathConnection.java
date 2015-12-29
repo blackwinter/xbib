@@ -40,11 +40,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * File connection
+ * Class path connection
  */
 public class ClasspathConnection implements Connection<ClasspathSession> {
 
-    private List<ClasspathSession> sessions = new ArrayList<ClasspathSession>();
+    private List<ClasspathSession> sessions = new ArrayList<>();
     private URI uri;
 
     public ClasspathConnection() {

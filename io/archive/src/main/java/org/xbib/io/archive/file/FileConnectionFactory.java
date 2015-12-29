@@ -32,8 +32,13 @@
 package org.xbib.io.archive.file;
 
 import org.xbib.io.AbstractConnectionFactory;
+import org.xbib.io.StreamCodecService;
+
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.Set;
 
 /**
  * A file connection factory
@@ -50,5 +55,22 @@ public final class FileConnectionFactory extends AbstractConnectionFactory<FileS
         FileConnection connection = new FileConnection();
         connection.setURI(uri);
         return connection;
+    }
+
+    @Override
+    public InputStream open(URI uri) throws IOException {
+        if (!canOpen(uri)) {
+            return null;
+        }
+        final String part = uri.getSchemeSpecificPart();
+        InputStream in = new FileInputStream(part);
+        Set<String> codecs = StreamCodecService.getCodecs();
+        for (String codec : codecs) {
+            String s = "." + codec;
+            if (part.endsWith(s.toLowerCase()) || part.endsWith(s.toUpperCase())) {
+                return StreamCodecService.getInstance().getCodec(codec).decode(in);
+            }
+        }
+        return in;
     }
 }

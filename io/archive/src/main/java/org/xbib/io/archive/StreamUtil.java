@@ -29,42 +29,32 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io;
+package org.xbib.io.archive;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
-/**
- * A connection factory
- */
-public interface ConnectionFactory<S extends Session> {
+public final class StreamUtil {
 
-    String getName();
+    public final static int BUFSIZE = 8192;
 
-    /**
-     * Checks if this connection factory can handle this URI.
-     *
-     * @param uri the URI to check
-     * @return true if the URI can be provided, otherwise false
-     */
-    boolean canOpen(URI uri);
+    public static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[BUFSIZE];
+        int len;
+        while ((len = in.read(buffer)) != -1) {
+            out.write(buffer, 0, len);
+        }
+    }
 
-    /**
-     * Creates a new connection
-     *
-     * @param uri the URI for the connection
-     * @return the connection
-     * @throws java.io.IOException if the connection can not be established
-     */
-    Connection<S> getConnection(URI uri) throws IOException;
-
-    /**
-     * Create input stream from URI.
-     * @param uri the URI
-     * @return input stream or null
-     * @throws IOException if creation of input streams fails or is not
-     */
-    InputStream open(URI uri) throws IOException;
+    public static void copy(Reader reader, Writer writer) throws IOException {
+        char[] buffer = new char[BUFSIZE];
+        int len;
+        while ((len = reader.read(buffer)) != -1) {
+            writer.write(buffer, 0, len);
+        }
+    }
 
 }

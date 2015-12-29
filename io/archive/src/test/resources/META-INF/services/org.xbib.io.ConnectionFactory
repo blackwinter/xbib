@@ -1,1 +1,2 @@
 org.xbib.io.archive.tar.TarConnectionFactory
+org.xbib.io.archive.classpath.ClasspathConnectionFactory

@@ -1,8 +1,6 @@
-package org.xbib.io.archives.zip;
+package org.xbib.io.archive.zip;
 
 import org.junit.Assert;
-import org.xbib.io.archive.zip.ZipArchiveEntry;
-import org.xbib.io.archive.zip.ZipArchiveInputStream;
 
 import java.io.InputStream;
 

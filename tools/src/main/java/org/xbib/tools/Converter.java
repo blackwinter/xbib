@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Queue;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -78,6 +79,19 @@ public class Converter
     protected Settings settings;
 
     protected Session<StringPacket> session;
+
+    private final static AtomicInteger threadCounter = new AtomicInteger();
+
+    private int number;
+
+    public Converter setNumber(int number) {
+        this.number = number;
+        return this;
+    }
+
+    public int getNumber() {
+        return number;
+    }
 
     @Override
     public void bootstrap(Reader reader) throws Exception {
@@ -134,17 +148,6 @@ public class Converter
         } catch (Throwable ex) {
             logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
         }
-    }
-
-    @Override
-    public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
-        super.setPipeline(pipeline);
-        if (pipeline instanceof Converter) {
-            Converter converter = (Converter)pipeline;
-            setSettings(converter.getSettings());
-            setSession(converter.getSession());
-        }
-        return this;
     }
 
     protected void prepareSink() throws IOException {
@@ -285,7 +288,7 @@ public class Converter
     }
 
     protected ForkJoinPipeline newPipeline() {
-        return new ForkJoinPipeline();
+        return new ConverterPipeline();
     }
 
     protected void process(URI uri) throws Exception {
@@ -293,5 +296,28 @@ public class Converter
 
     protected WorkerProvider provider() {
         return null;
+    }
+
+    @Override
+    public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof Converter) {
+            Converter converter = (Converter)pipeline;
+            setSettings(converter.getSettings());
+            setSession(converter.getSession());
+            setNumber(threadCounter.getAndIncrement());
+        }
+        return this;
+    }
+
+    class ConverterPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+
+        public Settings getSettings() {
+            return settings;
+        }
+
+        public Session<StringPacket> getSession() {
+            return session;
+        }
     }
 }
