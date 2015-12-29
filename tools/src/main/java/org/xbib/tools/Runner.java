@@ -31,20 +31,27 @@
  */
 package org.xbib.tools;
 
+import java.io.Console;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 public class Runner {
 
     public static void main(String[] args) {
+        int exitcode = 0;
         try {
-            Class clazz = Class.forName(args[0]);
+            Class<?> clazz = Class.forName(args[0]);
             Bootstrap bootstrap = (Bootstrap) clazz.newInstance();
-            bootstrap.bootstrap(new InputStreamReader(System.in, "UTF-8"), new OutputStreamWriter(System.out, "UTF-8"));
+            Console console = System.console();
+            if (console == null) {
+                exitcode = bootstrap.bootstrap(args);
+            } else {
+                exitcode = bootstrap.bootstrap(args, new InputStreamReader(System.in), new OutputStreamWriter(System.out));
+            }
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(1);
         }
-        System.exit(0);
+        System.exit(exitcode);
     }
 }

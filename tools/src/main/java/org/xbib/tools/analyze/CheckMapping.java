@@ -48,6 +48,7 @@ import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.Bootstrap;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -68,12 +69,22 @@ public class CheckMapping implements Bootstrap {
     private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
@@ -85,6 +96,7 @@ public class CheckMapping implements Bootstrap {
         Client client = search.client();
         checkMapping(client, settings.get("index"));
         client.close();
+        return 0;
     }
 
     protected void checkMapping(Client client, String index) throws IOException {
@@ -168,7 +180,7 @@ public class CheckMapping implements Bootstrap {
 
     static <K,V extends Comparable<? super V>>
     SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
-        SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
+        SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<>(
                 (e1, e2) -> {
                     int c = e2.getValue().compareTo(e1.getValue());
                     return c != 0 ? c : 1; // never return 0, keep all entries with same value

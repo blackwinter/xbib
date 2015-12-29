@@ -57,12 +57,22 @@ public class CheckOpenAccess implements Bootstrap {
     private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getName());
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
@@ -104,6 +114,7 @@ public class CheckOpenAccess implements Bootstrap {
         }
         bufferedReader.close();
         logger.info("oa={} nonoa={}", oa, nonoa);
+        return 0;
         /*FileWriter fileWriter = new FileWriter("oa.txt");
         for (String s : notfoundset) {
             fileWriter.write(s);

@@ -50,6 +50,7 @@ import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -94,13 +95,23 @@ public class Converter
     }
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
+    }
+
+    @Override
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         try {
             this.reader = reader;
             this.settings = settingsBuilder().loadFromReader(reader).build();
@@ -123,6 +134,7 @@ public class Converter
             logger.info("execution completed");
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             cleanup();
             if (getPipeline() != null) {
@@ -132,6 +144,7 @@ public class Converter
                 }
             }
         }
+        return 0; // exit code
     }
 
     @Override

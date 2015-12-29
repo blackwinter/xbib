@@ -68,6 +68,7 @@ import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -126,12 +127,22 @@ public class WithHoldingsAndLicenses
     private StatusCodeMapper statusCodeMapper;
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         settings = settingsBuilder().loadFromReader(reader).build();
         logger.info("run starts");
         this.sourceTitleIndex = settings.get("bib-index");
@@ -259,6 +270,7 @@ public class WithHoldingsAndLicenses
             logger.info("run complete");
 
         }
+        return 0;
     }
 
     @Override

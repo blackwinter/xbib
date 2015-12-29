@@ -36,8 +36,10 @@ import java.io.Writer;
 
 public interface Bootstrap {
 
-    void bootstrap(Reader reader) throws Exception;
+    int bootstrap(String[] args) throws Exception;
 
-    void bootstrap(Reader reader, Writer writer) throws Exception;
+    int bootstrap(Reader reader) throws Exception;
+
+    int bootstrap(String[] args, Reader reader, Writer writer) throws Exception;
 
 }

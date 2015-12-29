@@ -64,12 +64,22 @@ public class CheckDelivery implements Bootstrap {
     private Set<String> notfoundset = new HashSet<>();
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
         SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
@@ -157,6 +167,7 @@ public class CheckDelivery implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
+        return 0;
     }
 
 }
