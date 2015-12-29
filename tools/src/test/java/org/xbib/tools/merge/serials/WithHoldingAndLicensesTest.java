@@ -13,6 +13,7 @@ import java.util.Map;
 public class WithHoldingAndLicensesTest extends Assert {
 
     @Test
+    @SuppressWarnings("unchecked")
     public void test() throws IOException {
         BlackListedISIL isilbl;
         MappedISIL isilMapped;

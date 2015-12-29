@@ -8,8 +8,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.0.0'
-        classpath 'org.xbib.gradle.plugin:gradle-plugin-jacc:1.0.2'
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jflex:' + versions.'gradle-plugin-jflex'
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jacc:' + versions.'gradle-plugin-jacc'
     }
 }
 
@@ -20,5 +20,5 @@ dependencies {
     compile project(':io:charset')
     compile project(':bibliographic:sru')
     jflex 'de.jflex:jflex:1.6.0'
-    jacc 'org.xbib:xbib-jacc:1.0.0-SNAPSHOT'
+    jacc project(':compiler:jacc')
 }

@@ -29,29 +29,32 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools;
+package org.xbib.io.archive;
 
-import java.io.Console;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
-public class Runner {
+public final class StreamUtil {
 
-    public static void main(String[] args) {
-        int exitcode = 0;
-        try {
-            Class<?> clazz = Class.forName(args[0]);
-            Bootstrap bootstrap = (Bootstrap) clazz.newInstance();
-            Console console = System.console();
-            if (console == null) {
-                exitcode = bootstrap.bootstrap(args);
-            } else {
-                exitcode = bootstrap.bootstrap(args, new InputStreamReader(System.in), new OutputStreamWriter(System.out));
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-            System.exit(1);
+    public final static int BUFSIZE = 8192;
+
+    public static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[BUFSIZE];
+        int len;
+        while ((len = in.read(buffer)) != -1) {
+            out.write(buffer, 0, len);
         }
-        System.exit(exitcode);
     }
+
+    public static void copy(Reader reader, Writer writer) throws IOException {
+        char[] buffer = new char[BUFSIZE];
+        int len;
+        while ((len = reader.read(buffer)) != -1) {
+            writer.write(buffer, 0, len);
+        }
+    }
+
 }

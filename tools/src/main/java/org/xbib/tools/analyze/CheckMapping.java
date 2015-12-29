@@ -31,8 +31,6 @@
  */
 package org.xbib.tools.analyze;
 
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequestBuilder;
@@ -42,11 +40,15 @@ import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.common.hppc.cursors.ObjectCursor;
+import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.Bootstrap;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -57,8 +59,8 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -66,22 +68,25 @@ public class CheckMapping implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckMapping.class.getName());
 
-    private static Settings settings;
-
-    public CheckMapping settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().newClient(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
@@ -91,6 +96,7 @@ public class CheckMapping implements Bootstrap {
         Client client = search.client();
         checkMapping(client, settings.get("index"));
         client.close();
+        return 0;
     }
 
     protected void checkMapping(Client client, String index) throws IOException {
@@ -160,7 +166,7 @@ public class CheckMapping implements Bootstrap {
                     checkMapping(client, index, type, path, key, child, fields);
                 }
             } else if ("type".equals(key)) {
-                QueryBuilder filterBuilder = existsQuery(path);
+                FilterBuilder filterBuilder = existsFilter(path);
                 QueryBuilder queryBuilder = constantScoreQuery(filterBuilder);
                 CountRequestBuilder countRequestBuilder = client.prepareCount()
                         .setIndices(index)
@@ -174,7 +180,7 @@ public class CheckMapping implements Bootstrap {
 
     static <K,V extends Comparable<? super V>>
     SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
-        SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
+        SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<>(
                 (e1, e2) -> {
                     int c = e2.getValue().compareTo(e1.getValue());
                     return c != 0 ? c : 1; // never return 0, keep all entries with same value

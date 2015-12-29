@@ -36,9 +36,10 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.Bootstrap;
 
 import java.io.BufferedReader;
@@ -46,7 +47,8 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.Writer;
 
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.FilterBuilders.termFilter;
+import static org.elasticsearch.index.query.QueryBuilders.filteredQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -54,28 +56,31 @@ public class CheckOpenAccess implements Bootstrap {
 
     private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getName());
 
-    private static Settings settings;
-
-    public CheckOpenAccess settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
+    @Override
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
+        Settings settings = settingsBuilder().loadFromReader(reader).build();
+        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
+                .build());
         Client client = search.client();
         FileReader fileReader = new FileReader(settings.get("input"));
         BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -95,8 +100,7 @@ public class CheckOpenAccess implements Bootstrap {
                 continue;
             }
             int count = s.length == 3 ? Integer.parseInt(s[2]) : 1;
-            QueryBuilder queryBuilder =
-                    boolQuery().must(termQuery("_id", zdbid)).filter(termQuery("openaccess", true));
+            QueryBuilder queryBuilder = filteredQuery(termQuery("_id", zdbid), termFilter("openaccess", true));
             CountRequestBuilder countRequestBuilder = client.prepareCount()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
@@ -110,6 +114,7 @@ public class CheckOpenAccess implements Bootstrap {
         }
         bufferedReader.close();
         logger.info("oa={} nonoa={}", oa, nonoa);
+        return 0;
         /*FileWriter fileWriter = new FileWriter("oa.txt");
         for (String s : notfoundset) {
             fileWriter.write(s);

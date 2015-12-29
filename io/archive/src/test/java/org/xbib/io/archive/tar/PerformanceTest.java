@@ -1,4 +1,4 @@
-package org.xbib.io.archives.tar;
+package org.xbib.io.archive.tar;
 
 import org.xbib.io.Connection;
 import org.xbib.io.ConnectionService;

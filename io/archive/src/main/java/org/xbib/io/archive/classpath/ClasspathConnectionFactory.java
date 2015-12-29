@@ -32,16 +32,15 @@
 package org.xbib.io.archive.classpath;
 
 import org.xbib.io.AbstractConnectionFactory;
-import org.xbib.io.archive.file.FileConnection;
-import org.xbib.io.archive.file.FileSession;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 /**
- * A file connection factory
+ * A class path connection factory
  */
-public final class ClasspathConnectionFactory extends AbstractConnectionFactory<FileSession, FileConnection> {
+public final class ClasspathConnectionFactory extends AbstractConnectionFactory<ClasspathSession, ClasspathConnection> {
 
     @Override
     public String getName() {
@@ -49,9 +48,14 @@ public final class ClasspathConnectionFactory extends AbstractConnectionFactory<
     }
 
     @Override
-    public FileConnection getConnection(URI uri) throws IOException {
-        FileConnection connection = new FileConnection();
+    public ClasspathConnection getConnection(URI uri) throws IOException {
+        ClasspathConnection connection = new ClasspathConnection();
         connection.setURI(uri);
         return connection;
+    }
+
+    @Override
+    public InputStream open(URI uri) throws IOException {
+        return getClass().getResourceAsStream(uri.getSchemeSpecificPart());
     }
 }

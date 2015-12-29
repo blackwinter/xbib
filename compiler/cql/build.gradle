@@ -8,8 +8,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.0.0'
-        classpath 'org.xbib.gradle.plugin:gradle-plugin-jacc:1.0.2'
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jflex:' + versions.'gradle-plugin-jflex'
+        classpath 'org.xbib.gradle.plugin:gradle-plugin-jacc:' + versions.'gradle-plugin-jacc'
     }
 }
 
@@ -19,5 +19,5 @@ apply plugin: 'jacc'
 dependencies {
     compile project(':content:common')
     jflex 'de.jflex:jflex:1.6.0'
-    jacc 'org.xbib:xbib-jacc:1.0.0-SNAPSHOT'
+    jacc project(':compiler:jacc')
 }

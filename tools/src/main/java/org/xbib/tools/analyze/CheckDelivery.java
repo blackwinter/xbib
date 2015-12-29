@@ -38,9 +38,10 @@ import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
+import org.xbib.elasticsearch.helper.client.search.SearchClient;
 import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
@@ -63,20 +64,30 @@ public class CheckDelivery implements Bootstrap {
     private Set<String> notfoundset = new HashSet<>();
 
     @Override
-    public void bootstrap(Reader reader) throws Exception {
-        bootstrap(reader, null);
+    public int bootstrap(String[] args) throws Exception {
+        if (args.length != 1) {
+            return 1;
+        }
+        try (FileReader reader = new FileReader(args[0])) {
+            return bootstrap(args, reader, null);
+        }
     }
 
     @Override
-    public void bootstrap(Reader reader, Writer writer) throws Exception {
+    public int bootstrap(Reader reader) throws Exception {
+        return bootstrap(null, reader, null);
+    }
+
+    @Override
+    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
         Settings settings = settingsBuilder().loadFromReader(reader).build();
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+        SearchClient search = new SearchClient().newClient(ImmutableSettings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
                 .put("port", settings.getAsInt("source.port", 9300))
                 .put("sniff", settings.getAsBoolean("source.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build().getAsMap());
+                .build());
         Client client = search.client();
         FileReader fileReader = new FileReader(settings.get("input"));
         BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -156,6 +167,7 @@ public class CheckDelivery implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
+        return 0;
     }
 
 }

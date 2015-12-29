@@ -34,11 +34,13 @@ package org.xbib.io.archive.classpath;
 import org.xbib.io.Session;
 import org.xbib.io.StreamCodecService;
 import org.xbib.io.StringPacket;
+import org.xbib.io.archive.StreamUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.net.URI;
 
 /**
@@ -70,30 +72,23 @@ public class ClasspathSession<P extends StringPacket> implements Session<P> {
             return;
         }
         this.isOpen = false;
-        String filename = uri.getSchemeSpecificPart();
-        if ("filegz".equals(uri.getScheme()) && !filename.endsWith(".gz")) {
-            filename = filename + ".gz";
-        } else if ("filebz2".equals(uri.getScheme()) && !filename.endsWith(".bz2")) {
-            filename = filename + ".bz2";
-        } else if ("filexz".equals(uri.getScheme()) && !filename.endsWith(".xz")) {
-            filename = filename + ".xz";
-        }
+        String part = uri.getSchemeSpecificPart();
         switch (mode) {
             case READ: {
-                if (filename.endsWith(".gz")) {
-                    InputStream in = getClass().getResourceAsStream(filename);
+                if (part.endsWith(".gz")) {
+                    InputStream in = getClass().getResourceAsStream(part);
                     this.reader = new InputStreamReader(factory.getCodec("gz").decode(in), encoding);
                     this.isOpen = true;
-                } else if (filename.endsWith(".bz2")) {
-                    InputStream in = getClass().getResourceAsStream(filename);
+                } else if (part.endsWith(".bz2")) {
+                    InputStream in = getClass().getResourceAsStream(part);
                     this.reader = new InputStreamReader(factory.getCodec("bz2").decode(in), encoding);
                     this.isOpen = true;
-                } else if (filename.endsWith(".xz")) {
-                    InputStream in = getClass().getResourceAsStream(filename);
+                } else if (part.endsWith(".xz")) {
+                    InputStream in = getClass().getResourceAsStream(part);
                     this.reader = new InputStreamReader(factory.getCodec("xz").decode(in), encoding);
                     this.isOpen = true;
                 } else {
-                    InputStream in = getClass().getResourceAsStream(filename);
+                    InputStream in = getClass().getResourceAsStream(part);
                     this.reader = new InputStreamReader(in, encoding);
                     this.isOpen = true;
                 }
@@ -115,14 +110,19 @@ public class ClasspathSession<P extends StringPacket> implements Session<P> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public P newPacket() {
         return (P) new StringPacket();
     }
 
+    @SuppressWarnings("unchecked")
     public P read() throws IOException {
-        char[] ch = new char[1024];
-        reader.read(ch);
-        return (P) new StringPacket().packet(new String(ch));
+        if (reader != null) {
+            StringWriter writer = new StringWriter();
+            StreamUtil.copy(reader, writer);
+            return (P) new StringPacket().packet(writer.toString());
+        }
+        return null;
     }
 
     public void write(P packet) throws IOException {
