@@ -34,7 +34,7 @@ package org.xbib.tools.convert.geonames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.util.InputService;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.WorkerProvider;
 

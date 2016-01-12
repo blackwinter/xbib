@@ -41,45 +41,25 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.tools.Bootstrap;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckDelivery implements Bootstrap {
+public class CheckDelivery extends Analyzer {
 
-    private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getName());
+    private final static Logger logger = LogManager.getLogger(CheckDelivery.class.getSimpleName());
 
     private Set<String> notfoundset = new HashSet<>();
 
     @Override
-    public int bootstrap(String[] args) throws Exception {
-        if (args.length != 1) {
-            return 1;
-        }
-        try (FileReader reader = new FileReader(args[0])) {
-            return bootstrap(args, reader, null);
-        }
-    }
-
-    @Override
-    public int bootstrap(Reader reader) throws Exception {
-        return bootstrap(null, reader, null);
-    }
-
-    @Override
-    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
-        Settings settings = settingsBuilder().loadFromReader(reader).build();
+    public void run(Settings settings) throws Exception {
         SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
@@ -166,7 +146,6 @@ public class CheckDelivery implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
-        return 0;
     }
 
 }

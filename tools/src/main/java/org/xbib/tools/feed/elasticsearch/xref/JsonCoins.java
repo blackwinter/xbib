@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.io.archive.file.Finder;
 import org.xbib.iri.IRI;
@@ -50,7 +51,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.InvalidCharacterException;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.convert.articles.SerialsDB;
 import org.xbib.util.Entities;
 import org.xbib.util.URIUtil;
@@ -101,12 +102,12 @@ public class JsonCoins extends Feeder {
     private final static SerialsDB serialsdb = new SerialsDB();
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new JsonCoins().setPipeline(p);
     }
 
     @Override
-    public void prepareSource() throws IOException, InterruptedException {
+    public void prepareSource() throws IOException {
         try {
             Queue<URI> input = new Finder(settings.get("serials"))
                     .find(settings.get("path"))

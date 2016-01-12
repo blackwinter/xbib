@@ -47,7 +47,7 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.OAIFeeder;
+import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;

@@ -43,7 +43,7 @@ import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;

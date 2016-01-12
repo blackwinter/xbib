@@ -49,7 +49,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -188,12 +188,6 @@ public class EZBWeb extends TimewindowFeeder {
                 }
             }
             br.close();
-        }
-        if (writer != null) {
-            writer.close();
-        }
-        if (reader != null) {
-            reader.close();
         }
         ingest.stopBulk(getConcreteIndex());
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {

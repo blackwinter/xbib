@@ -13,7 +13,6 @@ import java.util.ResourceBundle;
  */
 public class ResourcesTimeFormat extends SimpleTimeFormat implements TimeFormat, LocaleAware<ResourcesTimeFormat> {
     private final ResourcesTimeUnit unit;
-    private ResourceBundle bundle;
     private TimeFormat override;
 
     public ResourcesTimeFormat(ResourcesTimeUnit unit) {
@@ -22,7 +21,7 @@ public class ResourcesTimeFormat extends SimpleTimeFormat implements TimeFormat,
 
     @Override
     public ResourcesTimeFormat setLocale(Locale locale) {
-        bundle = ResourceBundle.getBundle(unit.getResourceBundleName(), locale);
+        ResourceBundle bundle = ResourceBundle.getBundle(unit.getResourceBundleName(), locale);
 
         if (bundle instanceof TimeFormatProvider) {
             TimeFormat format = ((TimeFormatProvider) bundle).getFormatFor(unit);

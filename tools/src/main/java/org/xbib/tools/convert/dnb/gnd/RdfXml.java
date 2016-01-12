@@ -34,7 +34,7 @@ package org.xbib.tools.convert.dnb.gnd;
 import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;

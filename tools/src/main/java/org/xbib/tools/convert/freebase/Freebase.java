@@ -35,7 +35,7 @@ import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;

@@ -39,46 +39,19 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.tools.Bootstrap;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.Reader;
-import java.io.Writer;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class CheckOpenAccess implements Bootstrap {
+public class CheckOpenAccess extends Analyzer {
 
-    private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getName());
-
-    private static Settings settings;
-
-    public CheckOpenAccess settings(Settings newSettings) {
-        settings = newSettings;
-        return this;
-    }
+    private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getSimpleName());
 
     @Override
-    public int bootstrap(String[] args) throws Exception {
-        if (args.length != 1) {
-            return 1;
-        }
-        try (FileReader reader = new FileReader(args[0])) {
-            return bootstrap(args, reader, null);
-        }
-    }
-
-    @Override
-    public int bootstrap(Reader reader) throws Exception {
-        return bootstrap(null, reader, null);
-    }
-
-    @Override
-    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
-        settings = settingsBuilder().loadFromReader(reader).build();
+    public void run(Settings settings) throws Exception {
         SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -120,7 +93,6 @@ public class CheckOpenAccess implements Bootstrap {
         }
         bufferedReader.close();
         logger.info("oa={} nonoa={}", oa, nonoa);
-        return 0;
         /*FileWriter fileWriter = new FileWriter("oa.txt");
         for (String s : notfoundset) {
             fileWriter.write(s);

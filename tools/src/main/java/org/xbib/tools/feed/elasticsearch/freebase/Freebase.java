@@ -34,7 +34,7 @@ package org.xbib.tools.feed.elasticsearch.freebase;
 import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.ntriple.NTripleContentParser;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;

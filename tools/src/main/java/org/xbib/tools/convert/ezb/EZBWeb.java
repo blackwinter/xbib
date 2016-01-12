@@ -41,7 +41,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -66,7 +66,7 @@ public class EZBWeb extends Converter {
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getSimpleName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new EZBWeb().setPipeline(p);
     }
 
@@ -149,8 +149,6 @@ public class EZBWeb extends Converter {
             br.close();
         }
         builder.close();
-        writer.close();
-        reader.close();
     }
 
     private Iterator<String> readZDBIDs(Reader reader) throws IOException {

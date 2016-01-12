@@ -40,14 +40,15 @@ import java.util.Map;
  * </code>
  */
 public class PrettyTime {
-    private volatile Date reference;
-    private volatile Locale locale = Locale.getDefault();
-    private volatile Map<TimeUnit, TimeFormat> units = new LinkedHashMap<TimeUnit, TimeFormat>();
+    private Date reference;
+    private Locale locale;
+    private Map<TimeUnit, TimeFormat> units = new LinkedHashMap<TimeUnit, TimeFormat>();
 
     /**
      * Default constructor
      */
     public PrettyTime() {
+        this(Locale.getDefault());
         initTimeUnits();
     }
 
@@ -65,14 +66,6 @@ public class PrettyTime {
     }
 
     /**
-     * Construct a new instance using the given {@link Locale} instead of the system default.
-     */
-    public PrettyTime(final Locale locale) {
-        setLocale(locale);
-        initTimeUnits();
-    }
-
-    /**
      * Accept a {@link Date} timestamp to represent the point of reference for comparison. This may be changed by the
      * user, after construction. Use the given {@link Locale} instead of the system default.
      * <p>
@@ -81,6 +74,14 @@ public class PrettyTime {
     public PrettyTime(final Date reference, final Locale locale) {
         this(locale);
         setReference(reference);
+    }
+
+    /**
+     * Construct a new instance using the given {@link Locale} instead of the system default.
+     */
+    public PrettyTime(final Locale locale) {
+        setLocale(locale);
+        initTimeUnits();
     }
 
     /**

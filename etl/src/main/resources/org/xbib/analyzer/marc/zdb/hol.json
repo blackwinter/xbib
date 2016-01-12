@@ -1128,15 +1128,18 @@
     },
     "TextualHoldings" : {
         "values": [
-        "866$ 0$x", /* non-public note, exemplarbezogener Kommentar */
-        "866$ 0$z", /* public note */
-        "866$  $9y",
-        "866$30$a",
-        "866$30$ax",
-        "866$30$axz",
-        "866$30$az",
-        "866$3 $z",
-        "866$30$z"
+            "852$30$9",
+            "866$30$9",
+            "866$30$9a",
+            "866$ 0$x", /* non-public note, exemplarbezogener Kommentar */
+            "866$ 0$z", /* public note */
+            "866$  $9y",
+            "866$30$a",
+            "866$30$ax",
+            "866$30$axz",
+            "866$30$az",
+            "866$3 $z",
+            "866$30$z"
         ],
         "movingwall" : [
             "Letzte (\\d+) Jg."
@@ -1147,17 +1150,12 @@
         ],
         "currentyear" : [
             "Nur der laufende Jahrgang vorhanden"
-        ]
-    },
-    "TextualHoldingsPrefix" : {
-        "values": [
-        "852$30$9",
-        "866$30$9",
-        "866$30$9a"
         ],
         "subfields" : {
+            "9" : "prefix",
             "a" : "value",
-            "9" : "name"
+            "x" : "comment",
+            "z" : "gap"
         }
     },
     "TextualHoldingsPublicNote" : {

@@ -21,12 +21,34 @@ dependencies {
     compile "xerces:xercesImpl:2.11.0"
     compile "xalan:xalan:2.7.2"
     compile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
+    compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
     provided project(':io:charset') // for bibliographic charsets
+}
+
+test {
+    useJUnit {
+        excludeCategories 'org.xbib.RuntimeTests'
+    }
+}
+
+task runnerTest(type: Test) {
+    useJUnit {
+        forkEvery 1
+        includeCategories 'org.xbib.RuntimeTests'
+        testLogging {
+            showStandardStreams = true
+            exceptionFormat = 'full'
+        }
+    }
 }
 
 shadowJar {
     baseName = 'xbib-' + project.name
     classifier = 'standalone'
+    manifest {
+        attributes 'Main-Class': 'org.xbib.tools.Runner'
+    }
 }
 
 artifacts {
@@ -40,4 +62,8 @@ publishing {
             artifactId = 'xbib-' + project.name
         }
     }
+}
+
+clean {
+    delete 'logs'
 }

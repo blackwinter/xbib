@@ -43,7 +43,7 @@ import org.xbib.sru.client.SRUClientFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 */
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 

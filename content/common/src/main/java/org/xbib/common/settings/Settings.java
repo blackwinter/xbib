@@ -1,7 +1,6 @@
 
 package org.xbib.common.settings;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -558,18 +557,6 @@ public class Settings {
                 put(loadedSettings);
             } catch (Exception e) {
                 throw new SettingsException("Failed to load settings from [" + resourceName + "]", e);
-            }
-            return this;
-        }
-
-        public Builder loadFromReader(Reader reader) throws SettingsException {
-            try {
-                BufferedReader br = new BufferedReader(reader);
-                SettingsLoader settingsLoader = SettingsLoaderFactory.loaderFromReader(br);
-                put(settingsLoader.load(copyToString(br)));
-                br.close();
-            } catch (Exception e) {
-                throw new SettingsException("Failed to load settings from reader", e);
             }
             return this;
         }

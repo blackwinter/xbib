@@ -13,7 +13,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.InvalidXmlCharacterFilterReader;
 import org.xml.sax.Attributes;

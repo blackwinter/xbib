@@ -46,7 +46,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.tools.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;

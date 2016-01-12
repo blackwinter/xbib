@@ -3,7 +3,7 @@ package org.xbib.tools.feed.elasticsearch.natliz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.util.InputService;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;

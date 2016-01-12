@@ -15,7 +15,7 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
 
 import java.io.FileInputStream;
 import java.io.IOException;

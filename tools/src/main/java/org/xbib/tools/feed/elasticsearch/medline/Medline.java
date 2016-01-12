@@ -35,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -47,7 +48,7 @@ import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import javax.xml.namespace.QName;
@@ -67,12 +68,12 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public final class Medline extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(Medline.class);
+    private final static Logger logger = LogManager.getLogger(Medline.class.getSimpleName());
 
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Medline().setPipeline(p);
     }
 

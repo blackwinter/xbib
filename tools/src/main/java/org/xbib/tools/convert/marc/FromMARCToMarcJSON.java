@@ -2,7 +2,7 @@ package org.xbib.tools.convert.marc;
 
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.json.MarcXchangeJSONLinesWriter;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileInputStream;

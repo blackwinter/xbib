@@ -42,7 +42,7 @@ import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
-import org.xbib.tools.OAIHarvester;
+import org.xbib.tools.convert.oai.OAIHarvester;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;

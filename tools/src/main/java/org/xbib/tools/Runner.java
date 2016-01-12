@@ -31,22 +31,33 @@
  */
 package org.xbib.tools;
 
-import java.io.Console;
+import org.apache.logging.log4j.core.config.ConfigurationFactory;
+import org.xbib.tools.log.ConsoleConfigurationFactory;
+import org.xbib.tools.log.FileLoggerConfigurationFactory;
+import org.xbib.tools.log.RollingFileLoggerConfigurationFactory;
+
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 
 public class Runner {
 
     public static void main(String[] args) {
+        boolean hasConsole = System.console() != null;
+        if (hasConsole) {
+            ConfigurationFactory.setConfigurationFactory(new ConsoleConfigurationFactory());
+        } else {
+            if (System.getProperty("log.rollingfile") != null) {
+                ConfigurationFactory.setConfigurationFactory(new RollingFileLoggerConfigurationFactory());
+            } else {
+                ConfigurationFactory.setConfigurationFactory(new FileLoggerConfigurationFactory());
+            }
+        }
         int exitcode = 0;
         try {
-            Class<?> clazz = Class.forName(args[0]);
-            Bootstrap bootstrap = (Bootstrap) clazz.newInstance();
-            Console console = System.console();
-            if (console == null) {
-                exitcode = bootstrap.bootstrap(args);
-            } else {
-                exitcode = bootstrap.bootstrap(args, new InputStreamReader(System.in), new OutputStreamWriter(System.out));
+            if (args != null && args.length > 0) {
+                Class<?> clazz = Class.forName(args[0]);
+                Program program = (Program) clazz.newInstance();
+                InputStreamReader reader = new InputStreamReader(System.in);
+                exitcode = System.in.available() > 0 ? program.from(args, reader) : program.daemon(args);
             }
         } catch (Throwable e) {
             e.printStackTrace();

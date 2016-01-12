@@ -40,7 +40,6 @@ import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
-import org.xbib.tools.OAIFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;

@@ -31,7 +31,6 @@
  */
 package org.xbib.tools.convert.oai;
 
-import org.xbib.tools.OAIHarvester;
 import org.xbib.util.concurrent.WorkerProvider;
 
 /**

@@ -49,13 +49,10 @@ import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
-import org.xbib.tools.Bootstrap;
+import org.xbib.tools.Program;
 
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
@@ -65,32 +62,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
+public class ISSNsOfZDBInJournalTOCs extends Analyzer {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDBInJournalTOCs.class.getName());
 
     String issn;
 
     @Override
-    public int bootstrap(String[] args) throws Exception {
-        if (args.length != 1) {
-            return 1;
-        }
-        try (FileReader reader = new FileReader(args[0])) {
-            return bootstrap(args, reader, null);
-        }
-    }
-
-    @Override
-    public int bootstrap(Reader reader) throws Exception {
-        return bootstrap(null, reader, null);
-    }
-
-    @Override
-    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
-        Settings settings = settingsBuilder().loadFromReader(reader).build();
+    public void run(Settings settings) throws Exception {
         Set<String> issns = new TreeSet<>();
         NettyHttpSession session = new NettyHttpSession();
         session.open(Session.Mode.READ);
@@ -191,7 +171,6 @@ public class ISSNsOfZDBInJournalTOCs implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
-        return 0;
     }
 
 }

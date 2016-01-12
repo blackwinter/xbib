@@ -37,7 +37,6 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.StringTokenizer;
 
 /**
@@ -65,6 +64,25 @@ public final class URIUtil {
      * @param uri      the URI
      * @param key      the key
      * @param value    the value
+     * @return the URI
+     * @throws URISyntaxException
+     */
+    public static URI addParameter(URI uri, String key, String value)
+            throws URISyntaxException {
+        Map<String, String> m = parseQueryString(uri);
+        m.put(key, value);
+        String query = renderRawQueryString(m);
+        return new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), query, uri.getFragment());
+    }
+
+    /**
+     * This method adds a single key/value parameter to the query
+     * string of a given URI, URI-escaped with the given encoding.
+     * Existing keys will be overwritten.
+     *
+     * @param uri      the URI
+     * @param key      the key
+     * @param value    the value
      * @param encoding the encoding
      * @return the URI
      * @throws URISyntaxException
@@ -79,7 +97,8 @@ public final class URIUtil {
 
     /**
      * This method adds a map of key/value parameters to the query
-     * string of a given URI. Existing keys will be overwritten.
+     * string of a given URI, URI-escaped with the given encoding.
+     * Existing keys will be overwritten.
      *
      * @param uri      the URI
      * @param map      the map
@@ -244,66 +263,6 @@ public final class URIUtil {
         } else {
             return new URI(s);
         }
-    }
-
-    /**
-     * Get properties from URI
-     *
-     * @param uri the URI
-     * @return the properties
-     */
-    public static Properties getPropertiesFromURI(URI uri) {
-        if (uri == null) {
-            throw new IllegalArgumentException("uri must not be null");
-        }
-        Properties properties = new Properties();
-        properties.setProperty("uri", uri.toString());
-        String scheme = uri.getScheme();
-        // ensure scheme is not null
-        scheme = scheme != null ? scheme : "";
-        properties.setProperty("scheme", scheme);
-        String type;
-        if (scheme.startsWith("jdbc:")) {
-            int pos = scheme.substring(5).indexOf(':');
-            type = (pos > 0) ? scheme.substring(5).substring(0, pos) : "default";
-            properties.setProperty("type", type);
-        }
-        String host = uri.getHost();
-        host = (host != null) ? host : "";
-        int port = uri.getPort();
-        String path = uri.getPath();
-        String[] s = (path != null) ? path.split("/") : new String[]{};
-        String cluster = (s.length > 1) ? s[1] : "";
-        String collection = (s.length > 2) ? s[2] : "";
-        String userInfo = uri.getUserInfo();
-        String[] ui = (userInfo != null) ? userInfo.split(":") : new String[]{};
-        properties.setProperty("username", (ui.length > 0) ? ui[0] : "");
-        properties.setProperty("password", (ui.length > 1) ? ui[1] : "");
-        Map<String, String> m = parseQueryString(uri);
-        if ((m != null) && (m.size() > 0)) {
-            properties.setProperty("requestkeys", concat(m.keySet()));
-            properties.setProperty("requestquery", renderQueryString(m));
-            properties.putAll(m);
-        }
-        properties.setProperty("host", host);
-        if (port != 0) {
-            properties.setProperty("port", Integer.toString(port));
-        }
-        if (path != null) {
-            properties.setProperty("path", path);
-        }
-        if (uri.getFragment() != null) {
-            properties.setProperty("fragment", uri.getFragment());
-        }
-        if (cluster != null) {
-            properties.setProperty("cluster", cluster);
-            properties.setProperty("index", cluster);
-        }
-        if (collection != null) {
-            properties.setProperty("collection", collection);
-            properties.setProperty("type", collection);
-        }
-        return properties;
     }
 
     /**

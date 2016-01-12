@@ -45,7 +45,6 @@ import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.XSDResourceIdentifiers;
-import org.xbib.tools.OAIHarvester;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

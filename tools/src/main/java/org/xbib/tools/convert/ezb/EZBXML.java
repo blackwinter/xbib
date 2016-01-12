@@ -31,7 +31,6 @@
  */
 package org.xbib.tools.convert.ezb;
 
-import org.xbib.tools.Feeder;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
@@ -42,7 +41,7 @@ import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.tools.Converter;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;

@@ -47,7 +47,8 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.OAIFeeder;
+import org.xbib.tools.convert.Converter;
+import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
@@ -77,18 +78,18 @@ public final class BibdatOAI extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(BibdatOAI.class.getSimpleName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new BibdatOAI().setPipeline(p);
     }
 
     @Override
-    protected String getIndex() {
-        return settings.get("bib-index");
+    protected String getIndexParameterName() {
+        return "bib-index";
     }
 
     @Override
-    protected String getType() {
-        return settings.get("bib-type");
+    protected String getIndexTypeParameterName() {
+        return "bib-type";
     }
 
     @Override
@@ -97,7 +98,7 @@ public final class BibdatOAI extends OAIFeeder {
         params.put("identifier", settings.get("identifier", "DE-600"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-600") + ")");
         final PicaEntityQueue queue = createQueue(params);
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         queue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect", false))) {
                 logger.warn("unmapped field {}", key);
@@ -161,7 +162,7 @@ public final class BibdatOAI extends OAIFeeder {
             until = Date.from(ldt.toInstant(ZoneOffset.UTC));
         } while (count-- > 0L);
         queue.close();
-        if (settings.getAsBoolean("detect", false)) {
+        if (settings.getAsBoolean("detect-unknown", false)) {
             logger.info("unknown keys = {}", unmapped);
         }
         if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {

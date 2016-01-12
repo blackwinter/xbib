@@ -64,7 +64,7 @@ public class MedlineTest {
                     .put("uri", url.toString())
                     .put("mock", true)
                     .build();
-            medline.bootstrap(null, settings.getAsReader(), new StringWriter());
+            medline.run(settings);
         } else {
             logger.warn("not found");
         }

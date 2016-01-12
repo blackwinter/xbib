@@ -44,7 +44,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.Feeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.util.ArticleVocabulary;
 import org.xbib.util.Entities;
 import org.xbib.util.concurrent.WorkerProvider;

@@ -11,5 +11,5 @@ public interface TimeFormatProvider {
     /**
      * Return the appropriate {@link TimeFormat} for the given {@link TimeUnit}
      */
-    public TimeFormat getFormatFor(TimeUnit t);
+    TimeFormat getFormatFor(TimeUnit t);
 }

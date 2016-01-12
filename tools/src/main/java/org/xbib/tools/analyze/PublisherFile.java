@@ -43,12 +43,8 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.tools.Bootstrap;
 
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -60,31 +56,13 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
-public class PublisherFile implements Bootstrap {
+public class PublisherFile extends Analyzer {
 
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
     @Override
-    public int bootstrap(String[] args) throws Exception {
-        if (args.length != 1) {
-            return 1;
-        }
-        try (FileReader reader = new FileReader(args[0])) {
-            return bootstrap(args, reader, null);
-        }
-    }
-
-    @Override
-    public int bootstrap(Reader reader) throws Exception {
-        return bootstrap(null, reader, null);
-    }
-
-    @Override
-    public int bootstrap(String[] args, Reader reader, Writer writer) throws Exception {
-        org.xbib.common.settings.Settings settings =
-                settingsBuilder().loadFromReader(reader).build();
+    public void run(org.xbib.common.settings.Settings settings) throws Exception {
         SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -180,7 +158,6 @@ public class PublisherFile implements Bootstrap {
             fileWriter.write("\n");
         }
         fileWriter.close();
-        return 0;
     }
 
 }

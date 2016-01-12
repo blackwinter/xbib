@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration status="OFF">
+<configuration status="DEBUG">
     <appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{ABSOLUTE}][%-5p][%-25c][%t] %m%n"/>
+            <PatternLayout pattern="xml[%d{ABSOLUTE}][%-5p][%-25c][%t] %m%n"/>
         </Console>
     </appenders>
     <Loggers>
