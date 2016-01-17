@@ -223,18 +223,6 @@ public class MarcSRU extends Feeder {
 
     }
 
-    @Override
-    public MarcSRU cleanup() {
-       /* try {
-            if (client != null) {
-                client.close();
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }*/
-        return this;
-    }
-
     class MyBibQueue extends MARCEntityQueue {
 
         public MyBibQueue(String path, int workers) {

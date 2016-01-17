@@ -35,10 +35,8 @@ import java.io.Reader;
 
 public interface Program {
 
-    int daemon(String[] args) throws Exception;
+    int from(String arg) throws Exception;
 
-    int read(Reader reader) throws Exception;
-
-    int from(String[] args, Reader reader) throws Exception;
+    int from(String arg, Reader reader) throws Exception;
 
 }

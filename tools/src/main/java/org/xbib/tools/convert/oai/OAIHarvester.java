@@ -123,10 +123,11 @@ public abstract class OAIHarvester extends Converter {
     }
 
     @Override
-    public OAIHarvester cleanup() throws IOException {
-        super.cleanup();
-        session.close();
-        return this;
+    protected void disposeSink() throws IOException {
+        if (session != null) {
+            session.close();
+        }
+        super.disposeSink();
     }
 
     protected SimpleMetadataHandler newMetadataHandler() throws IOException {

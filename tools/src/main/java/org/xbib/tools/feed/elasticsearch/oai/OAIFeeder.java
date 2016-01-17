@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings;
 import org.xbib.common.unit.TimeValue;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.oai.OAIConstants;
@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -91,7 +90,7 @@ public abstract class OAIFeeder extends TimewindowFeeder {
                     .put("port", settings.getAsInt("elasticsearch.port", 9300))
                     .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                     .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build().getAsMap(), new LongAdderIngestMetric());
+                    .build(), new LongAdderIngestMetric());
         }
         super.prepareSink();
     }
@@ -135,7 +134,7 @@ public abstract class OAIFeeder extends TimewindowFeeder {
                     throw new IOException(e);
                 }
                 // update settings with new URI list for super.prepareSource()
-                settings = Settings.settingsBuilder()
+                settings = org.xbib.common.settings.Settings.settingsBuilder()
                         .put(settings)
                         .putArray("uri", uris)
                         .build();

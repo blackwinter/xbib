@@ -106,7 +106,6 @@ public final class BibdatOAI extends OAIFeeder {
             }
         });
         queue.execute();
-
         Map<String, String> oaiparams = URIUtil.parseQueryString(uri);
         String server = uri.toString();
         String verb = oaiparams.get("verb");
@@ -114,7 +113,7 @@ public final class BibdatOAI extends OAIFeeder {
         String set = oaiparams.get("set");
         Date from = Date.from(Instant.parse(oaiparams.get("from")));
         Date until = Date.from(Instant.parse(oaiparams.get("until")));
-        // interval
+        // interval in days
         long interval = ChronoUnit.DAYS.between(from.toInstant(), until.toInstant());
         long count = settings.getAsLong("count", 1L);
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
@@ -162,15 +161,6 @@ public final class BibdatOAI extends OAIFeeder {
             until = Date.from(ldt.toInstant(ZoneOffset.UTC));
         } while (count-- > 0L);
         queue.close();
-        if (settings.getAsBoolean("detect-unknown", false)) {
-            logger.info("unknown keys = {}", unmapped);
-        }
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases(getIndex(), getConcreteIndex());
-        } else {
-            logger.info("not doing alias settings");
-        }
-        ingest.stopBulk(getConcreteIndex());
     }
 
     protected PicaEntityQueue createQueue(Map<String,Object> params) {

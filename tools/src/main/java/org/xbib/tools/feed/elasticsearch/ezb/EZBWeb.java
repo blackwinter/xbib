@@ -49,6 +49,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -74,7 +75,7 @@ public class EZBWeb extends TimewindowFeeder {
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new EZBWeb().setPipeline(p);
     }
 
@@ -188,12 +189,6 @@ public class EZBWeb extends TimewindowFeeder {
                 }
             }
             br.close();
-        }
-        ingest.stopBulk(getConcreteIndex());
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false) && ingest.client() != null) {
-            updateAliases(getIndex(), getConcreteIndex());
-        } else {
-            logger.info("not doing alias settings");
         }
     }
 

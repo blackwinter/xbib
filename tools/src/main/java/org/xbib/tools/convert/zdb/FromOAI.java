@@ -67,15 +67,9 @@ public class FromOAI extends Converter {
 
     private final static AtomicLong counter = new AtomicLong();
 
-    private OAIClient client;
-
-    public FromOAI(boolean b) {
-        client = OAIClientFactory.newClient();
-    }
-
     @Override
     protected WorkerProvider provider() {
-        return p -> new FromOAI(true).setPipeline(p);
+        return p -> new FromOAI().setPipeline(p);
     }
 
     @Override
@@ -135,22 +129,11 @@ public class FromOAI extends Converter {
     }
 
     @Override
-    public FromOAI cleanup() {
-        try {
-            if (session != null) {
-                try {
-                    session.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (client != null) {
-                client.close();
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+    protected void disposeSink() throws IOException {
+        if (session != null) {
+            session.close();
         }
-        return this;
+        super.disposeSink();
     }
 
 }

@@ -38,10 +38,10 @@ import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import org.xbib.common.xcontent.XContent;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentString;
-import org.xbib.io.BytesReference;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.common.xcontent.XContentParser;
+import org.xbib.io.BytesReference;
 import org.xbib.xml.ISO9075;
 import org.xbib.xml.XMLUtil;
 import org.xbib.xml.namespace.XmlNamespaceContext;
@@ -56,21 +56,20 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- *
  * Content generator for XML formatted content
- *
  */
 public class XmlXContentGenerator implements XContentGenerator {
 
     protected final ToXmlGenerator generator;
 
-    private boolean writeLineFeedAtEnd;
+    private XmlXParams params ;
 
-    private XmlXParams params = XmlXParams.getDefaultParams();
+    private boolean writeLineFeedAtEnd;
 
     private boolean rootUsed = false;
 
     public XmlXContentGenerator(ToXmlGenerator generator) {
+        this.params = XmlXParams.getDefaultParams();
         this.generator = generator;
         generator.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, false);
     }
@@ -80,7 +79,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         try {
             generator.getStaxWriter().setPrefix(getParams().getRoot().getPrefix(), getParams().getRoot().getNamespaceURI());
         } catch (XMLStreamException e) {
-            //
+            e.printStackTrace();
         }
         return this;
     }
@@ -93,10 +92,12 @@ public class XmlXContentGenerator implements XContentGenerator {
         return params.getNamespaceContext();
     }
 
+    @Override
     public XContent content() {
         return XmlXContent.xmlXContent();
     }
 
+    @Override
     public void usePrettyPrint() {
         generator.useDefaultPrettyPrinter();
     }
@@ -106,14 +107,17 @@ public class XmlXContentGenerator implements XContentGenerator {
         writeLineFeedAtEnd = true;
     }
 
+    @Override
     public void writeStartArray() throws IOException {
         generator.writeStartArray();
     }
 
+    @Override
     public void writeEndArray() throws IOException {
         generator.writeEndArray();
     }
 
+    @Override
     public void writeStartObject() throws IOException {
         if (!rootUsed) {
             generator.setNextName(getParams().getRoot());
@@ -122,19 +126,25 @@ public class XmlXContentGenerator implements XContentGenerator {
         if (!rootUsed) {
             try {
                 for (String prefix : getNamespaceContext().getNamespaces().keySet()) {
-                    generator.getStaxWriter().writeNamespace(prefix, getNamespaceContext().getNamespaceURI(prefix));
+                    String uri = getNamespaceContext().getNamespaceURI(prefix);
+                    if (uri == null || uri.isEmpty()) {
+                        continue;
+                    }
+                    generator.getStaxWriter().writeNamespace(prefix, uri);
                 }
             } catch (XMLStreamException e) {
-                //  e.printStackTrace();
+                e.printStackTrace();
             }
             rootUsed = true;
         }
     }
 
+    @Override
     public void writeEndObject() throws IOException {
         generator.writeEndObject();
     }
 
+    @Override
     public void writeFieldName(String name) throws IOException {
         writeFieldNameWithNamespace(name);
     }
@@ -144,60 +154,73 @@ public class XmlXContentGenerator implements XContentGenerator {
         writeFieldNameWithNamespace(name);
     }
 
+    @Override
     public void writeString(String text) throws IOException {
         generator.writeString(XMLUtil.sanitizeXml10(text));
     }
 
+    @Override
     public void writeString(char[] text, int offset, int len) throws IOException {
         generator.writeString(XMLUtil.sanitizeXml10(text, offset, len));
     }
 
+    @Override
     public void writeUTF8String(byte[] text, int offset, int length) throws IOException {
-        // unsupported operation
         generator.writeUTF8String(text, offset, length);
     }
 
+    @Override
     public void writeBinary(byte[] data, int offset, int len) throws IOException {
-        // base64
+        // write base64
         generator.writeBinary(data, offset, len);
     }
 
+    @Override
     public void writeBinary(byte[] data) throws IOException {
         generator.writeBinary(data);
     }
 
+    @Override
     public void writeNumber(int v) throws IOException {
         generator.writeNumber(v);
     }
 
+    @Override
     public void writeNumber(long v) throws IOException {
         generator.writeNumber(v);
     }
 
+    @Override
     public void writeNumber(double d) throws IOException {
         generator.writeNumber(d);
     }
 
+    @Override
     public void writeNumber(float f) throws IOException {
         generator.writeNumber(f);
     }
 
+    @Override
     public void writeNumber(BigInteger bi) throws IOException {
         generator.writeNumber(bi);
     }
 
+    @Override
     public void writeNumber(BigDecimal bd) throws IOException {
         generator.writeNumber(bd);
     }
 
+    @Override
     public void writeBoolean(boolean state) throws IOException {
         generator.writeBoolean(state);
     }
 
+    @Override
     public void writeNull() throws IOException {
         generator.writeNull();
     }
 
+    @Override
     public void writeStringField(String fieldName, String value) throws IOException {
         generator.writeStringField(fieldName, value);
     }
@@ -208,6 +231,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeString(value);
     }
 
+    @Override
     public void writeBooleanField(String fieldName, boolean value) throws IOException {
         generator.writeBooleanField(fieldName, value);
     }
@@ -218,10 +242,12 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeBoolean(value);
     }
 
+    @Override
     public void writeNullField(String fieldName) throws IOException {
         generator.writeNullField(fieldName);
     }
 
+    @Override
     public void writeNumberField(String fieldName, int value) throws IOException {
         generator.writeNumberField(fieldName, value);
     }
@@ -232,6 +258,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeNumber(value);
     }
 
+    @Override
     public void writeNumberField(String fieldName, long value) throws IOException {
         generator.writeNumberField(fieldName, value);
     }
@@ -242,6 +269,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeNumber(value);
     }
 
+    @Override
     public void writeNumberField(String fieldName, double value) throws IOException {
         generator.writeNumberField(fieldName, value);
     }
@@ -252,6 +280,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeNumber(value);
     }
 
+    @Override
     public void writeNumberField(String fieldName, float value) throws IOException {
         generator.writeNumberField(fieldName, value);
     }
@@ -286,6 +315,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeNumber(value);
     }
 
+    @Override
     public void writeBinaryField(String fieldName, byte[] data) throws IOException {
         generator.writeBinaryField(fieldName, data);
     }
@@ -296,6 +326,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeBinary(data);
     }
 
+    @Override
     public void writeArrayFieldStart(String fieldName) throws IOException {
         generator.writeArrayFieldStart(fieldName);
     }
@@ -306,6 +337,7 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeStartArray();
     }
 
+    @Override
     public void writeObjectFieldStart(String fieldName) throws IOException {
         generator.writeObjectFieldStart(fieldName);
     }
@@ -316,35 +348,32 @@ public class XmlXContentGenerator implements XContentGenerator {
         generator.writeStartObject();
     }
 
+    @Override
     public void writeRawField(String fieldName, InputStream content, OutputStream bos) throws IOException {
         writeFieldNameWithNamespace(fieldName);
-        JsonParser parser = XmlXContent.xmlFactory().createParser(content);
-        try {
+        try (JsonParser parser = params.getXmlFactory().createParser(content)) {
             parser.nextToken();
             generator.copyCurrentStructure(parser);
-        } finally {
-            parser.close();
         }
     }
 
+    @Override
     public void writeRawField(String fieldName, byte[] content, OutputStream bos) throws IOException {
         writeFieldNameWithNamespace(fieldName);
-        JsonParser parser = XmlXContent.xmlFactory().createParser(content);
-        try {
+        try (JsonParser parser = params.getXmlFactory().createParser(content)) {
             parser.nextToken();
             generator.copyCurrentStructure(parser);
-        } finally {
-            parser.close();
         }
     }
 
+    @Override
     public void writeRawField(String fieldName, BytesReference content, OutputStream bos) throws IOException {
         writeFieldNameWithNamespace(fieldName);
         JsonParser parser;
         if (content.hasArray()) {
-            parser = XmlXContent.xmlFactory().createParser(content.array(), content.arrayOffset(), content.length());
+            parser = params.getXmlFactory().createParser(content.array(), content.arrayOffset(), content.length());
         } else {
-            parser = XmlXContent.xmlFactory().createParser(content.streamInput());
+            parser = params.getXmlFactory().createParser(content.streamInput());
         }
         try {
             parser.nextToken();
@@ -354,26 +383,27 @@ public class XmlXContentGenerator implements XContentGenerator {
         }
     }
 
+    @Override
     public void writeRawField(String fieldName, byte[] content, int offset, int length, OutputStream bos) throws IOException {
         writeFieldNameWithNamespace(fieldName);
-        JsonParser parser = XmlXContent.xmlFactory().createParser(content, offset, length);
-        try {
+        try (JsonParser parser = params.getXmlFactory().createParser(content, offset, length)) {
             parser.nextToken();
             generator.copyCurrentStructure(parser);
-        } finally {
-            parser.close();
         }
     }
 
+    @Override
     public void writeValue(XContentBuilder builder) throws IOException {
         generator.writeRawValue(builder.string());
     }
 
+    @Override
     public void copy(XContentBuilder builder, OutputStream bos) throws IOException {
         flush();
         builder.bytes().writeTo(bos);
     }
 
+    @Override
     public void copyCurrentStructure(XContentParser parser) throws IOException {
         if (parser.currentToken() == null) {
             parser.nextToken();
@@ -385,10 +415,12 @@ public class XmlXContentGenerator implements XContentGenerator {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         generator.flush();
     }
 
+    @Override
     public void close() throws IOException {
         if (generator.isClosed()) {
             return;

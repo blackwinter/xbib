@@ -2,8 +2,9 @@ package org.xbib.common.xcontent.xml;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentBuilder;
+import org.xbib.common.xcontent.XContentHelper;
+import org.xbib.common.xcontent.XContentParser;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 
 import javax.xml.namespace.QName;
@@ -12,9 +13,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
-
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class XContentXmlBuilderTest extends Assert {
 
@@ -23,9 +21,7 @@ public class XContentXmlBuilderTest extends Assert {
         QName root = new QName("root");
         XContentBuilder builder = XmlXContent.contentBuilder(new XmlXParams(root));
         builder.startObject().field("Hello", "World").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World</Hello></root>"
-        );
+        assertEquals("<root><Hello>World</Hello></root>", builder.string());
     }
 
     @Test
@@ -34,18 +30,14 @@ public class XContentXmlBuilderTest extends Assert {
         XmlNamespaceContext context = XmlNamespaceContext.newInstance();
         XContentBuilder builder = XmlXContent.contentBuilder(new XmlXParams(root, context));
         builder.startObject().field("Hello", "World").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World</Hello></root>"
-        );
+        assertEquals("<root><Hello>World</Hello></root>", builder.string());
     }
 
     @Test
     public void testXml() throws Exception {
         XContentBuilder builder = XmlXContent.contentBuilder();
         builder.startObject().field("Hello", "World").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World</Hello></root>"
-        );
+        assertEquals("<root><Hello>World</Hello></root>", builder.string());
     }
 
     @Test
@@ -53,9 +45,7 @@ public class XContentXmlBuilderTest extends Assert {
         XmlXParams params = new XmlXParams();
         XContentBuilder builder = XmlXContent.contentBuilder(params);
         builder.startObject().field("Hello", "World").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World</Hello></root>"
-        );
+        assertEquals("<root><Hello>World</Hello></root>", builder.string());
     }
 
     @Test
@@ -66,9 +56,7 @@ public class XContentXmlBuilderTest extends Assert {
         builder.startObject()
                 .field("dc:creator", "John Doe")
                 .endObject();
-        assertEquals(builder.string(),
-                "<root xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:xalan=\"http://xml.apache.org/xslt\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><dc:creator>John Doe</dc:creator></root>"
-        );
+        assertEquals("<root xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:xalan=\"http://xml.apache.org/xslt\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><dc:creator>John Doe</dc:creator></root>", builder.string());
     }
 
     @Test
@@ -81,9 +69,7 @@ public class XContentXmlBuilderTest extends Assert {
         builder.startObject()
                 .field("abc:creator", "John Doe")
                 .endObject();
-        assertEquals(builder.string(),
-                "<result xmlns:abc=\"http://localhost\"><abc:creator>John Doe</abc:creator></result>"
-        );
+        assertEquals("<result xmlns:abc=\"http://localhost\"><abc:creator>John Doe</abc:creator></result>", builder.string());
     }
 
     @Test
@@ -97,9 +83,7 @@ public class XContentXmlBuilderTest extends Assert {
         builder.startObject()
                 .field("creator", "John Doe")
                 .endObject();
-        assertEquals(builder.string(),
-                "<abc:root xmlns:abc=\"http://content\" xmlns=\"http://localhost\"><creator>John Doe</creator></abc:root>"
-        );
+        assertEquals("<abc:root xmlns:abc=\"http://content\" xmlns=\"http://localhost\"><creator>John Doe</creator></abc:root>", builder.string());
     }
 
     @Test
@@ -117,10 +101,7 @@ public class XContentXmlBuilderTest extends Assert {
                 .field("role", "illustrator")
                 .endObject()
                 .endObject();
-        assertEquals(builder.string(),
-            "<root><author><creator>John Doe</creator><role>writer</role></author><author><creator>Joe Smith</creator><role>illustrator</role></author></root>"
-        );
-
+        assertEquals("<root><author><creator>John Doe</creator><role>writer</role></author><author><creator>Joe Smith</creator><role>illustrator</role></author></root>", builder.string());
     }
 
     @Test
@@ -134,11 +115,8 @@ public class XContentXmlBuilderTest extends Assert {
                 .field("@id", 1)
                 .endObject()
                 .endObject();
-        assertEquals(builder.string(),
-            "<root><author><name>John Doe</name><id>1</id></author></root>"
-        );
+        assertEquals("<root><author><name>John Doe</name><id>1</id></author></root>", builder.string());
     }
-
 
     @Test
     public void testXmlArrayOfValues() throws Exception {
@@ -148,9 +126,7 @@ public class XContentXmlBuilderTest extends Assert {
         builder.startObject()
                 .array("author", "John Doe", "Joe Smith")
                 .endObject();
-        assertEquals(builder.string(),
-            "<root><author>John Doe</author><author>Joe Smith</author></root>"
-        );
+        assertEquals("<root><author>John Doe</author><author>Joe Smith</author></root>", builder.string());
     }
 
     @Test
@@ -170,9 +146,7 @@ public class XContentXmlBuilderTest extends Assert {
                 .endObject()
                 .endArray()
                 .endObject();
-        assertEquals(builder.string(),
-                "<root><author><creator>John Doe</creator><role>writer</role></author><author><creator>Joe Smith</creator><role>illustrator</role></author></root>"
-        );
+        assertEquals("<root><author><creator>John Doe</creator><role>writer</role></author><author><creator>Joe Smith</creator><role>illustrator</role></author></root>", builder.string());
     }
 
     @Test
@@ -186,13 +160,7 @@ public class XContentXmlBuilderTest extends Assert {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         copy(in, out);
         byte[] buf = out.toByteArray();
-    }
-
-    @Test
-    public void testParseReader() throws Exception {
-        StringReader sr = new StringReader("{\"name\":\"value\"}");
-        Settings settings = settingsBuilder()
-                .loadFromReader(sr).build();
+        XContentHelper.convertToMap(buf, false);
     }
 
     @Test
@@ -200,9 +168,17 @@ public class XContentXmlBuilderTest extends Assert {
         QName root = new QName("root");
         XContentBuilder builder = XmlXContent.contentBuilder(new XmlXParams(root));
         builder.startObject().field("Hello", "World\u001b").endObject();
-        assertEquals(builder.string(),
-                "<root><Hello>World�</Hello></root>"
-        );
+        assertEquals("<root><Hello>World�</Hello></root>", builder.string());
+    }
+
+    @Test
+    public void testSuppressEmptyNamespace() throws Exception {
+        XmlNamespaceContext context = XmlNamespaceContext.newInstance();
+        context.addNamespace("","");
+        QName root = new QName("root");
+        XContentBuilder builder = XmlXContent.contentBuilder(new XmlXParams(root, context));
+        builder.startObject().field("Hello", "World").endObject();
+        assertEquals("<root><Hello>World</Hello></root>", builder.string());
     }
 
     private void copy(InputStream in, OutputStream out) throws IOException {

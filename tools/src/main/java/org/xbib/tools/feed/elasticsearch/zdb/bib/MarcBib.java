@@ -34,7 +34,7 @@ package org.xbib.tools.feed.elasticsearch.zdb.bib;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.tools.marc.BibliographicFeeder;
+import org.xbib.tools.feed.elasticsearch.marc.BibliographicFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;

@@ -9,10 +9,10 @@ import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequestBuilder
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesAction;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequestBuilder;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
-import org.xbib.common.settings.Settings;
 import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
@@ -152,7 +152,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 .put("port", settings.getAsInt("elasticsearch.port", 9300))
                 .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap(), new LongAdderIngestMetric());
+                .build(), new LongAdderIngestMetric());
         String timeWindow = settings.get("timewindow") != null ?
                 DateTimeFormat.forPattern(settings.get("timewindow")).print(new DateTime()) : "";
         setConcreteIndex(resolveAlias(getIndex() + timeWindow));

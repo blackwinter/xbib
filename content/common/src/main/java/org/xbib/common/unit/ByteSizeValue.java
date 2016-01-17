@@ -1,6 +1,5 @@
 package org.xbib.common.unit;
 
-import org.xbib.common.Strings;
 import org.xbib.io.stream.StreamInput;
 import org.xbib.io.stream.StreamOutput;
 import org.xbib.io.stream.Streamable;
@@ -15,10 +14,6 @@ public class ByteSizeValue implements Streamable {
     private ByteSizeUnit sizeUnit;
 
     private ByteSizeValue() {
-    }
-
-    public ByteSizeValue(long bytes) {
-        this(bytes, ByteSizeUnit.BYTES);
     }
 
     public ByteSizeValue(long size, ByteSizeUnit sizeUnit) {
@@ -143,7 +138,30 @@ public class ByteSizeValue implements Streamable {
             value = kbFrac();
             suffix = "kb";
         }
-        return Strings.format1Decimals(value, suffix);
+        return format1Decimals(value, suffix);
+    }
+
+    /**
+     * Format the double value with a single decimal points, trimming trailing '.0'.
+     */
+    public static String format1Decimals(double value, String suffix) {
+        String p = String.valueOf(value);
+        int ix = p.indexOf('.') + 1;
+        int ex = p.indexOf('E');
+        char fraction = p.charAt(ix);
+        if (fraction == '0') {
+            if (ex != -1) {
+                return p.substring(0, ix - 1) + p.substring(ex) + suffix;
+            } else {
+                return p.substring(0, ix - 1) + suffix;
+            }
+        } else {
+            if (ex != -1) {
+                return p.substring(0, ix) + fraction + p.substring(ex) + suffix;
+            } else {
+                return p.substring(0, ix) + fraction + suffix;
+            }
+        }
     }
 
     public static ByteSizeValue parseBytesSizeValue(String sValue) {

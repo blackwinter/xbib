@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io.archive.file;
+package org.xbib.util;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;

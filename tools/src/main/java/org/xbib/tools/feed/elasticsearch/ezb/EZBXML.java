@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.index.IndexAction;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.index.VersionType;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
@@ -73,7 +74,7 @@ public final class EZBXML extends TimewindowFeeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new EZBXML().setPipeline(p);
     }
 

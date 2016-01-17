@@ -50,7 +50,6 @@ import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.net.URL;
 import java.text.NumberFormat;
 
@@ -110,29 +109,6 @@ public abstract class Feeder extends Converter {
         return indexTypeParameterName;
     }
 
-    protected Ingest createIngest() throws IOException {
-        Settings clientSettings = Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
-                .put("host", settings.get("elasticsearch.host", "localhost"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build();
-        ClientBuilder clientBuilder = ClientBuilder.builder()
-                .put(clientSettings)
-                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
-                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
-                        Runtime.getRuntime().availableProcessors()))
-                .setMetric(new LongAdderIngestMetric());
-        if (settings.getAsBoolean("mock", false)) {
-            return clientBuilder.toMockTransportClient();
-        }
-        if ("ingest".equals(settings.get("client"))) {
-            return clientBuilder.toIngestTransportClient();
-        }
-        return clientBuilder.toBulkTransportClient();
-    }
-
     @Override
     protected void prepareSink() throws IOException {
         logger.info("preparing ingest");
@@ -159,14 +135,42 @@ public abstract class Feeder extends Converter {
         createIndex(getIndex(), getConcreteIndex());
     }
 
+    protected Ingest createIngest() throws IOException {
+        Settings clientSettings = Settings.settingsBuilder()
+                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
+                .put("host", settings.get("elasticsearch.host", "localhost"))
+                .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                .build();
+        ClientBuilder clientBuilder = ClientBuilder.builder()
+                .put(clientSettings)
+                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
+                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
+                        Runtime.getRuntime().availableProcessors()))
+                .setMetric(new LongAdderIngestMetric());
+        if (settings.getAsBoolean("mock", false)) {
+            return clientBuilder.toMockTransportClient();
+        }
+        if ("ingest".equals(settings.get("client"))) {
+            return clientBuilder.toIngestTransportClient();
+        }
+        return clientBuilder.toBulkTransportClient();
+    }
+
     @Override
-    protected Feeder cleanup() throws IOException {
-        super.cleanup();
+    protected void disposeSource() throws IOException {
+        super.disposeSource();
+    }
+
+    @Override
+    protected void disposeSink() throws IOException {
+        super.disposeSink();
         if (ingest != null) {
             try {
-                logger.info("flush");
+                logger.info("flush ingestion");
                 ingest.flushIngest();
-                logger.info("waiting for all responses");
+                logger.info("waiting for all responses from sink");
                 ingest.waitForResponses(TimeValue.timeValueSeconds(120));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -174,15 +178,14 @@ public abstract class Feeder extends Converter {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            logger.info("shutdown");
+            logger.info("executing ingest shutdown");
             ingest.shutdown();
         }
-        logger.info("done with run");
-        return this;
+        logger.info("sink disposed");
     }
 
     @Override
-    protected void writeMetrics(MeterMetric metric, Writer writer) throws Exception {
+    protected void writeMetrics(MeterMetric metric) throws Exception {
         if (metric ==null) {
             return;
         }
@@ -210,21 +213,6 @@ public abstract class Feeder extends Converter {
                 fiveminute,
                 fifteenminute
         );
-
-        if (writer != null) {
-            String metrics = String.format("indexing metrics: elapsed %s, %d docs, %s bytes, %s avgsize, %s MB/s, %f (%f %f %f)",
-                    elapsedhuman,
-                    docs,
-                    FormatUtil.convertFileSize(bytes),
-                    FormatUtil.convertFileSize(avg),
-                    formatter.format(mbps),
-                    mean,
-                    oneminute,
-                    fiveminute,
-                    fifteenminute
-            );
-            writer.append(metrics);
-        }
     }
 
     protected Feeder createIndex(String index, String concreteIndex) throws IOException {

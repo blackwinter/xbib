@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.dnb.title;
 
-import org.xbib.elasticsearch.helper.client.Ingest;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -39,7 +39,6 @@ import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -51,16 +50,8 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 public class RdfXml extends Feeder {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new RdfXml().setPipeline(p);
-    }
-
-    @Override
-    public RdfXml beforeIndexCreation(Ingest output) throws IOException {
-        // TODO is this still necessary?
-        output.setting(getClass().getResourceAsStream("settings.json"));
-        output.mapping(settings.get("type"), getClass().getResourceAsStream("mapping.json"));
-        return this;
     }
 
     @Override

@@ -34,7 +34,6 @@ package org.xbib.common.xcontent.xml;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import org.xbib.io.BytesReference;
 import org.xbib.io.FastStringReader;
 import org.xbib.common.xcontent.XContent;
@@ -42,8 +41,6 @@ import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentGenerator;
 import org.xbib.common.xcontent.XContentParser;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,33 +52,16 @@ import java.io.Writer;
  */
 public class XmlXContent implements XContent {
 
-    private final static XMLInputFactory inputFactory;
+    private static XmlXContent xmlXContent;
 
-    private final static XMLOutputFactory outputFactory;
+    private XmlFactory xmlFactory;
 
-    private final static XmlFactory xmlFactory;
-
-    private final static XmlXContent xmlXContent;
-
-    static {
-        inputFactory = XMLInputFactory.newInstance();
-        inputFactory.setProperty("javax.xml.stream.isNamespaceAware", Boolean.TRUE);
-        inputFactory.setProperty("javax.xml.stream.isValidating", Boolean.FALSE);
-        inputFactory.setProperty("javax.xml.stream.isCoalescing", Boolean.TRUE);
-        inputFactory.setProperty("javax.xml.stream.isReplacingEntityReferences", Boolean.FALSE);
-        inputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
-
-        outputFactory = XMLOutputFactory.newInstance();
-        outputFactory.setProperty("javax.xml.stream.isRepairingNamespaces", Boolean.FALSE);
-
-        xmlFactory = new XmlFactory(inputFactory, outputFactory);
-        xmlFactory.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, true);
-
-        xmlXContent = new XmlXContent();
+    private XmlXContent(XmlFactory xmlFactory) {
+        this.xmlFactory = xmlFactory;
     }
 
     public static XContentBuilder contentBuilder() throws IOException {
-        XContentBuilder builder = XContentBuilder.builder(xmlXContent);
+        XContentBuilder builder = XContentBuilder.builder(xmlXContent());
         if (builder.generator() instanceof XmlXContentGenerator) {
             ((XmlXContentGenerator) builder.generator()).setParams(XmlXParams.getDefaultParams());
         }
@@ -89,30 +69,30 @@ public class XmlXContent implements XContent {
     }
 
     public static XContentBuilder contentBuilder(XmlXParams params) throws IOException {
-        XContentBuilder builder = XContentBuilder.builder(xmlXContent);
+        XContentBuilder builder = XContentBuilder.builder(xmlXContent(params.getXmlFactory()));
         if (builder.generator() instanceof XmlXContentGenerator) {
             ((XmlXContentGenerator) builder.generator()).setParams(params);
         }
         return builder;
     }
 
-    public XmlXContent() {
-    }
-
+    @Override
     public String name() {
         return "xml";
     }
 
     public static XmlXContent xmlXContent() {
+        if (xmlXContent == null) {
+            xmlXContent = new XmlXContent(XmlXParams.createXmlFactory(XmlXParams.createXMLInputFactory(), XmlXParams.createXMLOutputFactory()));
+        }
         return xmlXContent;
     }
 
-    protected static XmlFactory xmlFactory() {
-        return xmlFactory;
-    }
-
-    public byte streamSeparator() {
-        throw new UnsupportedOperationException("xml does not support stream parsing...");
+    public static XmlXContent xmlXContent(XmlFactory xmlFactory) {
+        if (xmlXContent == null) {
+            xmlXContent = new XmlXContent(xmlFactory);
+        }
+        return xmlXContent;
     }
 
     public XContentGenerator createGenerator(OutputStream os) throws IOException {
@@ -139,15 +119,15 @@ public class XmlXContent implements XContent {
         return new XmlXContentParser(xmlFactory.createParser(data, offset, length));
     }
 
+    public XContentParser createParser(Reader reader) throws IOException {
+        return new XmlXContentParser(xmlFactory.createParser(reader));
+    }
+
     public XContentParser createParser(BytesReference bytes) throws IOException {
         if (bytes.hasArray()) {
             return createParser(bytes.array(), bytes.arrayOffset(), bytes.length());
         }
         return createParser(bytes.streamInput());
-    }
-
-    public XContentParser createParser(Reader reader) throws IOException {
-        return new XmlXContentParser(xmlFactory.createParser(reader));
     }
 
     @Override

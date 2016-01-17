@@ -616,19 +616,16 @@ public class Settings {
          */
         public Builder replacePropertyPlaceholders() {
             PropertyPlaceholder propertyPlaceholder = new PropertyPlaceholder("${", "}", false);
-            PropertyPlaceholder.PlaceholderResolver placeholderResolver = new PropertyPlaceholder.PlaceholderResolver() {
-                @Override
-                public String resolvePlaceholder(String placeholderName) {
-                    String value = System.getProperty(placeholderName);
-                    if (value != null) {
-                        return value;
-                    }
-                    value = System.getenv(placeholderName);
-                    if (value != null) {
-                        return value;
-                    }
-                    return map.get(placeholderName);
+            PropertyPlaceholder.PlaceholderResolver placeholderResolver = placeholderName -> {
+                String value = System.getProperty(placeholderName);
+                if (value != null) {
+                    return value;
                 }
+                value = System.getenv(placeholderName);
+                if (value != null) {
+                    return value;
+                }
+                return map.get(placeholderName);
             };
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 map.put(entry.getKey(), propertyPlaceholder.replacePlaceholders(entry.getValue(), placeholderResolver));

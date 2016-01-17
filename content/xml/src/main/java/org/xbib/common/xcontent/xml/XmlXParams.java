@@ -31,39 +31,53 @@
  */
 package org.xbib.common.xcontent.xml;
 
+import com.fasterxml.jackson.dataformat.xml.XmlFactory;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 
 /**
  * XML parameters for XML XContent
  */
 public class XmlXParams {
 
+    private final static XmlFactory defaultXmlFactory = createXmlFactory(createXMLInputFactory(), createXMLOutputFactory());
+
     private final static QName defaultRoot = new QName("root");
 
-    private final static XmlXParams DEFAULT_PARAMS = new XmlXParams(defaultRoot, XmlNamespaceContext.newInstance());
+    private final static XmlXParams DEFAULT_PARAMS =
+            new XmlXParams(defaultRoot, XmlNamespaceContext.newInstance(), defaultXmlFactory);
 
     private final XmlNamespaceContext namespaceContext;
+
+    private XmlFactory xmlFactory;
 
     private QName root;
 
     private boolean fatalNamespaceErrors;
 
     public XmlXParams() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public XmlXParams(QName root) {
-        this(root, null);
+        this(root, null, null);
     }
 
     public XmlXParams(XmlNamespaceContext namespaceContext) {
-        this(null, namespaceContext);
+        this(null, namespaceContext, null);
     }
 
     public XmlXParams(QName root, XmlNamespaceContext namespaceContext) {
+        this(root, namespaceContext, null);
+    }
+
+    public XmlXParams(QName root, XmlNamespaceContext namespaceContext, XmlFactory xmlFactory) {
         this.namespaceContext = namespaceContext == null ? DEFAULT_PARAMS.getNamespaceContext() : namespaceContext;
+        this.xmlFactory = xmlFactory == null ? defaultXmlFactory : xmlFactory;
         this.root = root;
         if (root == null ) {
             this.root = defaultRoot;
@@ -74,12 +88,16 @@ public class XmlXParams {
         }
     }
 
-    public QName getRoot() {
-        return root;
-    }
-
     public XmlNamespaceContext getNamespaceContext() {
         return namespaceContext;
+    }
+
+    public XmlFactory getXmlFactory() {
+        return xmlFactory;
+    }
+
+    public QName getRoot() {
+        return root;
     }
 
     public static XmlXParams getDefaultParams() {
@@ -93,5 +111,41 @@ public class XmlXParams {
 
     public boolean isFatalNamespaceErrors() {
         return fatalNamespaceErrors;
+    }
+
+    protected static XMLInputFactory createXMLInputFactory() {
+        // load from service factories in META-INF/services
+        // default impl is "com.sun.xml.internal.stream.XMLInputFactoryImpl"
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        try {
+            inputFactory.setProperty("javax.xml.stream.isNamespaceAware", Boolean.TRUE);
+            inputFactory.setProperty("javax.xml.stream.isValidating", Boolean.FALSE);
+            inputFactory.setProperty("javax.xml.stream.isCoalescing", Boolean.TRUE);
+            inputFactory.setProperty("javax.xml.stream.isReplacingEntityReferences", Boolean.FALSE);
+            inputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
+        } catch (Exception e) {
+            e.printStackTrace(); // we don't have a logger
+        }
+        return inputFactory;
+    }
+
+    protected static XMLOutputFactory createXMLOutputFactory() {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+        try {
+            outputFactory.setProperty("javax.xml.stream.isRepairingNamespaces", Boolean.FALSE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return outputFactory;
+    }
+
+    protected static XmlFactory createXmlFactory(XMLInputFactory inputFactory, XMLOutputFactory outputFactory) {
+        XmlFactory xmlFactory = new XmlFactory(inputFactory, outputFactory);
+        try {
+            xmlFactory.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return xmlFactory;
     }
 }

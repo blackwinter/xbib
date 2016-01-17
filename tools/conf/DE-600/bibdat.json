@@ -1,9 +1,11 @@
 {
-  "uri" : "http://services.dnb.de/oai/repository?verb=ListRecords&metadataPrefix=PicaPlus-xml&set=bib",
+  "source" : {
+    "uri": "http://services.dnb.de/oai/repository?verb=ListRecords&metadataPrefix=PicaPlus-xml&set=bib"
+  },
   "oai" : {
     "from" : "last month",
     "until" : "this month",
-    "counter" : 10
+    "counter" : 150
   },
   "elements" : "/org/xbib/analyzer/pica/zdb/bibdat.json",
   "package" : "org.xbib.analyzer.pica.zdb.bibdat",

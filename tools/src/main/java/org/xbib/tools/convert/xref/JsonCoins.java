@@ -39,7 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.tools.convert.articles.SerialsDB;
 import org.xbib.util.InputService;
-import org.xbib.io.archive.file.Finder;
+import org.xbib.util.Finder;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
@@ -126,8 +126,8 @@ public class JsonCoins extends Converter {
         logger.info("parsing initial set of serials...");
 
         try {
-            Queue<URI> input = new Finder(settings.get("serials"))
-                    .find(settings.get("path"))
+            Queue<URI> input = new Finder()
+                    .find(settings.get("path"), settings.get("serials"))
                     .getURIs();
             serialsdb.process(settings, input.poll());
         } catch (Throwable e) {
@@ -175,15 +175,11 @@ public class JsonCoins extends Converter {
     }
 
     @Override
-    public JsonCoins cleanup() {
-        try {
-            gzout.close();
-            noserialgzout.close();
-            errorgzout.close();
-        } catch (Exception e) {
-            // skip
-        }
-        return this;
+    protected void disposeSink() throws IOException {
+        gzout.close();
+        noserialgzout.close();
+        errorgzout.close();
+        super.disposeSink();
     }
 
     @Override

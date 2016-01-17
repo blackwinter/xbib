@@ -1,10 +1,12 @@
-package org.xbib.tools.marc;
+package org.xbib.tools.feed.elasticsearch.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
@@ -15,38 +17,41 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
- * Elasticsearch indexer tool for MARC holdings entity queues
+ * Elasticsearch indexer tool for MARC bibliographic data
  */
-public abstract class HoldingsFeeder extends TimewindowFeeder {
+public abstract class BibliographicFeeder extends TimewindowFeeder {
 
-    private final static Logger logger = LogManager.getLogger(HoldingsFeeder.class);
+    private final static Logger logger = LogManager.getLogger(BibliographicFeeder.class);
 
     @Override
     protected String getIndexParameterName() {
-        return "hol-index";
+        return "bib-index";
     }
 
     @Override
     protected String getIndexTypeParameterName() {
-        return "hol-type";
+        return "bib-type";
     }
 
     @Override
     protected String getIndexSettingsSpec() {
-        return  "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-settings.json";
+        return  "classpath:org/xbib/tools/feed/elasticsearch/marc/bib-settings.json";
     }
 
     @Override
     protected String getIndexMappingsSpec() {
-        return "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-mapping.json";
+        return "classpath:org/xbib/tools/feed/elasticsearch/marc/bib-mapping.json";
     }
 
     @Override
@@ -82,6 +87,32 @@ public abstract class HoldingsFeeder extends TimewindowFeeder {
         }
     }
 
+    @Override
+    protected void disposeSink() throws IOException {
+        if (ingest != null && ingest.client() != null) {
+            if (getConcreteIndex() != null) {
+                ingest.stopBulk(getConcreteIndex());
+            }
+            if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false)) {
+                if ("DE-605".equals(settings.get("identifier"))) {
+                    List<String> aliases = new LinkedList<>();
+                    aliases.add(settings.get("identifier"));
+                    Map<String, String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
+                            settings.get("sigel2isil", "/org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
+                    // only one (or none) hyphen = "main ISIL"
+                    aliases.addAll(sigel2isil.values().stream()
+                            .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
+                    ingest.switchAliases(getIndex(), getConcreteIndex(), aliases,
+                            (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
+                } else {
+                    ingest.switchAliases(getIndex(), getConcreteIndex(), Collections.singletonList(settings.get("identifier")));
+                }
+            } else {
+                logger.info("not doing alias settings because of configuration");
+            }
+        }
+    }
+
     protected MARCEntityQueue createQueue(Map<String,Object> params) {
         return new MyQueue(params);
     }
@@ -91,18 +122,16 @@ public abstract class HoldingsFeeder extends TimewindowFeeder {
     class MyQueue extends MARCEntityQueue {
 
         public MyQueue(Map<String,Object> params) {
-            super(settings.get("package", "org.xbib.analyzer.marc.hol"),
+            super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements")
+                    settings.get("elements",  "/org/xbib/analyzer/marc/bib.json")
             );
         }
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            // write resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getConcreteIndex(), getType());
+            RouteRdfXContentParams params = new RouteRdfXContentParams(getConcreteIndex(), getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {

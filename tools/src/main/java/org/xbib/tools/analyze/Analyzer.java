@@ -34,13 +34,14 @@ package org.xbib.tools.analyze;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
-import org.xbib.common.settings.loader.JsonSettingsLoader;
 import org.xbib.common.settings.loader.SettingsLoader;
+import org.xbib.common.settings.loader.SettingsLoaderFactory;
 import org.xbib.tools.Program;
 
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Writer;
+import java.net.URL;
+import java.nio.charset.Charset;
 
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
@@ -49,25 +50,21 @@ abstract class Analyzer implements Program {
     private final static Logger logger = LogManager.getLogger(Analyzer.class.getSimpleName());
 
     @Override
-    public int daemon(String[] args) throws Exception {
-        if (args.length != 2) {
-            return 1;
-        }
-        try (FileReader reader = new FileReader(args[1])) {
-            return from(args, reader);
+    public int from(String arg) throws Exception {
+        URL url = new URL(arg);
+        try (Reader reader = new InputStreamReader(url.openStream(), Charset.forName("UTF-8"))) {
+            return from(arg, reader);
         }
     }
 
     @Override
-    public int read(Reader reader) throws Exception {
-        return from(null, reader);
-    }
-
-    @Override
-    public int from(String[] args, Reader reader) throws Exception {
+    public int from(String arg, Reader reader) throws Exception {
         try {
-            SettingsLoader settingsLoader = new JsonSettingsLoader();
-            Settings settings = settingsBuilder().put(settingsLoader.load(Settings.copyToString(reader))).build();
+            SettingsLoader settingsLoader = SettingsLoaderFactory.loaderFromResource(arg);
+            Settings settings = settingsBuilder()
+                    .put(settingsLoader.load(Settings.copyToString(reader)))
+                    .replacePropertyPlaceholders()
+                    .build();
             run(settings);
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);

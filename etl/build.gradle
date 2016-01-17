@@ -15,7 +15,7 @@ dependencies {
     compile project(':content:rdf')
     testCompile project(':io:archive')
     testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
-    testCompile "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+    testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
     provided project(':io:charset') // for bibliographic charsets
 }
 

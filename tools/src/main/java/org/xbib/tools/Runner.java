@@ -41,23 +41,35 @@ import java.io.InputStreamReader;
 public class Runner {
 
     public static void main(String[] args) {
-        boolean hasConsole = System.console() != null;
-        if (hasConsole) {
-            ConfigurationFactory.setConfigurationFactory(new ConsoleConfigurationFactory());
-        } else {
-            if (System.getProperty("log.rollingfile") != null) {
-                ConfigurationFactory.setConfigurationFactory(new RollingFileLoggerConfigurationFactory());
+        if (System.getProperty("log4j.configurationFile") == null && System.getProperty("log4j.configurationFactory") == null) {
+            boolean hasConsole = System.console() != null;
+            if (hasConsole) {
+                ConfigurationFactory.setConfigurationFactory(new ConsoleConfigurationFactory());
             } else {
-                ConfigurationFactory.setConfigurationFactory(new FileLoggerConfigurationFactory());
+                if (System.getProperty("log.rollingfile") != null) {
+                    ConfigurationFactory.setConfigurationFactory(new RollingFileLoggerConfigurationFactory());
+                } else {
+                    ConfigurationFactory.setConfigurationFactory(new FileLoggerConfigurationFactory());
+                }
             }
         }
         int exitcode = 0;
         try {
             if (args != null && args.length > 0) {
-                Class<?> clazz = Class.forName(args[0]);
-                Program program = (Program) clazz.newInstance();
-                InputStreamReader reader = new InputStreamReader(System.in);
-                exitcode = System.in.available() > 0 ? program.from(args, reader) : program.daemon(args);
+                if (System.in.available() > 0) {
+                    Class<?> clazz = Class.forName(args[0]);
+                    Program program = (Program) clazz.newInstance();
+                    exitcode = program.from(".json", new InputStreamReader(System.in));
+                } else {
+                    for (int i = 0; i < args.length; i+=2) {
+                        Class<?> clazz = Class.forName(args[i]);
+                        Program program = (Program) clazz.newInstance();
+                        exitcode = program.from(args[i+1]);
+                        if (exitcode != 0) {
+                            break;
+                        }
+                    }
+                }
             }
         } catch (Throwable e) {
             e.printStackTrace();

@@ -39,7 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
-import org.xbib.io.archive.file.Finder;
+import org.xbib.util.Finder;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
@@ -109,8 +109,8 @@ public class JsonCoins extends Feeder {
     @Override
     public void prepareSource() throws IOException {
         try {
-            Queue<URI> input = new Finder(settings.get("serials"))
-                    .find(settings.get("path"))
+            Queue<URI> input = new Finder()
+                    .find(settings.get("path"),settings.get("serials"))
                     .getURIs();
             logger.info("parsing initial set of serials...");
             try {
