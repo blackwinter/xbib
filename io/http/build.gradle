@@ -6,23 +6,4 @@ dependencies {
     compile "org.reactivestreams:reactive-streams:1.0.0"
     compile "com.typesafe.netty:netty-reactive-streams:1.0.0"
     compile "org.javassist:javassist:3.20.0-GA"
-    compile "com.jcraft:jzlib:1.1.3"
-    testCompile "org.testng:testng:6.8.8"
-    testCompile "org.eclipse.jetty:jetty-servlet:9.3.6.v20151106"
-    testCompile "org.eclipse.jetty:jetty-servlets:9.3.6.v20151106"
-    testCompile "org.eclipse.jetty:jetty-security:9.3.6.v20151106"
-    testCompile "org.eclipse.jetty:jetty-proxy:9.3.6.v20151106"
-    testCompile "org.eclipse.jetty.websocket:websocket-server:9.3.6.v20151106"
-    testCompile "org.eclipse.jetty.websocket:websocket-servlet:9.3.6.v20151106"
-    testCompile "org.apache.tomcat:coyote:6.0.29"
-    testCompile "org.apache.tomcat:catalina:6.0.29"
-    testCompile "commons-io:commons-io:2.4"
-    testCompile "commons-fileupload:commons-fileupload:1.3"
-    testCompile "com.e-movimento.tinytools:privilegedaccessor:1.2.2"
-    testCompile "io.reactivex:rxjava-reactive-streams:1.0.1"
 }
-
-test.useTestNG()
-
-//compileTestJava.enabled = false
-//test.enabled = false
