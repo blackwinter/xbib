@@ -54,14 +54,11 @@ public class FastByteArrayOutputStream extends OutputStream implements BytesStre
     protected int count;
 
     /**
-     * Creates a new byte array output stream. The buffer capacity is
-     * initially 1024 bytes, though its size increases if necessary.
-     *
-     * We use 1024 bytes since we mainly use this to build json/smile
-     * content in memory, and rarely does the 32 byte default in ByteArrayOutputStream fits...
+     * The initial size of 0 is a compromise. Otherwise, the heap will grow if many
+     * FastByteArrayOutputStreams are initialized.
      */
     public FastByteArrayOutputStream() {
-        this(1024);
+        this(0);
     }
 
     /**

@@ -31,7 +31,7 @@
  */
 package org.xbib.io.http.netty;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
@@ -40,7 +40,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 public class HttpSessionTest {
-
 
     @Test
     public void testGet() throws Exception {

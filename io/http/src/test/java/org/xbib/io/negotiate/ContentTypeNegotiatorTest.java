@@ -31,8 +31,9 @@
  */
 package org.xbib.io.negotiate;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ContentTypeNegotiatorTest extends Assert {
 

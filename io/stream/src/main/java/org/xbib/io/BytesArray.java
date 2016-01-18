@@ -223,6 +223,9 @@ public class BytesArray implements BytesReference {
         if (JRE_IS_64BIT) {
             // round up to 8 byte alignment in 64bit env
             switch (bytesPerElement) {
+                case 8:
+                    // no rounding
+                    return newSize;
                 case 4:
                     // round up to multiple of 2
                     return (newSize + 1) & 0x7ffffffe;
@@ -232,8 +235,6 @@ public class BytesArray implements BytesReference {
                 case 1:
                     // round up to multiple of 8
                     return (newSize + 7) & 0x7ffffff8;
-                case 8:
-                    // no rounding
                 default:
                     // odd (invalid?) size
                     return newSize;
@@ -241,15 +242,16 @@ public class BytesArray implements BytesReference {
         } else {
             // round up to 4 byte alignment in 64bit env
             switch (bytesPerElement) {
+                case 8:
+                case 4:
+                    // no rounding
+                    return newSize;
                 case 2:
                     // round up to multiple of 2
                     return (newSize + 1) & 0x7ffffffe;
                 case 1:
                     // round up to multiple of 4
                     return (newSize + 3) & 0x7ffffffc;
-                case 4:
-                case 8:
-                    // no rounding
                 default:
                     // odd (invalid?) size
                     return newSize;
