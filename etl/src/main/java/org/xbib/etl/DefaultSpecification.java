@@ -129,8 +129,9 @@ public class DefaultSpecification implements Specification {
     @SuppressWarnings("unchecked")
     private void init(ClassLoader cl, String packageName, String path, Map elementMap, Map<String, Map<String, Object>> defs)
                 throws Exception {
-        for (String key : defs.keySet()) {
-            Map<String, Object> struct = defs.get(key);
+        for (Map.Entry<String, Map<String,Object>> entry : defs.entrySet()) {
+            String key = entry.getKey();
+            Map<String,Object> struct = entry.getValue();
             // allow override static struct map from json with given params
             struct.putAll(params);
             Entity entity = null;
@@ -173,16 +174,12 @@ public class DefaultSpecification implements Specification {
                     }
                     if (clazz != null) {
                         Method factoryMethod = clazz.getDeclaredMethod("getInstance");
-                        if (factoryMethod == null) {
-                            logger.error("no 'getInstance' method declared in {}" + clazz.getName());
-                        } else {
-                            try {
-                                entity = (Entity) factoryMethod.invoke(null);
-                            } catch (NullPointerException e) {
-                                logger.error("'getInstance' method declared not static in {}" + clazz.getName());
-                            } catch (ClassCastException e) {
-                                logger.error("not an Entity class: " + clazz.getName());
-                            }
+                        try {
+                            entity = (Entity) factoryMethod.invoke(null);
+                        } catch (NullPointerException e) {
+                            logger.error("'getInstance' method declared not static in {}" + clazz.getName());
+                        } catch (ClassCastException e) {
+                            logger.error("not an Entity class: " + clazz.getName());
                         }
                         if (entity != null) {
                             entity.setSettings(struct);
@@ -297,7 +294,8 @@ public class DefaultSpecification implements Specification {
 
     @SuppressWarnings("unchecked")
     private void dump(String key, Map<String,Object> m) {
-        for (String k : m.keySet()) {
+        for (Map.Entry<String,Object> entry : m.entrySet()) {
+            String k = entry.getKey();
             Object o = m.get(k);
             String kk = key == null ? k : key + "$" + k;
             if (o instanceof Map) {

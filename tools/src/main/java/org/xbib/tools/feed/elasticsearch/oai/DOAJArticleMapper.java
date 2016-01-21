@@ -37,7 +37,7 @@ import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,10 +53,12 @@ public class DOAJArticleMapper implements ArticleVocabulary {
         return r;
     }
 
+    @SuppressWarnings("unchecked")
     private void map(Resource r, String p, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String,Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             String path = p != null ? p + "." + key : key;
-            Object value = map.get(key);
             if (value instanceof Map) {
                 map(r, path, (Map<String, Object>) value);
             } else if (value instanceof List) {
@@ -137,6 +139,8 @@ public class DOAJArticleMapper implements ArticleVocabulary {
                 r.add(DCTERMS_BIBLIOGRAPHIC_CITATION, value);
                 break;
             }
+            default:
+                break;
         }
     }
 

@@ -63,32 +63,32 @@ public class OpenLibrary extends Converter {
 
     @Override
     public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
-        String output = settings.get("output");
-        if (!output.endsWith(".gz")) {
-            output = output + ".gz";
-        }
-        OutputStream out = new GZIPOutputStream(new FileOutputStream(output)) {
-            {
-                def.setLevel(Deflater.BEST_COMPRESSION);
+        try (InputStream in = InputService.getInputStream(uri)) {
+            String output = settings.get("output");
+            if (!output.endsWith(".gz")) {
+                output = output + ".gz";
             }
-        };
-        ObjectMapper mapper = new ObjectMapper();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] l = line.split("\t"); // type, unique key, revision, last modified, JSON
-            Map<String, Object> m = mapper.readValue(l[4], Map.class);
-            logger.info("{}", m);
+            OutputStream out = new GZIPOutputStream(new FileOutputStream(output)) {
+                {
+                    def.setLevel(Deflater.BEST_COMPRESSION);
+                }
+            };
+            ObjectMapper mapper = new ObjectMapper();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] l = line.split("\t"); // type, unique key, revision, last modified, JSON
+                Map<String, Object> m = mapper.readValue(l[4], Map.class);
+                logger.info("{}", m);
+            }
+            reader.close();
+            //NTripleWriter writer = new NTripleWriter()
+            //        .output(out);
+            //new TurtleReader(base)
+            //        .setTripleListener(writer)
+            //        .parse(in);
+            out.close();
         }
-        reader.close();
-        //NTripleWriter writer = new NTripleWriter()
-        //        .output(out);
-        //new TurtleReader(base)
-        //        .setTripleListener(writer)
-        //        .parse(in);
-        in.close();
-        out.close();
     }
 
 }

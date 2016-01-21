@@ -52,8 +52,7 @@ public class Time {
     }
 
     public static Calendar yJan1(Calendar basis) {
-        Calendar clone = Time.y(basis, 1, 1);
-        return clone;
+        return Time.y(basis, 1, 1);
     }
 
     public static Calendar y(Calendar basis, int month) {

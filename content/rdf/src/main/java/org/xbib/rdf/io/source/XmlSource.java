@@ -42,11 +42,8 @@ final class XmlSource extends AbstractSource<XmlSink> {
 
     @Override
     public void process(InputStream inputStream, String mimeType, String baseUri) throws IOException {
-        Reader reader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
-        try {
+        try (Reader reader = new InputStreamReader(inputStream, Charset.forName("UTF-8"))) {
             process(reader, mimeType, baseUri);
-        } finally {
-            BaseStreamProcessor.closeQuietly(reader);
         }
     }
 

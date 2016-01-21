@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.common.xcontent.XContentHelper;
-import org.xbib.common.xcontent.XContentParser;
 import org.xbib.xml.namespace.XmlNamespaceContext;
 
 import javax.xml.namespace.QName;
@@ -15,6 +14,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class XContentXmlBuilderTest extends Assert {
+
+    @Test
+    public void testConstructorForServiceLoader() {
+        XmlXContent xmlXContent = new XmlXContent();
+        assertEquals("xml",xmlXContent.name());
+    }
 
     @Test
     public void testEmpty() throws Exception {

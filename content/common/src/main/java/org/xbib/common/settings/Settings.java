@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -16,13 +15,11 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.xbib.common.settings.loader.JsonSettingsLoader;
 import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.common.unit.TimeValue;
-import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.io.stream.StreamInput;
 import org.xbib.io.stream.StreamOutput;
 import org.xbib.common.settings.loader.SettingsLoader;
@@ -57,31 +54,6 @@ public class Settings {
             }
         }
         return map;
-    }
-
-    public StringReader getAsReader() {
-        try {
-            XContentBuilder builder = jsonBuilder();
-            builder.startObject();
-            for (Map.Entry<String, String> entry : getAsMap().entrySet()) {
-                builder.field(entry.getKey(), entry.getValue());
-            }
-            builder.endObject();
-            return new StringReader(builder.string());
-        } catch (IOException e) {
-            //
-        }
-        return null;
-    }
-
-    public Settings getComponentSettings(String prefix, Class component) {
-        String type = component.getName();
-        if (!type.startsWith(prefix)) {
-            throw new SettingsException("Component [" + type + "] does not start with prefix [" + prefix + "]");
-        }
-        String settingPrefix = type.substring(prefix.length() + 1); // 1 for the '.'
-        settingPrefix = settingPrefix.substring(0, settingPrefix.length() - component.getSimpleName().length()); // remove the simple class name (keep the dot)
-        return getByPrefix(settingPrefix);
     }
 
     public Settings getByPrefix(String prefix) {
@@ -221,7 +193,7 @@ public class Settings {
 
     public Map<String, Settings> getGroups(String settingPrefix) throws SettingsException {
         if (settingPrefix.charAt(settingPrefix.length() - 1) != '.') {
-            settingPrefix = settingPrefix + "";
+            settingPrefix = settingPrefix + ".";
         }
         // we don't really care that it might happen twice
         Map<String, Map<String, String>> map = new LinkedHashMap<String, Map<String, String>>();
@@ -255,8 +227,7 @@ public class Settings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Settings that = (Settings) o;
-        if (settings != null ? !settings.equals(that.settings) : that.settings != null) return false;
-        return true;
+        return settings != null ? settings.equals(that.settings) : that.settings == null;
     }
 
     @Override
@@ -283,8 +254,8 @@ public class Settings {
 
     public static Settings readSettingsFromMap(Map<String,Object> map) throws IOException {
         Builder builder = new Builder();
-        for (String key : map.keySet()) {
-            builder.put(key, map.get(key) != null ? map.get(key).toString() : null);
+        for (Map.Entry<String,Object> entry : map.entrySet()) {
+            builder.put(entry.getKey(), entry.getValue() != null ?entry.getValue().toString() : null);
         }
         return builder.build();
     }
@@ -309,7 +280,6 @@ public class Settings {
         private final Map<String, String> map = new LinkedHashMap<String, String>();
 
         private Builder() {
-
         }
 
         public Map<String, String> internalMap() {
@@ -496,16 +466,6 @@ public class Settings {
         }
 
         /**
-         * Sets all the provided settings.
-         */
-        public Builder put(Properties properties) {
-            for (Map.Entry entry : properties.entrySet()) {
-                map.put((String) entry.getKey(), (String) entry.getValue());
-            }
-            return this;
-        }
-
-        /**
          * Loads settings from the actual string content that represents them using the
          * {@link SettingsLoaderFactory#loaderFromString(String)}.
          */
@@ -557,51 +517,6 @@ public class Settings {
                 put(loadedSettings);
             } catch (Exception e) {
                 throw new SettingsException("Failed to load settings from [" + resourceName + "]", e);
-            }
-            return this;
-        }
-
-        /**
-         * Puts all the properties with keys starting with the provided <tt>prefix</tt>.
-         *
-         * @param prefix     The prefix to filter property key by
-         * @param properties The properties to put
-         * @return The builder
-         */
-        public Builder putProperties(String prefix, Properties properties) {
-            for (Object key1 : properties.keySet()) {
-                String key = (String) key1;
-                String value = properties.getProperty(key);
-                if (key.startsWith(prefix)) {
-                    map.put(key.substring(prefix.length()), value);
-                }
-            }
-            return this;
-        }
-
-        /**
-         * Puts all the properties with keys starting with the provided <tt>prefix</tt>.
-         *
-         * @param prefix     The prefix to filter property key by
-         * @param properties The properties to put
-         * @return The builder
-         */
-        public Builder putProperties(String prefix, Properties properties, String[] ignorePrefixes) {
-            for (Object key1 : properties.keySet()) {
-                String key = (String) key1;
-                String value = properties.getProperty(key);
-                if (key.startsWith(prefix)) {
-                    boolean ignore = false;
-                    for (String ignorePrefix : ignorePrefixes) {
-                        if (key.startsWith(ignorePrefix)) {
-                            ignore = true;
-                            break;
-                        }
-                    }
-                    if (!ignore) {
-                        map.put(key.substring(prefix.length()), value);
-                    }
-                }
             }
             return this;
         }

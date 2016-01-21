@@ -36,14 +36,10 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.settings.loader.SettingsLoader;
 import org.xbib.common.settings.loader.SettingsLoaderFactory;
-import org.xbib.io.Connection;
-import org.xbib.io.Session;
-import org.xbib.io.StringPacket;
-import org.xbib.util.Finder;
-import org.xbib.io.archive.tar2.TarConnectionFactory;
-import org.xbib.io.archive.tar2.TarSession;
+import org.xbib.tools.input.FileInput;
+import org.xbib.tools.output.FileOutput;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.Program;
+import org.xbib.tools.Processor;
 import org.xbib.time.DurationFormatUtil;
 import org.xbib.util.FormatUtil;
 import org.xbib.util.concurrent.AbstractWorker;
@@ -53,19 +49,16 @@ import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Queue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,13 +66,19 @@ import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class Converter
         extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest>
-        implements Program {
+        implements Processor {
 
-    private final static Logger logger = LogManager.getLogger(Converter.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(Converter.class);
+
+    protected final static Charset UTF8 = Charset.forName("UTF-8");
+
+    protected final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     protected Settings settings;
 
-    protected Session<StringPacket> session;
+    protected FileInput fileInput = new FileInput();
+
+    protected FileOutput fileOutput = new FileOutput();
 
     private final static AtomicInteger threadCounter = new AtomicInteger();
 
@@ -96,8 +95,14 @@ public class Converter
 
     @Override
     public int from(String arg) throws Exception {
-        URL url = new URL(arg);
-        try (Reader reader = new InputStreamReader(url.openStream(), Charset.forName("UTF-8"))) {
+        InputStream in;
+        try {
+            URL url = new URL(arg);
+            in = url.openStream();
+        } catch (MalformedURLException e) {
+            in = new FileInputStream(arg);
+        }
+        try (Reader reader = new InputStreamReader(in, UTF8)) {
             return from(arg, reader);
         }
     }
@@ -137,16 +142,16 @@ public class Converter
         pipeline.setQueue(new SynchronousQueue<>(true));
         setPipeline(pipeline);
         try {
-            prepareSink();
+            prepareOutput();
             pipeline.setConcurrency(concurrency)
                     .setWorkerProvider(provider())
                     .prepare()
                     .execute();
-            prepareSource();
+            prepareInput();
             pipeline.waitFor(new URIWorkerRequest());
         } finally {
-            disposeSource();
-            disposeSink();
+            disposeInput();
+            disposeOutput();
         }
         logger.info("execution completed");
     }
@@ -167,115 +172,28 @@ public class Converter
         }
     }
 
-    protected void prepareSink() throws IOException {
+    protected void prepareOutput() throws IOException {
     }
 
-    protected void prepareSource() throws IOException {
-        try {
-            // check if we only allowed to run on a certain host
-            if (settings.get("runhost") != null) {
-                logger.info("preparing input queue only on runhost={}", settings.get("runhost"));
-                boolean found = false;
-                // not very smart...
-                Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-                for (NetworkInterface netint : Collections.list(nets)) {
-                    Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
-                    for (InetAddress addr : Collections.list(inetAddresses)) {
-                        if (addr.getHostName().equals(settings.get("runhost"))) {
-                            found = true;
-                        }
-                    }
-                }
-                if (!found) {
-                    logger.error("configured run host {} not found, exiting", settings.get("runhost"));
-                    return;
-                }
-            }
-            if (settings.getAsArray("source.uri").length > 0) {
-                logger.info("preparing requests from uri array={}", Arrays.asList(settings.getAsArray("source.uri")));
-                String[] inputs = settings.getAsArray("source.uri");
-                for (String input : inputs) {
-                    URIWorkerRequest request = new URIWorkerRequest();
-                    request.set(URI.create(input));
-                    getQueue().put(request);
-                }
-                logger.info("{} requests", inputs.length);
-            } else if (settings.get("source.uri") != null) {
-                logger.info("preparing request from uri={}", settings.get("source.uri"));
-                String input = settings.get("uri");
-                URIWorkerRequest element = new URIWorkerRequest();
-                element.set(URI.create(input));
-                getQueue().put(element);
-                // parallel URI into queue?
-                if (settings.getAsBoolean("source.parallel", false)) {
-                    for (int i = 1; i < settings.getAsInt("source.concurrency", 1); i++) {
-                        element = new URIWorkerRequest();
-                        element.set(URI.create(input));
-                        getQueue().put(element);
-                    }
-                }
-                logger.info("put {} elements", settings.getAsBoolean("source.parallel", false) ? 1 + settings.getAsInt("source.concurrency", 1) : 1);
-            } else if (settings.get("source.path") != null) {
-                    logger.info("preparing input queue by path={}",
-                            settings.get("source.path"));
-                    Queue<URI> uris = new Finder()
-                            .find(settings.get("source.base"), settings.get("source.basepattern"),
-                                    settings.get("source.path"), settings.get("source.pattern"))
-                            .sortByName(settings.getAsBoolean("source.sort_by_name", false))
-                            .sortByLastModified(settings.getAsBoolean("source.sort_by_lastmodified", false))
-                            .getURIs();
-                    logger.info("input from URIs = {}", uris);
-                    for (URI uri : uris) {
-                        URIWorkerRequest element = new URIWorkerRequest();
-                        element.set(uri);
-                        getQueue().put(element);
-                    }
-                    logger.info("put {} elements", uris.size());
-            } else if (settings.get("source.archive") != null) {
-                logger.info("preparing input queue from archive={}", settings.get("source.archive"));
-                URIWorkerRequest element = new URIWorkerRequest();
-                element.set(URI.create(settings.get("source.archive")));
-                getQueue().put(element);
-                TarConnectionFactory factory = new TarConnectionFactory();
-                Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("source.archive")));
-                Session<StringPacket> session = connection.createSession();
-                session.open(Session.Mode.READ);
-                setSession(session);
-                logger.info("put 1 elements");
-            }
-        } catch (InterruptedException e) {
-            throw new IOException(e);
-        }
+    protected void prepareInput() throws IOException, InterruptedException {
+        fileInput.createQueue(settings, getQueue());
     }
 
     protected void process(URI uri) throws Exception {
     }
 
-    protected void disposeSource() throws IOException {
+    protected void disposeInput() throws IOException {
     }
 
-    protected void disposeSink() throws IOException {
-        if (session != null) {
-            session.close();
-        }
+    protected void disposeOutput() throws IOException {
     }
 
-    protected Converter setSettings(Settings settings) {
+    protected void setSettings(Settings settings) {
         this.settings = settings;
-        return this;
     }
 
     protected Settings getSettings() {
         return settings;
-    }
-
-    protected Converter setSession(Session<StringPacket> session) {
-        this.session = session;
-        return this;
-    }
-
-    protected Session<StringPacket> getSession() {
-        return session;
     }
 
     protected void writeMetrics(MeterMetric metric) throws Exception {
@@ -285,9 +203,9 @@ public class Converter
         long docs = metric.count();
         long bytes = 0L;
         long elapsed = metric.elapsed() / 1000000;
-        double dps = docs * 1000 / elapsed;
-        double avg = bytes / (docs + 1); // avoid div by zero
-        double mbps = (bytes * 1000 / elapsed) / (1024 * 1024);
+        double dps = docs * 1000.0 / elapsed;
+        double avg = bytes / (docs + 1.0); // avoid div by zero
+        double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
         NumberFormat formatter = NumberFormat.getNumberInstance();
         logger.info("Worker complete. {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {} dps, {} MB/s",
                 docs,
@@ -315,7 +233,6 @@ public class Converter
         if (pipeline instanceof Converter) {
             Converter converter = (Converter)pipeline;
             setSettings(converter.getSettings());
-            setSession(converter.getSession());
             setNumber(threadCounter.getAndIncrement());
         }
         return this;
@@ -327,8 +244,5 @@ public class Converter
             return settings;
         }
 
-        public Session<StringPacket> getSession() {
-            return session;
-        }
     }
 }

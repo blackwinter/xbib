@@ -91,8 +91,6 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
             if (entity != null) {
                 // entity-based processing
                 entity.fields(this, fields, value);
-                // optional indicator configuration
-                Map<String, Object> indicators = (Map<String, Object>) entity.getSettings().get("indicators");
                 // optional subfield configuration
                 Map<String, Object> subfields = (Map<String, Object>) entity.getSettings().get("subfields");
                 if (subfields != null) {

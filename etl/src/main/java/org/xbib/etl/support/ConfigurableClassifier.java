@@ -140,22 +140,5 @@ public class ConfigurableClassifier {
         return p.length > 2 ? new Entry(classifierID + p[0].trim(), p[1].trim(), p[2].trim()) : null;
     };
 
-    public class Entry {
-        String doc;
-        String code;
-        String text;
-        Entry(String doc, String code, String text) {
-            this.doc = doc;
-            this.code = code;
-            this.text = text;
-        }
 
-        public String getCode() {
-            return code;
-        }
-
-        public String getText() {
-            return text;
-        }
-    }
 }

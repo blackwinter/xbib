@@ -43,7 +43,7 @@ import java.util.WeakHashMap;
  */
 public final class ConnectionService<S extends Session> {
 
-    private final Map<String, ConnectionFactory<S>> factories = new WeakHashMap();
+    private final Map<String, ConnectionFactory<S>> factories = new WeakHashMap<>();
 
     private final static ConnectionService instance = new ConnectionService();
 
@@ -56,6 +56,7 @@ public final class ConnectionService<S extends Session> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <S extends Session> ConnectionService<S> getInstance() {
         return instance;
     }

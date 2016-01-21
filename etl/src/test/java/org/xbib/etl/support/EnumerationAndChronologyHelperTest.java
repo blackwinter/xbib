@@ -1,7 +1,10 @@
 package org.xbib.etl.support;
 
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -119,12 +122,12 @@ public class EnumerationAndChronologyHelperTest extends Assert {
     @Test
     public void testMovingwall() {
         EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
-        Pattern[] p = new Pattern[]{Pattern.compile("Letzte (\\d+) Jg")};
+        List<Pattern> p = Collections.singletonList(Pattern.compile("Letzte (\\d+) Jg"));
         String s = "Letzte 10 Jg.";
         Resource r = eac.parse(s, new MemoryResource(), p);
         Set<Integer> d = eac.dates(r.id(), r);
         // yeah, moving wall
-        Set<Integer> set = new TreeSet<Integer>();
+        Set<Integer> set = new TreeSet<>();
         for (int i = 0; i < 11; i++) {
             set.add(currentYear - i);
         }

@@ -29,7 +29,7 @@ public class PrettyTimeLocaleFallbackTest {
         assertEquals(new Locale("Foo", "Bar"), Locale.getDefault());
         Date then = format.parse("5/20/2009");
         Date ref = format.parse("6/17/2009");
-        PrettyTime t = new PrettyTime(ref);
+        PrettyTime t = new PrettyTime(ref.getTime());
         assertEquals("1 month ago", t.format(then));
     }
 

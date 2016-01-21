@@ -34,6 +34,7 @@ package org.xbib.tools.feed.elasticsearch.zdb.bib;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.marc.BibliographicFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
@@ -50,12 +51,8 @@ import java.text.Normalizer;
  */
 public class MarcBib extends BibliographicFeeder {
 
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
-
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new MarcBib().setPipeline(p);
     }
 

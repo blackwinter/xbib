@@ -95,7 +95,7 @@ public class IdentifierMapper {
         void process(String line) throws IOException;
     }
 
-    class TextProcessor {
+    static class TextProcessor {
 
         void execute(BufferedReader lr, LineProcessor lp) throws IOException {
             try {

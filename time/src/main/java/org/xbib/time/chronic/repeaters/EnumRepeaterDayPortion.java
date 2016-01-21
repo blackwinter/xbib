@@ -36,7 +36,7 @@ public class EnumRepeaterDayPortion extends RepeaterDayPortion<RepeaterDayPortio
     }
 
     @Override
-    protected int _getWidth(Range range) {
-        return (int) range.getWidth();
+    protected long _getWidth(Range range) {
+        return range.getWidth();
     }
 }

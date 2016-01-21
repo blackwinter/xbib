@@ -17,26 +17,20 @@ final class CharSource extends AbstractSource<CharSink> {
 
     @Override
     public void process(Reader reader, String mimeType, String baseUri) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(reader);
-        try {
+        try (BufferedReader bufferedReader = new BufferedReader(reader)) {
             sink.setBaseUri(baseUri);
             char[] buffer = new char[1024];
             int read;
             while ((read = bufferedReader.read(buffer)) != -1) {
                 sink.process(buffer, 0, read);
             }
-        } finally {
-            BaseStreamProcessor.closeQuietly(bufferedReader);
         }
     }
 
     @Override
     public void process(InputStream inputStream, String mimeType, String baseUri) throws IOException {
-        Reader reader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
-        try {
+        try (Reader reader = new InputStreamReader(inputStream, Charset.forName("UTF-8"))) {
             process(reader, mimeType, baseUri);
-        } finally {
-            BaseStreamProcessor.closeQuietly(reader);
         }
     }
 

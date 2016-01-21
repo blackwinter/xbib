@@ -39,9 +39,9 @@ public class PrettyTimeI18n_IT_Test {
     }
 
     private PrettyTime newPrettyTimeWOJustNow(Date ref, Locale locale) {
-        PrettyTime t = new PrettyTime(ref, locale);
+        PrettyTime t = new PrettyTime(ref.getTime(), locale);
         List<TimeUnit> units = t.getUnits();
-        List<TimeFormat> formats = new ArrayList<TimeFormat>();
+        List<TimeFormat> formats = new ArrayList<>();
         for (TimeUnit timeUnit : units) {
             if (!(timeUnit instanceof JustNow)) {
                 formats.add(t.getFormat(timeUnit));
@@ -61,13 +61,13 @@ public class PrettyTimeI18n_IT_Test {
 
     @Test
     public void testRightNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra poco", t.format(new Date(6000)));
     }
 
     @Test
     public void testMomentsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(6000), locale);
+        PrettyTime t = new PrettyTime((6000), locale);
         assertEquals("poco fa", t.format(new Date(0)));
     }
 
@@ -121,13 +121,13 @@ public class PrettyTimeI18n_IT_Test {
 
     @Test
     public void testMinutesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 13 minuti", t.format(new Date(1000 * 60 * 13)));
     }
 
     @Test
     public void testMinutesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 13), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 13), locale);
         assertEquals("13 minuti fa", t.format(new Date(0)));
     }
 
@@ -145,206 +145,206 @@ public class PrettyTimeI18n_IT_Test {
 
     @Test
     public void testHoursFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 ore", t.format(new Date(1000 * 60 * 60 * 3)));
     }
 
     @Test
     public void testHoursAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 3), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 3), locale);
         assertEquals("3 ore fa", t.format(new Date(0)));
     }
 
     @Test
     public void testHoursFromNowSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 ora", t.format(new Date(1000 * 60 * 60 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 ora", t.format(new Date(1000 * 60 * 60)));
     }
 
     @Test
     public void testHoursAgoSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 1), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60), locale);
         assertEquals("1 ora fa", t.format(new Date(0)));
     }
 
     @Test
     public void testDaysFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 giorni", t.format(new Date(1000 * 60 * 60 * 24 * 3)));
     }
 
     @Test
     public void testDaysAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 3), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3), locale);
         assertEquals("3 giorni fa", t.format(new Date(0)));
     }
 
     @Test
     public void testDaysFromNowSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 giorno", t.format(new Date(1000 * 60 * 60 * 24 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 giorno", t.format(new Date(1000 * 60 * 60 * 24)));
     }
 
     @Test
     public void testDaysAgoSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 1), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24), locale);
         assertEquals("1 giorno fa", t.format(new Date(0)));
     }
 
     @Test
     public void testWeeksFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 settimane", t.format(new Date(1000 * 60 * 60 * 24 * 7 * 3)));
     }
 
     @Test
     public void testWeeksAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 7 * 3), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 7 * 3), locale);
         assertEquals("3 settimane fa", t.format(new Date(0)));
     }
 
     @Test
     public void testWeeksFromNowSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 settimana", t.format(new Date(1000 * 60 * 60 * 24 * 7 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 settimana", t.format(new Date(1000 * 60 * 60 * 24 * 7)));
     }
 
     @Test
     public void testWeeksAgoSingle() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 7 * 1), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 7), locale);
         assertEquals("1 settimana fa", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 mesi", t.format(new Date(1000L * 60 * 60 * 24 * 30 * 3)));
     }
 
     @Test
     public void testMonthsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 30 * 3), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 30 * 3), locale);
         assertEquals("3 mesi fa", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 mese", t.format(new Date(1000L * 60 * 60 * 24 * 30 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 mese", t.format(new Date(1000L * 60 * 60 * 24 * 30)));
     }
 
     @Test
     public void testMonthAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 30 * 1), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 30), locale);
         assertEquals("1 mese fa", t.format(new Date(0)));
     }
 
     @Test
     public void testYearsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 anni", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 3)));
     }
 
     @Test
     public void testYearsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 3), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 3), locale);
         assertEquals("3 anni fa", t.format(new Date(0)));
     }
 
     @Test
     public void testYearFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 anno", t.format(new Date(1000L * 60 * 60 * 24 * 366 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 anno", t.format(new Date(1000L * 60 * 60 * 24 * 366)));
     }
 
     @Test
     public void testYearAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 366 * 1), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 366), locale);
         assertEquals("1 anno fa", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 decenni", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 10 * 3)));
     }
 
     @Test
     public void testDecadesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 10 * 3), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 10 * 3), locale);
         assertEquals("3 decenni fa", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadeFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
-        assertEquals("fra 1 decennio", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 11 * 1)));
+        PrettyTime t = new PrettyTime((0), locale);
+        assertEquals("fra 1 decennio", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 11)));
     }
 
     @Test
     public void testDecadeAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 11), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 11), locale);
         assertEquals("1 decennio fa", t.format(new Date(0)));
     }
 
     @Test
     public void testCenturiesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 secoli", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 100 * 3)));
     }
 
     @Test
     public void testCenturiesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 100 * 3), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 100 * 3), locale);
         assertEquals("3 secoli fa", t.format(new Date(0)));
     }
 
     @Test
     public void testCenturyFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 1 secolo", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 101)));
     }
 
     @Test
     public void testCenturyAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 101), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 101), locale);
         assertEquals("1 secolo fa", t.format(new Date(0)));
     }
 
     @Test
     public void testMillenniaFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 3 millenni", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 1000 * 3)));
     }
 
     @Test
     public void testMillenniaAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 1000 * 3), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 1000 * 3), locale);
         assertEquals("3 millenni fa", t.format(new Date(0)));
     }
 
     @Test
     public void testMillenniumFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         assertEquals("fra 1 millennio", t.format(new Date(1000L * 60 * 60 * 24 * 365 * 1001)));
     }
 
     @Test
     public void testMillenniumAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000L * 60 * 60 * 24 * 365 * 1001), locale);
+        PrettyTime t = new PrettyTime((1000L * 60 * 60 * 24 * 365 * 1001), locale);
         assertEquals("1 millennio fa", t.format(new Date(0)));
     }
 
     @Test
     public void testFormattingDurationListInThePast() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38), locale);
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38), locale);
         List<Duration> durations = t.calculatePreciseDuration(new Date(0));
         assertEquals("3 giorni 15 ore 38 minuti fa", t.format(durations));
     }
 
     @Test
     public void testFormattingDurationListInTheFuture() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0), locale);
+        PrettyTime t = new PrettyTime((0), locale);
         List<Duration> durations = t.calculatePreciseDuration(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15
                 + 1000 * 60 * 38));
         assertEquals("fra 3 giorni 15 ore 38 minuti", t.format(durations));

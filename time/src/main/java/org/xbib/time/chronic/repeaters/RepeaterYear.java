@@ -48,9 +48,9 @@ public class RepeaterYear extends RepeaterUnit {
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
-        Calendar newBegin = Time.cloneAndAdd(span.getBeginCalendar(), Calendar.YEAR, amount * direction);
-        Calendar newEnd = Time.cloneAndAdd(span.getEndCalendar(), Calendar.YEAR, amount * direction);
+        long l = amount * (pointer == PointerType.FUTURE ? 1L : -1L);
+        Calendar newBegin = Time.cloneAndAdd(span.getBeginCalendar(), Calendar.YEAR, l);
+        Calendar newEnd = Time.cloneAndAdd(span.getEndCalendar(), Calendar.YEAR, l);
         return new Span(newBegin, newEnd);
     }
 

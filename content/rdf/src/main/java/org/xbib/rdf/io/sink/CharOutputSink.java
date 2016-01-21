@@ -1,6 +1,5 @@
 package org.xbib.rdf.io.sink;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -144,13 +143,11 @@ public final class CharOutputSink implements CharSink {
         writeBuffer();
         writer.flush();
         if (closeOnEndStream) {
-            if (writer != null) {
-                closeQuietly(writer);
-                writer = null;
-            } else if (outputStream != null) {
-                closeQuietly(outputStream);
-                outputStream = null;
-            }
+            writer.close();
+            writer = null;
+        } else if (outputStream != null) {
+            outputStream.close();
+            outputStream = null;
         }
     }
 
@@ -164,13 +161,4 @@ public final class CharOutputSink implements CharSink {
 
     }
 
-    private void closeQuietly(Closeable closeable) {
-        try {
-            if (closeable != null) {
-                closeable.close();
-            }
-        } catch (java.io.IOException ioe) {
-            // ignore
-        }
-    }
 }

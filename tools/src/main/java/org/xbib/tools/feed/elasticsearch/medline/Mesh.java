@@ -2,6 +2,7 @@ package org.xbib.tools.feed.elasticsearch.medline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -35,18 +36,17 @@ public final class Mesh extends Feeder {
     private final static Logger logger = LogManager.getLogger(Mesh.class);
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Mesh().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        RdfContentParams params = new RdfXContentParams();
-        InputStream in = InputService.getInputStream(uri);
-        Handler handler = new Handler(params).setDefaultNamespace("", "http://xbib.org/ns/mesh/");
-        new XmlContentParser(new InvalidXmlCharacterFilterReader(in, "UTF-8")).setNamespaces(false).setHandler(handler).parse();
-
-        in.close();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            RdfContentParams params = new RdfXContentParams();
+            Handler handler = new Handler(params).setDefaultNamespace("", "http://xbib.org/ns/mesh/");
+            new XmlContentParser(new InvalidXmlCharacterFilterReader(in, "UTF-8")).setNamespaces(false).setHandler(handler).parse();
+        }
     }
 
     private class Handler extends DefaultHandler implements XmlHandler {

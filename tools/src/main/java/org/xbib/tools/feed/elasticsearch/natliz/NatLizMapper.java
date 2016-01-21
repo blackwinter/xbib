@@ -31,15 +31,13 @@
  */
 package org.xbib.tools.feed.elasticsearch.natliz;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -73,10 +71,12 @@ public class NatLizMapper implements ArticleVocabulary {
         return r;
     }
 
+    @SuppressWarnings("unchecked")
     private void map(Resource r, String p, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String,Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             String path = p != null ? p + "." + key : key;
-            Object value = map.get(key);
             if (value instanceof Map) {
                 map(r, path, (Map<String, Object>) value);
             } else if (value instanceof List) {
@@ -114,8 +114,8 @@ public class NatLizMapper implements ArticleVocabulary {
                     // switch lastname, forename
                     String[] s = value.split(", ");
                     Author author = new Author();
-                    author.lastName = s[0];
-                    author.foreName = s.length > 1 ? s[1] : null;
+                    author.setLastName(s[0]);
+                    author.setForeName(s.length > 1 ? s[1] : null);
                     authors.add(author);
                     r.newResource(DC_CREATOR)
                             .a(FOAF_AGENT)
@@ -123,7 +123,7 @@ public class NatLizMapper implements ArticleVocabulary {
                             .add(FOAF_GIVENNAME, author.foreName );
                 } else {
                     Author author = new Author();
-                    author.lastName = value;
+                    author.setLastName(value);
                     authors.add(author);
                     r.newResource(DC_CREATOR)
                             .a(FOAF_AGENT)
@@ -143,7 +143,7 @@ public class NatLizMapper implements ArticleVocabulary {
                         .a(FOAF_AGENT)
                         .add(FOAF_NAME, value);
                 Author author = new Author();
-                author.lastName = value;
+                author.setLastName(value);
                 authors.add(author);
                 break;
             }
@@ -236,13 +236,24 @@ public class NatLizMapper implements ArticleVocabulary {
                 r.add(DCTERMS_ABSTRACT, value);
                 break;
             }
+            default:
+                break;
         }
     }
 
-    class Author implements Comparable<Author> {
-        String lastName, foreName;
+    static class Author implements Comparable<Author> {
+        private String lastName, foreName, normalized;
 
-        String normalize() {
+        void setLastName(String lastName) {
+            this.lastName = lastName;
+            this.normalized = normalize();
+        }
+        void setForeName(String foreName) {
+            this.foreName = foreName;
+            this.normalized = normalize();
+        }
+
+        private String normalize() {
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
@@ -255,8 +266,19 @@ public class NatLizMapper implements ArticleVocabulary {
 
         @Override
         public int compareTo(Author o) {
-            return normalize().compareTo(o.normalize());
+            return normalized.compareTo(o.normalized);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && normalized.equals(((Author)o).normalized);
+        }
+
+        @Override
+        public int hashCode() {
+            return normalized.hashCode();
+        }
+
     }
 
 }

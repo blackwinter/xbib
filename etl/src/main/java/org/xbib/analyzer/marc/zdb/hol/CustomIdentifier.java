@@ -31,10 +31,11 @@
  */
 package org.xbib.analyzer.marc.zdb.hol;
 
+import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
-public class CustomIdentifier extends org.xbib.analyzer.marc.bib.CustomIdentifier {
+public class CustomIdentifier extends MARCEntity {
 
     private final static CustomIdentifier instance = new CustomIdentifier();
 

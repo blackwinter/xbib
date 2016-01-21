@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,23 +47,24 @@ public class DOAJMapper implements ArticleVocabulary {
         return r;
     }
 
-    private void map(Resource r, String p, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
-            String path = p != null ? p + "." + key : key;
-            Object value = map.get(key);
+    private void map(Resource r, String prefix, Map<String, Object> map) throws IOException {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String p = prefix != null ? prefix + "." + key : key;
+            Object value = entry.getValue();
             if (value instanceof Map) {
-                map(r, path, (Map<String, Object>) value);
+                map(r, p, (Map<String, Object>) value);
             } else if (value instanceof List) {
                 for (Object o : (List) value) {
                     if (o instanceof Map) {
-                        map(r, path, (Map<String, Object>) o);
+                        map(r, p, (Map<String, Object>) o);
                     } else {
-                        map(r, path, o.toString());
+                        map(r, p, o.toString());
                     }
                 }
             } else {
                 if (value != null) {
-                    map(r, path, value.toString());
+                    map(r, p, value.toString());
                 }
             }
         }
@@ -91,7 +92,10 @@ public class DOAJMapper implements ArticleVocabulary {
             }
             case "rights" : {
                 r.add(DC_RIGHTS, value);
+                break;
             }
+            default:
+                break;
         }
     }
 

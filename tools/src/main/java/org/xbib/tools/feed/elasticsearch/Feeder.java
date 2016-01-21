@@ -33,160 +33,92 @@ package org.xbib.tools.feed.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
-import org.xbib.elasticsearch.helper.client.ClientBuilder;
+import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.tools.convert.Converter;
 import org.xbib.time.DurationFormatUtil;
+import org.xbib.tools.output.ElasticsearchOutput;
+import org.xbib.tools.output.IndexDefinition;
 import org.xbib.util.FormatUtil;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class Feeder extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(Feeder.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(Feeder.class);
 
-    protected static Ingest ingest;
+    protected Ingest ingest;
 
-    protected String index;
+    protected ElasticsearchOutput elasticsearchOutput = new ElasticsearchOutput();
 
-    protected String type;
+    protected Map<String,IndexDefinition> indexDefinitionMap = new LinkedHashMap<>();
 
-    protected String concreteIndex;
-
-    private String indexParameterName;
-
-    private String indexTypeParameterName;
-
-    protected void setIndex(String index) {
-        this.index = index;
+    protected void setIngest(Ingest ingest) {
+        this.ingest = ingest;
     }
 
-    protected String getIndex() {
-        return index;
-    }
-
-    protected void setType(String type) {
-        this.type = type;
-    }
-
-    protected String getType() {
-        return type;
-    }
-
-    protected void setConcreteIndex(String concreteIndex) {
-        this.concreteIndex = concreteIndex;
-    }
-
-    protected String getConcreteIndex() {
-        return concreteIndex;
-    }
-
-    protected void setIndexParameterName(String indexParameterName) {
-        this.indexParameterName = indexParameterName;
-    }
-
-    protected String getIndexParameterName() {
-        return indexParameterName;
-    }
-
-    protected void setIndexTypeParameterName(String indexTypeParameterName) {
-        this.indexTypeParameterName = indexTypeParameterName;
-    }
-
-    protected String getIndexTypeParameterName() {
-        return indexTypeParameterName;
+    protected void setIndexDefinitionMap(Map<String,IndexDefinition> indexDefinitionMap) {
+        this.indexDefinitionMap = indexDefinitionMap;
     }
 
     @Override
-    protected void prepareSink() throws IOException {
-        logger.info("preparing ingest");
-        if (getIndexParameterName() == null) {
-            setIndexParameterName("index");
-        }
-        if (getIndexTypeParameterName() == null) {
-            setIndexTypeParameterName("type");
-        }
-        if (getIndex() == null) {
-            setIndex(settings.get(getIndexParameterName()));
-        }
-        if (getType() == null) {
-            setType(settings.get(getIndexTypeParameterName()));
-        }
-        if (getConcreteIndex() == null) {
-            // index = concrete index
-            setConcreteIndex(getIndex());
-        }
-        if (ingest == null) {
-            ingest = createIngest();
-        }
-        logger.info("creating index {} {}", getIndex(), getConcreteIndex());
-        createIndex(getIndex(), getConcreteIndex());
-    }
-
-    protected Ingest createIngest() throws IOException {
-        Settings clientSettings = Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
-                .put("host", settings.get("elasticsearch.host", "localhost"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build();
-        ClientBuilder clientBuilder = ClientBuilder.builder()
-                .put(clientSettings)
-                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
-                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
-                        Runtime.getRuntime().availableProcessors()))
-                .setMetric(new LongAdderIngestMetric());
-        if (settings.getAsBoolean("mock", false)) {
-            return clientBuilder.toMockTransportClient();
-        }
-        if ("ingest".equals(settings.get("client"))) {
-            return clientBuilder.toIngestTransportClient();
-        }
-        return clientBuilder.toBulkTransportClient();
-    }
-
-    @Override
-    protected void disposeSource() throws IOException {
-        super.disposeSource();
-    }
-
-    @Override
-    protected void disposeSink() throws IOException {
-        super.disposeSink();
-        if (ingest != null) {
-            try {
-                logger.info("flush ingestion");
-                ingest.flushIngest();
-                logger.info("waiting for all responses from sink");
-                ingest.waitForResponses(TimeValue.timeValueSeconds(120));
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                logger.error(e.getMessage(), e);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+    protected void prepareOutput() throws IOException {
+        super.prepareOutput();
+        Map<String,Settings> outputMap = settings.getGroups("output");
+        for (Map.Entry<String,Settings> entry : outputMap.entrySet()) {
+            if ("elasticsearch".equals(entry.getKey())) {
+                logger.info("preparing Elasticsearch for output");
+                prepareElasticsearch(entry.getValue());
             }
-            logger.info("executing ingest shutdown");
-            ingest.shutdown();
         }
-        logger.info("sink disposed");
+    }
+
+    protected void prepareElasticsearch(Settings elasticsearchSettings) throws IOException {
+        ingest = elasticsearchOutput.createIngest(elasticsearchSettings);
+        if (ingest != null) {
+            indexDefinitionMap = elasticsearchOutput.makeIndexDefinitions(ingest, elasticsearchSettings.getGroups("index"));
+            logger.info("creation of {}", indexDefinitionMap.keySet());
+            for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
+                elasticsearchOutput.createIndex(ingest, entry.getValue());
+            }
+            logger.info("startup of {}", indexDefinitionMap.keySet());
+            elasticsearchOutput.startup(ingest, indexDefinitionMap);
+        }
+    }
+
+    @Override
+    protected void disposeOutput() throws IOException {
+        logger.info("close down of {}", indexDefinitionMap.keySet());
+        elasticsearchOutput.close(ingest, indexDefinitionMap);
+        performIndexSwitch();
+        for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
+            elasticsearchOutput.replica(ingest, entry.getValue());
+        }
+        elasticsearchOutput.shutdown(ingest);
+        super.disposeOutput();
+    }
+
+    protected void performIndexSwitch() throws IOException {
+        IndexDefinition def = indexDefinitionMap.get("bib");
+        if (def != null && def.getTimeWindow() != null) {
+            logger.info("switching index {}", def.getIndex());
+            elasticsearchOutput.switchIndex(ingest, def, Collections.singletonList(def.getIndex()));
+            logger.info("performing retention policy for index {}", def.getIndex());
+            elasticsearchOutput.retention(ingest, def);
+        }
     }
 
     @Override
     protected void writeMetrics(MeterMetric metric) throws Exception {
-        if (metric ==null) {
+        if (metric == null) {
             return;
         }
         long docs = metric.count();
@@ -199,7 +131,7 @@ public abstract class Feeder extends Converter {
         //long bytes = 0;
         long elapsed = metric.elapsed() / 1000000;
         String elapsedhuman = DurationFormatUtil.formatDurationWords(elapsed, true, true);
-        double avg = bytes / (docs + 1); // avoid div by zero
+        double avg = bytes / (docs + 1.0); // avoid div by zero
         double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
         NumberFormat formatter = NumberFormat.getNumberInstance();
         logger.info("indexing metrics: elapsed {}, {} docs, {} bytes, {} avgsize, {} MB/s, {} ({} {} {})",
@@ -215,50 +147,6 @@ public abstract class Feeder extends Converter {
         );
     }
 
-    protected Feeder createIndex(String index, String concreteIndex) throws IOException {
-        if (ingest == null) {
-            return this;
-        }
-        if (settings.get("elasticsearch.cluster") != null) {
-            Settings clientSettings = Settings.settingsBuilder()
-                    .put("cluster.name", settings.get("elasticsearch.cluster"))
-                    .put("host", settings.get("elasticsearch.host"))
-                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build();
-            ingest.init(clientSettings, new LongAdderIngestMetric());
-        }
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
-        try {
-            String indexSettings = settings.get(getIndexParameterName() + "-settings",
-                    "classpath:org/xbib/tools/feed/elasticsearch/settings.json");
-            InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
-                    new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
-                    new URL(indexSettings)).openStream();
-            String indexMappings = settings.get(getIndexParameterName() + "-mapping",
-                    "classpath:org/xbib/tools/feed/elasticsearch/mapping.json");
-            InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
-                    new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
-                    new URL(indexMappings)).openStream();
-            logger.info("creating index {}", concreteIndex);
-            ingest.newIndex(concreteIndex, getType(),
-                    indexSettingsInput, indexMappingsInput);
-            beforeIndexCreation(ingest);
-        } catch (Exception e) {
-            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
-                throw e;
-            } else {
-                logger.warn("index creation error, but configured to ignore");
-            }
-        }
-        return this;
-    }
-
-    protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
-        return this;
-    }
-
     @Override
     protected ForkJoinPipeline newPipeline() {
         return new ConfiguredPipeline();
@@ -270,9 +158,8 @@ public abstract class Feeder extends Converter {
         if (pipeline instanceof ConfiguredPipeline) {
             ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
             setSettings(configuredPipeline.getSettings());
-            setIndex(configuredPipeline.getIndex());
-            setConcreteIndex(configuredPipeline.getConcreteIndex());
-            setType(configuredPipeline.getType());
+            setIngest(configuredPipeline.getIngest());
+            setIndexDefinitionMap(configuredPipeline.getIndexDefinitionMap());
         }
         return this;
     }
@@ -281,14 +168,11 @@ public abstract class Feeder extends Converter {
         public org.xbib.common.settings.Settings getSettings() {
             return settings;
         }
-        public String getIndex() {
-            return index;
+        public Ingest getIngest() {
+            return ingest;
         }
-        public String getConcreteIndex() {
-            return concreteIndex;
-        }
-        public String getType() {
-            return type;
+        public Map<String,IndexDefinition> getIndexDefinitionMap() {
+            return indexDefinitionMap;
         }
     }
 

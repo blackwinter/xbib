@@ -31,6 +31,9 @@
  */
 package org.xbib.strings.encode;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Encodes a string into a soundex value. Soundex is an encoding used to relate
  * similar names, but can also be used as a general purpose scheme to find word
@@ -42,7 +45,10 @@ public class SoundexEncoder implements StringEncoder {
     /**
      * This is a default mapping of the 26 letters used in US english.
      */
-    public static final char[] US_ENGLISH_MAPPING = "01230120022455012623010202".toCharArray();
+    private static final List<Character> US_ENGLISH_MAPPING =
+            Arrays.asList('0', '1', '2', '3', '0', '1', '2', '0',
+                    '0', '2', '2', '4', '5', '5', '0', '1',
+                    '2', '6', '2', '3', '0', '1', '0', '2', '0', '2');
     /**
      * This static variable contains an instance of the Soundex using the
      * US_ENGLISH mapping.
@@ -53,7 +59,7 @@ public class SoundexEncoder implements StringEncoder {
      * array holds the values to which each letter is mapped. This implementation
      * contains a default map for US_ENGLISH
      */
-    private char[] soundexMapping;
+    private List<Character> soundexMapping;
     /**
      * The maximum length of a Soundex code - Soundex codes are only four
      * characters by definition.
@@ -76,7 +82,7 @@ public class SoundexEncoder implements StringEncoder {
      * @param mapping Mapping array to use when finding the corresponding code for a
      *                given character
      */
-    public SoundexEncoder(char[] mapping) {
+    public SoundexEncoder(List<Character> mapping) {
         this.soundexMapping = mapping;
     }
 
@@ -114,7 +120,7 @@ public class SoundexEncoder implements StringEncoder {
         if (!Character.isLetter(c)) {
             return 0;
         }
-        return this.soundexMapping[Character.toUpperCase(c) - 'A'];
+        return soundexMapping.get(Character.toUpperCase(c) - 'A');
     }
 
     /**

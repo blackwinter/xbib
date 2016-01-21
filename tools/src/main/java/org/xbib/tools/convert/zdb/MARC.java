@@ -43,9 +43,10 @@ import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -54,70 +55,53 @@ import java.util.TreeSet;
 /**
  * Cnnverting Zeitschriftendatenbank (ZDB) MARC ISO2709 files
  */
-public final class FromMARC extends Converter {
+public final class MARC extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(FromMARC.class.getName());
-
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
+    private final static Logger logger = LogManager.getLogger(MARC.class.getName());
 
     @Override
-    protected WorkerProvider provider() {
-        return p -> new FromMARC().setPipeline(p);
+    protected WorkerProvider<Converter> provider() {
+        return p -> new MARC().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        final MARCEntityQueue queue = new MARCEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
-        queue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
-                logger.warn("unmapped field {}", key);
-                unmapped.add("\"" + key + "\"");
+        try (InputStream in = InputService.getInputStream(uri)) {
+            Reader r = new InputStreamReader(in, ISO88591);
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+            final MARCEntityQueue queue = new MARCEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+            queue.setUnmappedKeyListener((id, key) -> {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
+                    logger.warn("unmapped field {}", key);
+                    unmapped.add("\"" + key + "\"");
+                }
+            });
+            queue.execute();
+
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .addListener(queue)
+                    .addListener(new LoggingAdapter());
+
+            final Iso2709Reader reader = new Iso2709Reader(r)
+                    .setMarcXchangeListener(kv);
+            // setting the properties is just informational and not used for any purpose.
+            reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
+            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
+            if ("marc/hol".equals(settings.get("elements")) || "marc/zdb/hol".equals(settings.get("elements"))) {
+                reader.setProperty(Iso2709Reader.TYPE, "Holdings");
             }
-        });
-        queue.execute();
-
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
-                .addListener(queue)
-                .addListener(new LoggingAdapter());
-
-        InputStreamReader r = new InputStreamReader(InputService.getInputStream(uri), ISO88591);
-        final Iso2709Reader reader = new Iso2709Reader(r)
-                .setMarcXchangeListener(kv);
-        // setting the properties is just informational and not used for any purpose.
-        reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
-        reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
-        if ("marc/hol".equals(settings.get("elements")) || "marc/zdb/hol".equals(settings.get("elements"))) {
-            reader.setProperty(Iso2709Reader.TYPE, "Holdings");
-        }
-        reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
-        reader.parse();
-        r.close();
-        queue.close();
-        if (settings.getAsBoolean("detect", false)) {
-            logger.info("unknown keys={}", unmapped);
+            reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
+            reader.parse();
+            r.close();
+            queue.close();
+            if (settings.getAsBoolean("detect", false)) {
+                logger.info("unknown keys={}", unmapped);
+            }
         }
     }
 
-    /*private class MarcResourceOutput implements ResourceWriter<Context<Resource>, Resource> {
-
-        @Override
-        public void write(Context context) throws IOException {
-            IRI iri = context.getResource().id();
-            context.getResource().id(IRI.builder().scheme("http").host(settings.get("index")).query(settings.get("type"))
-                    .fragment(iri.getFragment()).build());
-
-            StringWriter sw = new StringWriter();
-            NTripleContentGenerator writer = new NTripleContentGenerator(sw);
-            writer.write(context);
-            logger.debug("{}", sw.toString());
-        }
-    }*/
-
-    class LoggingAdapter extends KeyValueStreamAdapter<FieldList, String> {
+    static class LoggingAdapter extends KeyValueStreamAdapter<FieldList, String> {
         @Override
         public KeyValueStreamAdapter<FieldList, String> begin() {
             logger.debug("start");

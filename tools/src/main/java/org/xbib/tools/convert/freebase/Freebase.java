@@ -33,7 +33,6 @@ package org.xbib.tools.convert.freebase;
 
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -53,29 +52,29 @@ import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 public class Freebase extends Converter {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Freebase().setPipeline(p);
     }
 
     // TODO
     @Override
     public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
-        String output = settings.get("output");
-        if (!output.endsWith(".gz")) {
-            output = output + ".gz";
-        }
-        OutputStream out = new GZIPOutputStream(new FileOutputStream(output)) {
-            {
-                def.setLevel(Deflater.BEST_COMPRESSION);
+        try (InputStream in = InputService.getInputStream(uri)) {
+            String output = settings.get("output");
+            if (!output.endsWith(".gz")) {
+                output = output + ".gz";
             }
-        };
-        RdfContentBuilder builder = ntripleBuilder(out);
-        TurtleContentParser parser = new TurtleContentParser(in)
-                .setBaseIRI(IRI.create(settings.get("base")));
-        parser.parse();
-        in.close();
-        out.close();
+            OutputStream out = new GZIPOutputStream(new FileOutputStream(output)) {
+                {
+                    def.setLevel(Deflater.BEST_COMPRESSION);
+                }
+            };
+            ntripleBuilder(out);
+            TurtleContentParser parser = new TurtleContentParser(in)
+                    .setBaseIRI(IRI.create(settings.get("base")));
+            parser.parse();
+            out.close();
+        }
     }
 
 }

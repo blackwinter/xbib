@@ -6,3 +6,4 @@ org.xbib.io.archive.jar.JarConnectionFactory
 org.xbib.io.archive.file.FileConnectionFactory
 org.xbib.io.archive.classpath.ClasspathConnectionFactory
 org.xbib.io.jdbc.SQLConnectionFactory
+org.xbib.io.http.HttpConnectionFactory

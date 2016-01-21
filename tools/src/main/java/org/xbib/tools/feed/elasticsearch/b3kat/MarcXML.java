@@ -33,10 +33,10 @@ package org.xbib.tools.feed.elasticsearch.b3kat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeReader;
@@ -46,9 +46,9 @@ import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -63,46 +63,37 @@ public final class MarcXML extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(MarcXML.class.getName());
 
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
-
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new MarcXML().setPipeline(p);
     }
 
     @Override
-    protected Feeder beforeIndexCreation(Ingest ingest) throws IOException {
-        // TODO this should no longer be necessary
-        ingest.mapping("title", MarcXML.class.getResourceAsStream("mapping-title.json"));
-        return this;
-    }
-
-    @Override
     public void process(URI uri) throws Exception {
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) ;
-        queue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
-                logger.warn("unmapped field {}", key);
-                unmapped.add("\"" + key + "\"");
+        try (InputStream in = InputService.getInputStream(uri)) {
+            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+            final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
+                    new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
+                    new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+            queue.setUnmappedKeyListener((id, key) -> {
+                if ((settings.getAsBoolean("detect", false))) {
+                    logger.warn("unmapped field {}", key);
+                    unmapped.add("\"" + key + "\"");
+                }
+            });
+            queue.execute();
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .addListener(queue);
+            MarcXchangeReader reader = new MarcXchangeReader(r)
+                    .setMarcXchangeListener(kv);
+            reader.parse();
+            r.close();
+            queue.close();
+            if (settings.getAsBoolean("detect-unknown", false)) {
+                logger.info("unknown keys={}", unmapped);
             }
-        });
-        queue.execute();
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
-                .addListener(queue);
-        InputStreamReader r = new InputStreamReader(InputService.getInputStream(uri), ISO88591);
-        MarcXchangeReader reader = new MarcXchangeReader(r)
-                .setMarcXchangeListener(kv);
-        reader.parse();
-        r.close();
-        queue.close();
-        if (settings.getAsBoolean("detect", false)) {
-            logger.info("unknown keys={}", unmapped);
         }
     }
 
@@ -114,8 +105,8 @@ public final class MarcXML extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    settings.get("index"), settings.get("type"));
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(state.getResource());
@@ -130,8 +121,8 @@ public final class MarcXML extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    settings.get("index"), settings.get("type"));
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(state.getResource());

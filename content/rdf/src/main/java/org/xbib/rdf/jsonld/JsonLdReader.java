@@ -98,7 +98,7 @@ public final class JsonLdReader implements CharSink {
 
     private JsonLdContentHandler contentHandler;
 
-    private Deque<Short> stateStack = new LinkedList<Short>();
+    private Deque<Short> stateStack = new LinkedList<>();
 
     private short parsingState;
 
@@ -188,9 +188,9 @@ public final class JsonLdReader implements CharSink {
                         }
                     } else {
                         if (value.contains(".") || value.contains("E") || value.contains("e")) {
-                            contentHandler.onNumber(Double.valueOf(value));
+                            contentHandler.onNumber(Double.parseDouble(value));
                         } else {
-                            contentHandler.onNumber(Integer.valueOf(value));
+                            contentHandler.onNumber(Integer.parseInt(value));
                         }
                     }
                     parsingState = stateStack.pop();

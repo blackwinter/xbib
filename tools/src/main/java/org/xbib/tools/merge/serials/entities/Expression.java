@@ -71,11 +71,14 @@ public class Expression {
         builder.field("lastdate", titleRecordCluster.getLastDate());
         // struct counter
         builder.startObject("count");
-        for (String key : statCounter.keySet()) {
-            Map<String,Integer> map = statCounter.get(key);
+        for (Map.Entry<String,Map<String,Integer>> entry : statCounter.entrySet()) {
+            String key = entry.getKey();
+            Map<String,Integer> map = entry.getValue();
             builder.startObject(key);
-            for (String value : map.keySet()) {
-                builder.field(value, map.get(value));
+            for (Map.Entry<String,Integer> entry2 : map.entrySet()) {
+                String key2 = entry2.getKey();
+                Integer value2 = entry2.getValue();
+                builder.field(key2, value2);
             }
             builder.endObject();
         }

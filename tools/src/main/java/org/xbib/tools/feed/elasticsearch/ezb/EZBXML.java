@@ -37,6 +37,7 @@ import org.elasticsearch.action.index.IndexAction;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.index.VersionType;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
@@ -47,7 +48,6 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
@@ -67,7 +67,7 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  * Format documentation:
  * http://www.zeitschriftendatenbank.de/fileadmin/user_upload/ZDB/pdf/services/Datenlieferdienst_ZDB_EZB_Lizenzdatenformat.pdf
  */
-public final class EZBXML extends TimewindowFeeder {
+public final class EZBXML extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(EZBXML.class.getSimpleName());
 
@@ -80,19 +80,19 @@ public final class EZBXML extends TimewindowFeeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        RdfContentParams params = new RdfXContentParams(namespaceContext);
-        InputStream in = InputService.getInputStream(uri);
-        Pattern pattern = Pattern.compile("(\\d{4,})");
-        Matcher matcher = pattern.matcher(uri.toString());
-        Long version = Long.parseLong(matcher.find() ? matcher.group(1) : "1");
-        logger.info("version of {} = {}", uri, version);
-        EZBHandler handler = new EZBHandler(params, version);
-        handler.setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
-        new XmlContentParser(in)
-                .setNamespaces(false)
-                .setHandler(handler)
-                .parse();
-        in.close();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            RdfContentParams params = new RdfXContentParams(namespaceContext);
+            Pattern pattern = Pattern.compile("(\\d{4,})");
+            Matcher matcher = pattern.matcher(uri.toString());
+            Long version = Long.parseLong(matcher.find() ? matcher.group(1) : "1");
+            logger.info("version of {} = {}", uri, version);
+            EZBHandler handler = new EZBHandler(params, version);
+            handler.setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
+            new XmlContentParser(in)
+                    .setNamespaces(false)
+                    .setHandler(handler)
+                    .parse();
+        }
     }
 
     class EZBHandler extends AbstractXmlResourceHandler {
@@ -101,9 +101,14 @@ public final class EZBXML extends TimewindowFeeder {
 
         private long version;
 
+        private RouteRdfXContentParams params;
+
         public EZBHandler(RdfContentParams params, long version) {
             super(params);
             this.version = version;
+            this.params = new RouteRdfXContentParams(getNamespaceContext(),
+                    indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
         }
 
         @Override
@@ -132,8 +137,6 @@ public final class EZBXML extends TimewindowFeeder {
             if (settings.get("collection") != null) {
                 getResource().add("collection", settings.get("collection"));
             }
-            RouteRdfXContentParams params = new RouteRdfXContentParams(getNamespaceContext(),
-                    getConcreteIndex(), getType());
             params.setHandler((content, p) -> {
                 if (ingest.client() != null) {
                     IndexRequestBuilder indexRequestBuilder = new IndexRequestBuilder(ingest.client(), IndexAction.INSTANCE)

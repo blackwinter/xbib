@@ -31,15 +31,13 @@
  */
 package org.xbib.tools.feed.elasticsearch.medline;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -58,12 +56,6 @@ public class MedlineMapper implements ArticleVocabulary {
     private String medlinedate;
 
     private String title;
-
-    private String volume;
-
-    private String issue;
-
-    private String pagination;
 
     private String journal;
 
@@ -89,9 +81,7 @@ public class MedlineMapper implements ArticleVocabulary {
             year = pubdate.year.substring(0,4);
             r.add(DC_DATE, new MemoryLiteral(year).type(Literal.GYEAR));
             StringBuilder sb = new StringBuilder();
-            if (pubdate.year != null) {
-                sb.append(pubdate.year);
-            }
+            sb.append(pubdate.year);
             if (pubdate.month != null) {
                 sb.append('-').append(pubdate.month);
             }
@@ -127,9 +117,10 @@ public class MedlineMapper implements ArticleVocabulary {
     }
 
     private void map(Resource r, String prefix, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
             String p = prefix != null ? prefix + "." + key : key;
-            Object value = map.get(key);
+            Object value = entry.getValue();
             if (value instanceof Map) {
                 map(r, p, (Map<String, Object>) value);
             } else if (value instanceof List) {
@@ -189,7 +180,7 @@ public class MedlineMapper implements ArticleVocabulary {
                 if (author == null) {
                     author = new Author();
                 }
-                author.foreName = value;
+                author.setForeName(value);
                 break;
             }
             case "ml:Article.ml:AuthorList.ml:Author.ml:LastName": {
@@ -203,7 +194,7 @@ public class MedlineMapper implements ArticleVocabulary {
                             .add(FOAF_GIVENNAME, author.foreName);
                     author = new Author();
                 }
-                author.lastName = value;
+                author.setLastName(value);
                 break;
             }
             case "ml:Article.ml:Journal.ml:JournalIssue.ml:PubDate.ml:MedlineDate": {
@@ -281,25 +272,22 @@ public class MedlineMapper implements ArticleVocabulary {
                 break;
             }
             case "ml:Article.ml:Journal.ml:JournalIssue.ml:Issue": {
-                issue = value;
                 r.newResource(FRBR_EMBODIMENT)
                         .a(FABIO_PERIODICAL_ISSUE)
                         .add(PRISM_NUMBER, value);
                 break;
             }
             case "ml:Article.ml:Journal.ml:JournalIssue.ml:Volume": {
-                volume = value;
                 r.newResource(FRBR_EMBODIMENT)
                         .a(FABIO_PERIODICAL_VOLUME)
                         .add(PRISM_VOLUME, value);
                 break;
             }
             case "ml:Article.ml:Pagination.ml:MedlinePgn": {
-                pagination = value;
-                int pos = pagination.indexOf('-');
+                int pos = value.indexOf('-');
                 if (pos > 0) {
-                    String spage = pagination.substring(0, pos);
-                    String epage = pagination.substring(pos + 1);
+                    String spage = value.substring(0, pos);
+                    String epage = value.substring(pos + 1);
                     int l = spage.length() - epage.length();
                     if (l > 0) {
                         epage = spage.substring(0, l) + epage;
@@ -391,7 +379,8 @@ public class MedlineMapper implements ArticleVocabulary {
                     case "X" :
                         value = "AIDS/HIV journals";
                         break;
-
+                    default:
+                        break;
                 }
                 r.add(DC_SOURCE, value);
                 break;
@@ -399,10 +388,19 @@ public class MedlineMapper implements ArticleVocabulary {
         }
     }
 
-    class Author implements Comparable<Author> {
-        String lastName, foreName;
+    static class Author implements Comparable<Author> {
+        private String lastName, foreName, normalized;
 
-        String normalize() {
+        void setLastName(String lastName) {
+            this.lastName = lastName;
+            this.normalized = normalize();
+        }
+        void setForeName(String foreName) {
+            this.foreName = foreName;
+            this.normalized = normalize();
+        }
+
+        private String normalize() {
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
@@ -415,11 +413,21 @@ public class MedlineMapper implements ArticleVocabulary {
 
         @Override
         public int compareTo(Author o) {
-            return normalize().compareTo(o.normalize());
+            return normalized.compareTo(o.normalized);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && normalized.equals(((Author)o).normalized);
+        }
+
+        @Override
+        public int hashCode() {
+            return normalized.hashCode();
         }
     }
 
-    class Datestamp {
+    static class Datestamp {
         String year, month, day;
     }
 

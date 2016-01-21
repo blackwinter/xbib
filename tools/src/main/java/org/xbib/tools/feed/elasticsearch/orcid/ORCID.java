@@ -44,6 +44,7 @@ import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -61,7 +62,7 @@ public class ORCID extends Feeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new ORCID().setPipeline(p);
     }
 
@@ -77,10 +78,9 @@ public class ORCID extends Feeder {
             put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
         }});
         // public_profiles.tar(.gz)
-        logger.info("start of processing {}", uri);
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(uri);
-        session = connection.createSession();
+        Session<StringPacket> session = connection.createSession();
         if (session == null) {
             throw new IOException("can not open for input: " + uri);
         }

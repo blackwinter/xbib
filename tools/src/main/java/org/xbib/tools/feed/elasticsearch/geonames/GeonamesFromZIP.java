@@ -31,9 +31,8 @@
  */
 package org.xbib.tools.feed.elasticsearch.geonames;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.Strings;
@@ -52,70 +51,70 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  */
 public class GeonamesFromZIP extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
-
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new GeonamesFromZIP().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        logger.info("start of processing {}", uri);
-        InputStream in = InputService.getInputStream(uri);
-        ZipInputStream zin = new ZipInputStream(in);
-        while (zin.getNextEntry() != null) {
-            Scanner sc = new Scanner(zin);
-            while (sc.hasNextLine()) {
-                int i = 0;
-                String[] line = sc.nextLine().split("\t");
-                String geonameid = line[i++];
-                String name = line[i++];
-                String asciiname = line[i++];
-                String[] alternatenames = line[i++].split(",");
-                Double latitude = Double.parseDouble(line[i++]);
-                Double longitude = Double.parseDouble(line[i++]);
-                String featureClass = line[i++];
-                String featureCode = line[i++];
-                String country = line[i++];
-                String cc2 = line[i++];
-                String admin1 = line[i++];
-                String admin2 = line[i++];
-                String admin3 = line[i++];
-                String admin4 = line[i++];
-                Long population = Long.parseLong(line[i++]);
-                String elevationStr = line[i++];
-                Integer elevation = Strings.isNullOrEmpty(elevationStr) ? 0 : Integer.parseInt(line[i++]);
-                String dem = line[i++];
-                String timezone = line[i++];
-                XContentBuilder builder = jsonBuilder()
-                        .startObject()
-                        .field("geonameid", geonameid)
-                        .field("name", name)
-                        .field("asciiname", asciiname)
-                        .field("alternatenames", alternatenames)
-                        .startArray("location")
-                        .value(longitude)
-                        .value(latitude)
-                        .endArray()
-                        .field("featureClass", featureClass)
-                        .field("featureCode", featureCode)
-                        .field("country", country)
-                        .field("cc2", cc2)
-                        .field("admin1", admin1)
-                        .field("admin2", admin2)
-                        .field("admin3", admin3)
-                        .field("admin4", admin4)
-                        .field("population", population)
-                        .field("elevation", elevation)
-                        .field("dem", dem)
-                        .field("timezone", timezone)
-                        .endObject();
-                ingest.index(settings.get("index"), settings.get("type"), geonameid, builder.string());
+        try (InputStream in = InputService.getInputStream(uri)) {
+            ZipInputStream zin = new ZipInputStream(in);
+            while (zin.getNextEntry() != null) {
+                Scanner sc = new Scanner(zin, "UTF-8");
+                while (sc.hasNextLine()) {
+                    int i = 0;
+                    String[] line = sc.nextLine().split("\t");
+                    String geonameid = line[i++];
+                    String name = line[i++];
+                    String asciiname = line[i++];
+                    String[] alternatenames = line[i++].split(",");
+                    Double latitude = Double.parseDouble(line[i++]);
+                    Double longitude = Double.parseDouble(line[i++]);
+                    String featureClass = line[i++];
+                    String featureCode = line[i++];
+                    String country = line[i++];
+                    String cc2 = line[i++];
+                    String admin1 = line[i++];
+                    String admin2 = line[i++];
+                    String admin3 = line[i++];
+                    String admin4 = line[i++];
+                    Long population = Long.parseLong(line[i++]);
+                    String elevationStr = line[i++];
+                    Integer elevation = Strings.isNullOrEmpty(elevationStr) ? 0 : Integer.parseInt(line[i++]);
+                    String dem = line[i++];
+                    String timezone = line[i];
+                    XContentBuilder builder = jsonBuilder()
+                            .startObject()
+                            .field("geonameid", geonameid)
+                            .field("name", name)
+                            .field("asciiname", asciiname)
+                            .field("alternatenames", alternatenames)
+                            .startArray("location")
+                            .value(longitude)
+                            .value(latitude)
+                            .endArray()
+                            .field("featureClass", featureClass)
+                            .field("featureCode", featureCode)
+                            .field("country", country)
+                            .field("cc2", cc2)
+                            .field("admin1", admin1)
+                            .field("admin2", admin2)
+                            .field("admin3", admin3)
+                            .field("admin4", admin4)
+                            .field("population", population)
+                            .field("elevation", elevation)
+                            .field("dem", dem)
+                            .field("timezone", timezone)
+                            .endObject();
+                    ingest.index(indexDefinitionMap.get("bib").getConcreteIndex(),
+                            indexDefinitionMap.get("bib").getType(),
+                            geonameid,
+                            builder.string());
+                }
             }
+            zin.close();
         }
-        zin.close();
-        logger.info("end of processing {}", uri);
     }
 
 }

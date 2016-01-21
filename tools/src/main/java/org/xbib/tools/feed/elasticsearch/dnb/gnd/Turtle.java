@@ -33,6 +33,7 @@ package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -54,55 +55,56 @@ public class Turtle extends Feeder {
     private final static Logger logger = LogManager.getLogger(Turtle.class);
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Turtle().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
-        namespaceContext.addNamespace("geo", "http://rdvocab.info/");
-        namespaceContext.addNamespace("rda", "http://purl.org/dc/elements/1.1/");
-        namespaceContext.addNamespace("foaf", "http://xmlns.com/foaf/0.1/");
-        namespaceContext.addNamespace("sf", "http://www.opengis.net/ont/sf#");
-        namespaceContext.addNamespace("isbd", "http://iflastandards.info/ns/isbd/elements/");
-        namespaceContext.addNamespace("gndo", "http://d-nb.info/standards/elementset/gnd#");
-        namespaceContext.addNamespace("dcterms", "http://purl.org/dc/terms/");
-        namespaceContext.addNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
-        namespaceContext.addNamespace("marcRole", "http://id.loc.gov/vocabulary/relators/");
-        namespaceContext.addNamespace("lib", "http://purl.org/library/");
-        namespaceContext.addNamespace("umbel", "http://umbel.org/umbel#");
-        namespaceContext.addNamespace("bibo", "http://purl.org/ontology/bibo/");
-        namespaceContext.addNamespace("owl", "http://www.w3.org/2002/07/owl#");
-        namespaceContext.addNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-        namespaceContext.addNamespace("skos", "http://www.w3.org/2004/02/skos/core#");
+        try (InputStream in = InputService.getInputStream(uri)) {
 
-        RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                settings.get("index", "gnd"),
-                settings.get("type", "gnd"));
-        params.setIdPredicate("gndo:gndIdentifier");
-        params.setHandler((content, p) -> {
-            int pos = p.getId().lastIndexOf('/');
-            String docid = p.getId().substring(pos + 1);
-            if (settings.getAsBoolean("mock", false)) {
-                logger.info("{}", content);
-            } else {
-                ingest.index(p.getIndex(), p.getType(), docid, content);
-            }
-        });
-        IRI base = IRI.builder().scheme("http").host("d-nb.info").path("/gnd/").build();
-        InputStream in = InputService.getInputStream(uri);
-        TurtleContentParser reader = new TurtleContentParser(in)
-                .setBaseIRI(base)
-                .context(namespaceContext);
-        reader.setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params));
-        reader.setRdfContentBuilderHandler(b -> {
-            IRI iri = b.getSubject();
-            String s = b.string();
-        });
-        reader.parse();
-        in.close();
+            IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+            namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
+            namespaceContext.addNamespace("geo", "http://rdvocab.info/");
+            namespaceContext.addNamespace("rda", "http://purl.org/dc/elements/1.1/");
+            namespaceContext.addNamespace("foaf", "http://xmlns.com/foaf/0.1/");
+            namespaceContext.addNamespace("sf", "http://www.opengis.net/ont/sf#");
+            namespaceContext.addNamespace("isbd", "http://iflastandards.info/ns/isbd/elements/");
+            namespaceContext.addNamespace("gndo", "http://d-nb.info/standards/elementset/gnd#");
+            namespaceContext.addNamespace("dcterms", "http://purl.org/dc/terms/");
+            namespaceContext.addNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+            namespaceContext.addNamespace("marcRole", "http://id.loc.gov/vocabulary/relators/");
+            namespaceContext.addNamespace("lib", "http://purl.org/library/");
+            namespaceContext.addNamespace("umbel", "http://umbel.org/umbel#");
+            namespaceContext.addNamespace("bibo", "http://purl.org/ontology/bibo/");
+            namespaceContext.addNamespace("owl", "http://www.w3.org/2002/07/owl#");
+            namespaceContext.addNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            namespaceContext.addNamespace("skos", "http://www.w3.org/2004/02/skos/core#");
+
+            RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
+                    indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
+            params.setIdPredicate("gndo:gndIdentifier");
+            params.setHandler((content, p) -> {
+                int pos = p.getId().lastIndexOf('/');
+                String docid = p.getId().substring(pos + 1);
+                if (settings.getAsBoolean("mock", false)) {
+                    logger.info("{}", content);
+                } else {
+                    ingest.index(p.getIndex(), p.getType(), docid, content);
+                }
+            });
+            IRI base = IRI.builder().scheme("http").host("d-nb.info").path("/gnd/").build();
+            TurtleContentParser reader = new TurtleContentParser(in)
+                    .setBaseIRI(base)
+                    .context(namespaceContext);
+            reader.setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params));
+            reader.setRdfContentBuilderHandler(b -> {
+                IRI iri = b.getSubject();
+                String s = b.string();
+            });
+            reader.parse();
+        }
     }
 
 }

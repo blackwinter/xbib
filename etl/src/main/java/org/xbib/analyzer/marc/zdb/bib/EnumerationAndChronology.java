@@ -39,6 +39,7 @@ import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class EnumerationAndChronology extends MARCEntity {
         return instance;
     }
 
-    private Pattern[] movingwallPatterns;
+    private List<Pattern> movingwallPatterns;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -60,20 +61,20 @@ public class EnumerationAndChronology extends MARCEntity {
         super.setSettings(params);
         List<String> movingwalls = (List<String>) params.get("movingwall");
         if (movingwalls != null) {
-            Pattern[] p = new Pattern[movingwalls.size()];
-            for (int i = 0; i < movingwalls.size(); i++) {
-                p[i] = Pattern.compile(movingwalls.get(i));
+            List<Pattern> p = new LinkedList<>();
+            for (String movingwall : movingwalls) {
+                p.add(Pattern.compile(movingwall));
             }
             setMovingwallPatterns(p);
         }
         return this;
     }
 
-    public void setMovingwallPatterns(Pattern[] p) {
+    public void setMovingwallPatterns(List<Pattern> p) {
         this.movingwallPatterns = p;
     }
 
-    public Pattern[] getMovingwallPatterns() {
+    public List<Pattern> getMovingwallPatterns() {
         return this.movingwallPatterns;
     }
 

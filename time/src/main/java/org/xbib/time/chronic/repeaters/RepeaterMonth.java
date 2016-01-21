@@ -25,8 +25,8 @@ public class RepeaterMonth extends RepeaterUnit {
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
-        return new Span(Time.cloneAndAdd(span.getBeginCalendar(), Calendar.MONTH, amount * direction), Time.cloneAndAdd(span.getEndCalendar(), Calendar.MONTH, amount * direction));
+        long l = amount * (pointer == PointerType.FUTURE ? 1L : -1L);
+        return new Span(Time.cloneAndAdd(span.getBeginCalendar(), Calendar.MONTH, l), Time.cloneAndAdd(span.getEndCalendar(), Calendar.MONTH, l));
     }
 
     @Override

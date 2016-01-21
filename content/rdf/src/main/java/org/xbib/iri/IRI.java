@@ -38,10 +38,8 @@ import org.xbib.scheme.SchemeRegistry;
 import org.xbib.text.CharUtils;
 import org.xbib.text.CharUtils.Profile;
 import org.xbib.text.InvalidCharacterException;
-import org.xbib.text.Nameprep;
 import org.xbib.text.Normalizer;
 import org.xbib.text.UrlEncoding;
-import org.xbib.text.data.UnicodeCharacterDatabase;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -50,7 +48,7 @@ import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IRI implements Cloneable, Comparable<IRI>, Node {
+public class IRI implements Comparable<IRI>, Node {
 
     private final static SchemeRegistry registry = SchemeRegistry.getInstance();
 
@@ -447,13 +445,11 @@ public class IRI implements Cloneable, Comparable<IRI>, Node {
             return c;
         }
         if ((b.scheme == null && c.scheme != null) || (b.scheme != null && c.scheme == null)
-                || (b.scheme != null && c.scheme != null && !b.scheme.equalsIgnoreCase(c.scheme))) {
+                || (b.scheme != null && !b.scheme.equalsIgnoreCase(c.scheme))) {
             return c;
         }
         String bpath = normalize(b.getPath());
         String cpath = normalize(c.getPath());
-        bpath = (bpath != null) ? bpath : "/";
-        cpath = (cpath != null) ? cpath : "/";
         if (!bpath.equals(cpath)) {
             if (bpath.charAt(bpath.length() - 1) != '/') {
                 bpath += "/";
@@ -791,10 +787,6 @@ public class IRI implements Cloneable, Comparable<IRI>, Node {
     private static final Pattern AUTHORITYPATTERN =
             Pattern.compile("^(?:(.*)?@)?((?:\\[.*\\])|(?:[^:]*))?(?::(\\d+))?");
 
-    public static void preinit() {
-        UnicodeCharacterDatabase.getCanonicalClass(1);
-        Nameprep.prep("");
-    }
 
     @Override
     public int compareTo(IRI that) {
@@ -841,10 +833,10 @@ public class IRI implements Cloneable, Comparable<IRI>, Node {
     }
 
     private int compare(String s, String t) {
-        if (s == t) {
-            return 0;
-        }
         if (s != null) {
+            if (s.equals(t)) {
+                return 0;
+            }
             if (t != null) {
                 return s.compareTo(t);
             } else {
@@ -856,10 +848,10 @@ public class IRI implements Cloneable, Comparable<IRI>, Node {
     }
 
     private int compareIgnoringCase(String s, String t) {
-        if (s == t) {
-            return 0;
-        }
         if (s != null) {
+            if (s.equals(t)) {
+                return 0;
+            }
             if (t != null) {
                 int sn = s.length();
                 int tn = t.length();

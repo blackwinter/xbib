@@ -108,7 +108,7 @@ public abstract class JsonReaderXmlEvent {
             throw new NoSuchElementException();
         }
         for (Attribute a : attributes) {
-            if (localName.equals(a.name)) {
+            if (localName.equals(a.name.getLocalPart())) {
                 return a.value;
             }
         }

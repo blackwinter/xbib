@@ -222,10 +222,6 @@ public class MonographVolume extends TitleRecord {
             firstDate = getInteger("Conference.conferenceDate");
         }
         this.firstDate = firstDate == null ? null : firstDate == 9999 ? null : firstDate;
-        Integer lastDate = getInteger("DateLast.date");
-        if (lastDate == null) {
-            lastDate = getInteger("DateProper.date");
-        }
         // only single date by default
         this.lastDate = null;
     }
@@ -341,6 +337,21 @@ public class MonographVolume extends TitleRecord {
                 statCounter.increase("genre", genre, 1);
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof TitleRecord && externalID.equals(((TitleRecord)other).externalID);
+    }
+
+    @Override
+    public int hashCode() {
+        return externalID.hashCode();
+    }
+
+    @Override
+    public int compareTo(TitleRecord m) {
+        return externalID.compareTo(m.externalID());
     }
 
 }

@@ -316,7 +316,7 @@ public class ArticlesMerger extends Merger {
                             }
                         }
                         if (!serialItem.getTitleRecords().isEmpty()) {
-                            getPipeline().getQueue().offer(new SerialItemRequest().set(serialItem));
+                            getPipeline().getQueue().put(new SerialItemRequest().set(serialItem));
                         }
                     }
                     count++;

@@ -36,6 +36,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ConfigurableClassifier;
+import org.xbib.etl.support.Entry;
 import org.xbib.iri.IRI;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Literal;
@@ -90,9 +91,9 @@ public class OnlineAccessScopedLink extends OnlineAccessRemote {
             ConfigurableClassifier classifier = worker.classifier();
             if (classifier != null) {
                 String key = isil + "." + state.getRecordIdentifier() + ".";
-                java.util.Collection<ConfigurableClassifier.Entry> entries = classifier.lookup(key);
+                java.util.Collection<Entry> entries = classifier.lookup(key);
                 if (entries != null) {
-                    for (ConfigurableClassifier.Entry entry : entries) {
+                    for (Entry entry : entries) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
                         if (state.getFacets().get(facet) == null) {
                             state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));

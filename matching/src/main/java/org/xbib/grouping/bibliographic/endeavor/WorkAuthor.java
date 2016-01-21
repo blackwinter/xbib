@@ -41,6 +41,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -232,9 +233,9 @@ public class WorkAuthor implements IdentifiableEndeavor {
 
     private static Set<String> readResource(String resource) {
         URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
-        Set<String> set = new HashSet<String>();
+        Set<String> set = new HashSet<>();
         if (url != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), Charset.forName("UTF-8")))) {
                 reader.lines().filter(line -> !line.startsWith("#")).forEach(set::add);
             } catch (IOException e) {
                 // do nothing

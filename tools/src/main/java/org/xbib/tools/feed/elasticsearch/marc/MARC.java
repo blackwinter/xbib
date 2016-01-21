@@ -36,8 +36,9 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
-import org.xbib.marc.json.MarcXchangeJSONLinesReader;
+import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -46,7 +47,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -54,38 +57,47 @@ import java.util.TreeSet;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
- * Indexing MARC JSON files
+ * Indexing MARC ISO2709 files
  */
-public final class FromMARCJson extends Feeder {
+public final class MARC extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(FromMARCJson.class.getName());
+    private final static Logger logger = LogManager.getLogger(MARC.class.getName());
 
     @Override
-    protected WorkerProvider provider() {
-        return p -> new FromMARCJson().setPipeline(p);
+    protected WorkerProvider<Converter> provider() {
+        return p -> new MARC().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) ;
-        queue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
-                logger.warn("unmapped field {}", key);
-                unmapped.add("\"" + key + "\"");
+        try (InputStream in = InputService.getInputStream(uri)) {
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+            final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
+                    new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
+                    new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+            queue.setUnmappedKeyListener((id, key) -> {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
+                    logger.warn("unmapped field {}", key);
+                    unmapped.add("\"" + key + "\"");
+                }
+            });
+            queue.execute();
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .addListener(queue);
+            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            final Iso2709Reader reader = new Iso2709Reader(r)
+                    .setMarcXchangeListener(kv);
+            // setting the properties is just informational and not used for any purpose.
+            reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
+            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
+            reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
+            reader.parse();
+            r.close();
+            queue.close();
+            if (settings.getAsBoolean("detect-unknown", false)) {
+                logger.info("unknown keys={}", unmapped);
             }
-        });
-        queue.execute();
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
-        InputStream in = InputService.getInputStream(uri);
-        MarcXchangeJSONLinesReader marcXchangeJSONLinesReader = new MarcXchangeJSONLinesReader(in, kv);
-        marcXchangeJSONLinesReader.parse();
-        in.close();
-        queue.close();
-        if (settings.getAsBoolean("detect", false)) {
-            logger.info("unknown keys={}", unmapped);
         }
     }
 

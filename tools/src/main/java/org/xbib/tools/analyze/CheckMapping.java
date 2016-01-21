@@ -37,8 +37,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequestBuilder;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.elasticsearch.action.count.CountRequestBuilder;
-import org.elasticsearch.action.count.CountResponse;
+import org.elasticsearch.action.search.SearchAction;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -47,10 +48,10 @@ import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -94,19 +95,21 @@ public class CheckMapping extends Analyzer {
     @SuppressWarnings("unchecked")
     protected void checkMapping(Client client, String index, String type, MappingMetaData mappingMetaData) {
         try {
-            CountRequestBuilder countRequestBuilder = client.prepareCount()
+            SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client, SearchAction.INSTANCE);
+            SearchResponse searchResponse = searchRequestBuilder.setSize(0)
                     .setIndices(index)
                     .setTypes(type)
-                    .setQuery(matchAllQuery());
-            CountResponse countResponse = countRequestBuilder.execute().actionGet();
-            long total = countResponse.getCount();
+                    .setQuery(matchAllQuery())
+                    .execute()
+                    .actionGet();
+            long total = searchResponse.getHits().getTotalHits();
             if (total > 0L) {
                 Map<String,Long> fields = new TreeMap();
                 Map<String,Object> root = mappingMetaData.getSourceAsMap();
                 checkMapping(client, index, type, "", "", root, fields);
                 AtomicInteger empty = new AtomicInteger();
-                SortedSet<Map.Entry<String, Long>> set = entriesSortedByValues(fields);
-                set.forEach(entry -> {
+                Map<String, Long> map = sortByValue(fields);
+                map.entrySet().forEach(entry -> {
                     logger.info("{} {} {}",
                             entry.getKey(),
                             entry.getValue(),
@@ -116,7 +119,7 @@ public class CheckMapping extends Analyzer {
                     }
                 });
                 logger.info("check: index={} type={} numfields={} fieldsnotused={}",
-                        index, type, set.size(), empty.get());
+                        index, type, map.size(), empty.get());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -133,8 +136,9 @@ public class CheckMapping extends Analyzer {
         if (!"properties".equals(fieldName)) {
             path = path + fieldName;
         }
-        for (String key : map.keySet()) {
-            Object o = map.get(key);
+        for (Map.Entry<String,Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object o = entry.getValue();
             if (o instanceof Map) {
                 Map<String, Object> child = (Map<String, Object>) o;
                 o = map.get("type");
@@ -145,26 +149,23 @@ public class CheckMapping extends Analyzer {
             } else if ("type".equals(key)) {
                 QueryBuilder filterBuilder = existsQuery(path);
                 QueryBuilder queryBuilder = constantScoreQuery(filterBuilder);
-                CountRequestBuilder countRequestBuilder = client.prepareCount()
+                SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client, SearchAction.INSTANCE);
+                SearchResponse searchResponse = searchRequestBuilder.setSize(0)
                         .setIndices(index)
                         .setTypes(type)
-                        .setQuery(queryBuilder);
-                CountResponse countResponse = countRequestBuilder.execute().actionGet();
-                fields.put(path, countResponse.getCount());
+                        .setQuery(queryBuilder)
+                        .execute()
+                        .actionGet();
+                fields.put(path, searchResponse.getHits().totalHits());
             }
         }
     }
 
-    static <K,V extends Comparable<? super V>>
-    SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
-        SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
-                (e1, e2) -> {
-                    int c = e2.getValue().compareTo(e1.getValue());
-                    return c != 0 ? c : 1; // never return 0, keep all entries with same value
-                }
-        );
-        sortedEntries.addAll(map.entrySet());
-        return sortedEntries;
+    static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+        Map<K,V> result = new LinkedHashMap<>();
+        map.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getValue))
+                .forEachOrdered(e -> result.put(e.getKey(),e.getValue()));
+        return result;
     }
 
 }

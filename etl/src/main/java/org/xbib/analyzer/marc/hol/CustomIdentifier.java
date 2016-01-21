@@ -31,7 +31,9 @@
  */
 package org.xbib.analyzer.marc.hol;
 
-public class CustomIdentifier extends org.xbib.analyzer.marc.bib.CustomIdentifier {
+import org.xbib.etl.marc.MARCEntity;
+
+public class CustomIdentifier extends MARCEntity {
 
     private final static CustomIdentifier instance = new CustomIdentifier();
 

@@ -68,6 +68,8 @@ import java.util.Stack;
  */
 public class TurtleContentParser implements RdfContentParser {
 
+    private final static Logger logger = LogManager.getLogger(TurtleContentParser.class.getName());
+
     private final Resource resource = new MemoryResource();
 
     private final HashMap<String, Node> bnodes = new HashMap<>();
@@ -203,8 +205,8 @@ public class TurtleContentParser implements RdfContentParser {
      * The namespace prefix may be empty, in which case the qname starts with a
      * colon. This is known as the default namespace. The empty prefix "" is by
      * default , bound to "#" -- the local namespace of the file. The parser
-     * behaves as though there were a @prefix : <#>. just before the file. This
-     * means that <#foo> can be written :foo.
+     * behaves as though there were a @prefix : &lt;#&gt;. just before the file. This
+     * means that &lt;#foo&gt; can be written :foo.
      * The base directive sets the base URI to be used for the parsing of
      * relative URIs. It takes, itself, a relative URI, so it can be used to
      * change the base URI relative to the previous one.
@@ -769,12 +771,10 @@ public class TurtleContentParser implements RdfContentParser {
     }
 
     private void validate(int ch, char v) throws IOException {
-        /*if ((char) ch != v) {
+        if ((char) ch != v) {
             String message = (subject != null ? subject : "") + " unexpected character: '" + (char) ch + "' expected: '" + v + "'";
-            if (strict) {
-                throw new IOException(message);
-            }
-        }*/
+            logger.warn(message);
+        }
     }
 
     private boolean isWhitespace(char ch) {
@@ -788,7 +788,7 @@ public class TurtleContentParser implements RdfContentParser {
                 || ch >= 0x200C && ch <= 0x200D || ch >= 0x2070 && ch <= 0x218F
                 || ch >= 0x2C00 && ch <= 0x2FEF || ch >= 0x3001 && ch <= 0xD7FF
                 || ch >= 0xF900 && ch <= 0xFDCF || ch >= 0xFDF0 && ch <= 0xFFFD
-                || ch >= 0x10000 && ch <= 0xEFFFF;
+                || ch >= 0x10000;
     }
 
     /**

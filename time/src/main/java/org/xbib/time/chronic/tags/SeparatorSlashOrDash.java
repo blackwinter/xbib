@@ -19,7 +19,8 @@ public class SeparatorSlashOrDash extends Separator {
         Map<Pattern, SeparatorType> scanner = new HashMap<>();
         scanner.put(SeparatorSlashOrDash.DASH_PATTERN, SeparatorType.DASH);
         scanner.put(SeparatorSlashOrDash.SLASH_PATTERN, SeparatorType.SLASH);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, SeparatorType> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new SeparatorSlashOrDash(scanner.get(scannerItem));
             }

@@ -188,6 +188,9 @@ public class JsonStaxReader implements XMLStreamReader {
                     case END_ARRAY:
                         processingStack.pop();
                         lookingForAttributes = false;
+                        break;
+                    default:
+                        break;
                 }
             }
         }

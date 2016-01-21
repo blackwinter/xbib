@@ -51,24 +51,24 @@ import java.util.zip.GZIPOutputStream;
 public class RdfXml extends Converter {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new RdfXml().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
-        final Writer writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(settings.get("output") + ".gz")) {
-            {
-                def.setLevel(Deflater.BEST_COMPRESSION);
-            }
-        });
-        RdfXmlContentParser reader = new RdfXmlContentParser(in);
-        reader.setRdfContentBuilderProvider(RdfContentFactory::turtleBuilder);
-        reader.setRdfContentBuilderHandler(builder -> writer.write(builder.string()));
-        reader.parse();
-        in.close();
-        writer.close();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            final Writer writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(settings.get("output") + ".gz")) {
+                {
+                    def.setLevel(Deflater.BEST_COMPRESSION);
+                }
+            }, "UTF-8");
+            RdfXmlContentParser reader = new RdfXmlContentParser(in);
+            reader.setRdfContentBuilderProvider(RdfContentFactory::turtleBuilder);
+            reader.setRdfContentBuilderHandler(builder -> writer.write(builder.string()));
+            reader.parse();
+            writer.close();
+        }
     }
 }
 

@@ -47,6 +47,7 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -79,18 +80,8 @@ public class MarcHolOAI extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(MarcHolOAI.class.getName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new MarcHolOAI().setPipeline(p);
-    }
-
-    @Override
-    protected String getIndex() {
-        return settings.get("hol-index");
-    }
-
-    @Override
-    protected String getType() {
-        return settings.get("hol-type");
     }
 
     @Override
@@ -190,8 +181,8 @@ public class MarcHolOAI extends OAIFeeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             // write bib resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getConcreteIndex(), getType());
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("hol").getConcreteIndex(),
+                    indexDefinitionMap.get("hol").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
@@ -204,7 +195,7 @@ public class MarcHolOAI extends OAIFeeder {
         }
     }
 
-    class MarcMetadataHandler implements MetadataHandler {
+    static class MarcMetadataHandler implements MetadataHandler {
 
         final MarcXchangeReader reader;
 

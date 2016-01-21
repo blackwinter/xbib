@@ -19,6 +19,8 @@ package org.xbib.text.language.enums;
 
 import org.xbib.text.language.Subtag;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -126,12 +128,12 @@ public enum Region {
 
     private final String deprecated;
     private final String preferred;
-    private final String[] descriptions;
+    private final List<String> descriptions;
 
-    private Region(String dep, String pref, String... desc) {
+    Region(String dep, String pref, String... desc) {
         this.deprecated = dep;
         this.preferred = pref;
-        this.descriptions = desc;
+        this.descriptions = Arrays.asList(desc);
     }
 
     public String getDeprecated() {
@@ -151,10 +153,10 @@ public enum Region {
     }
 
     public String getDescription() {
-        return descriptions.length > 0 ? descriptions[0] : null;
+        return descriptions != null && !descriptions.isEmpty()? descriptions.get(0) : null;
     }
 
-    public String[] getDescriptions() {
+    public List<String> getDescriptions() {
         return descriptions;
     }
 

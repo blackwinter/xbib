@@ -34,6 +34,7 @@ package org.xbib.tools.feed.elasticsearch.jade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -45,7 +46,7 @@ import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 import org.xbib.util.Entities;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -53,6 +54,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -110,54 +112,55 @@ public class Jade extends Feeder implements ArticleVocabulary {
     private String citation;
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Jade().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        namespaceContext.add(new HashMap<String, String>() {{
-            put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
-            put("dc", "http://purl.org/dc/elements/1.1/");
-            put("dcterms", "http://purl.org/dc/terms/");
-            put("foaf", "http://xmlns.com/foaf/0.1/");
-            put("frbr", "http://purl.org/vocab/frbr/core#");
-            put("fabio", "http://purl.org/spar/fabio/");
-            put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
-        }});
-        logger.info("start of processing {}", uri);
-
-        LinkedList<String> lines = new LinkedList<String>();
-        InputStream in = InputService.getInputStream(uri);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "ISO-8859-1"));
-        String line = reader.readLine();
-        Resource resource = new MemoryResource();
-        while (line != null) {
-            if (line.startsWith("*** BRS DOCUMENT BOUNDARY ***")) {
-                complete(resource);
-                resource = new MemoryResource();
-                authors.clear();
-                title = null;
-                year = null;
-                journal = null;
-                issn = null;
-                volume = null;
-                issue = null;
-                pagination = null;
-                citation = null;
-                line = reader.readLine();
-            } else {
-                lines.add(line);
-                line = reader.readLine();
-                while (!isKey(line) && !isBoundary(line)) {
-                    lines.add(line.trim());
+        try (InputStream in = InputService.getInputStream(uri)) {
+            namespaceContext.add(new HashMap<String, String>() {{
+                put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
+                put("dc", "http://purl.org/dc/elements/1.1/");
+                put("dcterms", "http://purl.org/dc/terms/");
+                put("foaf", "http://xmlns.com/foaf/0.1/");
+                put("frbr", "http://purl.org/vocab/frbr/core#");
+                put("fabio", "http://purl.org/spar/fabio/");
+                put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
+            }});
+            LinkedList<String> lines = new LinkedList<>();
+            Resource resource = new MemoryResource();
+            Reader r = new InputStreamReader(in, ISO88591);
+            BufferedReader reader = new BufferedReader(r);
+            String line = reader.readLine();
+            while (line != null) {
+                if (line.startsWith("*** BRS DOCUMENT BOUNDARY ***")) {
+                    complete(resource);
+                    resource = new MemoryResource();
+                    authors.clear();
+                    title = null;
+                    year = null;
+                    journal = null;
+                    issn = null;
+                    volume = null;
+                    issue = null;
+                    pagination = null;
+                    citation = null;
                     line = reader.readLine();
+                } else {
+                    lines.add(line);
+                    line = reader.readLine();
+                    while (!isKey(line) && !isBoundary(line)) {
+                        lines.add(line.trim());
+                        line = reader.readLine();
+                    }
+                    process(uri, resource, lines);
+                    lines.clear();
                 }
-                process(uri, resource, lines);
-                lines.clear();
             }
+            reader.close();
+            complete(resource);
         }
-        complete(resource);
         logger.info("end of {}, counter = {}", uri, counter.get());
     }
 
@@ -183,9 +186,9 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 break;
             }
             case "..AUTR": {
-                Author author = new Author();
                 value = clean(value);
-                author.lastName = value;
+                Author author = new Author(value);
+                // forename?
                 authors.add(author);
                 break;
             }
@@ -305,7 +308,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 .chronology(volume)
                 .chronology(issue);
         for (Author author : authors) {
-            wa.authorNameWithForeNames(author.lastName, author.foreName);
+            wa.authorName(author.lastName);
             resource.newResource(DC_CREATOR)
                     .a(FOAF_AGENT)
                     .add(FOAF_NAME, author.lastName);
@@ -319,8 +322,6 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 logger.error("wrong key: '{}' citation={}", key, citation);
             }
             flush(resource);
-        } else {
-            //logger.warn("skipping title '{}'", title);
         }
     }
 
@@ -339,7 +340,9 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 }
             } else if (!resource.isEmpty()) {
                 if (resource.id() != null) {
-                    ingest.index(settings.get("index", "jade"), settings.get("type", "jade"),
+                    ingest.index(
+                            indexDefinitionMap.get("bib").getConcreteIndex(),
+                            indexDefinitionMap.get("bib").getType(),
                             resource.id().toString(), params.getGenerator().get());
                 }
             }
@@ -430,24 +433,37 @@ public class Jade extends Feeder implements ArticleVocabulary {
         return s.replaceAll("\\s+", "");
     }
 
+    static class Author implements Comparable<Author> {
+        private String lastName;
 
-    class Author implements Comparable<Author> {
-        String lastName, foreName;
+        private String normalized;
 
-        String normalize() {
+        Author(String name) {
+            this.lastName = name;
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
             }
-            if (foreName != null) {
-                sb.append(' ').append(foreName);
-            }
-            return sb.toString();
+            this.normalized = sb.toString();
+        }
+
+        String normalize() {
+            return normalized;
         }
 
         @Override
         public int compareTo(Author o) {
             return normalize().compareTo(o.normalize());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && normalized.equals(((Author)o).normalized);
+        }
+
+        @Override
+        public int hashCode() {
+            return normalized.hashCode();
         }
     }
 }

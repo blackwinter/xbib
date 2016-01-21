@@ -1,4 +1,3 @@
-
 package org.xbib.common.geo;
 
 public final class GeoPoint {
@@ -12,7 +11,7 @@ public final class GeoPoint {
     /**
      * Create a new Geopointform a string. This String must either be a geohash
      * or a lat-lon tuple.
-     *   
+     *
      * @param value String to create the point from
      */
     public GeoPoint(String value) {
@@ -22,6 +21,12 @@ public final class GeoPoint {
     public GeoPoint(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;
+    }
+
+    public static GeoPoint parseFromLatLon(String latLon) {
+        GeoPoint point = new GeoPoint();
+        point.resetFromString(latLon);
+        return point;
     }
 
     public GeoPoint reset(double lat, double lon) {
@@ -87,13 +92,21 @@ public final class GeoPoint {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         GeoPoint geoPoint = (GeoPoint) o;
 
-        if (Double.compare(geoPoint.lat, lat) != 0) return false;
-        if (Double.compare(geoPoint.lon, lon) != 0) return false;
+        if (Double.compare(geoPoint.lat, lat) != 0) {
+            return false;
+        }
+        if (Double.compare(geoPoint.lon, lon) != 0) {
+            return false;
+        }
 
         return true;
     }
@@ -111,11 +124,5 @@ public final class GeoPoint {
 
     public String toString() {
         return "[" + lat + ", " + lon + "]";
-    }
-
-    public static GeoPoint parseFromLatLon(String latLon) {
-        GeoPoint point = new GeoPoint();
-        point.resetFromString(latLon);
-        return point;
     }
 }

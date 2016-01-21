@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Ordinal extends Tag<Integer> {
-    public static Pattern ORDINAL_PATTERN = Pattern.compile("^(\\d*)(st|nd|rd|th)$");
+    public final static Pattern ORDINAL_PATTERN = Pattern.compile("^(\\d*)(st|nd|rd|th)$");
 
     public Ordinal(Integer type) {
         super(type);

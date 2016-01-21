@@ -26,7 +26,7 @@ public class SimpleTimeFormatTest {
 
     @Test
     public void testRounding() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 3 + 1000 * 60 * 45));
+        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 3 + 1000 * 60 * 45);
         Duration duration = t.approximateDuration(new Date(0));
 
         assertEquals("4 hours ago", t.format(duration));

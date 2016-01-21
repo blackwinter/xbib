@@ -69,11 +69,6 @@ public class PrettyTimeAPIManipulationTest {
     }
 
     @Test
-    public void testApiMisuse11() throws Exception {
-        t.getReference();
-    }
-
-    @Test
     public void testApiMisuse12() throws Exception {
         t.getUnits();
     }

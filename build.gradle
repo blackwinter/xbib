@@ -41,6 +41,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'findbugs'
     configurations {
         provided
         testCompile.extendsFrom(provided)
@@ -51,8 +52,8 @@ subprojects {
         test.runtimeClasspath += configurations.provided
     }
     dependencies {
+        compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
         provided "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
-        provided "org.apache.logging.log4j:log4j-core:${versions.log4j}"
         testCompile "junit:junit:${versions.junit}"
     }
     compileJava {
@@ -69,6 +70,13 @@ subprojects {
         testLogging {
             showStandardStreams = false
             exceptionFormat = 'full'
+        }
+    }
+    tasks.withType(FindBugs) {
+        ignoreFailures = true
+        reports {
+            xml.enabled = false
+            html.enabled = true
         }
     }
     task sourcesJar(type: Jar, dependsOn: classes) {

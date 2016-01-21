@@ -104,17 +104,13 @@ public class Resources_ua extends ListResourceBundle implements TimeFormatProvid
         @Override
         public String format(Duration duration) {
             long quantity = duration.getQuantityRounded(tolerance);
-            StringBuilder result = new StringBuilder();
-            result.append(quantity);
-            return result.toString();
+            return String.valueOf(quantity);
         }
 
         @Override
         public String formatUnrounded(Duration duration) {
             long quantity = duration.getQuantity();
-            StringBuilder result = new StringBuilder();
-            result.append(quantity);
-            return result.toString();
+            return String.valueOf(quantity);
         }
 
         @Override
@@ -141,10 +137,6 @@ public class Resources_ua extends ListResourceBundle implements TimeFormatProvid
             // a bit cryptic, yet well-tested
             // consider http://translate.sourceforge.net/wiki/l10n/pluralforms
             int pluralIdx = (n % 10 == 1 && n % 100 != 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2);
-            if (pluralIdx > slavicPluralForms) {
-                // impossible happening
-                throw new IllegalStateException("Wrong plural index was calculated somehow for slavic language");
-            }
 
             StringBuilder result = new StringBuilder();
 

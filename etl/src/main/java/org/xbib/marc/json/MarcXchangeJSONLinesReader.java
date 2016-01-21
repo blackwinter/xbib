@@ -156,6 +156,8 @@ public class MarcXchangeJSONLinesReader {
                     indicator = name.replace('_', ' ');
                     break;
                 }
+                default:
+                    break;
             }
             parseObject(level + 1);
         } else if (START_ARRAY.equals(currentToken)) {
@@ -181,6 +183,8 @@ public class MarcXchangeJSONLinesReader {
                         subfieldId = name;
                         break;
                     }
+                    default:
+                        break;
                 }
                 Field field = new Field().tag(tag).indicator(indicator).subfieldId(subfieldId).data(jsonParser.getText());
                 fields.add(field);

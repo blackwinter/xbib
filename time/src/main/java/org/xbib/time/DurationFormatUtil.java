@@ -378,36 +378,30 @@ public class DurationFormatUtil {
                          int milliseconds) {
         StringBuilder buffer = new StringBuilder();
         boolean lastOutputSeconds = false;
-        int sz = tokens.length;
         for (Token token : tokens) {
             Object value = token.getValue();
             if (value instanceof StringBuilder) {
                 buffer.append(value.toString());
             } else {
-                if (value == y) {
+                if (y.equals(value)) {
                     buffer.append(Integer.toString(years));
                     lastOutputSeconds = false;
-                } else if (value == M) {
-                    buffer.append(Integer
-                            .toString(months));
+                } else if (M.equals(value)) {
+                    buffer.append(Integer.toString(months));
                     lastOutputSeconds = false;
-                } else if (value == d) {
-                    buffer.append(Integer
-                            .toString(days));
+                } else if (d.equals(value)) {
+                    buffer.append(Integer.toString(days));
                     lastOutputSeconds = false;
-                } else if (value == H) {
-                    buffer.append(Integer
-                            .toString(hours));
+                } else if (H.equals(value)) {
+                    buffer.append(Integer.toString(hours));
                     lastOutputSeconds = false;
-                } else if (value == m) {
-                    buffer.append(Integer
-                            .toString(minutes));
+                } else if (m.equals(value)) {
+                    buffer.append(Integer.toString(minutes));
                     lastOutputSeconds = false;
-                } else if (value == s) {
-                    buffer.append(Integer
-                            .toString(seconds));
+                } else if (s.equals(value)) {
+                    buffer.append(Integer.toString(seconds));
                     lastOutputSeconds = true;
-                } else if (value == S) {
+                } else if (S.equals(value)) {
                     if (lastOutputSeconds) {
                         milliseconds += 1000;
                         String str = Integer.toString(milliseconds);
@@ -430,12 +424,10 @@ public class DurationFormatUtil {
      */
     static Token[] lexx(String format) {
         char[] array = format.toCharArray();
-        ArrayList<Token> list = new ArrayList<Token>(array.length);
-
+        ArrayList<Token> list = new ArrayList<>(array.length);
         boolean inLiteral = false;
         StringBuilder buffer = null;
         Token previous = null;
-        int sz = array.length;
         for (char ch : array) {
             if (inLiteral && ch != '\'') {
                 buffer.append(ch);
@@ -483,7 +475,7 @@ public class DurationFormatUtil {
             }
 
             if (value != null) {
-                if (previous != null && previous.getValue() == value) {
+                if (previous != null && value.equals(previous.getValue())) {
                     previous.increment();
                 } else {
                     Token token = new Token(value);
@@ -567,7 +559,6 @@ public class DurationFormatUtil {
          * @return boolean <code>true</code> if contained
          */
         static boolean containsTokenWithValue(Token[] tokens, Object value) {
-            int sz = tokens.length;
             for (Token token : tokens) {
                 if (token.getValue() == value) {
                     return true;

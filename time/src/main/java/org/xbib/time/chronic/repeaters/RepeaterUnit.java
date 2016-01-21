@@ -35,7 +35,8 @@ public abstract class RepeaterUnit extends Repeater<Object> {
             scanner.put(RepeaterUnit.HOUR_PATTERN, UnitName.HOUR);
             scanner.put(RepeaterUnit.MINUTE_PATTERN, UnitName.MINUTE);
             scanner.put(RepeaterUnit.SECOND_PATTERN, UnitName.SECOND);
-            for (Pattern scannerItem : scanner.keySet()) {
+            for (Map.Entry<Pattern, UnitName> entry : scanner.entrySet()) {
+                Pattern scannerItem = entry.getKey();
                 if (scannerItem.matcher(token.getWord()).matches()) {
                     UnitName unitNameEnum = scanner.get(scannerItem);
                     String unitName = unitNameEnum.name();

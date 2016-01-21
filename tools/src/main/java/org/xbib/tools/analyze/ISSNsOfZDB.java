@@ -44,7 +44,7 @@ import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -105,7 +105,7 @@ public class ISSNsOfZDB extends Analyzer {
         } finally {
             search.shutdown();
         }
-        FileWriter fileWriter = new FileWriter(settings.get("output","zdb-issns.txt"));
+        BufferedWriter fileWriter = getFileWriter(settings.get("output","zdb-issns.txt"));
         for (String issn : issns) {
             fileWriter.write(issn);
             fileWriter.write("\n");

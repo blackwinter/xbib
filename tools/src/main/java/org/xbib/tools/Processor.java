@@ -33,7 +33,7 @@ package org.xbib.tools;
 
 import java.io.Reader;
 
-public interface Program {
+public interface Processor {
 
     int from(String arg) throws Exception;
 

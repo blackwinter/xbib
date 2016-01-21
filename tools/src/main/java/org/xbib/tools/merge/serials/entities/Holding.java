@@ -562,11 +562,6 @@ public class Holding implements Comparable<Holding> {
         return map.toString();
     }
 
-    @Override
-    public int compareTo(Holding o) {
-        return identifier().compareTo(o.identifier());
-    }
-
     public void toXContent(XContentBuilder builder, ToXContent.Params params)
             throws IOException {
         builder.startObject()
@@ -600,5 +595,20 @@ public class Holding implements Comparable<Holding> {
         builder.fieldIfNotNull("comment", getServiceComment())
                 .field("info", getInfo())
                 .endObject();
+    }
+
+    @Override
+    public int compareTo(Holding o) {
+        return identifier().compareTo(o.identifier());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Holding && identifier().equals(((Holding)o).identifier());
+    }
+
+    @Override
+    public int hashCode() {
+        return identifier().hashCode();
     }
 }

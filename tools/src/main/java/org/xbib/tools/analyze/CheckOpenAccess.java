@@ -41,7 +41,6 @@ import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -60,12 +59,11 @@ public class CheckOpenAccess extends Analyzer {
                 .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
                 .build().getAsMap());
         Client client = search.client();
-        FileReader fileReader = new FileReader(settings.get("input"));
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        BufferedReader fileReader = getFileReader(settings.get("input"));
         String line;
         int oa = 0;
         int nonoa = 0;
-        while  ((line = bufferedReader.readLine()) != null) {
+        while  ((line = fileReader.readLine()) != null) {
             String[] s = line.split(",");
             if (s.length != 2 && s.length !=3) {
                 logger.warn("invalid line: {}", line);
@@ -91,14 +89,8 @@ public class CheckOpenAccess extends Analyzer {
                 nonoa += count;
             }
         }
-        bufferedReader.close();
+        fileReader.close();
         logger.info("oa={} nonoa={}", oa, nonoa);
-        /*FileWriter fileWriter = new FileWriter("oa.txt");
-        for (String s : notfoundset) {
-            fileWriter.write(s);
-            fileWriter.write("\n");
-        }
-        fileWriter.close();*/
     }
 
 }

@@ -1,8 +1,6 @@
 package org.xbib.json.jackson;
 
-import java.io.Serializable;
-
-public final class Wrapper<T> implements Serializable {
+public final class Wrapper<T> {
 
     private final Equivalence<? super T> equivalence;
 

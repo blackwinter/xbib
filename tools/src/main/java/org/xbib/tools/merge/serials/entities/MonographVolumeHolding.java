@@ -191,4 +191,20 @@ public class MonographVolumeHolding extends Holding {
                 .endObject();
         builder.endObject().endObject();
     }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof Holding && toString().equals(other.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
+    public int compareTo(Holding m) {
+        return toString().compareTo(m.toString());
+    }
+
 }

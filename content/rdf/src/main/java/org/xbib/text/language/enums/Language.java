@@ -19,6 +19,8 @@ package org.xbib.text.language.enums;
 
 import org.xbib.text.language.Subtag;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -379,13 +381,13 @@ public enum Language {
     private final String deprecated;
     private final String preferred;
     private final String suppressscript;
-    private final String[] descriptions;
+    private final List<String> descriptions;
 
-    private Language(String dep, String pref, String ss, String... desc) {
+    Language(String dep, String pref, String ss, String... desc) {
         this.deprecated = dep;
         this.preferred = pref;
         this.suppressscript = ss;
-        this.descriptions = desc;
+        this.descriptions = Arrays.asList(desc);
     }
 
     public String getDeprecated() {
@@ -409,10 +411,10 @@ public enum Language {
     }
 
     public String getDescription() {
-        return descriptions.length > 0 ? descriptions[0] : null;
+        return descriptions != null && !descriptions.isEmpty()? descriptions.get(0) : null;
     }
 
-    public String[] getDescriptions() {
+    public List<String> getDescriptions() {
         return descriptions;
     }
 

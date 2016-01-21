@@ -56,6 +56,13 @@ public class XmlXContent implements XContent {
 
     private XmlFactory xmlFactory;
 
+    /**
+     * Constructor for ServiceLoader
+     */
+    public XmlXContent() {
+        this(XmlXParams.createXmlFactory(XmlXParams.createXMLInputFactory(), XmlXParams.createXMLOutputFactory()));
+    }
+
     private XmlXContent(XmlFactory xmlFactory) {
         this.xmlFactory = xmlFactory;
     }

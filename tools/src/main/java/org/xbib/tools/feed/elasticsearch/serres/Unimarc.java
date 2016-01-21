@@ -35,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
@@ -48,10 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -61,43 +59,37 @@ public class Unimarc extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(Unimarc.class);
 
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
-
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Unimarc().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws IOException {
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        Map<String,Object> params = new HashMap<>();
-        params.put("identifier", settings.get("identifier", "UNIMARC"));
-        params.put("_prefix", "(" + settings.get("identifier", "UNIMARC") + ")");
-        final MARCDirectQueue queue = new MyEntityQueue();
-        queue.setUnmappedKeyListener((id, key) -> {
-            if ((settings.getAsBoolean("detect-unknown", false))) {
-                logger.warn("record {} unmapped field {}", id, key);
-                unmapped.add("\"" + key + "\"");
-            }
-        });
-        queue.execute();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+            final MARCDirectQueue queue = new MyEntityQueue();
+            queue.setUnmappedKeyListener((id, key) -> {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
+                    logger.warn("record {} unmapped field {}", id, key);
+                    unmapped.add("\"" + key + "\"");
+                }
+            });
+            queue.execute();
 
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .addListener(queue);
-        InputStream in = InputService.getInputStream(uri);
-        InputStreamReader r = new InputStreamReader(in, ISO88591);
-        final Iso2709Reader reader = new Iso2709Reader(r)
-                .setStringTransformer(value -> XMLUtil.sanitizeXml10(new String(value.getBytes(ISO88591), UTF8)))
-                .setMarcXchangeListener(kv);
-        reader.setFormat("UNIMARC").setType("Bibliographic");
-        reader.parse();
-        r.close();
-        queue.close();
-        if (settings.getAsBoolean("detect-unknown", false)) {
-            logger.info("unknown keys={}", unmapped);
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .addListener(queue);
+            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            final Iso2709Reader reader = new Iso2709Reader(r)
+                    .setStringTransformer(value -> XMLUtil.sanitizeXml10(new String(value.getBytes(ISO88591), UTF8)))
+                    .setMarcXchangeListener(kv);
+            reader.setFormat("UNIMARC").setType("Bibliographic");
+            reader.parse();
+            r.close();
+            queue.close();
+            if (settings.getAsBoolean("detect-unknown", false)) {
+                logger.info("unknown keys={}", unmapped);
+            }
         }
     }
 
@@ -113,7 +105,8 @@ public class Unimarc extends Feeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getIndex(), getType());
+                    indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {

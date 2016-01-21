@@ -45,7 +45,8 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
         scanner.put(RepeaterMonthName.OCT_PATTERN, MonthName.OCTOBER);
         scanner.put(RepeaterMonthName.NOV_PATTERN, MonthName.NOVEMBER);
         scanner.put(RepeaterMonthName.DEC_PATTERN, MonthName.DECEMBER);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, MonthName> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new RepeaterMonthName(scanner.get(scannerItem));
             }

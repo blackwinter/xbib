@@ -42,25 +42,23 @@ public class ResourcesTimeFormat extends SimpleTimeFormat implements TimeFormat,
             setSingularName(bundle.getString(unit.getResourceKeyPrefix() + "SingularName"));
             setPluralName(bundle.getString(unit.getResourceKeyPrefix() + "PluralName"));
 
-            try {
-                setFuturePluralName(bundle.getString(unit.getResourceKeyPrefix() + "FuturePluralName"));
-            } catch (Exception e) {
+            String key = unit.getResourceKeyPrefix() + "FuturePluralName";
+            if (bundle.containsKey(key)) {
+                setFuturePluralName(bundle.getString(key));
             }
-            try {
-                setFutureSingularName((bundle.getString(unit.getResourceKeyPrefix() + "FutureSingularName")));
-            } catch (Exception e) {
+            key = unit.getResourceKeyPrefix() + "FutureSingularName";
+            if (bundle.containsKey(key)) {
+                setFutureSingularName((bundle.getString(key)));
             }
-            try {
-                setPastPluralName((bundle.getString(unit.getResourceKeyPrefix() + "PastPluralName")));
-            } catch (Exception e) {
+            key = unit.getResourceKeyPrefix() + "PastPluralName";
+            if (bundle.containsKey(key)) {
+                setPastPluralName((bundle.getString(key)));
             }
-            try {
-                setPastSingularName((bundle.getString(unit.getResourceKeyPrefix() + "PastSingularName")));
-            } catch (Exception e) {
+            key = unit.getResourceKeyPrefix() + "PastSingularName";
+            if (bundle.containsKey(key)) {
+                setPastSingularName((bundle.getString(key)));
             }
-
         }
-
         return this;
     }
 

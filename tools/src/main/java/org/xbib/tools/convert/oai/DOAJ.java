@@ -33,6 +33,7 @@ package org.xbib.tools.convert.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -45,6 +46,7 @@ import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.XSDResourceIdentifiers;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -62,7 +64,7 @@ public class DOAJ extends OAIHarvester {
 
     private final static Logger logger = LogManager.getLogger(DOAJ.class);
 
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new DOAJ().setPipeline(p);
     }
 
@@ -98,13 +100,13 @@ public class DOAJ extends OAIHarvester {
                     if (settings.getAsBoolean("mock", false)) {
                         logger.info("{}", content);
                     } else {
-                        StringPacket packet = session.newPacket();
+                        StringPacket packet = getSession().newPacket();
                         packet.name();
                         String s = content;
                         // for Unicode in non-canonical form, normalize it here
                         s = Normalizer.normalize(s, Normalizer.Form.NFC);
                         packet.packet(s);
-                        session.write(packet);
+                        getSession().write(packet);
                     }
                 });
                 RdfContentBuilder builder = routeRdfXContentBuilder(params);

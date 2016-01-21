@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.settings.loader.SettingsLoader;
 import org.xbib.common.settings.loader.SettingsLoaderFactory;
-import org.xbib.tools.Program;
+import org.xbib.tools.Processor;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
@@ -52,7 +52,7 @@ import java.util.concurrent.SynchronousQueue;
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest>
-        implements Program {
+        implements Processor {
 
     private final static Logger logger = LogManager.getLogger(Merger.class.getSimpleName());
 

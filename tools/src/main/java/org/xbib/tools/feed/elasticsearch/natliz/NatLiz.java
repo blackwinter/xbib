@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.dialects.mab.xml.MabXMLReader;
@@ -34,59 +35,63 @@ public class NatLiz extends Feeder {
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new NatLiz().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        namespaceContext.add(new HashMap<String, String>() {{
-            put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
-            put("dc", "http://purl.org/dc/elements/1.1/");
-            put("dcterms", "http://purl.org/dc/terms/");
-            put("foaf", "http://xmlns.com/foaf/0.1/");
-            put("frbr", "http://purl.org/vocab/frbr/core#");
-            put("fabio", "http://purl.org/spar/fabio/");
-            put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
-        }});
+        try (InputStream in = InputService.getInputStream(uri)) {
+            namespaceContext.add(new HashMap<String, String>() {{
+                put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
+                put("dc", "http://purl.org/dc/elements/1.1/");
+                put("dcterms", "http://purl.org/dc/terms/");
+                put("foaf", "http://xmlns.com/foaf/0.1/");
+                put("frbr", "http://purl.org/vocab/frbr/core#");
+                put("fabio", "http://purl.org/spar/fabio/");
+                put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
+            }});
 
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        Map<String,Object> params = new HashMap<>();
-        params.put("identifier", settings.get("identifier", "DE-NLZ"));
-        params.put("_prefix", "(" + settings.get("identifier", "DE-NLZ") + ")");
-        final MABEntityQueue queue = new MyEntityQueue(params);
-        queue.setUnmappedKeyListener((id, key) -> {
-            if ((settings.getAsBoolean("detect-unknown", false))) {
-                logger.warn("record {} unmapped field {}", id, key);
-                unmapped.add("\"" + key + "\"");
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+            Map<String, Object> params = new HashMap<>();
+            params.put("identifier", settings.get("identifier", "DE-NLZ"));
+            params.put("_prefix", "(" + settings.get("identifier", "DE-NLZ") + ")");
+            final MABEntityQueue queue = new MyEntityQueue(params);
+            queue.setUnmappedKeyListener((id, key) -> {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
+                    logger.warn("record {} unmapped field {}", id, key);
+                    unmapped.add("\"" + key + "\"");
+                }
+            });
+            queue.execute();
+            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .addListener(queue);
+            MabXMLReader reader = new MabXMLReader(in)
+                    .setMarcXchangeListener(kv);
+            reader.parse();
+            queue.close();
+            if (settings.getAsBoolean("detect-unknown", false)) {
+                logger.info("unknown keys={}", unmapped);
             }
-        });
-        queue.execute();
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .addListener(queue);
-        InputStream in = InputService.getInputStream(uri);
-        MabXMLReader reader = new MabXMLReader(in)
-                .setMarcXchangeListener(kv);
-        reader.parse();
-        in.close();
-        queue.close();
-        if (settings.getAsBoolean("detect-unknown", false)) {
-            logger.info("unknown keys={}", unmapped);
         }
     }
 
     class MyEntityQueue extends MABEntityQueue {
 
-        public MyEntityQueue(Map<String,Object> params) {
+        final RouteRdfXContentParams params;
+
+        public MyEntityQueue(Map<String,Object> map) {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
-                    params,
+                    map,
                     settings.getAsInt("pipelines", 1),
                     settings.get("elements"));
+            this.params = new RouteRdfXContentParams(namespaceContext,
+                    indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
         }
 
         @Override
         public void afterCompletion(MABEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext, settings.get("index"), settings.get("type"));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));
@@ -97,7 +102,6 @@ public class NatLiz extends Feeder {
             }
             Map<String,Object> map = XContentHelper.convertToMap(params.getGenerator().get());
             NatLizMapper natLizMapper = new NatLizMapper();
-            params = new RouteRdfXContentParams(namespaceContext, settings.get("index"), settings.get("type"));
             builder = routeRdfXContentBuilder(params);
             Resource resource = natLizMapper.map(map);
             builder.receive(natLizMapper.map(map));

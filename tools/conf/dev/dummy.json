@@ -1,0 +1,10 @@
+{
+  "input" : {
+    "input1" : {
+      "uri" : "${HOME}"
+    }
+  },
+  "output" : {
+
+  }
+}

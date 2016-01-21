@@ -33,6 +33,7 @@ package org.xbib.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -47,43 +48,42 @@ public final class ExceptionFormatter {
      * Append Exception to string builder
      */
     @SuppressWarnings("rawtypes")
-    public static void append(StringBuilder buf, Throwable t,
-                              int level, boolean details) {
-        try {
-            if (((t != null) && (t.getMessage() != null))
-                    && (t.getMessage().length() > 0)) {
-                if (details && (level > 0)) {
-                    buf.append("\n\nCaused by\n");
-                }
-                buf.append(t.getMessage());
+    public static void append(StringBuilder buf, Throwable t, int level, boolean details) {
+        if (((t != null) && (t.getMessage() != null))
+                && (t.getMessage().length() > 0)) {
+            if (details && (level > 0)) {
+                buf.append("\n\nCaused by\n");
             }
-            if (details) {
-                if (t != null) {
-                    if ((t.getMessage() != null)
-                            && (t.getMessage().length() == 0)) {
-                        buf.append("\n\nCaused by ");
-                    } else {
-                        buf.append("\n\n");
-                    }
-                }
-                StringWriter sw = new StringWriter();
-                if (t != null) {
-                    t.printStackTrace(new PrintWriter(sw));
-                }
-                buf.append(sw.toString());
-            }
+            buf.append(t.getMessage());
+        }
+        if (details) {
             if (t != null) {
-                Method method = t.getClass().getMethod("getCause",
-                        new Class[]{});
+                if ((t.getMessage() != null)
+                        && (t.getMessage().length() == 0)) {
+                    buf.append("\n\nCaused by ");
+                } else {
+                    buf.append("\n\n");
+                }
+            }
+            StringWriter sw = new StringWriter();
+            if (t != null) {
+                t.printStackTrace(new PrintWriter(sw));
+            }
+            buf.append(sw.toString());
+        }
+        if (t != null) {
+            try {
+                Method method = t.getClass().getMethod("getCause");
                 Throwable cause = (Throwable) method.invoke(t,
                         (Object) null);
                 if (cause != null) {
                     append(buf, cause, level + 1, details);
                 }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+                //
             }
-        } catch (Exception ex) {
-            //
         }
+
     }
 
     /**

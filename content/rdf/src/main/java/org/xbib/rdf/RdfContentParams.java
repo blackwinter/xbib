@@ -32,11 +32,8 @@
 package org.xbib.rdf;
 
 import org.xbib.iri.namespace.IRINamespaceContext;
-import org.xbib.rdf.io.ntriple.NTripleContentParams;
 
 public interface RdfContentParams {
 
-    RdfContentParams EMPTY = NTripleContentParams.DEFAULT_PARAMS;
-    
     IRINamespaceContext getNamespaceContext();
 }

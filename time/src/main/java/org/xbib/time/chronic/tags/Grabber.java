@@ -32,7 +32,8 @@ public class Grabber extends Tag<Grabber.Relative> {
         scanner.put(Grabber.LAST_PATTERN, Relative.LAST);
         scanner.put(Grabber.NEXT_PATTERN, Relative.NEXT);
         scanner.put(Grabber.THIS_PATTERN, Relative.THIS);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, Relative> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new Grabber(scanner.get(scannerItem));
             }

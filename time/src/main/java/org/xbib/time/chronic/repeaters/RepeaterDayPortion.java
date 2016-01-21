@@ -36,7 +36,8 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
         scanner.put(RepeaterDayPortion.AFTERNOON_PATTERN, DayPortion.AFTERNOON);
         scanner.put(RepeaterDayPortion.EVENING_PATTERN, DayPortion.EVENING);
         scanner.put(RepeaterDayPortion.NIGHT_PATTERN, DayPortion.NIGHT);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, DayPortion> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new EnumRepeaterDayPortion(scanner.get(scannerItem));
             }
@@ -112,16 +113,16 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
         if (range == null) {
             throw new IllegalStateException("Range has not been set");
         }
-        int width;
+        Long width;
         if (currentSpan != null) {
-            width = (int) currentSpan.getWidth();
+            width = currentSpan.getWidth();
         } else {
             width = _getWidth(range);
         }
-        return width;
+        return width.intValue();
     }
 
-    protected abstract int _getWidth(Range range);
+    protected abstract long _getWidth(Range range);
 
     protected abstract Range createRange(T type);
 
@@ -130,7 +131,7 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
         return super.toString() + "-dayportion-" + getType();
     }
 
-    public static enum DayPortion {
+    public enum DayPortion {
         AM, PM, MORNING, AFTERNOON, EVENING, NIGHT
     }
 

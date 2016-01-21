@@ -37,13 +37,13 @@ public class RunnerTest {
             if (args != null && args.length > 0) {
                 if (System.in.available() > 0) {
                     Class<?> clazz = Class.forName(args[0]);
-                    Program program = (Program) clazz.newInstance();
-                    exitcode = program.from(".json", new InputStreamReader(System.in));
+                    Processor processor = (Processor) clazz.newInstance();
+                    exitcode = processor.from(".json", new InputStreamReader(System.in));
                 } else {
                     for (int i = 0; i < args.length; i+=2) {
                         Class<?> clazz = Class.forName(args[i]);
-                        Program program = (Program) clazz.newInstance();
-                        exitcode = program.from(args[i+1]);
+                        Processor processor = (Processor) clazz.newInstance();
+                        exitcode = processor.from(args[i+1]);
                         if (exitcode != 0) {
                             break;
                         }

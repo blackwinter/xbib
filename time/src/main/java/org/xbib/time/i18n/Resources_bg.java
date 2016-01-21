@@ -1,104 +1,107 @@
 package org.xbib.time.i18n;
 
-import java.util.ListResourceBundle;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Resources_bg extends ListResourceBundle {
+public class Resources_bg extends MapResourceBundle {
 
-    private static final Object[][] OBJECTS = new Object[][]{
-            {"CenturyPattern", "%n %u"},
-            {"CenturyFuturePrefix", "след "},
-            {"CenturyFutureSuffix", ""},
-            {"CenturyPastPrefix", "преди "},
-            {"CenturyPastSuffix", ""},
-            {"CenturySingularName", "век"},
-            {"CenturyPluralName", "века"},
-            {"DayPattern", "%n %u"},
-            {"DayFuturePrefix", "след "},
-            {"DayFutureSuffix", ""},
-            {"DayPastPrefix", "преди "},
-            {"DayPastSuffix", ""},
-            {"DaySingularName", "ден"},
-            {"DayPluralName", "дни"},
-            {"DecadePattern", "%n %u"},
-            {"DecadeFuturePrefix", "след "},
-            {"DecadeFutureSuffix", ""},
-            {"DecadePastPrefix", "преди "},
-            {"DecadePastSuffix", ""},
-            {"DecadeSingularName", "десетилетие"},
-            {"DecadePluralName", "десетилетия"},
-            {"HourPattern", "%n %u"},
-            {"HourFuturePrefix", "след "},
-            {"HourFutureSuffix", ""},
-            {"HourPastPrefix", "преди "},
-            {"HourPastSuffix", ""},
-            {"HourSingularName", "час"},
-            {"HourPluralName", "часа"},
-            {"JustNowPattern", "%u"},
-            {"JustNowFuturePrefix", ""},
-            {"JustNowFutureSuffix", "в момента"},
-            {"JustNowPastPrefix", "току що"},
-            {"JustNowPastSuffix", ""},
-            {"JustNowSingularName", ""},
-            {"JustNowPluralName", ""},
-            {"MillenniumPattern", "%n %u"},
-            {"MillenniumFuturePrefix", "след "},
-            {"MillenniumFutureSuffix", ""},
-            {"MillenniumPastPrefix", "преди "},
-            {"MillenniumPastSuffix", ""},
-            {"MillenniumSingularName", "хилядолетие"},
-            {"MillenniumPluralName", "хилядолетия"},
-            {"MillisecondPattern", "%n %u"},
-            {"MillisecondFuturePrefix", "след "},
-            {"MillisecondFutureSuffix", ""},
-            {"MillisecondPastPrefix", "преди "},
-            {"MillisecondPastSuffix", ""},
-            {"MillisecondSingularName", "милисекунда"},
-            {"MillisecondPluralName", "милисекунди"},
-            {"MinutePattern", "%n %u"},
-            {"MinuteFuturePrefix", "след "},
-            {"MinuteFutureSuffix", ""},
-            {"MinutePastPrefix", "преди "},
-            {"MinutePastSuffix", ""},
-            {"MinuteSingularName", "минута"},
-            {"MinutePluralName", "минути"},
-            {"MonthPattern", "%n %u"},
-            {"MonthFuturePrefix", "след "},
-            {"MonthFutureSuffix", ""},
-            {"MonthPastPrefix", "преди "},
-            {"MonthPastSuffix", ""},
-            {"MonthSingularName", "месец"},
-            {"MonthPluralName", "месеца"},
-            {"SecondPattern", "%n %u"},
-            {"SecondFuturePrefix", "след "},
-            {"SecondFutureSuffix", ""},
-            {"SecondPastPrefix", "преди "},
-            {"SecondPastSuffix", ""},
-            {"SecondSingularName", "секунда"},
-            {"SecondPluralName", "секунди"},
-            {"WeekPattern", "%n %u"},
-            {"WeekFuturePrefix", "след "},
-            {"WeekFutureSuffix", ""},
-            {"WeekPastPrefix", "преди "},
-            {"WeekPastSuffix", ""},
-            {"WeekSingularName", "седмица"},
-            {"WeekPluralName", "седмици"},
-            {"YearPattern", "%n %u"},
-            {"YearFuturePrefix", "след "},
-            {"YearFutureSuffix", ""},
-            {"YearPastPrefix", "преди "},
-            {"YearPastSuffix", ""},
-            {"YearSingularName", "година"},
-            {"YearPluralName", "години"},
-            {"AbstractTimeUnitPattern", ""},
-            {"AbstractTimeUnitFuturePrefix", ""},
-            {"AbstractTimeUnitFutureSuffix", ""},
-            {"AbstractTimeUnitPastPrefix", ""},
-            {"AbstractTimeUnitPastSuffix", ""},
-            {"AbstractTimeUnitSingularName", ""},
-            {"AbstractTimeUnitPluralName", ""}};
+    private static final Map<String,Object> map = new HashMap<String,Object>() {{
+        put("CenturyPattern", "%n %u");
+        put("CenturyFuturePrefix", "след ");
+        put("CenturyFutureSuffix", "");
+        put("CenturyPastPrefix", "преди ");
+        put("CenturyPastSuffix", "");
+        put("CenturySingularName", "век");
+        put("CenturyPluralName", "века");
+        put("DayPattern", "%n %u");
+        put("DayFuturePrefix", "след ");
+        put("DayFutureSuffix", "");
+        put("DayPastPrefix", "преди ");
+        put("DayPastSuffix", "");
+        put("DaySingularName", "ден");
+        put("DayPluralName", "дни");
+        put("DecadePattern", "%n %u");
+        put("DecadeFuturePrefix", "след ");
+        put("DecadeFutureSuffix", "");
+        put("DecadePastPrefix", "преди ");
+        put("DecadePastSuffix", "");
+        put("DecadeSingularName", "десетилетие");
+        put("DecadePluralName", "десетилетия");
+        put("HourPattern", "%n %u");
+        put("HourFuturePrefix", "след ");
+        put("HourFutureSuffix", "");
+        put("HourPastPrefix", "преди ");
+        put("HourPastSuffix", "");
+        put("HourSingularName", "час");
+        put("HourPluralName", "часа");
+        put("JustNowPattern", "%u");
+        put("JustNowFuturePrefix", "");
+        put("JustNowFutureSuffix", "в момента");
+        put("JustNowPastPrefix", "току що");
+        put("JustNowPastSuffix", "");
+        put("JustNowSingularName", "");
+        put("JustNowPluralName", "");
+        put("MillenniumPattern", "%n %u");
+        put("MillenniumFuturePrefix", "след ");
+        put("MillenniumFutureSuffix", "");
+        put("MillenniumPastPrefix", "преди ");
+        put("MillenniumPastSuffix", "");
+        put("MillenniumSingularName", "хилядолетие");
+        put("MillenniumPluralName", "хилядолетия");
+        put("MillisecondPattern", "%n %u");
+        put("MillisecondFuturePrefix", "след ");
+        put("MillisecondFutureSuffix", "");
+        put("MillisecondPastPrefix", "преди ");
+        put("MillisecondPastSuffix", "");
+        put("MillisecondSingularName", "милисекунда");
+        put("MillisecondPluralName", "милисекунди");
+        put("MinutePattern", "%n %u");
+        put("MinuteFuturePrefix", "след ");
+        put("MinuteFutureSuffix", "");
+        put("MinutePastPrefix", "преди ");
+        put("MinutePastSuffix", "");
+        put("MinuteSingularName", "минута");
+        put("MinutePluralName", "минути");
+        put("MonthPattern", "%n %u");
+        put("MonthFuturePrefix", "след ");
+        put("MonthFutureSuffix", "");
+        put("MonthPastPrefix", "преди ");
+        put("MonthPastSuffix", "");
+        put("MonthSingularName", "месец");
+        put("MonthPluralName", "месеца");
+        put("SecondPattern", "%n %u");
+        put("SecondFuturePrefix", "след ");
+        put("SecondFutureSuffix", "");
+        put("SecondPastPrefix", "преди ");
+        put("SecondPastSuffix", "");
+        put("SecondSingularName", "секунда");
+        put("SecondPluralName", "секунди");
+        put("WeekPattern", "%n %u");
+        put("WeekFuturePrefix", "след ");
+        put("WeekFutureSuffix", "");
+        put("WeekPastPrefix", "преди ");
+        put("WeekPastSuffix", "");
+        put("WeekSingularName", "седмица");
+        put("WeekPluralName", "седмици");
+        put("YearPattern", "%n %u");
+        put("YearFuturePrefix", "след ");
+        put("YearFutureSuffix", "");
+        put("YearPastPrefix", "преди ");
+        put("YearPastSuffix", "");
+        put("YearSingularName", "година");
+        put("YearPluralName", "години");
+        put("AbstractTimeUnitPattern", "");
+        put("AbstractTimeUnitFuturePrefix", "");
+        put("AbstractTimeUnitFutureSuffix", "");
+        put("AbstractTimeUnitPastPrefix", "");
+        put("AbstractTimeUnitPastSuffix", "");
+        put("AbstractTimeUnitSingularName", "");
+        put("AbstractTimeUnitPluralName", "");
+    }};
 
     @Override
-    public Object[][] getContents() {
-        return OBJECTS;
+    public Map<String,Object> getContents() {
+        return map;
     }
+
 }

@@ -891,6 +891,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
                         this.printID = internal;
                         this.printExternalID = external;
                         break;
+                    default:
+                        break;
                 }
             }
         }
@@ -1119,26 +1121,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
         }
     }
 
-    public String toString() {
-        return externalID;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof TitleRecord && toString().equals(other.toString());
-    }
-
-
-    @Override
-    public int hashCode() {
-        return toString().hashCode();
-    }
-
-    @Override
-    public int compareTo(TitleRecord m) {
-        return externalID.compareTo(m.externalID());
-    }
-
     private final static Set<String> temporalRelations = new HashSet<>(Arrays.asList(
             "succeededBy",
             "precededBy",
@@ -1251,5 +1233,26 @@ public class TitleRecord implements Comparable<TitleRecord> {
         put("isReproductionOf", "hasReproduction");
         put("isSummaryOf", "hasSummary");
     }};
+
+
+    public String toString() {
+        return externalID;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof TitleRecord && externalID.equals(((TitleRecord)other).externalID);
+    }
+
+    @Override
+    public int hashCode() {
+        return externalID.hashCode();
+    }
+
+    @Override
+    public int compareTo(TitleRecord m) {
+        return externalID.compareTo(m.externalID());
+    }
+
 }
 

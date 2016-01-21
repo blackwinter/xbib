@@ -47,7 +47,7 @@ public class Abbrevations {
         return ResourceBundle.getBundle("org.xbib.grouping.bibliographic.abbrevations." + ruleName, locale);
     }
 
-    class Bundle extends PropertyResourceBundle {
+    static class Bundle extends PropertyResourceBundle {
 
         public Bundle(InputStream stream) throws IOException {
             super(stream);

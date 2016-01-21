@@ -42,12 +42,14 @@ import org.xbib.rdf.XSDResourceIdentifiers;
 import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -231,6 +233,7 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Resource add(IRI predicate, Iterator it) {
         it.forEachRemaining(object -> {
             if (object instanceof Map) {
@@ -247,12 +250,14 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
     }
 
     @Override
-    public Resource add(IRI predicate, Map map) {
+    @SuppressWarnings("unchecked")
+    public Resource add(IRI predicate, Map<Object,Object> map) {
         Resource r = newResource(predicate);
-        for (Object pred : map.keySet()) {
-            Object obj = map.get(pred);
+        for (Map.Entry<Object,Object> entry : map.entrySet()) {
+            Object pred = entry.getKey();
+            Object obj = entry.getValue();
             if (obj instanceof Map) {
-                r.add(newPredicate(pred), (Map) obj);
+                r.add(newPredicate(pred), (Map<Object,Object>) obj);
             } else if (obj instanceof List) {
                 r.add(newPredicate(pred), ((List) obj).iterator());
             } else if (obj instanceof Resource) {
@@ -305,9 +310,10 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
     }
 
     @Override
-    public Resource add(Map map) {
-        for (Object pred : map.keySet()) {
-            Object obj = map.get(pred);
+    public Resource add(Map<Object,Object> map) {
+        for (Map.Entry<Object,Object> entry : map.entrySet()) {
+            Object pred = entry.getKey();
+            Object obj =  entry.getValue();
             if (obj instanceof Map) {
                 Resource r = newResource(newPredicate(pred));
                 r.add((Map) obj);
@@ -378,7 +384,7 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
 
         @Override
         public Node next() {
-            return null;
+            throw new NoSuchElementException();
         }
     };
 
@@ -545,11 +551,41 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
         return new MemoryLiteral(value);
     }
 
+    public static Resource from(Map<String, Object> map, Mapper mapper) throws IOException {
+        Resource r = new MemoryResource();
+        map(mapper, r, null, map);
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void map(Mapper mapper, Resource r, String prefix, Map<String, Object> map) throws IOException {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String p = prefix != null ? prefix + "." + key : key;
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                map(mapper, r, p, (Map<String, Object>) value);
+            } else if (value instanceof List) {
+                for (Object o : (List) value) {
+                    if (o instanceof Map) {
+                        map(mapper, r, p, (Map<String, Object>) o);
+                    } else {
+                        mapper.map(r, p, o.toString());
+                    }
+                }
+            } else {
+                if (value != null) {
+                    mapper.map(r, p, value.toString());
+                }
+            }
+        }
+    }
+
     public List<Triple> find(IRI predicate, Literal literal) {
         return new Triples(this, predicate, literal).list();
     }
 
-    class Triples {
+    static class Triples {
 
         private final List<Triple> triples;
 

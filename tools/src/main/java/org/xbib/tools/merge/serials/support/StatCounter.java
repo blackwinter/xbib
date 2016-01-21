@@ -71,10 +71,11 @@ public class StatCounter extends HashMap<String,Map<String,Integer>> {
 
     public void merge(StatCounter statCounter) {
         if (statCounter != null) {
-            for (String key : statCounter.keySet()) {
-                Map<String, Integer> map = statCounter.get(key);
-                for (String value : map.keySet()) {
-                    increase(key, value, map.get(value));
+            for (Map.Entry<String,Map<String,Integer>> entry : statCounter.entrySet()) {
+                String key = entry.getKey();
+                Map<String, Integer> map = entry.getValue();
+                for (Map.Entry<String, Integer> entry2 : map.entrySet()) {
+                    increase(key, entry2.getKey(), entry2.getValue());
                 }
             }
         }

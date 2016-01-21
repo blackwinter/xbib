@@ -21,8 +21,7 @@ final class ObjectMergePatch extends JsonMergePatch {
     ObjectMergePatch(final JsonNode content) {
         super(content);
         fields = JacksonUtils.asMap(content);
-        removals = new HashSet();
-
+        removals = new HashSet<>();
         for (final Map.Entry<String, JsonNode> entry : fields.entrySet()) {
             if (entry.getValue().isNull()) {
                 removals.add(entry.getKey());
@@ -70,8 +69,8 @@ final class ObjectMergePatch extends JsonMergePatch {
         // Finally, if there are members in the patch not present in the input,
         // fill in members
         fields.keySet().removeAll(map.keySet());
-        for (final String key : fields.keySet()) {
-            map.put(key, clearNulls(fields.get(key)));
+        for (Map.Entry<String,JsonNode> entry : fields.entrySet()) {
+            map.put(entry.getKey(), clearNulls(entry.getValue()));
         }
 
         return mapToNode(map);

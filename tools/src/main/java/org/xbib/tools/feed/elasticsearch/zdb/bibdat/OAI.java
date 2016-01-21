@@ -73,23 +73,13 @@ import java.util.TreeSet;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
-public final class BibdatOAI extends OAIFeeder {
+public final class OAI extends OAIFeeder {
 
-    private final static Logger logger = LogManager.getLogger(BibdatOAI.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(OAI.class.getSimpleName());
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new BibdatOAI().setPipeline(p);
-    }
-
-    @Override
-    protected String getIndexParameterName() {
-        return "bib-index";
-    }
-
-    @Override
-    protected String getIndexTypeParameterName() {
-        return "bib-type";
+        return p -> new OAI().setPipeline(p);
     }
 
     @Override
@@ -179,8 +169,8 @@ public final class BibdatOAI extends OAIFeeder {
 
         @Override
         public void afterCompletion(PicaEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getConcreteIndex(), getType());
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
@@ -192,7 +182,8 @@ public final class BibdatOAI extends OAIFeeder {
             }
         }
     }
-    class PicaMetadataHandler implements MetadataHandler {
+
+    static class PicaMetadataHandler implements MetadataHandler {
 
         DNBPicaXmlReader reader;
 

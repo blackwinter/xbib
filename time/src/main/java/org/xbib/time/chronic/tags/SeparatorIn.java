@@ -17,7 +17,8 @@ public class SeparatorIn extends Separator {
     public static SeparatorIn scan(Token token, Options options) {
         Map<Pattern, SeparatorType> scanner = new HashMap<>();
         scanner.put(SeparatorIn.IN_PATTERN, SeparatorType.IN);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, SeparatorType> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new SeparatorIn(scanner.get(scannerItem));
             }

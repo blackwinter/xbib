@@ -311,7 +311,6 @@ public class SerialsMergerWorker
         SearchRequestBuilder searchRequest = serialsMerger.search().client().prepareSearch()
                 .setQuery(queryBuilder)
                 .setSize(serialsMerger.size()) // size is per shard!
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(serialsMerger.millis()));
         searchRequest.setIndices(sourceTitleIndex);
         if (sourceTitleType != null) {
@@ -1073,8 +1072,9 @@ public class SerialsMergerWorker
         }
         builder.field("institutioncount", institutions.size());
         builder.startArray("institution");
-        for (String isil : institutions.keySet()) {
-            Collection<Holding> set = institutions.get(isil);
+        for (Map.Entry<String,Set<Holding>> entry : institutions.entrySet()) {
+            String isil = entry.getKey();
+            Collection<Holding> set = entry.getValue();
             builder.startObject()
                     .field("isil", isil)
                     .field("servicecount", set.size());
@@ -1091,7 +1091,7 @@ public class SerialsMergerWorker
         builder.endArray().endObject();
     }
 
-    private class ClusterBuildContinuation {
+    private static class ClusterBuildContinuation {
         final TitleRecord titleRecord;
         final SearchResponse searchResponse;
         final Collection<TitleRecord> cluster;

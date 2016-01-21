@@ -1,13 +1,12 @@
 package org.xbib.rdf.io.source;
 
-import java.io.Closeable;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -43,16 +42,8 @@ public abstract class BaseStreamProcessor {
      * @throws IOException
      */
     public final void process(File file, String baseUri) throws IOException {
-        FileReader reader;
-        try {
-            reader = new FileReader(file);
-        } catch (FileNotFoundException e) {
-            throw new IOException(e);
-        }
-        try {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
             process(reader, null, baseUri);
-        } finally {
-            closeQuietly(reader);
         }
     }
 
@@ -74,23 +65,11 @@ public abstract class BaseStreamProcessor {
      * @throws IOException
      */
     public final void process(String uri, String baseUri) throws IOException {
-        URL url;
-        try {
-            url = new URL(uri);
-        } catch (MalformedURLException e) {
-            throw new IOException(e);
-        }
-        try {
-            URLConnection urlConnection = url.openConnection();
-            String mimeType = urlConnection.getContentType();
-            InputStream inputStream = urlConnection.getInputStream();
-            try {
-                process(inputStream, mimeType, baseUri);
-            } finally {
-                closeQuietly(inputStream);
-            }
-        } catch (java.io.IOException e) {
-            throw new IOException(e);
+        URL url = new URL(uri);
+        URLConnection urlConnection = url.openConnection();
+        String mimeType = urlConnection.getContentType();
+        try (InputStream inputStream = urlConnection.getInputStream()) {
+            process(inputStream, mimeType, baseUri);
         }
     }
 
@@ -163,15 +142,4 @@ public abstract class BaseStreamProcessor {
             endStream();
         }
     }
-
-    static void closeQuietly(Closeable closeable) {
-        try {
-            if (closeable != null) {
-                closeable.close();
-            }
-        } catch (java.io.IOException ioe) {
-            // ignore
-        }
-    }
-
 }

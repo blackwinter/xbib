@@ -33,6 +33,7 @@ package org.xbib.rdf;
 
 import org.xbib.iri.IRI;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -116,7 +117,7 @@ public interface Resource extends Node {
      */
     Resource add(IRI predicate, Iterator list);
 
-    Resource add(IRI predicate, Map map);
+    Resource add(IRI predicate, Map<Object,Object> map);
 
     /**
      * Add another resource to this resource
@@ -174,7 +175,7 @@ public interface Resource extends Node {
      */
     Resource add(String predicate, Iterator list);
 
-    Resource add(String predicate, Map map);
+    Resource add(String predicate, Map<Object,Object> map);
 
     /**
      * Add another resource to this resource
@@ -185,7 +186,7 @@ public interface Resource extends Node {
      */
     Resource add(String predicate, Resource resource);
 
-    Resource add(Map map);
+    Resource add(Map<Object,Object> map);
 
     Resource rename(String oldPredicate, String newPredicate);
 
@@ -332,4 +333,8 @@ public interface Resource extends Node {
      * @return true if the marker ist set
      */
     boolean isDeleted();
+
+    interface Mapper {
+        void map(Resource r, String path, String value) throws IOException;
+    }
 }

@@ -59,16 +59,18 @@ import org.xbib.xml.XMLUtil;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
@@ -82,23 +84,9 @@ public class JsonCoins extends Converter {
 
     private final static Logger logger = LogManager.getLogger(JsonCoins.class.getSimpleName());
 
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
     protected final static JsonFactory jsonFactory = new JsonFactory();
 
-    private static RdfContentBuilder articleBuilder;
-
-    private static RdfContentBuilder errorArticleBuilder;
-
-    private static RdfContentBuilder missingArticleBuilder;
-
-    private static GZIPOutputStream gzout;
-
-    private static GZIPOutputStream errorgzout;
-
-    private static GZIPOutputStream noserialgzout;
-
-    private static FileWriter missingserials;
+    private final static Lock lock = new ReentrantLock();
 
     private final static SerialsDB serialsdb = new SerialsDB();
 
@@ -116,34 +104,42 @@ public class JsonCoins extends Converter {
         }});
     }
 
+    private RdfContentBuilder articleBuilder;
+
+    private RdfContentBuilder errorArticleBuilder;
+
+    private RdfContentBuilder missingArticleBuilder;
+
+    private GZIPOutputStream gzout;
+
+    private GZIPOutputStream errorgzout;
+
+    private GZIPOutputStream noserialgzout;
+
+    private Writer missingserials;
+
     @Override
     protected WorkerProvider<Converter> provider() {
         return p -> new JsonCoins().setPipeline(p);
     }
 
     @Override
-    public void prepareSource() throws IOException {
+    public void prepareInput() throws IOException, InterruptedException {
         logger.info("parsing initial set of serials...");
-
-        try {
-            Queue<URI> input = new Finder()
-                    .find(settings.get("path"), settings.get("serials"))
-                    .getURIs();
-            serialsdb.process(settings, input.poll());
-        } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
-        }
+        Queue<URI> input = new Finder()
+                .find(settings.get("path"), settings.get("serials"))
+                .getURIs();
+        serialsdb.process(settings, input.poll());
         logger.info("serials done, getSize = {}", serialsdb.getMap().size());
-
         if (serialsdb.getMap().isEmpty()) {
             throw new IllegalArgumentException("serials are empty?");
         }
         // now parse our files
-        super.prepareSource();
+        super.prepareInput();
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    public void prepareOutput() throws IOException {
         String outputFilename = settings.get("output");
         FileOutputStream fout = new FileOutputStream(outputFilename + ".ttl.gz");
         gzout = new GZIPOutputStream(fout) {
@@ -171,23 +167,20 @@ public class JsonCoins extends Converter {
         missingArticleBuilder = turtleBuilder(noserialgzout, params);
 
         // extra text file for missing serials
-        missingserials = new FileWriter("missingserials.txt");
+        missingserials = new OutputStreamWriter(new FileOutputStream("missingserials.txt"), "UTF-8");
     }
 
     @Override
-    protected void disposeSink() throws IOException {
+    protected void disposeOutput() throws IOException {
         gzout.close();
         noserialgzout.close();
         errorgzout.close();
-        super.disposeSink();
+        super.disposeOutput();
     }
 
     @Override
     public void process(URI uri) throws Exception {
         InputStream in = InputService.getInputStream(uri);
-        if (in == null) {
-            throw new IOException("unable to open " + uri);
-        }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
             JsonParser parser = jsonFactory.createParser(reader);
             JsonToken token = parser.nextToken();
@@ -204,21 +197,29 @@ public class JsonCoins extends Converter {
                     case END_OBJECT: {
                         switch (result) {
                             case OK:
-                                synchronized (articleBuilder) {
+                                try {
+                                    lock.lock();
                                     articleBuilder.receive(resource);
+                                } finally {
+                                    lock.unlock();
                                 }
                                 break;
                             case MISSINGSERIAL:
-                                synchronized (missingArticleBuilder) {
+                                try {
+                                    lock.lock();
                                     missingArticleBuilder.receive(resource);
+                                } finally {
+                                    lock.unlock();
                                 }
                                 break;
                             case ERROR:
-                                synchronized (errorArticleBuilder) {
+                                try {
+                                    lock.lock();
                                     errorArticleBuilder.receive(resource);
+                                } finally {
+                                    lock.unlock();
                                 }
                                 break;
-
                         }
                         resource = null;
                         break;
@@ -374,13 +375,16 @@ public class JsonCoins extends Converter {
                             }
                         } else {
                             missingserial = true;
-                            synchronized (missingserials) {
+                            try {
+                                lock.lock();
                                 try {
                                     missingserials.write(v);
                                     missingserials.write("\n");
                                 } catch (IOException e) {
                                     logger.error("can't write missing serial info", e);
                                 }
+                            } finally {
+                                lock.unlock();
                             }
                         }
                         break;

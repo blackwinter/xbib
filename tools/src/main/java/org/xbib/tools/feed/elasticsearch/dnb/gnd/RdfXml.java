@@ -33,6 +33,7 @@ package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -82,18 +83,17 @@ public class RdfXml extends Feeder {
     }
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new RdfXml().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        logger.debug("processing URI {}", uri);
-        InputStream in = InputService.getInputStream(uri);
-        GNDRdfXmlContentParser reader = new GNDRdfXmlContentParser(in);
-        reader.parse();
-        reader.flush();
-        in.close();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            GNDRdfXmlContentParser reader = new GNDRdfXmlContentParser(in);
+            reader.parse();
+            reader.flush();
+        }
     }
 
     /*
@@ -123,7 +123,9 @@ public class RdfXml extends Feeder {
                     if (settings.getAsBoolean("mock", false)) {
                         logger.info("builder = {}", params.getGenerator().get());
                     } else {
-                        ingest.index(getIndex(), getType(), id, params.getGenerator().get());
+                        ingest.index(indexDefinitionMap.get("bib").getConcreteIndex(),
+                                indexDefinitionMap.get("bib").getType(),
+                                id, params.getGenerator().get());
                     }
                     builder.close();
                 }
@@ -144,7 +146,9 @@ public class RdfXml extends Feeder {
                 if (settings.getAsBoolean("mock", false)) {
                     logger.info("builder = {}", params.getGenerator().get());
                 } else {
-                    ingest.index(getIndex(), getType(), id, params.getGenerator().get());
+                    ingest.index(indexDefinitionMap.get("bib").getConcreteIndex(),
+                            indexDefinitionMap.get("bib").getType(),
+                            id, params.getGenerator().get());
                 }
                 builder.close();
             }

@@ -33,6 +33,7 @@ package org.xbib.tools.feed.elasticsearch.viaf;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -43,6 +44,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 
@@ -56,7 +58,7 @@ public class VIAF extends Feeder {
     private final static Logger logger = LogManager.getLogger(VIAF.class);
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new VIAF().setPipeline(p);
     }
 
@@ -67,31 +69,33 @@ public class VIAF extends Feeder {
      */
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        InputStream in = InputService.getInputStream(uri);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                    settings.get("index", "viaf"),
-                    settings.get("type", "viaf"));
-            params.setHandler((content, p) -> {
-                if (settings.getAsBoolean("mock", false)) {
-                    logger.info("{}/{}/{} {}", p.getIndex(), p.getType(), p.getId(), content);
-                } else {
-                    ingest.index(p.getIndex(), p.getType(), p.getId(), content);
+        try (InputStream in = InputService.getInputStream(uri)) {
+            IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+            Reader r = new InputStreamReader(in, UTF8);
+            BufferedReader reader = new BufferedReader(r);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
+                        settings.get("index", "viaf"),
+                        settings.get("type", "viaf"));
+                params.setHandler((content, p) -> {
+                    if (settings.getAsBoolean("mock", false)) {
+                        logger.info("{}/{}/{} {}", p.getIndex(), p.getType(), p.getId(), content);
+                    } else {
+                        ingest.index(p.getIndex(), p.getType(), p.getId(), content);
+                    }
+                });
+                // lines are not pure XML, they look like "109429104        <rdf:RDF xmlns..."
+                int pos = line.indexOf("<rdf:RDF");
+                if (pos >= 0) {
+                    line = line.substring(pos);
                 }
-            });
-            // lines are not pure XML, they look like "109429104        <rdf:RDF xmlns..."
-            int pos = line.indexOf("<rdf:RDF");
-            if (pos >= 0) {
-                line = line.substring(pos);
+                new RdfXmlContentParser(new StringReader(line))
+                        .setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params))
+                        .parse();
             }
-            new RdfXmlContentParser(new StringReader(line))
-               .setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params))
-               .parse();
+            reader.close();
         }
-        in.close();
     }
 
 }

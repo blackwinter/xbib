@@ -32,8 +32,8 @@
 package org.xbib.tools.feed.elasticsearch.springer;
 
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
-import org.xbib.io.StringPacket;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.RdfContentBuilder;
@@ -48,7 +48,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,13 +63,17 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 public class SpringerCitations extends Feeder {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new SpringerCitations().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        if (session != null) {
+        try (InputStream in = InputService.getInputStream(uri)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
+            process(reader);
+        }
+        /*if (session != null) {
             StringPacket packet;
             do {
                 packet = session.read();
@@ -80,15 +83,7 @@ public class SpringerCitations extends Feeder {
                     reader.close();
                 }
             } while (packet != null);
-        } else {
-            InputStream in = InputService.getInputStream(uri);
-            if (in == null) {
-                throw new IOException("unable to open " + uri);
-            }
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
-                process(reader);
-            }
-        }
+        }*/
     }
 
     private void process(BufferedReader reader) throws IOException {

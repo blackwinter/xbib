@@ -1,4 +1,3 @@
-
 package org.xbib.common.geo;
 
 import java.util.Iterator;
@@ -6,7 +5,7 @@ import java.util.Iterator;
 /**
  * This class iterates over the cells of a given geohash. Assume geohashes
  * form a tree, this iterator traverses this tree form a leaf (actual gehash)
- * to the root (geohash of length 1). 
+ * to the root (geohash of length 1).
  */
 public final class GeohashPathIterator implements Iterator<String> {
 
@@ -15,6 +14,7 @@ public final class GeohashPathIterator implements Iterator<String> {
 
     /**
      * Create a new {@link GeohashPathIterator} for a given geohash
+     *
      * @param geohash The geohash to traverse
      */
     public GeohashPathIterator(String geohash) {

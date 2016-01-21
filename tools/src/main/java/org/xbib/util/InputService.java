@@ -33,13 +33,16 @@ package org.xbib.util;
 
 import org.xbib.io.ConnectionFactory;
 import org.xbib.io.ConnectionService;
+import org.xbib.io.StreamCodecService;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -47,11 +50,11 @@ import java.util.Set;
 
 public final class InputService {
 
-    private final static int DEFAULT_BUFFER_SIZE = 8192;
-
     private final static Charset UTF8 = Charset.forName("UTF-8");
 
     private final static ConnectionService connectionService = ConnectionService.getInstance();
+
+    private final static StreamCodecService streamCodecService = StreamCodecService.getInstance();
 
     private final static InputService instance = new InputService();
 
@@ -63,40 +66,55 @@ public final class InputService {
     }
 
     public static InputStream getInputStream(URI uri) throws IOException {
+        return getInputStream(uri, null);
+    }
+
+    public static InputStream getInputStream(URI uri, String suffix) throws IOException {
         if (uri == null || uri.getScheme() == null) {
             return null;
         }
+        InputStream in;
+        // archive/protocol?
         ConnectionFactory connectionFactory = connectionService.getConnectionFactory(uri);
-        return connectionFactory.canOpen(uri) ? connectionFactory.open(uri) : null;
-    }
-
-    public static String asString(InputStream input, String encoding) throws IOException {
-        return asString(new InputStreamReader(input, encoding));
-    }
-
-    public static String asString(Reader input) throws IOException {
-        StringWriter output = new StringWriter();
-        char[] buffer = new char[DEFAULT_BUFFER_SIZE];
-        int n;
-        while ((n = input.read(buffer)) != -1) {
-            output.write(buffer, 0, n);
+        if (connectionFactory.canOpen(uri)) {
+            in = connectionFactory.open(uri);
+        } else {
+            // URL?
+            try {
+                in = uri.toURL().openStream();
+            } catch (MalformedURLException e) {
+                File f = new File(uri.getSchemeSpecificPart());
+                if (f.isFile() && f.canRead()) {
+                    in = new FileInputStream(f);
+                } else {
+                    throw new FileNotFoundException("can't open for input, check file existence or access rights: "
+                            + uri.getSchemeSpecificPart());
+                }
+            }
         }
-        return output.toString();
+        for (String codec : StreamCodecService.getCodecs()) {
+            if (uri.getSchemeSpecificPart().endsWith("." + codec) || (suffix != null && suffix.equals(codec))) {
+                in = streamCodecService.getCodec(codec).decode(in);
+                break;
+            }
+        }
+        return in;
     }
 
     public static Set<String> asLinesFromResource(String name) {
-        Set<String> set = new HashSet<String>();
+        Set<String> set = new HashSet<>();
         try {
             InputStream in = InputService.class.getResourceAsStream(name);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF8));
-            String line;
-            while ((line = br.readLine()) != null) {
-                set.add(line);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    set.add(line);
+                }
             }
-            br.close();
         } catch (IOException e) {
             // ignore
         }
         return set;
     }
+
 }

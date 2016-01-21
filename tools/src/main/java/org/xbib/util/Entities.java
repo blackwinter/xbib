@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>Provides HTML and XML entity utilities.</p>
+ * Provides HTML and XML entity utilities.
  *
  * @see <a href="http://hotwired.lycos.com/webmonkey/reference/special_characters/">ISO Entities</a>
  * @see <br/><a href="http://www.w3.org/TR/REC-html32#latin1">HTML 3.2 Character Entities for ISO Latin-1</a>
@@ -380,7 +380,7 @@ public class Entities {
         entities.addEntities(HTML40_ARRAY);
     }
 
-    static interface EntityMap {
+    interface EntityMap {
         void add(String name, int value);
 
         String name(int value);
@@ -389,11 +389,11 @@ public class Entities {
     }
 
     static class PrimitiveEntityMap implements EntityMap {
-        private Map mapNameToValue = new HashMap();
-        private Map mapValueToName = new HashMap();
+        private Map<Object,Object> mapNameToValue = new HashMap<>();
+        private Map<Object,Object> mapValueToName = new HashMap<>();
 
         public void add(String name, int value) {
-            mapNameToValue.put(name, new Integer(value));
+            mapNameToValue.put(name, value);
             mapValueToName.put(value, name);
         }
 
@@ -406,7 +406,7 @@ public class Entities {
             if (value == null) {
                 return -1;
             }
-            return ((Integer) value).intValue();
+            return (Integer) value;
         }
     }
 
@@ -440,8 +440,8 @@ public class Entities {
     EntityMap map = new LookupEntityMap();
 
     public void addEntities(String[][] entityArray) {
-        for (int i = 0; i < entityArray.length; ++i) {
-            addEntity(entityArray[i][0], Integer.parseInt(entityArray[i][1]));
+        for (String[] anEntityArray : entityArray) {
+            addEntity(anEntityArray[0], Integer.parseInt(anEntityArray[1]));
         }
     }
 
@@ -475,9 +475,8 @@ public class Entities {
             String entityName = this.entityName(ch);
             if (entityName == null) {
                 if (ch > 0x7F) {
-                    int intValue = ch;
                     buf.append("&#");
-                    buf.append(intValue);
+                    buf.append((int) ch);
                     buf.append(';');
                 } else {
                     buf.append(ch);
@@ -522,7 +521,7 @@ public class Entities {
                         char charAt1 = entityName.charAt(1);
                         try {
                             if (charAt1 == 'x' || charAt1 == 'X') {
-                                entityValue = Integer.valueOf(entityName.substring(2), 16).intValue();
+                                entityValue = Integer.valueOf(entityName.substring(2), 16);
                             } else {
                                 entityValue = Integer.parseInt(entityName.substring(1));
                             }

@@ -1,0 +1,40 @@
+{
+  "input" : {
+    "oai": {
+      "base": "http://services.dnb.de/oai/repository?verb=ListRecords&metadataPrefix=PicaPlus-xml&set=bib",
+      "from": "last month",
+      "until": "this month",
+      "counter": 150
+    }
+  },
+  "output" : {
+    "elasticsearch" : {
+      "cluster" : "zbn",
+      "host" : "zephyros",
+      "port" : 9300,
+      "autodetect" : true,
+      "maxbulkactions" : 1000,
+      "maxconcurrentbulkrequests" : 1,
+      "mock" : false,
+      "index" : {
+        "bib" : {
+          "name" : "bibdat",
+          "type" : "bibdat",
+          "timewindow" : "yyyyMMddHH",
+          "aliases" : true,
+          "skiperrors" : true,
+          "retention" : {
+            "enabled" : true,
+            "mintokeep" : 1
+          }
+        }
+      }
+    }
+  },
+  "concurrency" : 1,
+  "elements" : "/org/xbib/analyzer/pica/zdb/bibdat.json",
+  "package" : "org.xbib.analyzer.pica.zdb.bibdat",
+  "pipelines" : 1,
+  "collection" : "Adressen",
+  "detect-unknown" : true
+}

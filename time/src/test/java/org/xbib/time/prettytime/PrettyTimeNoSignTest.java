@@ -19,7 +19,7 @@ public class PrettyTimeNoSignTest {
     public void testNoSuffixes() throws Exception {
         Date then = format.parse("8/20/2009");
         Date ref = format.parse("5/17/2009");
-        PrettyTime p = new PrettyTime(ref, Locale.ENGLISH);
+        PrettyTime p = new PrettyTime(ref.getTime(), Locale.ENGLISH);
 
         List<TimeUnit> units = p.getUnits();
         for (TimeUnit unit : units) {

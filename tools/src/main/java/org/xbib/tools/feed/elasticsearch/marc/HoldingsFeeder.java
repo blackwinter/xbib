@@ -7,7 +7,7 @@ import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,29 +25,9 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 /**
  * Elasticsearch indexer tool for MARC holdings entity queues
  */
-public abstract class HoldingsFeeder extends TimewindowFeeder {
+public abstract class HoldingsFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(HoldingsFeeder.class);
-
-    @Override
-    protected String getIndexParameterName() {
-        return "hol-index";
-    }
-
-    @Override
-    protected String getIndexTypeParameterName() {
-        return "hol-type";
-    }
-
-    @Override
-    protected String getIndexSettingsSpec() {
-        return  "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-settings.json";
-    }
-
-    @Override
-    protected String getIndexMappingsSpec() {
-        return "classpath:org/xbib/tools/feed/elasticsearch/marc/hol-mapping.json";
-    }
 
     @Override
     public void process(URI uri) throws Exception {
@@ -71,11 +51,15 @@ public abstract class HoldingsFeeder extends TimewindowFeeder {
         queue.execute();
         String fileName = uri.getSchemeSpecificPart();
         InputStream in = new FileInputStream(fileName);
-        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
-        if (fileName.endsWith(".gz")) {
-            in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
+        try {
+            ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+            if (fileName.endsWith(".gz")) {
+                in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
+            }
+            process(in, queue);
+        } finally {
+            in.close();
         }
-        process(in, queue);
         queue.close();
         if (settings.getAsBoolean("detect-unknown", false)) {
             logger.info("unknown keys={}", unmapped);
@@ -101,8 +85,8 @@ public abstract class HoldingsFeeder extends TimewindowFeeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             // write resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getConcreteIndex(), getType());
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("hol").getConcreteIndex(),
+                    indexDefinitionMap.get("hol").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {

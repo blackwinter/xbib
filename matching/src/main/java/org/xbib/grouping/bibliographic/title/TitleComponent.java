@@ -37,14 +37,18 @@ import org.xbib.strings.encode.EncoderException;
 import org.xbib.strings.encode.SimpleEntropyEncoder;
 
 import java.text.Normalizer;
+import java.util.AbstractCollection;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
  * Title component for cluster key construction
  *
  */
-public class TitleComponent extends LinkedList<String>
+public class TitleComponent extends AbstractCollection<String>
         implements GroupKeyComponent<String> {
+
+    private final LinkedList<String> list = new LinkedList<>();
 
     /**
      * We use an entropy-based encoder for titles in cluster keys
@@ -74,6 +78,16 @@ public class TitleComponent extends LinkedList<String>
         return !isEmpty();
     }
 
+    @Override
+    public Iterator<String> iterator() {
+        return list.iterator();
+    }
+
+    @Override
+    public int size() {
+        return list.size();
+    }
+
     /**
      * Add a component of title word.
      * Keep each title word in sequential order.
@@ -92,7 +106,7 @@ public class TitleComponent extends LinkedList<String>
     public boolean add(String value) {
         String normalized = normalize(value);
         int n = size();
-        return !(n > 5 || (normalized.length() < 4 && n > 1)) && super.add(normalized);
+        return !(n > 5 || (normalized.length() < 4 && n > 1)) && list.add(normalized);
     }
 
     /**

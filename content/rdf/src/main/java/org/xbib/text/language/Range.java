@@ -107,13 +107,6 @@ public class Range extends SubtagSet {
     }
 
     /**
-     * Copy this range
-     */
-    public Range clone() {
-        return new Range(primary.clone());
-    }
-
-    /**
      * Create a basic language-range from this range
      */
     public Range toBasicRange() {
@@ -298,7 +291,6 @@ public class Range extends SubtagSet {
      *
      * @param range    The language-range
      * @param lang     The language tag
-     * @param extended true to use extended match rules
      */
     public static boolean matches(String range, Lang lang) {
         return new Range(range).matches(lang);
@@ -320,7 +312,6 @@ public class Range extends SubtagSet {
      *
      * @param range    The language-range
      * @param lang     The language tag
-     * @param extended true to use extended match rules
      */
     public static boolean matches(String range, String lang) {
         return new Range(range).matches(lang);

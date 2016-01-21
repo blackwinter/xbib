@@ -476,7 +476,7 @@ public final class CharUtils {
     public static int get_index(int[] set, int value) {
         int s = 0, e = set.length;
         while (e - s > 8) {
-            int i = (e + s) >> 1;
+            int i = (e + s) >>> 1;
             s = set[i] <= value ? i : s;
             e = set[i] > value ? i : e;
         }
@@ -496,7 +496,7 @@ public final class CharUtils {
     public static boolean invset_contains(int[] set, int value) {
         int s = 0, e = set.length;
         while (e - s > 8) {
-            int i = (e + s) >> 1;
+            int i = (e + s) >>> 1;
             s = set[i] <= value ? i : s;
             e = set[i] > value ? i : e;
         }
@@ -509,118 +509,39 @@ public final class CharUtils {
         return ((s - 1) & 1) == 0;
     }
 
-    public static enum Profile {
-        NONE(new Filter() {
-            public boolean accept(int codepoint) {
-                return true;
-            }
-        }), ALPHA(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isAlpha(codepoint);
-            }
-        }), ALPHANUM(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isAlphaDigit(codepoint);
-            }
-        }), FRAGMENT(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isFragment(codepoint);
-            }
-        }), IFRAGMENT(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_ifragment(codepoint);
-            }
-        }), PATH(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isPath(codepoint);
-            }
-        }), IPATH(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_ipath(codepoint);
-            }
-        }), IUSERINFO(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iuserinfo(codepoint);
-            }
-        }), USERINFO(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isUserInfo(codepoint);
-            }
-        }), QUERY(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isQuery(codepoint);
-            }
-        }), IQUERY(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iquery(codepoint);
-            }
-        }), SCHEME(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isScheme(codepoint);
-            }
-        }), PATHNODELIMS(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isPathNoDelims(codepoint);
-            }
-        }), IPATHNODELIMS(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_ipathnodelims(codepoint);
-            }
-        }), IPATHNODELIMS_SEG(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_ipathnodelims(codepoint) && codepoint != '@' && codepoint != ':';
-            }
-        }), IREGNAME(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iregname(codepoint);
-            }
-        }), IHOST(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_ihost(codepoint);
-            }
-        }), IPRIVATE(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iprivate(codepoint);
-            }
-        }), RESERVED(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isReserved(codepoint);
-            }
-        }), IUNRESERVED(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iunreserved(codepoint);
-            }
-        }), UNRESERVED(new Filter() {
-            public boolean accept(int codepoint) {
-                return !isUnreserved(codepoint);
-            }
-        }), SCHEMESPECIFICPART(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_iunreserved(codepoint) && !isReserved(codepoint)
-                        && !is_iprivate(codepoint)
-                        && !isPctEnc(codepoint)
-                        && codepoint != '#';
-            }
-        }), AUTHORITY(new Filter() {
-            public boolean accept(int codepoint) {
-                return !is_regname(codepoint) && !isUserInfo(codepoint) && !isGenDelim(codepoint);
-            }
-        }), ASCIISANSCRLF(new Filter() {
-            public boolean accept(int codepoint) {
-                return !CharUtils.inRange(codepoint, 1, 9) && !CharUtils.inRange(codepoint, 14, 127);
-            }
-        }), PCT(new Filter() {
-            public boolean accept(int codepoint) {
-                return !CharUtils.isPctEnc(codepoint);
-            }
-        }), STD3ASCIIRULES(new Filter() {
-            public boolean accept(int codepoint) {
-                return !CharUtils.inRange(codepoint, 0x0000, 0x002C) && !CharUtils.inRange(codepoint, 0x002E, 0x002F)
-                        && !CharUtils.inRange(codepoint, 0x003A, 0x0040)
-                        && !CharUtils.inRange(codepoint, 0x005B, 0x0060)
-                        && !CharUtils.inRange(codepoint, 0x007B, 0x007F);
-            }
-        });
+    public enum Profile {
+        NONE(codepoint -> true),
+        ALPHA((Filter) codepoint -> !isAlpha(codepoint)),
+        ALPHANUM((Filter) codepoint -> !isAlphaDigit(codepoint)),
+        FRAGMENT(codepoint -> !isFragment(codepoint)),
+        IFRAGMENT(codepoint -> !is_ifragment(codepoint)),
+        PATH(codepoint -> !isPath(codepoint)),
+        IPATH(codepoint -> !is_ipath(codepoint)),
+        IUSERINFO(codepoint -> !is_iuserinfo(codepoint)),
+        USERINFO(codepoint -> !isUserInfo(codepoint)),
+        QUERY(codepoint -> !isQuery(codepoint)),
+        IQUERY(codepoint -> !is_iquery(codepoint)),
+        SCHEME(codepoint -> !isScheme(codepoint)),
+        PATHNODELIMS(codepoint -> !isPathNoDelims(codepoint)),
+        IPATHNODELIMS(codepoint -> !is_ipathnodelims(codepoint)),
+        IPATHNODELIMS_SEG(codepoint -> !is_ipathnodelims(codepoint) && codepoint != '@' && codepoint != ':'),
+        IREGNAME(codepoint -> !is_iregname(codepoint)),
+        IHOST(codepoint -> !is_ihost(codepoint)),
+        IPRIVATE(codepoint -> !is_iprivate(codepoint)),
+        RESERVED(codepoint -> !isReserved(codepoint)),
+        IUNRESERVED(codepoint -> !is_iunreserved(codepoint)),
+        UNRESERVED(codepoint -> !isUnreserved(codepoint)),
+        SCHEMESPECIFICPART(codepoint -> !is_iunreserved(codepoint) && !isReserved(codepoint)
+                && !is_iprivate(codepoint)
+                && !isPctEnc(codepoint)
+                && codepoint != '#'),
+        AUTHORITY(codepoint -> !is_regname(codepoint) && !isUserInfo(codepoint) && !isGenDelim(codepoint)),
+        ASCIISANSCRLF((Filter) codepoint -> !CharUtils.inRange(codepoint, 1, 9) && !CharUtils.inRange(codepoint, 14, 127)),
+        PCT(codepoint -> !CharUtils.isPctEnc(codepoint)),
+        STD3ASCIIRULES((Filter) codepoint -> !CharUtils.inRange(codepoint, 0x0000, 0x002C) && !CharUtils.inRange(codepoint, 0x002E, 0x002F)
+                && !CharUtils.inRange(codepoint, 0x003A, 0x0040)
+                && !CharUtils.inRange(codepoint, 0x005B, 0x0060)
+                && !CharUtils.inRange(codepoint, 0x007B, 0x007F));
         private final Filter filter;
 
         Profile(Filter filter) {

@@ -35,14 +35,18 @@ import org.xbib.strings.encode.EncoderException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.AbstractCollection;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A segmented cluster key
- *
  */
-public class SegmentedGroupKey extends LinkedList<GroupKeyComponent>
+public class SegmentedGroupKey extends AbstractCollection<GroupKeyComponent>
         implements GroupKey {
+
+    private final List<GroupKeyComponent> list = new LinkedList<>();
 
     /**
      * delimiter
@@ -65,6 +69,21 @@ public class SegmentedGroupKey extends LinkedList<GroupKeyComponent>
         this(':', '/');
     }
 
+    @Override
+    public boolean add(GroupKeyComponent component) {
+        return list.add(component);
+    }
+
+    @Override
+    public Iterator<GroupKeyComponent> iterator() {
+        return list.iterator();
+    }
+
+    @Override
+    public int size() {
+        return list.size();
+    }
+
     public SegmentedGroupKey(char componentDelimiter, char delimiter) {
         this.componentDelimiter = componentDelimiter;
         this.delimiter = delimiter;
@@ -74,7 +93,7 @@ public class SegmentedGroupKey extends LinkedList<GroupKeyComponent>
      * Get URI of this key. Create key if not already encoded.
      *
      * @param prefix the prefix
-     * @return
+     * @return uri
      * @throws URISyntaxException
      * @throws EncoderException
      */
@@ -94,15 +113,15 @@ public class SegmentedGroupKey extends LinkedList<GroupKeyComponent>
 
     public void update(GroupKeyComponent component) {
         for (int i = 0; i < size(); i++) {
-            GroupKeyComponent segment = get(i);
+            GroupKeyComponent segment = list.get(i);
             if (component.getDomain().equals(segment.getDomain())) {
-                set(i, component);
+                list.set(i, component);
             }
         }
     }
 
     public void remove(GroupKeyComponent component) {
-        remove(component);
+        super.remove(component);
     }
 
     public GroupKeyComponent getComponent(GroupDomain domain) {

@@ -7,7 +7,7 @@ import org.xbib.time.chronic.tags.Pointer.PointerType;
 import java.util.Calendar;
 
 public class RepeaterWeekend extends RepeaterUnit {
-    public static final int WEEKEND_SECONDS = 172800; // (2 * 24 * 60 * 60);
+    public static final long WEEKEND_SECONDS = 172800L; // (2 * 24 * 60 * 60);
 
     private Calendar currentWeekStart;
 
@@ -26,10 +26,12 @@ public class RepeaterWeekend extends RepeaterUnit {
                 currentWeekStart = lastSaturdaySpan.getBeginCalendar();
             }
         } else {
-            int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
+            long direction = pointer == PointerType.FUTURE ? 1L : -1L;
             currentWeekStart = Time.cloneAndAdd(currentWeekStart, Calendar.SECOND, direction * RepeaterWeek.WEEK_SECONDS);
         }
-        return new Span(currentWeekStart, Time.cloneAndAdd(currentWeekStart, Calendar.SECOND, RepeaterWeekend.WEEKEND_SECONDS));
+        assert currentWeekStart != null;
+        Calendar c = Time.cloneAndAdd(currentWeekStart, Calendar.SECOND, RepeaterWeekend.WEEKEND_SECONDS);
+        return new Span(currentWeekStart, c);
     }
 
     @Override
@@ -53,7 +55,7 @@ public class RepeaterWeekend extends RepeaterUnit {
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
+        long direction = pointer == PointerType.FUTURE ? 1L : -1L;
         RepeaterWeekend weekend = new RepeaterWeekend();
         weekend.setStart(span.getBeginCalendar());
         Calendar start = Time.cloneAndAdd(weekend.nextSpan(pointer).getBeginCalendar(), Calendar.SECOND, (amount - 1) * direction * RepeaterWeek.WEEK_SECONDS);
@@ -63,7 +65,7 @@ public class RepeaterWeekend extends RepeaterUnit {
     @Override
     public int getWidth() {
         // WARN: Does not use Calendar
-        return RepeaterWeekend.WEEKEND_SECONDS;
+        return (int)RepeaterWeekend.WEEKEND_SECONDS;
     }
 
     @Override

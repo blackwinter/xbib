@@ -38,49 +38,42 @@ import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
-/*import org.xbib.sru.client.SRUClient;
-import org.xbib.sru.client.SRUClientFactory;
-import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
-import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
-*/
+import org.xbib.oai.OAIDateResolution;
+import org.xbib.oai.client.OAIClient;
+import org.xbib.oai.client.OAIClientFactory;
+import org.xbib.oai.client.listrecords.ListRecordsListener;
+import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.tools.convert.Converter;
+import org.xbib.time.DateUtil;
+import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Fetch SRU result from ZDB SRU service.
+ * Fetch OAI result from ZDB OAI service.
  * Output is archived as strings in a single TAR archive.
  */
-public class FromSRU extends Converter {
+public class OAI extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(FromSRU.class.getName());
+    private final static Logger logger = LogManager.getLogger(OAI.class.getName());
 
-    private static Session<StringPacket> session;
+    private Session<StringPacket> session;
 
     private final static AtomicLong counter = new AtomicLong();
 
-    //private SRUClient client;
-
-
     @Override
-    protected WorkerProvider provider() {
-        return p -> new FromSRU(true).setPipeline(p);
-    }
-
-    public FromSRU(boolean b) {
-       // client = SRUClientFactory.newClient();
+    protected WorkerProvider<Converter> provider() {
+        return p -> new OAI().setPipeline(p);
     }
 
     @Override
-    public void prepareSink() throws IOException {
+    public void prepareOutput() throws IOException {
         // open output TAR archive
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
@@ -92,59 +85,55 @@ public class FromSRU extends Converter {
     }
 
     @Override
-    public void prepareSource() throws IOException {
-        try {// create input URLs
-            if (settings.get("numbers") != null) {
-                FileInputStream in = new FileInputStream(settings.get("numbers"));
-                BufferedReader r = new BufferedReader(new InputStreamReader(in));
-                String line;
-                while ((line = r.readLine()) != null) {
-                    URIWorkerRequest request = new URIWorkerRequest();
-                    request.set(URI.create(String.format(settings.get("uri"), line)));
-                    getQueue().put(request);
-                }
-                in.close();
-            } else {
-                URIWorkerRequest request = new URIWorkerRequest();
-                request.set(URI.create(settings.get("uri")));
-                getQueue().add(request);
+    public void prepareInput() throws IOException {
+        try {
+            for (String uri : settings.getAsArray("input")) {
+                URIWorkerRequest element = new URIWorkerRequest();
+                element.set(URI.create(uri));
+                getQueue().put(element);
             }
-            logger.info("uris = {}", getQueue().size());
         } catch (InterruptedException e) {
             throw new IOException(e);
         }
+        logger.info("uris = {}", getQueue().size());
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        StringWriter w = new StringWriter();
-        /*SearchRetrieveRequest request = client.newSearchRetrieveRequest()
-                .setURI(uri);
-        SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
-        if (response.httpStatus() == 200 && w.toString().length() > 0) {
-            StringPacket packet = new StringPacket();
-            packet.name(Long.toString(counter.incrementAndGet()));
-            packet.packet(w.toString());
-            session.write(packet);
-        }*/
-    }
-
-    public FromSRU cleanup() {
-        if (session != null) {
-            try {
-                session.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        /*try {
-            if (client != null) {
-                client.close();
-            }
+        Map<String, String> params = URIUtil.parseQueryString(uri);
+        final OAIClient client = OAIClientFactory.newClient().setURL(uri);
+        client.setTimeout(settings.getAsInt("timeout", 60000));
+        ListRecordsRequest request = client.newListRecordsRequest()
+                .setMetadataPrefix(params.get("metadataPrefix"))
+                .setSet(params.get("set"))
+                .setFrom(DateUtil.parseDateISO(params.get("from")), OAIDateResolution.DAY)
+                .setUntil(DateUtil.parseDateISO(params.get("until")), OAIDateResolution.DAY);
+        try {
+            do {
+                ListRecordsListener listener = new ListRecordsListener(request);
+                request.prepare().execute(listener).waitFor();
+                if (listener.getResponse() != null) {
+                    StringWriter writer = new StringWriter();
+                    listener.getResponse().to(writer);
+                    StringPacket packet = new StringPacket();
+                    packet.name(Long.toString(counter.incrementAndGet()));
+                    packet.packet(writer.toString());
+                    session.write(packet);
+                    request = client.resume(request, listener.getResumptionToken());
+                }
+            } while (request != null);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        }*/
-        return this;
+        }
+        client.close();
+    }
+
+    @Override
+    protected void disposeOutput() throws IOException {
+        if (session != null) {
+            session.close();
+        }
+        super.disposeOutput();
     }
 
 }

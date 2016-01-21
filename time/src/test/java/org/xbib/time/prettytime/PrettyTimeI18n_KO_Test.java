@@ -48,7 +48,7 @@ public class PrettyTimeI18n_KO_Test {
     public void testCeilingInterval() throws Exception {
         Date then = format.parse("5/20/2009");
         Date ref = format.parse("6/17/2009");
-        PrettyTime t = new PrettyTime(ref, Locale.KOREA);
+        PrettyTime t = new PrettyTime(ref.getTime(), Locale.KOREA);
         assertEquals("1개월 전", t.format(then));
     }
 
@@ -67,55 +67,55 @@ public class PrettyTimeI18n_KO_Test {
 
     @Test
     public void testRightNowVariance() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("지금", t.format(new Date(600)));
     }
 
     @Test
     public void testMinutesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("12분 후", t.format(new Date(1000 * 60 * 12)));
     }
 
     @Test
     public void testHoursFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3시간 후", t.format(new Date(1000 * 60 * 60 * 3)));
     }
 
     @Test
     public void testDaysFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3일 후", t.format(new Date(1000 * 60 * 60 * 24 * 3)));
     }
 
     @Test
     public void testWeeksFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3주 후", t.format(new Date(1000 * 60 * 60 * 24 * 7 * 3)));
     }
 
     @Test
     public void testMonthsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3개월 후", t.format(new Date(2629743830L * 3L)));
     }
 
     @Test
     public void testYearsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3년 후", t.format(new Date(2629743830L * 12L * 3L)));
     }
 
     @Test
     public void testDecadesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("30년 후", t.format(new Date(315569259747L * 3L)));
     }
 
     @Test
     public void testCenturiesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         assertEquals("3세기 후", t.format(new Date(3155692597470L * 3L)));
     }
 
@@ -124,43 +124,43 @@ public class PrettyTimeI18n_KO_Test {
      */
     @Test
     public void testMomentsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(6000));
+        PrettyTime t = new PrettyTime((6000));
         assertEquals("방금", t.format(new Date(0)));
     }
 
     @Test
     public void testMinutesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 12));
+        PrettyTime t = new PrettyTime((1000 * 60 * 12));
         assertEquals("12분 전", t.format(new Date(0)));
     }
 
     @Test
     public void testHoursAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 3));
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 3));
         assertEquals("3시간 전", t.format(new Date(0)));
     }
 
     @Test
     public void testDaysAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 3));
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3));
         assertEquals("3일 전", t.format(new Date(0)));
     }
 
     @Test
     public void testWeeksAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 7 * 3));
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 7 * 3));
         assertEquals("3주 전", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(2629743830L * 3L));
+        PrettyTime t = new PrettyTime((2629743830L * 3L));
         assertEquals("3개월 전", t.format(new Date(0)));
     }
 
     @Test
     public void testCustomFormat() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         TimeUnit unit = new TimeUnit() {
             @Override
             public long getMaxQuantity() {
@@ -181,25 +181,25 @@ public class PrettyTimeI18n_KO_Test {
                         " ago..."));
 
         assertEquals("self destruct in: 5 ticks ... RUN!", t.format(new Date(25000)));
-        t.setReference(new Date(25000));
+        t.setReference((25000));
         assertEquals("self destruct was: 5 ticks ago...", t.format(new Date(0)));
     }
 
     @Test
     public void testYearsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(2629743830L * 12L * 3L));
+        PrettyTime t = new PrettyTime((2629743830L * 12L * 3L));
         assertEquals("3년 전", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(315569259747L * 3L));
+        PrettyTime t = new PrettyTime((315569259747L * 3L));
         assertEquals("30년 전", t.format(new Date(0)));
     }
 
     @Test
     public void testCenturiesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(3155692597470L * 3L));
+        PrettyTime t = new PrettyTime((3155692597470L * 3L));
         assertEquals("3세기 전", t.format(new Date(0)));
     }
 
@@ -233,14 +233,14 @@ public class PrettyTimeI18n_KO_Test {
 
     @Test
     public void testFormattingDurationListInThePast() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38));
+        PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38));
         List<Duration> durations = t.calculatePreciseDuration(new Date(0));
         assertEquals("3일 15시간 38분 전", t.format(durations));
     }
 
     @Test
     public void testFormattingDurationListInTheFuture() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime((0));
         List<Duration> durations = t.calculatePreciseDuration(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15
                 + 1000 * 60 * 38));
         assertEquals("3일 15시간 38분 후", t.format(durations));
@@ -248,7 +248,7 @@ public class PrettyTimeI18n_KO_Test {
 
     @Test
     public void testSetLocale() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(315569259747L * 3L));
+        PrettyTime t = new PrettyTime((315569259747L * 3L));
         assertEquals("30년 전", t.format(new Date(0)));
         t.setLocale(Locale.GERMAN);
         assertEquals("vor 3 Jahrzehnten", t.format(new Date(0)));

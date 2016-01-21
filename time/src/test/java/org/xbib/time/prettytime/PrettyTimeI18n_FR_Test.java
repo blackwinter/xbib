@@ -57,7 +57,7 @@ public class PrettyTimeI18n_FR_Test {
 
     @Test
     public void testPrettyTimeFRENCHCenturies() {
-        PrettyTime p = new PrettyTime(new Date(3155692597470L * 3L), Locale.FRENCH);
+        PrettyTime p = new PrettyTime((3155692597470L * 3L), Locale.FRENCH);
         assertEquals(p.format(new Date(0)), "il y a 3 siècles");
     }
 
@@ -72,7 +72,7 @@ public class PrettyTimeI18n_FR_Test {
     @Test
     public void testPrettyTimeFRENCHLocale() {
         long t = 1L;
-        PrettyTime p = new PrettyTime(new Date(0), Locale.FRENCH);
+        PrettyTime p = new PrettyTime((0), Locale.FRENCH);
         while (1000L * 60L * 60L * 24L * 365L * 1000000L > t) {
             assertTrue(p.format(new Date(0)).startsWith("dans") || p.format(new Date(0)).startsWith("à l'instant"));
             t *= 2L;

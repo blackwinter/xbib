@@ -35,25 +35,12 @@ package org.xbib.strings.encode;
  * A class to generate phonetic code. The initial Java implementation, William
  * B. Brogden. December, 1997 Permission given by wbrogden for code to be used
  * anywhere.
- * <p/>
  * "Hanging on the Metaphone" by Lawrence Philips <i>Computer Language </i> of
  * Dec. 1990, p 39
  *
  */
 public class MetaphoneEncoder implements StringEncoder {
 
-    /**
-     * Five values in the English language
-     */
-    private String vowels = "AEIOU";
-    /**
-     * Variable used in Metaphone algorithm
-     */
-    private String frontv = "EIY";
-    /**
-     * Variable used in Metaphone algorithm
-     */
-    private String varson = "CSPTG";
     /**
      * The max code length for metaphone is 4
      */
@@ -122,8 +109,10 @@ public class MetaphoneEncoder implements StringEncoder {
         } // now local has working string with initials fixed
         int wdsz = local.length();
         int n = 0;
-        while ((mtsz < this.maxCodeLen) // max code size of 4 works well
-                && (n < wdsz)) {
+        // max code size of 4 works well
+        String frontv = "EIY";
+        String vowels = "AEIOU";
+        while ((mtsz < this.maxCodeLen) && (n < wdsz)) {
             char symb = local.charAt(n);
             // remove duplicate letters except C
             if ((symb != 'C') && (n > 0) && (local.charAt(n - 1) == symb)) {
@@ -134,24 +123,26 @@ public class MetaphoneEncoder implements StringEncoder {
                     case 'E':
                     case 'I':
                     case 'O':
-                    case 'U':
+                    case 'U': {
                         if (n == 0) {
                             code.append(symb);
                             mtsz++;
                         }
                         break; // only use vowel if leading char
-                    case 'B':
-                        if ((n > 0) && !(n + 1 == wdsz) // not MB at end of word
-                                && (local.charAt(n - 1) == 'M')) {
-                            code.append(symb);
-                        } else {
-                            code.append(symb);
-                        }
+                    }
+                    case 'B': {
+                        code.append(symb);
                         mtsz++;
                         break;
-                    case 'C': // lots of C special cases
+                    }
+                    case 'C': {
+                        // lots of C special cases
+
             /* discard if SCI, SCE or SCY */
-                        if ((n > 0) && (local.charAt(n - 1) == 'S') && (n + 1 < wdsz) && (this.frontv.indexOf(local.charAt(n + 1)) >= 0)) {
+                        /*
+      Variable used in Metaphone algorithm
+     */
+                        if ((n > 0) && (local.charAt(n - 1) == 'S') && (n + 1 < wdsz) && (frontv.indexOf(local.charAt(n + 1)) >= 0)) {
                             break;
                         }
                         tmpS = local.toString();
@@ -160,7 +151,7 @@ public class MetaphoneEncoder implements StringEncoder {
                             mtsz++;
                             break;
                         }
-                        if ((n + 1 < wdsz) && (this.frontv.indexOf(local.charAt(n + 1)) >= 0)) {
+                        if ((n + 1 < wdsz) && (frontv.indexOf(local.charAt(n + 1)) >= 0)) {
                             code.append('S');
                             mtsz++;
                             break; // CI,CE,CY -> S
@@ -170,9 +161,12 @@ public class MetaphoneEncoder implements StringEncoder {
                             mtsz++;
                             break;
                         }
+                        /*
+      Five values in the English language
+     */
                         if (tmpS.indexOf("CH", n) == n) { // detect CH
                             if ((n == 0) && (wdsz >= 3) // CH consonant -> K consonant
-                                    && (this.vowels.indexOf(local.charAt(2)) < 0)) {
+                                    && (vowels.indexOf(local.charAt(2)) < 0)) {
                                 code.append('K');
                             } else {
                                 code.append('X'); // CHvowel -> X
@@ -183,9 +177,10 @@ public class MetaphoneEncoder implements StringEncoder {
                             mtsz++;
                         }
                         break;
-                    case 'D':
+                    }
+                    case 'D': {
                         if ((n + 2 < wdsz) // DGE DGI DGY -> J
-                                && (local.charAt(n + 1) == 'G') && (this.frontv.indexOf(local.charAt(n + 2)) >= 0)) {
+                                && (local.charAt(n + 1) == 'G') && (frontv.indexOf(local.charAt(n + 2)) >= 0)) {
                             code.append('J');
                             n += 2;
                         } else {
@@ -193,51 +188,56 @@ public class MetaphoneEncoder implements StringEncoder {
                         }
                         mtsz++;
                         break;
-                    case 'G': // GH silent at end or before consonant
+                    }
+                    case 'G': {
+                        // GH silent at end or before consonant
                         if ((n + 2 == wdsz) && (local.charAt(n + 1) == 'H')) {
                             break;
                         }
-                        if ((n + 2 < wdsz) && (local.charAt(n + 1) == 'H') && (this.vowels.indexOf(local.charAt(n + 2)) < 0)) {
+                        if ((n + 2 < wdsz) && (local.charAt(n + 1) == 'H') && (vowels.indexOf(local.charAt(n + 2)) < 0)) {
                             break;
                         }
                         tmpS = local.toString();
                         if ((n > 0) && (tmpS.indexOf("GN", n) == n) || (tmpS.indexOf("GNED", n) == n)) {
                             break; // silent G
                         }
-                        if ((n > 0) && (local.charAt(n - 1) == 'G')) {
-                            hard = true;
-                        } else {
-                            hard = false;
-                        }
-                        if ((n + 1 < wdsz) && (this.frontv.indexOf(local.charAt(n + 1)) >= 0) && (!hard)) {
+                        hard = (n > 0) && (local.charAt(n - 1) == 'G');
+                        if ((n + 1 < wdsz) && (frontv.indexOf(local.charAt(n + 1)) >= 0) && (!hard)) {
                             code.append('J');
                         } else {
                             code.append('K');
                         }
                         mtsz++;
                         break;
-                    case 'H':
+                    }
+                    case 'H': {
                         if (n + 1 == wdsz) {
                             break; // terminal H
                         }
-                        if ((n > 0) && (this.varson.indexOf(local.charAt(n - 1)) >= 0)) {
+                        /*
+      Variable used in Metaphone algorithm
+     */
+                        String varson = "CSPTG";
+                        if ((n > 0) && (varson.indexOf(local.charAt(n - 1)) >= 0)) {
                             break;
                         }
-                        if (this.vowels.indexOf(local.charAt(n + 1)) >= 0) {
+                        if (vowels.indexOf(local.charAt(n + 1)) >= 0) {
                             code.append('H');
                             mtsz++;// Hvowel
                         }
                         break;
+                    }
                     case 'F':
                     case 'J':
                     case 'L':
                     case 'M':
                     case 'N':
-                    case 'R':
+                    case 'R': {
                         code.append(symb);
                         mtsz++;
                         break;
-                    case 'K':
+                    }
+                    case 'K': {
                         if (n > 0) { // not initial
                             if (local.charAt(n - 1) != 'C') {
                                 code.append(symb);
@@ -247,7 +247,8 @@ public class MetaphoneEncoder implements StringEncoder {
                         }
                         mtsz++;
                         break;
-                    case 'P':
+                    }
+                    case 'P': {
                         if ((n + 1 < wdsz) && (local.charAt(n + 1) == 'H')) {
                             // PH -> F
                             code.append('F');
@@ -256,11 +257,13 @@ public class MetaphoneEncoder implements StringEncoder {
                         }
                         mtsz++;
                         break;
-                    case 'Q':
+                    }
+                    case 'Q': {
                         code.append('K');
                         mtsz++;
                         break;
-                    case 'S':
+                    }
+                    case 'S': {
                         tmpS = local.toString();
                         if ((tmpS.indexOf("SH", n) == n) || (tmpS.indexOf("SIO", n) == n) || (tmpS.indexOf("SIA", n) == n)) {
                             code.append('X');
@@ -269,7 +272,8 @@ public class MetaphoneEncoder implements StringEncoder {
                         }
                         mtsz++;
                         break;
-                    case 'T':
+                    }
+                    case 'T': {
                         tmpS = local.toString(); // TIA TIO -> X
                         if ((tmpS.indexOf("TIA", n) == n) || (tmpS.indexOf("TIO", n) == n)) {
                             code.append('X');
@@ -287,25 +291,33 @@ public class MetaphoneEncoder implements StringEncoder {
                         }
                         mtsz++;
                         break;
-                    case 'V':
+                    }
+                    case 'V': {
                         code.append('F');
                         mtsz++;
                         break;
+                    }
                     case 'W':
-                    case 'Y': // silent if not followed by vowel
-                        if ((n + 1 < wdsz) && (this.vowels.indexOf(local.charAt(n + 1)) >= 0)) {
+                    case 'Y': {
+                        // silent if not followed by vowel
+                        if ((n + 1 < wdsz) && (vowels.indexOf(local.charAt(n + 1)) >= 0)) {
                             code.append(symb);
                             mtsz++;
                         }
                         break;
-                    case 'X':
+                    }
+                    case 'X': {
                         code.append('K');
                         code.append('S');
                         mtsz += 2;
                         break;
-                    case 'Z':
+                    }
+                    case 'Z': {
                         code.append('S');
                         mtsz++;
+                        break;
+                    }
+                    default:
                         break;
                 } // end switch
                 n++;

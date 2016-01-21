@@ -33,29 +33,20 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.rdf.RdfContentParams;
+import org.xbib.rdf.io.ntriple.NTripleContentParams;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 public class NatLiz extends OAIFeeder {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new NatLiz().setPipeline(p);
     }
 
     @Override
-    protected String getIndex() {
-        return settings.get("index");
-    }
-
-    @Override
-    protected String getType() {
-        return settings.get("type");
-    }
-
-
-    @Override
     protected RdfResourceHandler rdfResourceHandler() {
-        RdfContentParams params = RdfContentParams.EMPTY;
+        RdfContentParams params = NTripleContentParams.DEFAULT_PARAMS;
         return new RdfResourceHandler(params);
     }
 

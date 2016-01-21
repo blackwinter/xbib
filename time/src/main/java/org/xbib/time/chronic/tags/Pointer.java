@@ -32,7 +32,8 @@ public class Pointer extends Tag<Pointer.PointerType> {
         scanner.put(Pointer.PAST_PATTERN, PointerType.PAST);
         scanner.put(Pointer.FUTURE_PATTERN, PointerType.FUTURE);
         scanner.put(Pointer.IN_PATTERN, PointerType.FUTURE);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, PointerType> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new Pointer(scanner.get(scannerItem));
             }

@@ -44,8 +44,7 @@ import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,14 +67,13 @@ public class CheckDelivery extends Analyzer {
                 .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
                 .build().getAsMap());
         Client client = search.client();
-        FileReader fileReader = new FileReader(settings.get("input"));
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        BufferedReader fileReader = getFileReader(settings.get("input"));
         String line;
         int found = 0;
         int notfound = 0;
         int notfoundwithonline = 0;
         int notfoundissn = 0;
-        while  ((line = bufferedReader.readLine()) != null) {
+        while  ((line = fileReader.readLine()) != null) {
             String[] s = line.split(",");
             if (s.length != 2 && s.length !=3) {
                 logger.warn("invalid line: {}", line);
@@ -137,10 +135,10 @@ public class CheckDelivery extends Analyzer {
                 }
             }
         }
-        bufferedReader.close();
+        fileReader.close();
         logger.info("found={} notfound={} notfoundissn={} notfoundwithonline={}",
                 found, notfound, notfoundissn, notfoundwithonline);
-        FileWriter fileWriter = new FileWriter("notfoundset.txt");
+        BufferedWriter fileWriter = getFileWriter("notfoundset.txt");
         for (String s : notfoundset) {
             fileWriter.write(s);
             fileWriter.write("\n");

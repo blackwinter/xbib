@@ -49,9 +49,8 @@ import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
-import org.xbib.tools.Program;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -165,7 +164,7 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
             search.shutdown();
         }
         session.close();
-        FileWriter fileWriter = new FileWriter(settings.get("output","journaltocs-issns.txt"));
+        BufferedWriter fileWriter = getFileWriter(settings.get("output","journaltocs-issns.txt"));
         for (String s : issns) {
             fileWriter.write(s);
             fileWriter.write("\n");

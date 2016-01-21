@@ -38,6 +38,7 @@ import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -53,18 +54,8 @@ public class DOAJ extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(DOAJ.class);
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new DOAJ().setPipeline(p);
-    }
-
-    @Override
-    protected String getIndex() {
-        return settings.get("index");
-    }
-
-    @Override
-    protected String getType() {
-        return settings.get("type");
     }
 
     @Override

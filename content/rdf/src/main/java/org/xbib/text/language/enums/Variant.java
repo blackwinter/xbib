@@ -19,6 +19,8 @@ package org.xbib.text.language.enums;
 
 import org.xbib.text.language.Subtag;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -50,18 +52,18 @@ public enum Variant {
 
     private final String deprecated;
     private final String preferred;
-    private final String[] prefixes;
-    private final String[] descriptions;
+    private final List<String> prefixes;
+    private final List<String> descriptions;
 
-    private Variant(String dep, String pref, String prefix, String... desc) {
+    Variant(String dep, String pref, String prefix, String... desc) {
         this(dep, pref, new String[]{prefix}, desc);
     }
 
-    private Variant(String dep, String pref, String[] prefixes, String... desc) {
+    Variant(String dep, String pref, String[] prefixes, String... desc) {
         this.deprecated = dep;
         this.preferred = pref;
-        this.prefixes = prefixes;
-        this.descriptions = desc;
+        this.prefixes = Arrays.asList(prefixes);
+        this.descriptions = Arrays.asList(desc);
     }
 
     public boolean isDeprecated() {
@@ -81,18 +83,18 @@ public enum Variant {
     }
 
     public String getPrefix() {
-        return prefixes != null && prefixes.length > 0 ? prefixes[0] : null;
+        return prefixes != null && !prefixes.isEmpty() ? prefixes.get(0) : null;
     }
 
-    public String[] getPrefixes() {
+    public List<String> getPrefixes() {
         return prefixes;
     }
 
     public String getDescription() {
-        return descriptions.length > 0 ? descriptions[0] : null;
+        return descriptions != null && !descriptions.isEmpty() ? descriptions.get(0) : null;
     }
 
-    public String[] getDescriptions() {
+    public List<String> getDescriptions() {
         return descriptions;
     }
 

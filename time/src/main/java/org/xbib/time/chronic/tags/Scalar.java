@@ -9,17 +9,15 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Scalar extends Tag<Integer> {
-    private static final Pattern SCALAR_PATTERN = Pattern.compile("^\\d*$");
-    public static Set<String> TIMES = new HashSet<>();
-
-    static {
-        Scalar.TIMES.add("am");
-        Scalar.TIMES.add("pm");
-        Scalar.TIMES.add("morning");
-        Scalar.TIMES.add("afternoon");
-        Scalar.TIMES.add("evening");
-        Scalar.TIMES.add("night");
-    }
+    private final static Pattern SCALAR_PATTERN = Pattern.compile("^\\d*$");
+    final static Set<String> TIMES = new HashSet<String>() {{
+        add("am");
+        add("pm");
+        add("morning");
+        add("afternoon");
+        add("evening");
+        add("night");
+    }};
 
     public Scalar(Integer type) {
         super(type);

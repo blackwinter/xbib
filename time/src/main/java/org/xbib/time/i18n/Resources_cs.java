@@ -245,21 +245,21 @@ public class Resources_cs extends ListResourceBundle implements TimeFormatProvid
             setSingularName(bundle.getString(resourceKeyPrefix + "SingularName"));
             setPluralName(bundle.getString(resourceKeyPrefix + "PluralName"));
 
-            try {
-                setFuturePluralName(bundle.getString(resourceKeyPrefix + "FuturePluralName"));
-            } catch (Exception e) {
+            String key = resourceKeyPrefix + "FuturePluralName";
+            if (bundle.containsKey(key)) {
+                setFuturePluralName(bundle.getString(key));
             }
-            try {
-                setFutureSingularName((bundle.getString(resourceKeyPrefix + "FutureSingularName")));
-            } catch (Exception e) {
+            key = resourceKeyPrefix + "FutureSingularName";
+            if (bundle.containsKey(key)) {
+                setFutureSingularName((bundle.getString(key)));
             }
-            try {
-                setPastPluralName((bundle.getString(resourceKeyPrefix + "PastPluralName")));
-            } catch (Exception e) {
+            key = resourceKeyPrefix + "PastPluralName";
+            if (bundle.containsKey(key)) {
+                setPastPluralName((bundle.getString(key)));
             }
-            try {
-                setPastSingularName((bundle.getString(resourceKeyPrefix + "PastSingularName")));
-            } catch (Exception e) {
+            key = resourceKeyPrefix + "PastSingularName";
+            if (bundle.containsKey(key)) {
+                setPastSingularName((bundle.getString(key)));
             }
 
             for (CsName name : names) {
@@ -324,6 +324,15 @@ public class Resources_cs extends ListResourceBundle implements TimeFormatProvid
             return threshold.compareTo(o.getThreshold());
         }
 
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof CsName && threshold.equals(((CsName) o).getThreshold());
+        }
+
+        @Override
+        public int hashCode() {
+            return threshold.hashCode();
+        }
     }
 
 }

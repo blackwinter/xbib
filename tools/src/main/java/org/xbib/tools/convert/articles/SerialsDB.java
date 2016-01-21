@@ -44,12 +44,16 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.EOFException;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -71,21 +75,18 @@ public class SerialsDB {
 
     private final static Map<String, Resource> serials = new ConcurrentHashMap<>();
 
-    public void process(Settings settings, URI uri) throws Exception {
+    public void process(Settings settings, URI uri) throws IOException {
         logger.info("next URI is {}", uri);
-        InputStream in = InputService.getInputStream(uri);
-        if (in == null) {
-            throw new FileNotFoundException("not found: " + uri);
-        }
-        CSVParser parser = new CSVParser(new InputStreamReader(in, "UTF-8"));
-        try {
+        try (InputStream in = InputService.getInputStream(uri)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            CSVParser parser = new CSVParser(reader);
             int i = 0;
             while (true) {
                 String journalTitle = parser.nextToken().trim();
                 journalTitle = journalTitle
-                        .replaceAll("\\p{C}","")
-                        .replaceAll("\\p{Space}","")
-                        .replaceAll("\\p{Punct}","");
+                        .replaceAll("\\p{C}", "")
+                        .replaceAll("\\p{Space}", "")
+                        .replaceAll("\\p{Punct}", "");
                 String publisher = parser.nextToken().trim();
                 String subjects = parser.nextToken();
                 String issn = parser.nextToken().trim();
@@ -137,14 +138,13 @@ public class SerialsDB {
             logger.error(t.getMessage(), t);
         }
         if (settings.get("output") != null) {
-            FileWriter txt = new FileWriter(settings.get("output") + ".txt");
-            for (String j : serials.keySet()) {
-                txt.write(j + "|" + serials.get(j));
-                txt.write("\n");
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(settings.get("output") + ".txt"), Charset.forName("UTF-8")))) {
+                for (Map.Entry<String,Resource> entry : serials.entrySet()) {
+                    writer.write(entry.getKey() + "|" + entry.getValue());
+                    writer.write("\n");
+                }
             }
-            txt.close();
         }
-
         logger.info("{} size={}", this, getMap().size());
     }
 

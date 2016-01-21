@@ -2,13 +2,13 @@ package org.xbib.time.units;
 
 import org.xbib.time.TimeUnit;
 
+import java.io.Serializable;
 import java.util.Comparator;
-
 
 /**
  * Compares two {@link TimeUnit} objects
  */
-public class TimeUnitComparator implements Comparator<TimeUnit> {
+public class TimeUnitComparator implements Serializable, Comparator<TimeUnit> {
 
     public int compare(final TimeUnit left, final TimeUnit right) {
         if (left.getMillisPerUnit() < right.getMillisPerUnit()) {

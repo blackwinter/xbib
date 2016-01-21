@@ -46,7 +46,7 @@ public class Runner {
             if (hasConsole) {
                 ConfigurationFactory.setConfigurationFactory(new ConsoleConfigurationFactory());
             } else {
-                if (System.getProperty("log.rollingfile") != null) {
+                if (System.getProperty("log4j.rollingfile") != null) {
                     ConfigurationFactory.setConfigurationFactory(new RollingFileLoggerConfigurationFactory());
                 } else {
                     ConfigurationFactory.setConfigurationFactory(new FileLoggerConfigurationFactory());
@@ -56,20 +56,43 @@ public class Runner {
         int exitcode = 0;
         try {
             if (args != null && args.length > 0) {
+                Processor processor;
                 if (System.in.available() > 0) {
-                    Class<?> clazz = Class.forName(args[0]);
-                    Program program = (Program) clazz.newInstance();
-                    exitcode = program.from(".json", new InputStreamReader(System.in));
+                    try {
+                        Class<?> clazz = Class.forName(args[0]);
+                        processor = (Processor) clazz.newInstance();
+                    } catch (Exception e) {
+                        Class<?> clazz = Class.forName(args[1]);
+                        processor = (Processor) clazz.newInstance();
+                    }
+                    if (processor != null) {
+                        exitcode = processor.from(".json", new InputStreamReader(System.in, "UTF-8"));
+                    }
                 } else {
                     for (int i = 0; i < args.length; i+=2) {
-                        Class<?> clazz = Class.forName(args[i]);
-                        Program program = (Program) clazz.newInstance();
-                        exitcode = program.from(args[i+1]);
-                        if (exitcode != 0) {
-                            break;
+                        try {
+                            Class<?> clazz = Class.forName(args[i]);
+                            processor = (Processor) clazz.newInstance();
+                        } catch (Exception e) {
+                            i++;
+                            Class<?> clazz = Class.forName(args[i]);
+                            processor = (Processor) clazz.newInstance();
+                        }
+                        if (processor != null) {
+                            if (i < args.length - 1) {
+                                exitcode = processor.from(args[i + 1]);
+                            } else {
+                                // System.in is not available = no pipe, but maybe it works from terminal
+                                exitcode = processor.from(".json", new InputStreamReader(System.in, "UTF-8"));
+                            }
+                            if (exitcode != 0) {
+                                break;
+                            }
                         }
                     }
                 }
+            } else {
+                throw new IllegalArgumentException("no arguments passed, unable to run");
             }
         } catch (Throwable e) {
             e.printStackTrace();

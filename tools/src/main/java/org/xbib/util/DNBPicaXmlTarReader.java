@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.util;
+package org.xbib.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +41,6 @@ import org.xbib.io.archive.tar.TarSession;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.dialects.pica.DNBPicaConstants;
-import org.xbib.util.Strings;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.LongWorkerRequest;
 import org.xbib.util.concurrent.Pipeline;
@@ -276,15 +275,13 @@ public class DNBPicaXmlTarReader<P extends Packet>
                 QName attributeName = attr.getName();
                 String attributeLocalName = attributeName.getLocalPart();
                 String attributeValue = attr.getValue();
-                switch (attributeLocalName) {
-                    case ID:
-                        if (attributeValue.length() > 3) {
-                            tag = attributeValue.substring(0, 3);
-                            indicator = attributeValue.substring(3);
-                        } else if (attributeValue.length() == 1) {
-                            subfield = attributeValue;
-                        }
-                        break;
+                if (ID.equals(attributeLocalName)) {
+                    if (attributeValue.length() > 3) {
+                        tag = attributeValue.substring(0, 3);
+                        indicator = attributeValue.substring(3);
+                    } else if (attributeValue.length() == 1) {
+                        subfield = attributeValue;
+                    }
                 }
             }
             switch (localName) {

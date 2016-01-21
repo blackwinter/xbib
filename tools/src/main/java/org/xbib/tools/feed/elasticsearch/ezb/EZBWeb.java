@@ -38,7 +38,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollAction;
 import org.elasticsearch.action.search.SearchScrollRequestBuilder;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -50,7 +49,7 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.convert.Converter;
-import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -70,7 +69,7 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 /**
  * Ingest inter library loan codes from EZB web service into Elasticsearch
  */
-public class EZBWeb extends TimewindowFeeder {
+public class EZBWeb extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getName());
 
@@ -79,19 +78,16 @@ public class EZBWeb extends TimewindowFeeder {
         return p -> new EZBWeb().setPipeline(p);
     }
 
-    protected String getIndex() {
-        return settings.get("index", "ezbweb");
-    }
-
-    protected String getType() {
-        return settings.get("type", "ezbweb");
-    }
-
     @Override
     public void process(URI uri) throws Exception {
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         namespaceContext.addNamespace("xbib", "http://xbib.org/elements/1.0/");
+
+        RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
+                indexDefinitionMap.get("bib").getConcreteIndex(),
+                indexDefinitionMap.get("bib").getType());
+
         Iterator<String> it = searchZDB();
         URL url;
         while (it.hasNext()) {
@@ -112,7 +108,11 @@ public class EZBWeb extends TimewindowFeeder {
                     Thread.sleep(5000L);
                 }
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            if (in == null) {
+                logger.error("can not open URL {}", url);
+                continue;
+            }
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF8));
             br.readLine(); // ZDB-Id: ...
             br.readLine(); // Treffer: ...
             br.readLine(); // empty line
@@ -175,8 +175,6 @@ public class EZBWeb extends TimewindowFeeder {
                                             + (code2.isEmpty() ? "x" : code2)
                                             + (code3.isEmpty() ? "x" : code3))
                             .add("xbib:comment", comment);
-                    RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                            getConcreteIndex(), getType());
                     params.setHandler((content, p) ->
                             ingest.index(p.getIndex(), p.getType(), key, content));
                     RdfContentBuilder builder = routeRdfXContentBuilder(params);
@@ -202,7 +200,6 @@ public class EZBWeb extends TimewindowFeeder {
         SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(ingest.client(), SearchAction.INSTANCE)
                 .setIndices("zdb")
                 .setSize(1000)
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(5000))
                 .setQuery(queryBuilder)
                 .addField("IdentifierZDB.identifierZDB");

@@ -31,6 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.freebase;
 
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.ntriple.NTripleContentParser;
@@ -48,18 +49,18 @@ import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 public class Freebase extends Feeder {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new Freebase().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        InputStream in = InputService.getInputStream(uri);
-        RdfContentBuilder builder = ntripleBuilder();
-        NTripleContentParser reader = new NTripleContentParser(in);
-        reader.setBuilder(builder);
-        reader.parse();
-        in.close();
+        try (InputStream in = InputService.getInputStream(uri)) {
+            RdfContentBuilder builder = ntripleBuilder();
+            NTripleContentParser reader = new NTripleContentParser(in);
+            reader.setBuilder(builder);
+            reader.parse();
+        }
     }
 
 }

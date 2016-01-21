@@ -1,23 +1,23 @@
 package org.xbib.time.chronic;
 
 public class Range {
-    private long begin;
-    private long end;
+    private Long begin;
+    private Long end;
 
     public Range(long begin, long end) {
         this.begin = begin;
         this.end = end;
     }
 
-    public long getBegin() {
+    public Long getBegin() {
         return begin;
     }
 
-    public long getEnd() {
+    public Long getEnd() {
         return end;
     }
 
-    public long getWidth() {
+    public Long getWidth() {
         return getEnd() - getBegin();
     }
 
@@ -25,7 +25,7 @@ public class Range {
      * Returns true if the start and end are the same (i.e. this is a single value).
      */
     public boolean isSingularity() {
-        return getEnd() == getBegin();
+        return getEnd().equals(getBegin());
     }
 
     public boolean contains(long value) {
@@ -34,11 +34,11 @@ public class Range {
 
     @Override
     public int hashCode() {
-        return (int) (begin * end);
+        return begin.hashCode() * end.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Range && ((Range) obj).begin == begin && ((Range) obj).end == end;
+        return obj instanceof Range && ((Range) obj).begin.equals(begin) && ((Range) obj).end.equals(end);
     }
 }

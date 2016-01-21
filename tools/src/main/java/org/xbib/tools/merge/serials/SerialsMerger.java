@@ -65,6 +65,7 @@ import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -199,8 +200,8 @@ public class SerialsMerger extends Merger {
 
         logger.info("preparing ISIL blacklist...");
         isilbl = new BlackListedISIL();
-        try {
-            isilbl.buildLookup(getClass().getResourceAsStream("isil.blacklist"));
+        try (InputStream in = getClass().getResourceAsStream("isil.blacklist")) {
+            isilbl.buildLookup(in);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -208,8 +209,8 @@ public class SerialsMerger extends Merger {
 
         logger.info("preparing mapped ISIL...");
         isilMapped = new MappedISIL();
-        try {
-            isilMapped.buildLookup(getClass().getResourceAsStream("isil.map"));
+        try (InputStream in = getClass().getResourceAsStream("isil.map")) {
+            isilMapped.buildLookup(in);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -233,7 +234,6 @@ public class SerialsMerger extends Merger {
         boolean failure = false;
         SearchRequestBuilder searchRequest = search.client().prepareSearch()
                 .setSize(size)
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(millis));
         searchRequest.setIndices(sourceTitleIndex);
         if (sourceTitleType != null) {
@@ -351,44 +351,36 @@ public class SerialsMerger extends Merger {
         this.identifier = settings.get("identifier");
         this.ingest = createIngest();
         String index = settings.get("index");
-        try {
-            String packageName = getClass().getPackage().getName().replace('.','/');
-            String indexSettingsLocation = settings.get("index-settings",
-                    "classpath:" + packageName + "/settings.json");
-            logger.info("using index settings from {}", indexSettingsLocation);
-            URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
-                    new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
-                    new URL(indexSettingsLocation));
-            logger.info("creating index {}", index);
-            ingest.newIndex(index, org.elasticsearch.common.settings.Settings.settingsBuilder()
-                    .loadFromStream(indexSettingsUrl.toString(), indexSettingsUrl.openStream()).build(), null);
+        String packageName = getClass().getPackage().getName().replace('.','/');
+        String indexSettingsLocation = settings.get("index-settings",
+                "classpath:" + packageName + "/settings.json");
+        logger.info("using index settings from {}", indexSettingsLocation);
+        URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
+                new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
+                new URL(indexSettingsLocation));
+        logger.info("creating index {}", index);
+        ingest.newIndex(index, org.elasticsearch.common.settings.Settings.settingsBuilder()
+                .loadFromStream(indexSettingsUrl.toString(), indexSettingsUrl.openStream()).build(), null);
 
-            // add mappings
-            String indexMappingsLocation = settings.get("index-mapping",
-                    "classpath:" + packageName + "/mapping.json");
-            logger.info("using index mappings from {}", indexMappingsLocation);
-            URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
-                    new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
-                    new URL(indexMappingsLocation));
-            Map<String,Object> indexMappings = Settings.settingsBuilder()
-                    .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
-            if (indexMappings != null) {
-                for (Map.Entry<String,Object> me : indexMappings.entrySet()) {
-                    String type = me.getKey();
-                    Map<String, Object> mapping = (Map<String, Object>) me.getValue();
-                    logger.info("creating mapping for type {}: {}", type, mapping);
-                    if (mapping != null) {
-                        ingest.newMapping(index, me.getKey(), mapping);
-                    } else {
-                        logger.warn("no mapping found for {}", type);
-                    }
+        // add mappings
+        String indexMappingsLocation = settings.get("index-mapping",
+                "classpath:" + packageName + "/mapping.json");
+        logger.info("using index mappings from {}", indexMappingsLocation);
+        URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
+                new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
+                new URL(indexMappingsLocation));
+        Map<String,Object> indexMappings = Settings.settingsBuilder()
+                .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
+        if (indexMappings != null) {
+            for (Map.Entry<String,Object> me : indexMappings.entrySet()) {
+                String type = me.getKey();
+                Map<String, Object> mapping = (Map<String, Object>) me.getValue();
+                logger.info("creating mapping for type {}: {}", type, mapping);
+                if (mapping != null) {
+                    ingest.newMapping(index, me.getKey(), mapping);
+                } else {
+                    logger.warn("no mapping found for {}", type);
                 }
-            }
-        } catch (Exception e) {
-            if (!settings.getAsBoolean("ignoreindexcreationerror", false)) {
-                throw e;
-            } else {
-                logger.warn("index creation error, but configured to ignore", e);
             }
         }
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));

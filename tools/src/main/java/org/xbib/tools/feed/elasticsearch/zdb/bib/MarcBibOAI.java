@@ -47,6 +47,7 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -79,18 +80,8 @@ public class MarcBibOAI extends OAIFeeder {
     private final static Logger logger = LogManager.getLogger(MarcBibOAI.class.getName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new MarcBibOAI().setPipeline(p);
-    }
-
-    @Override
-    protected String getIndex() {
-        return settings.get("bib-index");
-    }
-
-    @Override
-    protected String getType() {
-        return settings.get("bib-type");
     }
 
     @Override
@@ -99,7 +90,7 @@ public class MarcBibOAI extends OAIFeeder {
         Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-605"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
-        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         final MARCEntityQueue queue = createQueue(params);
         queue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
@@ -188,8 +179,8 @@ public class MarcBibOAI extends OAIFeeder {
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
             // write bib resource
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    getConcreteIndex(), getType());
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
@@ -202,9 +193,9 @@ public class MarcBibOAI extends OAIFeeder {
         }
     }
 
-    class MarcMetadataHandler implements MetadataHandler {
+    static class MarcMetadataHandler implements MetadataHandler {
 
-        final MarcXchangeReader reader;
+        private final MarcXchangeReader reader;
 
         RecordHeader header;
 

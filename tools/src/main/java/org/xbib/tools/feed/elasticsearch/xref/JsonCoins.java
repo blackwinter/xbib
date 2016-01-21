@@ -64,7 +64,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -97,8 +96,6 @@ public class JsonCoins extends Feeder {
 
     private final static JsonFactory jsonFactory = new JsonFactory();
 
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
     private final static SerialsDB serialsdb = new SerialsDB();
 
     @Override
@@ -107,45 +104,37 @@ public class JsonCoins extends Feeder {
     }
 
     @Override
-    public void prepareSource() throws IOException {
+    public void prepareInput() throws IOException, InterruptedException {
+        Queue<URI> input = new Finder()
+                .find(settings.get("path"),settings.get("serials"))
+                .getURIs();
+        logger.info("parsing initial set of serials...");
         try {
-            Queue<URI> input = new Finder()
-                    .find(settings.get("path"),settings.get("serials"))
-                    .getURIs();
-            logger.info("parsing initial set of serials...");
-            try {
-                serialsdb.process(settings, input.poll());
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-            logger.info("serials done, size={}", serialsdb.getMap().size());
-        } catch (IOException e) {
+            serialsdb.process(settings, input.poll());
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+        logger.info("serials done, size={}", serialsdb.getMap().size());
         if (serialsdb.getMap().isEmpty()) {
             throw new IllegalArgumentException("no serials?");
         }
-        super.prepareSource();
+        super.prepareInput();
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        logger.info("start of processing {}", uri);
-        String index = settings.get("index");
-        String type = settings.get("type");
-        InputStream in = InputService.getInputStream(uri);
-        if (in == null) {
-            throw new IOException("unable to open " + uri);
-        }
-        RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
-        params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8))) {
+        try (InputStream in = InputService.getInputStream(uri)) {
+            RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
+            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
             JsonParser parser = jsonFactory.createParser(reader);
             JsonToken token = parser.nextToken();
             Resource resource = null;
             String key = null;
             String value;
             Result result = Result.OK;
+            String index = indexDefinitionMap.get("bib").getConcreteIndex();
+            String type = indexDefinitionMap.get("bib").getType();
             while (token != null) {
                 switch (token) {
                     case START_OBJECT: {
@@ -206,7 +195,6 @@ public class JsonCoins extends Feeder {
                 token = parser.nextToken();
             }
         }
-        logger.info("end of processing {}", uri);
     }
 
     protected interface URIListener extends URIUtil.ParameterListener {
@@ -241,10 +229,7 @@ public class JsonCoins extends Feeder {
             String spage = null;
             String epage = null;
             Resource j = null;
-            String title = null;
             String year = null;
-            String volume = null;
-            String issue = null;
             Set<Author> authors = new LinkedHashSet<>();
             Author author = null;
             String work = null;
@@ -301,7 +286,6 @@ public class JsonCoins extends Feeder {
                     }
                     case "rft.jtitle": {
                         v = Entities.HTML40.unescape(v);
-                        title = v;
                         String cleanTitle = v.replaceAll("\\p{C}","")
                                 .replaceAll("\\p{Space}","")
                                 .replaceAll("\\p{Punct}","");
@@ -341,13 +325,13 @@ public class JsonCoins extends Feeder {
                                             .add(FOAF_NAME, author.lastName);
                                 }
                                 author = new Author();
-                                author.lastName = v;
+                                author.setLastName(v);
                             } else {
                                 author.lastName = v;
                             }
                         } else {
                             author = new Author();
-                            author.lastName = v;
+                            author.setLastName(v);
                         }
                         break;
                     }
@@ -361,13 +345,13 @@ public class JsonCoins extends Feeder {
                                         .add(FOAF_FAMILYNAME, author.lastName)
                                         .add(FOAF_GIVENNAME, author.foreName);
                                 author = new Author();
-                                author.foreName = v;
+                                author.setForeName(v);
                             } else {
-                                author.foreName = v;
+                                author.setForeName(v);
                             }
                         } else {
                             author = new Author();
-                            author.foreName = v;
+                            author.setForeName(v);
                         }
                         break;
                     }
@@ -383,7 +367,7 @@ public class JsonCoins extends Feeder {
                             error = true;
                         }
                         author = new Author();
-                        author.lastName = v;
+                        author.setLastName(v);
                         r.newResource(DC_CREATOR)
                                 .a(FOAF_AGENT)
                                 .add(FOAF_NAME, v);
@@ -397,14 +381,12 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.volume": {
-                        volume = v;
                         r.newResource(FRBR_EMBODIMENT)
                                 .a(FABIO_PERIODICAL_VOLUME)
                                 .add(PRISM_VOLUME, v);
                         break;
                     }
                     case "rft.issue": {
-                        issue = v;
                         r.newResource(FRBR_EMBODIMENT)
                                 .a(FABIO_PERIODICAL_ISSUE)
                                 .add(PRISM_NUMBER, v);
@@ -507,10 +489,19 @@ public class JsonCoins extends Feeder {
                         Result.OK;
     }
 
-    class Author implements Comparable<Author> {
-        String lastName, foreName;
+    static class Author implements Comparable<Author> {
+        private String lastName, foreName, normalized;
 
-        String normalize() {
+        void setLastName(String lastName) {
+            this.lastName = lastName;
+            this.normalized = normalize();
+        }
+        void setForeName(String foreName) {
+            this.foreName = foreName;
+            this.normalized = normalize();
+        }
+
+        private String normalize() {
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
@@ -523,7 +514,17 @@ public class JsonCoins extends Feeder {
 
         @Override
         public int compareTo(Author o) {
-            return normalize().compareTo(o.normalize());
+            return normalized.compareTo(o.normalized);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && normalized.equals(((Author)o).normalized);
+        }
+
+        @Override
+        public int hashCode() {
+            return normalized.hashCode();
         }
     }
 

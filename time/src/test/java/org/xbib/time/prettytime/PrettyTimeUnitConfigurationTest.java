@@ -34,26 +34,26 @@ public class PrettyTimeUnitConfigurationTest {
         Date ref = new Date(0);
         Date then = new Date(2);
 
-        PrettyTime t = new PrettyTime(ref);
+        PrettyTime t = new PrettyTime(ref.getTime());
         TimeFormat format = t.removeUnit(JustNow.class);
         Assert.assertNotNull(format);
-        assertEquals("moments from now", t.format(then));
+        assertEquals("2 milliseconds from now", t.format(then));
     }
 
     @Test
     public void testMinutesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime(0);
         TimeFormat format = t.removeUnit(Minute.class);
         Assert.assertNotNull(format);
-        assertEquals("12 minutes from now", t.format(new Date(1000 * 60 * 12)));
+        assertEquals("720 seconds from now", t.format(new Date(1000 * 60 * 12)));
     }
 
     @Test
     public void testHoursFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(new Date(0));
+        PrettyTime t = new PrettyTime(0);
         TimeFormat format = t.removeUnit(Hour.class);
         Assert.assertNotNull(format);
-        assertEquals("3 hours from now", t.format(new Date(1000 * 60 * 60 * 3)));
+        assertEquals("180 minutes from now", t.format(new Date(1000 * 60 * 60 * 3)));
     }
 
     // Method tearDown() is called automatically after every test method

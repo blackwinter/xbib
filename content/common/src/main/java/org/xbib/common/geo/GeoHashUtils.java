@@ -1,4 +1,3 @@
-
 package org.xbib.common.geo;
 
 import java.util.ArrayList;
@@ -11,11 +10,10 @@ import java.util.Iterator;
  */
 public class GeoHashUtils {
 
+    public static final int PRECISION = 12;
     private static final char[] BASE_32 = {'0', '1', '2', '3', '4', '5', '6',
             '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n',
             'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-
-    public static final int PRECISION = 12;
     private static final int[] BITS = {16, 8, 4, 2, 1};
 
     private GeoHashUtils() {
@@ -78,7 +76,7 @@ public class GeoHashUtils {
         return geohash.toString();
     }
 
-    private static final char encode(int x, int y) {
+    private static char encode(int x, int y) {
         return BASE_32[((x & 1) + ((y & 1) * 2) + ((x & 2) * 2) + ((y & 2) * 4) + ((x & 4) * 4)) % 32];
     }
 
@@ -95,9 +93,8 @@ public class GeoHashUtils {
     /**
      * Create an {@link Iterable} which allows to iterate over the cells that
      * contain a given geohash
-     *   
+     *
      * @param geohash Geohash of a cell
-     * 
      * @return {@link Iterable} of path
      */
     public static Iterable<String> path(final String geohash) {
@@ -108,17 +105,17 @@ public class GeoHashUtils {
             }
         };
     }
-    
+
     /**
      * Calculate the geohash of a neighbor of a geohash
      *
      * @param geohash the geohash of a cell
-     * @param level   level of the geohash
+     * @param level   non-negative level of the geohash
      * @param dx      delta of the first grid coordinate (must be -1, 0 or +1)
      * @param dy      delta of the second grid coordinate (must be -1, 0 or +1)
      * @return geohash of the defined cell
      */
-    private final static String neighbor(String geohash, int level, int dx, int dy) {
+    private static String neighbor(String geohash, int level, int dx, int dy) {
         int cell = decode(geohash.charAt(level - 1));
 
         // Decoding the Geohash bit pattern to determine grid coordinates
@@ -143,14 +140,16 @@ public class GeoHashUtils {
             } else {
                 return Character.toString(encode(x + dx, y + dy));
             }
-        } else {
+        } else if (level > 1) {
+            boolean odd = (level % 2) != 0;
             // define grid coordinates for next level
-            final int nx = ((level % 2) == 1) ? (x + dx) : (x + dy);
-            final int ny = ((level % 2) == 1) ? (y + dy) : (y + dx);
+            final int nx = odd ? (x + dx) : (x + dy);
+            final int ny = odd ? (y + dy) : (y + dx);
 
+            boolean even = (level % 2) == 0;
             // define grid limits for current level
-            final int xLimit = ((level % 2) == 0) ? 7 : 3;
-            final int yLimit = ((level % 2) == 0) ? 3 : 7;
+            final int xLimit = even ? 7 : 3;
+            final int yLimit = even ? 3 : 7;
 
             // if the defined neighbor has the same parent a the current cell
             // encode the cell directly. Otherwise find the cell next to this
@@ -160,13 +159,14 @@ public class GeoHashUtils {
                 return geohash.substring(0, level - 1) + encode(nx, ny);
             } else {
                 String neighbor = neighbor(geohash, level - 1, dx, dy);
-                if(neighbor != null) {
-                    return neighbor + encode(nx, ny); 
+                if (neighbor != null) {
+                    return neighbor + encode(nx, ny);
                 } else {
                     return null;
                 }
             }
         }
+        return null;
     }
 
     /**
@@ -176,10 +176,10 @@ public class GeoHashUtils {
      * @param neighbors list to add the neighbors to
      * @return the given list
      */
-    public static final <E extends Collection<? super String>> E addNeighbors(String geohash, E neighbors) {
+    public static <E extends Collection<? super String>> E addNeighbors(String geohash, E neighbors) {
         return addNeighbors(geohash, geohash.length(), neighbors);
     }
-    
+
     /**
      * Add all geohashes of the cells next to a given geohash to a list.
      *
@@ -188,7 +188,7 @@ public class GeoHashUtils {
      * @param neighbors list to add the neighbors to
      * @return the given list
      */
-    public static final <E extends Collection<? super String>> E addNeighbors(String geohash, int length, E neighbors) {
+    public static <E extends Collection<? super String>> E addNeighbors(String geohash, int length, E neighbors) {
         String south = neighbor(geohash, length, 0, -1);
         String north = neighbor(geohash, length, 0, +1);
         if (north != null) {
@@ -209,7 +209,7 @@ public class GeoHashUtils {
         return neighbors;
     }
 
-    private static final int decode(char geo) {
+    private static int decode(char geo) {
         switch (geo) {
             case '0':
                 return 0;
@@ -295,7 +295,7 @@ public class GeoHashUtils {
      *
      * @param geohash Geohash to decocde
      * @return the given {@link GeoPoint} reseted to the center of
-     *         cell, given by the geohash
+     * cell, given by the geohash
      */
     public static GeoPoint decode(String geohash, GeoPoint ret) {
         double[] interval = decodeCell(geohash);
@@ -341,24 +341,20 @@ public class GeoHashUtils {
         }
         return interval;
     }
-    
-    //========== long-based encodings for geohashes ========================================
-
 
     /**
      * Encodes latitude and longitude information into a single long with variable precision.
      * Up to 12 levels of precision are supported which should offer sub-metre resolution.
      *
-     * @param latitude
-     * @param longitude
+     * @param latitude  latitude
+     * @param longitude longitude
      * @param precision The required precision between 1 and 12
-     * @return A single long where 4 bits are used for holding the precision and the remaining 
-     * 60 bits are reserved for 5 bit cell identifiers giving up to 12 layers. 
+     * @return A single long where 4 bits are used for holding the precision and the remaining
+     * 60 bits are reserved for 5 bit cell identifiers giving up to 12 layers.
      */
     public static long encodeAsLong(double latitude, double longitude, int precision) {
-        if((precision>12)||(precision<1))
-        {
-            throw new IllegalArgumentException("Illegal precision length of "+precision+
+        if ((precision > 12) || (precision < 1)) {
+            throw new IllegalArgumentException("Illegal precision length of " + precision +
                     ". Long-based geohashes only support precisions between 1 and 12");
         }
         double latInterval0 = -90.0;
@@ -366,13 +362,13 @@ public class GeoHashUtils {
         double lngInterval0 = -180.0;
         double lngInterval1 = 180.0;
 
-        long geohash = 0l;
+        long geohash = 0L;
         boolean isEven = true;
 
         int bit = 0;
         int ch = 0;
 
-        int geohashLength=0;
+        int geohashLength = 0;
         while (geohashLength < precision) {
             double mid = 0.0;
             if (isEven) {
@@ -399,71 +395,68 @@ public class GeoHashUtils {
                 bit++;
             } else {
                 geohashLength++;
-                geohash|=ch;
-                if(geohashLength<precision){
-                    geohash<<=5;
+                geohash |= ch;
+                if (geohashLength < precision) {
+                    geohash <<= 5;
                 }
                 bit = 0;
                 ch = 0;
             }
         }
-        geohash<<=4;
-        geohash|=precision;
+        geohash <<= 4;
+        geohash |= precision;
         return geohash;
     }
-    
+
     /**
-     * Formats a geohash held as a long as a more conventional 
+     * Formats a geohash held as a long as a more conventional
      * String-based geohash
+     *
      * @param geohashAsLong a geohash encoded as a long
-     * @return A traditional base32-based String representation of a geohash 
+     * @return A traditional base32-based String representation of a geohash
      */
-    public static String toString(long geohashAsLong)
-    {
-        int precision= (int) (geohashAsLong&15);
-        char[] chars=new char[precision];
-        geohashAsLong>>=4;                    
-        for (int i = precision-1; i >=0 ; i--) {
-            chars[i]=  BASE_32[(int) (geohashAsLong&31)];
-            geohashAsLong>>=5;                    
+    public static String toString(long geohashAsLong) {
+        int precision = (int) (geohashAsLong & 15);
+        char[] chars = new char[precision];
+        geohashAsLong >>= 4;
+        for (int i = precision - 1; i >= 0; i--) {
+            chars[i] = BASE_32[(int) (geohashAsLong & 31)];
+            geohashAsLong >>= 5;
         }
         return new String(chars);
     }
 
-    
-    
+
     public static GeoPoint decode(long geohash) {
         GeoPoint point = new GeoPoint();
         decode(geohash, point);
         return point;
-    }    
-    
+    }
+
     /**
      * Decodes the given long-format geohash into a latitude and longitude
      *
      * @param geohash long format Geohash to decode
-     * @param ret The Geopoint into which the latitude and longitude will be stored
+     * @param ret     The Geopoint into which the latitude and longitude will be stored
      */
     public static void decode(long geohash, GeoPoint ret) {
         double[] interval = decodeCell(geohash);
         ret.reset((interval[0] + interval[1]) / 2D, (interval[2] + interval[3]) / 2D);
 
-    }    
-    
+    }
+
     private static double[] decodeCell(long geohash) {
         double[] interval = {-90.0, 90.0, -180.0, 180.0};
         boolean isEven = true;
-        
-        int precision= (int) (geohash&15);
-        geohash>>=4;
-        int[]cds=new int[precision];
-        for (int i = precision-1; i >=0 ; i--) {            
-            cds[i] = (int) (geohash&31);
-            geohash>>=5;
-        }
 
-        for (int i = 0; i <cds.length ; i++) {            
-            final int cd = cds[i];
+        int precision = (int) (geohash & 15);
+        geohash >>= 4;
+        int[] cds = new int[precision];
+        for (int i = precision - 1; i >= 0; i--) {
+            cds[i] = (int) (geohash & 31);
+            geohash >>= 5;
+        }
+        for (final int cd : cds) {
             for (int mask : BITS) {
                 if (isEven) {
                     if ((cd & mask) != 0) {
@@ -482,5 +475,5 @@ public class GeoHashUtils {
             }
         }
         return interval;
-    }       
+    }
 }

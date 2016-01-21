@@ -41,7 +41,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         CAMELCASE
     }
 
-    protected static FieldCaseConversion globalFieldCaseConversion = FieldCaseConversion.NONE;
+    static FieldCaseConversion globalFieldCaseConversion = FieldCaseConversion.NONE;
 
     private XContentGenerator generator;
 

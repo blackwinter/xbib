@@ -17,16 +17,18 @@ import org.xbib.rdf.Triple;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -50,34 +52,36 @@ public class NatLizCrawler extends Feeder {
     private final static Logger logger = LogManager.getLogger(NatLizCrawler.class);
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new NatLizCrawler().setPipeline(p);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void process(URI uri) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         // the list of ISIL we want to traverse. If there is no such file, we would have to
         // use findInstitutions()
-        InputStream in = getClass().getResourceAsStream("nlz-sigel-isil.json");
-        List<Map<String,Object>> members = mapper.readValue(in, List.class);
-        String cookie = login();
-        if (cookie.isEmpty()) {
-            throw new IOException("not authorized, no cookie found");
-        }
-        Set<Triple> triples = new TreeSet<>();
-        Map<String, Object> licenses = new HashMap<String, Object>();
-        for (Map<String,Object> member : members) {
-            String memberid = (String) member.get("member");
-            Object o = member.get("isil");
-            if (!(o instanceof Collection)) {
-                o = Collections.singletonList(o);
+        try (InputStream in = getClass().getResourceAsStream("nlz-sigel-isil.json")) {
+            List<Map<String, Object>> members = mapper.readValue(in, List.class);
+            String cookie = login();
+            if (cookie.isEmpty()) {
+                throw new IOException("not authorized, no cookie found");
             }
-            Collection<Object> isils = (Collection<Object>) o;
-            findLicenses(cookie, memberid, isils, licenses, triples);
+            Set<Triple> triples = new TreeSet<>();
+            Map<String, Object> licenses = new HashMap<String, Object>();
+            for (Map<String, Object> member : members) {
+                String memberid = (String) member.get("member");
+                Object o = member.get("isil");
+                if (!(o instanceof Collection)) {
+                    o = Collections.singletonList(o);
+                }
+                Collection<Object> isils = (Collection<Object>) o;
+                findLicenses(cookie, memberid, isils, licenses, triples);
+            }
+            writeLicenses(licenses);
+            writeTriples(triples);
         }
-        writeLicenses(licenses);
-        writeTriples(triples);
     }
 
     private String login() throws Exception {
@@ -379,9 +383,8 @@ public class NatLizCrawler extends Feeder {
         String lname = params.get("lname");
         String puid = params.get("puid");
         String mid = params.get("mid");
-        final FileOutputStream out = new FileOutputStream(target);
         final NettyHttpSession session = new NettyHttpSession();
-        try {
+        try (FileOutputStream out = new FileOutputStream(target)) {
             // 3 hour max download time before timeout (file size may be up to some GB)
             session.open(Session.Mode.READ, settings.getAsInt("timeout", 3 * 3600 * 1000));
             HttpRequest request = session.newRequest()
@@ -422,7 +425,7 @@ public class NatLizCrawler extends Feeder {
             request.prepare().setOutputStream(out).execute(listener).waitFor();
         } finally {
             session.close();
-            out.close();
+
             file = new File(target);
             logger.info("done: download of {}, file length = {}", url, file.length());
         }
@@ -433,26 +436,27 @@ public class NatLizCrawler extends Feeder {
         // Java object
         if (settings.get("mapfile") != null) {
             File file = new File("nlz-licenses.map");
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(licenses.toString());
-            fileWriter.close();
+            try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8))) {
+                fileWriter.write(licenses.toString());
+            }
         }
         // JSON file
         if (settings.get("jsonfile") != null) {
             XContentBuilder builder = jsonBuilder();
             builder.map(licenses);
             File file = new File("nlz-licenses.json");
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(builder.string());
-            fileWriter.close();
+            try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8))) {
+                fileWriter.write(builder.string());
+            }
         }
         // ES
         if (settings.get("index") != null) {
-            for (String key : licenses.keySet()) {
+            for (Map.Entry<String,Object> entry : licenses.entrySet()) {
+                String key = entry.getKey();
+                List<Map<String, Object>> value = (List<Map<String, Object>>)entry.getValue();
                 XContentBuilder builder = jsonBuilder();
-                List<Map<String,Object>> list = (List<Map<String, Object>>) licenses.get(key);
                 List<String> isils = new LinkedList<>();
-                for (Map<String,Object> map : list) {
+                for (Map<String,Object> map : value) {
                     isils.addAll((Collection<? extends String>) map.get("isil"));
                 }
                 builder.startObject().array("isil", isils).endObject();
@@ -517,6 +521,8 @@ public class NatLizCrawler extends Feeder {
                 break;
             case "Dez":
                 month = "12";
+                break;
+            default:
                 break;
         }
         return year + "-" + month + "-" + day;

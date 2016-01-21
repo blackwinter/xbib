@@ -20,49 +20,49 @@ public class SimpleTimeFormatTimeQuantifiedNameTest {
 
     @Test
     public void testFuturePluralName() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(0));
+        PrettyTime p = new PrettyTime(0);
         Assert.assertEquals("2 days from now", p.format(new Date(1000 * 60 * 60 * 24 * 2)));
     }
 
     @Test
     public void testPastPluralName() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(1000 * 60 * 60 * 24 * 2));
+        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 24 * 2);
         Assert.assertEquals("2 days ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFutureSingularName() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(0));
+        PrettyTime p = new PrettyTime(0);
         Assert.assertEquals("1 day from now", p.format(new Date(1000 * 60 * 60 * 24)));
     }
 
     @Test
     public void testPastSingularName() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(1000 * 60 * 60 * 24));
+        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 24);
         Assert.assertEquals("1 day ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFuturePluralNameEmpty() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(0));
+        PrettyTime p = new PrettyTime(0);
         Assert.assertEquals("2 hours from now", p.format(new Date(1000 * 60 * 60 * 2)));
     }
 
     @Test
     public void testPastPluralNameMissing() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(1000 * 60 * 60 * 2));
+        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 2);
         Assert.assertEquals("2 hours ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFutureSingularNameCopy() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(0));
+        PrettyTime p = new PrettyTime(0);
         Assert.assertEquals("1 hour from now", p.format(new Date(1000 * 60 * 60)));
     }
 
     @Test
     public void testPastSingularNameNull() throws Exception {
-        PrettyTime p = new PrettyTime(new Date(1000 * 60 * 60));
+        PrettyTime p = new PrettyTime(1000 * 60 * 60);
         Assert.assertEquals("1 hour ago", p.format(new Date(0)));
     }
 

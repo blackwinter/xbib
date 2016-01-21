@@ -32,18 +32,12 @@
 package org.xbib.text;
 
 import java.io.ByteArrayInputStream;
-import java.io.FilterInputStream;
-import java.io.FilterOutputStream;
 import java.io.FilterReader;
-import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.nio.CharBuffer;
 
 /**
@@ -52,7 +46,7 @@ import java.nio.CharBuffer;
 public final class UrlEncoding {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
-    public final static char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    private static final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     private UrlEncoding() {
     }
@@ -208,10 +202,8 @@ public final class UrlEncoding {
                 encode(sb, String.valueOf(c).getBytes(enc));
             } else if (CharUtils.isHighSurrogate(c)) {
                 if (check(c, filters)) {
-                    StringBuilder buf = new StringBuilder();
-                    buf.append(c);
-                    buf.append(chars.charAt(++n));
-                    byte[] b = buf.toString().getBytes(enc);
+                    String buf = String.valueOf(c) + chars.charAt(++n);
+                    byte[] b = buf.getBytes(enc);
                     encode(sb, b);
                 } else {
                     sb.append(c);
@@ -337,13 +329,11 @@ public final class UrlEncoding {
         return sb.toString();
     }
 
-    public static String decode(String e, String enc) throws UnsupportedEncodingException {
-        DecodingReader r = new DecodingReader(e.getBytes(enc), enc);
+    public static String decode(String e, String enc) throws IOException {
         char[] buf = new char[e.length()];
-        try {
+        try (DecodingReader r = new DecodingReader(e.getBytes(enc), enc)) {
             int l = r.read(buf);
             e = new String(buf, 0, l);
-        } catch (Exception ex) {
         }
         return e;
     }
@@ -356,141 +346,11 @@ public final class UrlEncoding {
         }
     }
 
-    public static class EncodingOutputStream extends FilterOutputStream {
-
-        public EncodingOutputStream(OutputStream out) {
-            super(out);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            String enc = encode(b, off, len);
-            out.write(enc.getBytes(DEFAULT_ENCODING));
-        }
-
-        @Override
-        public void write(byte[] b) throws IOException {
-            String enc = encode(b);
-            out.write(enc.getBytes(DEFAULT_ENCODING));
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            String enc = encode((byte) b);
-            out.write(enc.getBytes(DEFAULT_ENCODING));
-        }
-    }
-
-    public static class EncodingWriter extends FilterWriter {
-        private final Filter[] filters;
-
-        public EncodingWriter(OutputStream out) {
-            this(new OutputStreamWriter(out));
-        }
-
-        public EncodingWriter(OutputStream out, Filter Filter) {
-            this(new OutputStreamWriter(out), Filter);
-        }
-
-        public EncodingWriter(OutputStream out, Filter... filters) {
-            this(new OutputStreamWriter(out), filters);
-        }
-
-        public EncodingWriter(Writer out) {
-            this(out, new Filter[0]);
-        }
-
-        public EncodingWriter(Writer out, Filter Filter) {
-            this(out, new Filter[]{Filter});
-        }
-
-        public EncodingWriter(Writer out, Filter... filters) {
-            super(out);
-            this.filters = filters;
-        }
-
-        @Override
-        public void write(char[] b, int off, int len) throws IOException {
-            String enc = encode(b, off, len, filters);
-            out.write(enc.toCharArray());
-        }
-
-        @Override
-        public void write(char[] b) throws IOException {
-            String enc = encode(b, filters);
-            out.write(enc.toCharArray());
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            String enc = encode(new char[]{(char) b}, filters);
-            out.write(enc.toCharArray());
-        }
-
-        @Override
-        public void write(String str, int off, int len) throws IOException {
-            String enc = encode(str, off, len, filters);
-            out.write(enc.toCharArray());
-        }
-    }
-
-    public static class DecodingInputStream extends FilterInputStream {
-        public DecodingInputStream(InputStream in) {
-            super(in);
-        }
-
-        public DecodingInputStream(byte[] in) {
-            super(new ByteArrayInputStream(in));
-        }
-
-        public int read() throws IOException {
-            int c = super.read();
-            if (c == '%') {
-                int c1 = super.read();
-                int c2 = super.read();
-                return decode((char) c1, (char) c2);
-            } else {
-                return c;
-            }
-        }
-
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
-            int n = off;
-            int i = -1;
-            while ((i = read()) != -1 && n < off + len) {
-                b[n++] = (byte) i;
-            }
-            return n - off;
-        }
-
-        @Override
-        public int read(byte[] b) throws IOException {
-            return read(b, 0, b.length);
-        }
-
-        @Override
-        public long skip(long n) throws IOException {
-            long i = 0;
-            for (; i < n; i++) {
-                read();
-            }
-            return i;
-        }
-
-    }
 
     public static class DecodingReader extends FilterReader {
-        public DecodingReader(byte[] buf) throws UnsupportedEncodingException {
-            this(new ByteArrayInputStream(buf));
-        }
 
         public DecodingReader(byte[] buf, String enc) throws UnsupportedEncodingException {
             this(new ByteArrayInputStream(buf), enc);
-        }
-
-        public DecodingReader(InputStream in) throws UnsupportedEncodingException {
-            this(in, DEFAULT_ENCODING);
         }
 
         public DecodingReader(InputStream in, String enc) throws UnsupportedEncodingException {

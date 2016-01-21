@@ -49,6 +49,7 @@ import org.xbib.oai.rdf.RdfResourceHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.rdf.RdfContentParams;
+import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.tools.convert.Converter;
 import org.xbib.time.DateUtil;
 import org.xbib.util.URIUtil;
@@ -68,16 +69,20 @@ public abstract class OAIHarvester extends Converter {
 
     private final static Logger logger = LogManager.getLogger(OAIHarvester.class.getSimpleName());
 
-    protected static Session<StringPacket> session;
+    private Session<StringPacket> session;
+
+    protected Session<StringPacket> getSession() {
+        return session;
+    }
 
     @Override
-    public void prepareSink() throws IOException {
+    public void prepareOutput() throws IOException {
         String output = settings.get("output");
         TarConnectionFactory factory = new TarConnectionFactory();
         Connection<TarSession> connection = factory.getConnection(URI.create(output));
         session = connection.createSession();
         session.open(Session.Mode.WRITE);
-        super.prepareSink();
+        super.prepareOutput();
     }
 
     @Override
@@ -123,11 +128,11 @@ public abstract class OAIHarvester extends Converter {
     }
 
     @Override
-    protected void disposeSink() throws IOException {
+    protected void disposeOutput() throws IOException {
         if (session != null) {
             session.close();
         }
-        super.disposeSink();
+        super.disposeOutput();
     }
 
     protected SimpleMetadataHandler newMetadataHandler() throws IOException {
@@ -160,11 +165,11 @@ public abstract class OAIHarvester extends Converter {
     }
 
     protected RdfResourceHandler rdfResourceHandler() {
-        RdfContentParams params = RdfContentParams.EMPTY;
+        RdfContentParams params = NTripleContentParams.DEFAULT_PARAMS;
         return new RdfResourceHandler(params);
     }
 
-    protected class XmlPacketHandlerSimple extends XmlSimpleMetadataHandler {
+    class XmlPacketHandlerSimple extends XmlSimpleMetadataHandler {
 
         public void endDocument() throws SAXException {
             super.endDocument();

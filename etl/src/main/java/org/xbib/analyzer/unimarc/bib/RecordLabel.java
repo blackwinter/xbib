@@ -64,7 +64,8 @@ public class RecordLabel extends MARCEntity {
         if (codes == null) {
             return false;
         }
-        for (String k : codes.keySet()) {
+        for (Map.Entry<String,Object> entry : codes.entrySet()) {
+            String k = entry.getKey();
             int pos = Integer.parseInt(k);
             Map<String,String> v = (Map<String,String>)codes.get(k);
             String code = value.length() > pos ? value.substring(pos,pos+1) : "";

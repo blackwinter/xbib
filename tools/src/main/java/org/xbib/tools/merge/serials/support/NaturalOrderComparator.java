@@ -23,9 +23,10 @@
  */
 package org.xbib.tools.merge.serials.support;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class NaturalOrderComparator<T> implements Comparator<T> {
+public class NaturalOrderComparator<T> implements Serializable, Comparator<T> {
 
     private static char charAt(String s, int i) {
         return i >= s.length() ? 0 : s.charAt(i);

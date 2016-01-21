@@ -31,8 +31,6 @@
  */
 package org.xbib.tools.analyze;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -44,19 +42,17 @@ import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class HoldingsStatistics extends Analyzer {
-
-    private final static Logger logger = LogManager.getLogger(HoldingsStatistics.class.getSimpleName());
 
     private Map<String,Integer> volume = new HashMap<>();
 
@@ -116,6 +112,8 @@ public class HoldingsStatistics extends Analyzer {
                             }
                             break;
                         }
+                        default:
+                            break;
                     }
                 }
                 if (isils.size() == 1) {
@@ -129,12 +127,9 @@ public class HoldingsStatistics extends Analyzer {
             }
         }
 
-        SortedSet<Map.Entry<String, Integer>> sortedVolumes = new TreeSet<Map.Entry<String, Integer>>((e1, e2) -> {
-            return e1.getValue().compareTo(e2.getValue());
-        });
-        sortedVolumes.addAll(volume.entrySet());
-        FileWriter fileWriter = new FileWriter("volumes-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedVolumes) {
+        Map<String,Integer> sortedVolumes = sortByValue(volume);
+        BufferedWriter fileWriter = getFileWriter("volumes-statistics.txt");
+        for (Map.Entry<String, Integer> entry : sortedVolumes.entrySet()) {
             fileWriter.write(entry.getKey());
             fileWriter.write("\t");
             fileWriter.write(Integer.toString(entry.getValue()));
@@ -142,12 +137,9 @@ public class HoldingsStatistics extends Analyzer {
         }
         fileWriter.close();
 
-        SortedSet<Map.Entry<String, Integer>> sortedOnline = new TreeSet<Map.Entry<String, Integer>>((e1, e2) -> {
-            return e1.getValue().compareTo(e2.getValue());
-        });
-        sortedOnline.addAll(online.entrySet());
-        fileWriter = new FileWriter("online-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedOnline) {
+        Map<String,Integer> sortedOnline = sortByValue(online);
+        fileWriter = getFileWriter("online-statistics.txt");
+        for (Map.Entry<String, Integer> entry : sortedOnline.entrySet()) {
             fileWriter.write(entry.getKey());
             fileWriter.write("\t");
             fileWriter.write(Integer.toString(entry.getValue()));
@@ -155,18 +147,22 @@ public class HoldingsStatistics extends Analyzer {
         }
         fileWriter.close();
 
-        SortedSet<Map.Entry<String, Integer>> sortedSingles = new TreeSet<Map.Entry<String, Integer>>((e1, e2) -> {
-            return e1.getValue().compareTo(e2.getValue());
-        });
-        sortedSingles.addAll(singles.entrySet());
-        fileWriter = new FileWriter("single-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedSingles) {
+        Map<String,Integer> sortedSingles = sortByValue(singles);
+        fileWriter = getFileWriter("single-statistics.txt");
+        for (Map.Entry<String, Integer> entry : sortedSingles.entrySet()) {
             fileWriter.write(entry.getKey());
             fileWriter.write("\t");
             fileWriter.write(Integer.toString(entry.getValue()));
             fileWriter.write("\n");
         }
         fileWriter.close();
+    }
+
+    static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+        Map<K,V> result = new LinkedHashMap<>();
+        map.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getValue))
+                .forEachOrdered(e -> result.put(e.getKey(),e.getValue()));
+        return result;
     }
 
 }

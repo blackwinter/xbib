@@ -1,0 +1,33 @@
+{
+  "input": {
+    "input1" : {
+      "uri": "http://datendienst.dnb.de/cgi-bin/mabit.pl?cmd=fetch&userID=opendata&pass=opendata&mabheft=GND.ttl.gz"
+    }
+  },
+  "output": {
+    "elasticsearch": {
+      "cluster": "zbn",
+      "host": "zephyros:9300",
+      "autodiscover": true,
+      "maxbulkactions" : 10000,
+      "maxconcurrentbulkrequests" : 8,
+      "mock" : false,
+      "index" : {
+        "bib" : {
+          "name" : "gnd",
+          "type": "gnd",
+          "settings": "classpath:org/xbib/tools/feed/elasticsearch/dnb/gnd/settings.json",
+          "mapping": "classpath:org/xbib/tools/feed/elasticsearch/dnb/gnd/mapping.json",
+          "timewindow": "yyyyMMddHH",
+          "skiperrors": true,
+          "aliases" : true,
+          "retention" : {
+            "enabled" : true,
+            "mintokeep" : 1
+          }
+        }
+      }
+    }
+  },
+  "detect-unknown" : true
+}

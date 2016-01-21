@@ -33,9 +33,8 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.settings.Settings;
+import org.xbib.common.settings.Settings;
 import org.xbib.common.unit.TimeValue;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
@@ -51,9 +50,10 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
-import org.xbib.tools.feed.elasticsearch.TimewindowFeeder;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.time.DateUtil;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -71,76 +71,60 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 /**
  * Harvest from OAI and feed to Elasticsearch
  */
-public abstract class OAIFeeder extends TimewindowFeeder {
+public abstract class OAIFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(OAIFeeder.class);
 
     @Override
-    protected void prepareSink() throws IOException {
-        if (ingest == null) {
-            ingest = createIngest();
-            Integer maxbulkactions = settings.getAsInt("maxbulkactions", 1000);
-            Integer maxconcurrentbulkrequests = settings.getAsInt("maxconcurrentbulkrequests",
-                    Runtime.getRuntime().availableProcessors());
-            ingest.maxActionsPerRequest(maxbulkactions)
-                    .maxConcurrentRequests(maxconcurrentbulkrequests);
-            ingest.init(Settings.settingsBuilder()
-                    .put("cluster.name", settings.get("elasticsearch.cluster"))
-                    .put("host", settings.get("elasticsearch.host"))
-                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build(), new LongAdderIngestMetric());
-        }
-        super.prepareSink();
-    }
-
-    @Override
-    protected void prepareSource() throws IOException {
-        if (settings.containsSetting("oai")) {
-            String fromStr = settings.get("oai.from");
+    protected void prepareInput() throws IOException, InterruptedException {
+        Map<String,Settings> inputSettingsMap = settings.getGroups("input");
+        Settings oaiSettings = inputSettingsMap.get("oai");
+        if (oaiSettings != null) {
+            String fromStr = oaiSettings.get("from");
             Span fromSpan = Chronic.parse(fromStr);
-            String untilStr = settings.get("oai.until");
+            String untilStr = oaiSettings.get("until");
             Span untilSpan = Chronic.parse(untilStr);
-            TimeValue delta = settings.getAsTime("oai.interval", TimeValue.timeValueHours(24));
+            TimeValue delta = oaiSettings.getAsTime("interval", TimeValue.timeValueHours(24));
             if (fromSpan != null) {
                 logger.info("from={}", DateUtil.formatDateISO(fromSpan.getBeginCalendar().getTime()));
                 if (untilSpan != null) {
                     logger.info("until={}", DateUtil.formatDateISO(untilSpan.getBeginCalendar().getTime()));
-                    long millis = untilSpan.getBeginCalendar().getTime().getTime() - fromSpan.getBeginCalendar().getTime().getTime();
-                    delta = settings.getAsTime("oai.interval",
+                    long millis = untilSpan.getBeginCalendar().getTime().getTime() -
+                            fromSpan.getBeginCalendar().getTime().getTime();
+                    delta = oaiSettings.getAsTime("interval",
                             TimeValue.parseTimeValue("" + millis + "ms", TimeValue.timeValueMillis(0L)));
                 }
                 logger.info("delta={}", delta);
                 // now get base URI and replace it with concrete URIs
-                int counter = settings.getAsInt("oai.counter", 1);
+                int counter = oaiSettings.getAsInt("counter", 1);
                 logger.info("counter={}", counter);
-                List<String> uris = new LinkedList<>();
+                List<URIWorkerRequest> list = new LinkedList<>();
                 try {
                     for (int i = 0; i < counter; i++) {
-                        URI uriBase = URI.create(settings.get("uri"));
-                        uriBase = URIUtil.addParameter(uriBase, "from", DateUtil.formatDateISO(fromSpan.getBeginCalendar().getTime()));
+                        URI uriBase = URI.create(oaiSettings.get("base"));
+                        uriBase = URIUtil.addParameter(uriBase, "from",
+                                DateUtil.formatDateISO(fromSpan.getBeginCalendar().getTime()));
                         fromSpan = fromSpan.add(-delta.seconds());
                         if (untilSpan != null) {
-                            uriBase = URIUtil.addParameter(uriBase, "until", DateUtil.formatDateISO(untilSpan.getBeginCalendar().getTime()));
+                            uriBase = URIUtil.addParameter(uriBase, "until",
+                                    DateUtil.formatDateISO(untilSpan.getBeginCalendar().getTime()));
                             untilSpan = untilSpan.add(-delta.seconds());
                         }
                         String s = uriBase.toString();
-                        if (!uris.contains(s)) {
-                            uris.add(0, s);
-                        }
+                        URIWorkerRequest uriWorkerRequest = new URIWorkerRequest();
+                        uriWorkerRequest.set(URI.create(s));
+                        // add to front
+                        list.add(0, uriWorkerRequest);
                     }
                 } catch (URISyntaxException e) {
                     throw new IOException(e);
                 }
-                // update settings with new URI list for super.prepareSource()
-                settings = org.xbib.common.settings.Settings.settingsBuilder()
-                        .put(settings)
-                        .putArray("uri", uris)
-                        .build();
+                for (URIWorkerRequest uriWorkerRequest : list) {
+                    getQueue().put(uriWorkerRequest);
+                }
             }
         }
-        super.prepareSource();
+        super.prepareInput();
     }
 
     @Override
@@ -224,7 +208,8 @@ public abstract class OAIFeeder extends TimewindowFeeder {
             handler.endDocument();
             try {
                 RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                        getConcreteIndex(), getType());
+                        indexDefinitionMap.get("bib").getConcreteIndex(),
+                        indexDefinitionMap.get("bib").getType());
                 params.setHandler((content, p) -> {
                     content = map(getHeader().getIdentifier(), content);
                     if (settings.getAsBoolean("mock", false)) {

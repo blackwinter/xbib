@@ -36,6 +36,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ConfigurableClassifier;
+import org.xbib.etl.support.Entry;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 
@@ -89,9 +90,9 @@ public class RecordIdentifier extends MABEntity {
         if (classifier != null) {
             String isil = catalogid;
             String key = catalogid + "." + state.getRecordIdentifier() + ".";
-            java.util.Collection<ConfigurableClassifier.Entry> entries = classifier.lookup(key);
+            java.util.Collection<Entry> entries = classifier.lookup(key);
             if (entries != null) {
-                for (ConfigurableClassifier.Entry entry : entries) {
+                for (Entry entry : entries) {
                     if (entry.getCode() != null && !entry.getCode().trim().isEmpty()) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
                         if (state.getFacets().get(facet) == null) {

@@ -1,4 +1,4 @@
-package org.xbib.tools.util;
+package org.xbib.util;
 
 import org.xbib.io.Packet;
 import org.xbib.marc.MarcXchangeListener;

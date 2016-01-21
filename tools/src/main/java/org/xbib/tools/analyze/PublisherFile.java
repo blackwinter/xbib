@@ -44,7 +44,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -148,7 +148,7 @@ public class PublisherFile extends Analyzer {
         } finally {
             search.shutdown();
         }
-        FileWriter fileWriter = new FileWriter(settings.get("output","publishers.tsv"));
+        BufferedWriter fileWriter = getFileWriter(settings.get("output","publishers.tsv"));
         for (Map.Entry<String,Collection<Object>> entry : publishers.entrySet()) {
             fileWriter.write(entry.getKey());
             for (Object o : entry.getValue()) {

@@ -235,7 +235,7 @@ public class EnumerationAndChronologyHelper {
         return parse(values, new MemoryResource(), null);
     }
 
-    public Resource parse(String values, Resource resource, Pattern[] movingwalls) {
+    public Resource parse(String values, Resource resource, List<Pattern> movingwalls) {
         if (values == null) {
             return resource;
         }

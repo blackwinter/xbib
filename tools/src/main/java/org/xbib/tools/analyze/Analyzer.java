@@ -36,23 +36,47 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.settings.loader.SettingsLoader;
 import org.xbib.common.settings.loader.SettingsLoaderFactory;
-import org.xbib.tools.Program;
+import org.xbib.tools.Processor;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
 import static org.xbib.common.settings.Settings.settingsBuilder;
 
-abstract class Analyzer implements Program {
+abstract class Analyzer implements Processor {
 
     private final static Logger logger = LogManager.getLogger(Analyzer.class.getSimpleName());
 
+    protected final static Charset UTF8 = Charset.forName("UTF-8");
+
+    protected BufferedReader getFileReader(String name) throws FileNotFoundException {
+        return new BufferedReader(new InputStreamReader(new FileInputStream(name), UTF8));
+    }
+
+    protected BufferedWriter getFileWriter(String name) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name), UTF8));
+    }
+
     @Override
     public int from(String arg) throws Exception {
-        URL url = new URL(arg);
-        try (Reader reader = new InputStreamReader(url.openStream(), Charset.forName("UTF-8"))) {
+        InputStream in;
+        try {
+            URL url = new URL(arg);
+            in = url.openStream();
+        } catch (MalformedURLException e) {
+            in = new FileInputStream(arg);
+        }
+        try (Reader reader = new InputStreamReader(in, UTF8)) {
             return from(arg, reader);
         }
     }
@@ -72,7 +96,6 @@ abstract class Analyzer implements Program {
         }
         return 0;
     }
-
 
     protected abstract void run(Settings settings) throws Exception;
 

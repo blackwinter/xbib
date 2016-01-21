@@ -47,6 +47,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
@@ -75,82 +76,82 @@ public class EZBWeb extends Converter {
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         namespaceContext.addNamespace("prism", "http://prismstandard.org/namespaces/basic/2.1/");
-
-        Reader reader = new InputStreamReader(InputService.getInputStream(uri), "UTF-8");
-        FileOutputStream out = new FileOutputStream(settings.get("output"));
-
-        TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
-        RdfContentBuilder builder = turtleBuilder(out, params);
-
-        Iterator<String> it = readZDBIDs(reader);
-        long counter = 0;
-        while (it.hasNext()) {
-            String zdbid = it.next();
-            StringBuilder sb = new StringBuilder();
-            sb.append(zdbid).insert(sb.length() - 1, '-');
-            URL url = new URL(settings.get("url") + sb.toString());
-            BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
-            br.readLine(); // ZDB-Id: ...
-            br.readLine(); // Treffer: ...
-            br.readLine(); // empty line
-            Scanner scanner = new Scanner(br);
-            scanner.useDelimiter("\t|\n");
-            while (scanner.hasNext()) {
-                try {
-                    String sigel = scanner.next();
-                    String isil = scanner.next();
-                    String name = scanner.next();
-                    String code1 = scanner.next();
-                    String code2 = scanner.next();
-                    String code3 = scanner.next();
-                    String comment = scanner.next();
-                    String firstDate = scanner.next();
-                    String firstVolume = scanner.next();
-                    String firstIssue = scanner.next();
-                    String lastDate = scanner.next();
-                    String lastVolume = scanner.next();
-                    String lastIssue = scanner.next();
-                    String movingWall = scanner.next();
-                    // skip fake entry
-                    if ("AAAAA".equals(sigel)) {
-                        continue;
+        InputStream in = InputService.getInputStream(uri);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8))) {
+            FileOutputStream out = new FileOutputStream(settings.get("output"));
+            TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
+            RdfContentBuilder builder = turtleBuilder(out, params);
+            Iterator<String> it = readZDBIDs(reader);
+            long counter = 0;
+            while (it.hasNext()) {
+                String zdbid = it.next();
+                StringBuilder sb = new StringBuilder();
+                sb.append(zdbid).insert(sb.length() - 1, '-');
+                URL url = new URL(settings.get("url") + sb.toString());
+                BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+                br.readLine(); // ZDB-Id: ...
+                br.readLine(); // Treffer: ...
+                br.readLine(); // empty line
+                Scanner scanner = new Scanner(br);
+                scanner.useDelimiter("\t|\n");
+                while (scanner.hasNext()) {
+                    try {
+                        String sigel = scanner.next();
+                        String isil = scanner.next();
+                        String name = scanner.next();
+                        String code1 = scanner.next();
+                        String code2 = scanner.next();
+                        String code3 = scanner.next();
+                        String comment = scanner.next();
+                        String firstDate = scanner.next();
+                        String firstVolume = scanner.next();
+                        String firstIssue = scanner.next();
+                        String lastDate = scanner.next();
+                        String lastVolume = scanner.next();
+                        String lastIssue = scanner.next();
+                        String movingWall = scanner.next();
+                        // skip fake entry
+                        if ("AAAAA".equals(sigel)) {
+                            continue;
+                        }
+                        String key = zdbid + "_" + isil + "_" + firstDate + "_" + lastDate + "_" + (movingWall.isEmpty() ? "0" : movingWall);
+                        IRI id = IRI.builder().scheme("http")
+                                .host("xbib.info")
+                                .path("/ezbws/" + key + "/")
+                                .build();
+                        Resource resource = new MemoryResource();
+                        resource.id(id)
+                                .add("dc:identifier", key)
+                                .add("xbib:identifier", zdbid)
+                                .add("xbib:isil", isil)
+                                .add("xbib:firstDate", firstDate)
+                                .add("xbib:firstVolume", firstVolume)
+                                .add("xbib:firstIssue", firstIssue)
+                                .add("xbib:lastDate", lastDate)
+                                .add("xbib:lastVolume", lastVolume)
+                                .add("xbib:lastIssue", lastIssue)
+                                .add("xbib:interlibraryloanCode",
+                                        (code1.isEmpty() ? "x" : code1)
+                                                + (code2.isEmpty() ? "x" : code2)
+                                                + (code3.isEmpty() ? "x" : code3))
+                                .add("xbib:comment", comment);
+                        builder.receive(resource);
+                        counter++;
+                        if (counter % 1000 == 0) {
+                            logger.info("{}", counter);
+                        }
+                    } catch (NoSuchElementException e) {
+                        logger.info("{}", zdbid);
+                        logger.error(e.getMessage(), e);
                     }
-                    String key = zdbid + "_" + isil + "_" + firstDate + "_" + lastDate + "_" + (movingWall.isEmpty() ? "0" : movingWall);
-                    IRI id = IRI.builder().scheme("http")
-                            .host("xbib.info")
-                            .path("/ezbws/" + key + "/")
-                            .build();
-                    Resource resource = new MemoryResource();
-                    resource.id(id)
-                            .add("dc:identifier", key)
-                            .add("xbib:identifier", zdbid)
-                            .add("xbib:isil", isil)
-                            .add("xbib:firstDate", firstDate)
-                            .add("xbib:firstVolume", firstVolume)
-                            .add("xbib:firstIssue", firstIssue)
-                            .add("xbib:lastDate", lastDate)
-                            .add("xbib:lastVolume", lastVolume)
-                            .add("xbib:lastIssue", lastIssue)
-                            .add("xbib:interlibraryloanCode",
-                                    (code1.isEmpty() ? "x" : code1)
-                                            + (code2.isEmpty() ? "x" : code2)
-                                            + (code3.isEmpty() ? "x" : code3))
-                            .add("xbib:comment", comment);
-                    builder.receive(resource);
-                    counter++;
-                    if (counter % 1000 == 0) {
-                        logger.info("{}", counter);
-                    }
-                } catch (NoSuchElementException e) {
-                    logger.info("{}", zdbid);
-                    logger.error(e.getMessage(), e);
                 }
+                br.close();
             }
-            br.close();
+            builder.close();
         }
-        builder.close();
     }
 
+    @SuppressWarnings("unchecked")
     private Iterator<String> readZDBIDs(Reader reader) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         List<String> l = mapper.readValue(reader, List.class);

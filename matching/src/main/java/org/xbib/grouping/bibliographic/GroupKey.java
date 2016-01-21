@@ -35,20 +35,18 @@ import org.xbib.strings.encode.EncoderException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * A cluster key holds a collection of key components,
  * where the encoded key representations are used to generate a
  * uniform resource identifier.
- * <p/>
  * The order of the components is maintained in the order of adding
  * components to the cluster key.
- * <p/>
  * A component can be updated or removed.
  *
  */
-public interface GroupKey extends List<GroupKeyComponent> {
+public interface GroupKey extends Collection<GroupKeyComponent> {
 
     /**
      * Encode cluster key as string or null

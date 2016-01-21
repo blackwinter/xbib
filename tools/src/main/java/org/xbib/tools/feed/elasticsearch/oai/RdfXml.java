@@ -43,6 +43,7 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.time.DateUtil;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -65,7 +66,7 @@ public class RdfXml extends Feeder {
     private final static Logger logger = LogManager.getLogger(RdfXml.class.getSimpleName());
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new RdfXml().setPipeline(p);
     }
 
@@ -86,8 +87,8 @@ public class RdfXml extends Feeder {
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                settings.get("index", "oai"),
-                settings.get("type", "oai"));
+                indexDefinitionMap.get("bib").getConcreteIndex(),
+                indexDefinitionMap.get("bib").getType());
         RdfXmlContentParser parser = new RdfXmlContentParser((InputStream)null);
         parser.setRdfContentBuilderProvider(() -> routeRdfXContentBuilder(params));
         SimpleMetadataHandler simpleMetadataHandler = new MyHandlerSimple(params, parser.getHandler());

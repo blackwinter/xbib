@@ -13,7 +13,7 @@ public class IntegerRepeaterDayPortion extends RepeaterDayPortion<Integer> {
     }
 
     @Override
-    protected int _getWidth(Range range) {
-        return (12 * 60 * 60);
+    protected long _getWidth(Range range) {
+        return 12 * 60 * 60;
     }
 }

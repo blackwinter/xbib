@@ -195,7 +195,8 @@ public final class Punycode {
             buf.append(chars[j]);
         }
         out = buf.length();
-        for (in = (b > 0) ? b + 1 : 0; in < chars.length; ++out) {
+        in = (b > 0) ? b + 1 : 0;
+        while (in < chars.length) {
             for (oldi = i, w = 1, k = base; ; k += base) {
                 if (in > chars.length) {
                     throw new IOException("Bad input");
@@ -232,6 +233,7 @@ public final class Punycode {
                         case_flags.length - i);
             }
             CharUtils.insert(buf, i++, n);
+            out++;
         }
         return buf.toString();
     }

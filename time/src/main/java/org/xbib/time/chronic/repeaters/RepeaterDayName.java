@@ -40,7 +40,8 @@ public class RepeaterDayName extends Repeater<RepeaterDayName.DayName> {
         scanner.put(RepeaterDayName.FRI_PATTERN, DayName.FRIDAY);
         scanner.put(RepeaterDayName.SAT_PATTERN, DayName.SATURDAY);
         scanner.put(RepeaterDayName.SUN_PATTERN, DayName.SUNDAY);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, DayName> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new RepeaterDayName(scanner.get(scannerItem));
             }

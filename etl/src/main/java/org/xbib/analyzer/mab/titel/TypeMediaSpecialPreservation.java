@@ -64,8 +64,9 @@ public class TypeMediaSpecialPreservation extends MABEntity {
         }
         Map<String, Object> regexes = (Map<String, Object>) getSettings().get("regexes");
         if (regexes != null) {
-            patterns = new HashMap<Pattern,String>();
-            for (String key : regexes.keySet()) {
+            patterns = new HashMap<>();
+            for (Map.Entry<String, Object> entry : regexes.entrySet()) {
+                String key = entry.getKey();
                 patterns.put(Pattern.compile(Pattern.quote(key), Pattern.CASE_INSENSITIVE), (String) regexes.get(key));
             }
         }
@@ -92,7 +93,8 @@ public class TypeMediaSpecialPreservation extends MABEntity {
         }
         if (patterns != null) {
             // pattern matching
-            for (Pattern p : patterns.keySet()) {
+            for (Map.Entry<Pattern,String> entry : patterns.entrySet()) {
+                Pattern p = entry.getKey();
                 Matcher m = p.matcher(value);
                 if (m.find()) {
                     String v = patterns.get(p);

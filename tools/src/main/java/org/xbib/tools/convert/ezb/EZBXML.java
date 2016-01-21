@@ -65,7 +65,7 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 public class EZBXML extends Converter {
 
     @Override
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new EZBXML().setPipeline(p);
     }
 
@@ -91,13 +91,9 @@ public class EZBXML extends Converter {
 
     class EZBHandler extends AbstractXmlResourceHandler {
 
-        //ResourceSerializer resourceSerializer;
-
         public EZBHandler(RdfContentParams params, RdfContentBuilder builder) {
             super(params);
             setBuilder(builder);
-            //setBuilder(resourceSerializer);
-            //this.resourceSerializer = resourceSerializer;
         }
 
         @Override
@@ -110,8 +106,7 @@ public class EZBXML extends Converter {
         public void identify(QName name, String value, IRI identifier) {
             if ("license_entry_id".equals(name.getLocalPart()) && identifier == null) {
                 IRI id = IRI.builder().scheme("iri")
-                        .host(settings.get("index"))
-                        .query(settings.get("type"))
+                        .host("localhost")
                         .fragment(value)
                         .build();
                 getResource().id(id);
@@ -125,16 +120,6 @@ public class EZBXML extends Converter {
 
         @Override
         public void closeResource() throws IOException {
-            // attach closeResource to output write
-            /*try {
-                if (resourceContext().getResource() != null) {
-                    resourceSerializer.write(resourceContext().getResource());
-                } else {
-                    logger.warn("no resource to output");
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }*/
             super.closeResource();
         }
 
@@ -228,74 +213,5 @@ public class EZBXML extends Converter {
             return getParams().getNamespaceContext();
         }
     }
-
-    /*private class ResourceBuilder implements TripleListener {
-
-        @Override
-        public TripleListener startStream() {
-            return this;
-        }
-
-        @Override
-        public TripleListener startPrefixMapping(String prefix, String uri) {
-            return this;
-        }
-
-        @Override
-        public TripleListener endPrefixMapping(String prefix) {
-            return this;
-        }
-
-        @Override
-        public ResourceBuilder newIdentifier(IRI identifier) {
-            resourceContext.getResource().id(identifier);
-            return this;
-        }
-
-        @Override
-        public ResourceBuilder triple(Triple triple) {
-            resourceContext.getResource().add(triple);
-            return this;
-        }
-
-        @Override
-        public TripleListener end() {
-            return this;
-        }
-    }*/
-
-    /*class ElasticOut extends RdfOutput {
-        @Override
-        public RdfOutput output(ResourceContext<Resource> resourceContext) throws IOException {
-            if (resourceContext == null) {
-                return this;
-            }
-             if (resourceContext.getResources() != null) {
-                for (Resource resource : resourceContext.getResources()) {
-                    // multiple documents. Rewrite IRI for ES index/type addressing
-                    String index = settings.get("index", "ezb");
-                    String type = settings.get("type", "ezb");
-                    if (index.equals(resource.id().getHost())) {
-                        IRI iri = IRI.builder().scheme("http").host(index).query(type)
-                                .fragment(resource.id().getFragment()).complete();
-                        resource.add("iri", resource.id().getFragment());
-                        resource.id(iri);
-                    } else {
-                        IRI iri = IRI.builder().scheme("http").host(index).query(type)
-                                .fragment(resource.id().toString()).complete();
-                        resource.add("iri", resource.id().toString());
-                        resource.id(iri);
-                    }
-                    sink.output(resourceContext, resource, resourceContext.getContentBuilder());
-                }
-            } else if (resourceContext.getResource() != null) {
-                // single document
-                sink.output(resourceContext, resourceContext.getResource(), resourceContext.getContentBuilder());
-            } else {
-                 logger.warn("no resource to output");
-             }
-            return this;
-        }
-    }*/
 
 }

@@ -39,7 +39,7 @@ import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -112,9 +112,10 @@ public class ORCIDMapper implements ArticleVocabulary {
     }
 
     private void map(Resource r, String prefix, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
             String p = prefix != null ? prefix + "." + key : key;
-            Object value = map.get(key);
+            Object value = entry.getValue();
             if (value instanceof Map) {
                 map(r, p, (Map<String, Object>) value);
             } else if (value instanceof List) {
@@ -205,10 +206,16 @@ public class ORCIDMapper implements ArticleVocabulary {
                     case "PMID" :
                         work.pmids.add(value);
                         break;
-                    case "ISBN" : work.isbns.add(value); break;
+                    case "ISBN" :
+                        work.isbns.add(value);
+                        break;
+                    default:
+                        break;
                 }
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -217,7 +224,7 @@ public class ORCIDMapper implements ArticleVocabulary {
                 .setDefaultNamespace("", "http://xbib.org/orcid");
     }
 
-    class Handler extends AbstractXmlResourceHandler {
+    static class Handler extends AbstractXmlResourceHandler {
 
         public Handler(RdfContentParams params) {
             super(params);
@@ -230,8 +237,7 @@ public class ORCIDMapper implements ArticleVocabulary {
 
         @Override
         public boolean skip(QName name) {
-            boolean isAttr = name.getLocalPart().startsWith("@");
-            return isAttr;
+            return name.getLocalPart().startsWith("@");
         }
 
         @Override
@@ -252,7 +258,7 @@ public class ORCIDMapper implements ArticleVocabulary {
         }
     }
 
-    class Work implements Comparable<Work> {
+    static class Work implements Comparable<Work> {
         String title;
         String relatedtitle;
         Datestamp datestamp = new Datestamp();
@@ -270,9 +276,19 @@ public class ORCIDMapper implements ArticleVocabulary {
             }
             return title.toLowerCase().compareTo(o.title.toLowerCase());
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Work && title.equals(((Work) o).title);
+        }
+
+        @Override
+        public int hashCode() {
+            return title.hashCode();
+        }
     }
 
-    class Datestamp {
+    static class Datestamp {
         String year, month, day;
     }
 

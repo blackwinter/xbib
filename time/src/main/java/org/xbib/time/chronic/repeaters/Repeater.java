@@ -45,7 +45,7 @@ public abstract class Repeater<T> extends Tag<T> implements Comparable<Repeater<
     }
 
     public int compareTo(Repeater<?> other) {
-        return Integer.valueOf(getWidth()).compareTo(other.getWidth());
+        return Integer.compare(getWidth(), other.getWidth());
     }
 
     /**

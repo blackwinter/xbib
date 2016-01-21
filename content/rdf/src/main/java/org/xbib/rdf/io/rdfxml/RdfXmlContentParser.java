@@ -406,7 +406,7 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
         return l;
     }
 
-    class Frame {
+    static class Frame {
         IRI node = null; // the subject/object
         String lang = null; // the language tag
         String base = null; // the xml:base

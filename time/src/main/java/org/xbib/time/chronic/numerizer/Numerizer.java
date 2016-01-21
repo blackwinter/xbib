@@ -10,9 +10,9 @@ public class Numerizer {
     private static final Pattern DEHALFER = Pattern.compile("a half", Pattern.CASE_INSENSITIVE);
     private static final Pattern DEHAALFER = Pattern.compile("(\\d+)(?: | and |-)*haAlf", Pattern.CASE_INSENSITIVE);
     private static final Pattern ANDITION_PATTERN = Pattern.compile("(\\d+)( | and )(\\d+)(?=\\W|$)");
-    protected static DirectNum[] DIRECT_NUMS;
-    protected static TenPrefix[] TEN_PREFIXES;
-    protected static BigPrefix[] BIG_PREFIXES;
+    final static DirectNum[] DIRECT_NUMS;
+    final static TenPrefix[] TEN_PREFIXES;
+    final static BigPrefix[] BIG_PREFIXES;
 
     static {
         List<DirectNum> directNums = new LinkedList<DirectNum>();
@@ -38,7 +38,7 @@ public class Numerizer {
         directNums.add(new DirectNum("nine(\\W|$)", "9$1"));
         directNums.add(new DirectNum("ten", "10"));
         directNums.add(new DirectNum("\\ba\\b", "1"));
-        Numerizer.DIRECT_NUMS = directNums.toArray(new DirectNum[directNums.size()]);
+        DIRECT_NUMS = directNums.toArray(new DirectNum[directNums.size()]);
 
         List<TenPrefix> tenPrefixes = new LinkedList<TenPrefix>();
         tenPrefixes.add(new TenPrefix("twenty", 20));
@@ -50,7 +50,7 @@ public class Numerizer {
         tenPrefixes.add(new TenPrefix("eighty", 80));
         tenPrefixes.add(new TenPrefix("ninety", 90));
         tenPrefixes.add(new TenPrefix("ninty", 90)); // Common mis-spelling
-        Numerizer.TEN_PREFIXES = tenPrefixes.toArray(new TenPrefix[tenPrefixes.size()]);
+        TEN_PREFIXES = tenPrefixes.toArray(new TenPrefix[tenPrefixes.size()]);
 
         List<BigPrefix> bigPrefixes = new LinkedList<BigPrefix>();
         bigPrefixes.add(new BigPrefix("hundred", 100L));
@@ -58,7 +58,7 @@ public class Numerizer {
         bigPrefixes.add(new BigPrefix("million", 1000000L));
         bigPrefixes.add(new BigPrefix("billion", 1000000000L));
         bigPrefixes.add(new BigPrefix("trillion", 1000000000000L));
-        Numerizer.BIG_PREFIXES = bigPrefixes.toArray(new BigPrefix[bigPrefixes.size()]);
+        BIG_PREFIXES = bigPrefixes.toArray(new BigPrefix[bigPrefixes.size()]);
     }
 
     public static String numerize(String str) {

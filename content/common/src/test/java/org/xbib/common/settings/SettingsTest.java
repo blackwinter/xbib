@@ -23,6 +23,26 @@ public class SettingsTest extends Assert {
     }
 
     @Test
+    public void testGroups() {
+        Settings settings = Settings.settingsBuilder()
+                .put("prefix.group1.k1", "v1")
+                .put("prefix.group1.k2", "v2")
+                .put("prefix.group1.k3", "v3")
+                .put("prefix.group2.k1", "v1")
+                .put("prefix.group2.k2", "v2")
+                .put("prefix.group2.k3", "v3")
+                .build();
+        Map<String,Settings> groups = settings.getGroups("prefix");
+        assertEquals("[group1, group2]", groups.keySet().toString());
+        assertTrue(groups.get("group1").getAsMap().containsKey("k1"));
+        assertTrue(groups.get("group1").getAsMap().containsKey("k2"));
+        assertTrue(groups.get("group1").getAsMap().containsKey("k3"));
+        assertTrue(groups.get("group2").getAsMap().containsKey("k1"));
+        assertTrue(groups.get("group2").getAsMap().containsKey("k2"));
+        assertTrue(groups.get("group2").getAsMap().containsKey("k3"));
+    }
+
+    @Test
     public void testMapForSettings() {
         Map<String,Object> map = new HashMap<>();
         map.put("hello", "world");

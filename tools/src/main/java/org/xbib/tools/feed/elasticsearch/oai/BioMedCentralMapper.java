@@ -38,7 +38,7 @@ import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
-import org.xbib.tools.util.ArticleVocabulary;
+import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -104,10 +104,12 @@ public class BioMedCentralMapper implements ArticleVocabulary {
         return r;
     }
 
+    @SuppressWarnings("unchecked")
     private void map(Resource r, String p, Map<String, Object> map) throws IOException {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String,Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             String path = p != null ? p + "." + key : key;
-            Object value = map.get(key);
             if (value instanceof Map) {
                 map(r, path, (Map<String, Object>) value);
             } else if (value instanceof List) {
@@ -146,7 +148,7 @@ public class BioMedCentralMapper implements ArticleVocabulary {
                     author = new Author();
                 }
                 author = new Author();
-                author.lastName = value;
+                author.setLastName(value);
                 break;
             }
             case "bibl.aug.au.fnm" : {
@@ -158,7 +160,7 @@ public class BioMedCentralMapper implements ArticleVocabulary {
                 } else {
                     author = new Author();
                 }
-                author.foreName = value;
+                author.setForeName(value);
                 break;
             }
             case "bibl.aug.au.cnm" : {
@@ -195,39 +197,25 @@ public class BioMedCentralMapper implements ArticleVocabulary {
                 // doi
                 doi = value;
                 break;
-
             }
-
+            default:
+                break;
         }
-        /*switch (path) {
-            case "title" : {
-                r.add(DC_TITLE, value);
-                break;
-            }
-            case "identifier" : {
-                if (!value.startsWith("http")) {
-                    r.add(DC_IDENTIFIER, value);
-                }
-                break;
-            }
-            case "publisher" : {
-                r.add(DC_PUBLISHER, value);
-                break;
-            }
-            case "type" : {
-                r.add(DC_TYPE, value);
-                break;
-            }
-            case "rights" : {
-                r.add(DC_RIGHTS, value);
-            }
-        }*/
     }
 
-    class Author implements Comparable<Author> {
-        String lastName, foreName;
+    static class Author implements Comparable<Author> {
+        private String lastName, foreName, normalized;
 
-        String normalize() {
+        void setLastName(String lastName) {
+            this.lastName = lastName;
+            this.normalized = normalize();
+        }
+        void setForeName(String foreName) {
+            this.foreName = foreName;
+            this.normalized = normalize();
+        }
+
+        private String normalize() {
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
@@ -240,9 +228,18 @@ public class BioMedCentralMapper implements ArticleVocabulary {
 
         @Override
         public int compareTo(Author o) {
-            return normalize().compareTo(o.normalize());
+            return normalized.compareTo(o.normalized);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && normalized.equals(((Author)o).normalized);
+        }
+
+        @Override
+        public int hashCode() {
+            return normalized.hashCode();
         }
     }
-
 
 }

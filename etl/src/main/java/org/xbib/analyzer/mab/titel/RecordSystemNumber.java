@@ -49,8 +49,6 @@ public class RecordSystemNumber extends MABEntity {
 
     private String prefix = "";
 
-    private String catalogid;
-
     @Override
     public MABEntity setSettings(Map params) {
         super.setSettings(params);
@@ -59,7 +57,6 @@ public class RecordSystemNumber extends MABEntity {
         }
         // override prefix by "catalogid" with braces
         if (params.containsKey("catalogid")) {
-            this.catalogid = params.get("catalogid").toString();
             this.prefix = "(" + params.get("catalogid").toString() + ")";
         }
         return this;

@@ -17,7 +17,8 @@ public class SeparatorComma extends Separator {
     public static SeparatorComma scan(Token token, Options options) {
         Map<Pattern, SeparatorType> scanner = new HashMap<>();
         scanner.put(SeparatorComma.COMMA_PATTERN, SeparatorType.COMMA);
-        for (Pattern scannerItem : scanner.keySet()) {
+        for (Map.Entry<Pattern, SeparatorType> entry : scanner.entrySet()) {
+            Pattern scannerItem = entry.getKey();
             if (scannerItem.matcher(token.getWord()).matches()) {
                 return new SeparatorComma(scanner.get(scannerItem));
             }

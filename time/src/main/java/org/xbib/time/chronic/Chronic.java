@@ -180,7 +180,7 @@ public class Chronic {
         if (span == null) {
             return null;
         }
-        long guessValue;
+        Long guessValue;
         if (span.getWidth() > 1) {
             guessValue = span.getBegin() + (span.getWidth() / 2);
         } else {

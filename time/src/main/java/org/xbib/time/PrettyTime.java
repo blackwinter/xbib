@@ -40,16 +40,26 @@ import java.util.Map;
  * </code>
  */
 public class PrettyTime {
+
+    /**
+     * The reference timestamp.
+     * If the Date formatted is before the reference timestamp, the format command will produce a String that is in the
+     * past tense. If the Date formatted is after the reference timestamp, the format command will produce a string
+     * thatis in the future tense.
+     */
     private Date reference;
+
     private Locale locale;
-    private Map<TimeUnit, TimeFormat> units = new LinkedHashMap<TimeUnit, TimeFormat>();
+
+    private Map<TimeUnit, TimeFormat> units = new LinkedHashMap<>();
 
     /**
      * Default constructor
      */
     public PrettyTime() {
-        this(Locale.getDefault());
+        setLocale(Locale.getDefault());
         initTimeUnits();
+        this.reference = new Date();
     }
 
     /**
@@ -58,22 +68,12 @@ public class PrettyTime {
      * <p>
      * See {@code PrettyTime.setReference(Date timestamp)}.
      *
-     * @param reference
+     * @param reference reference
      */
-    public PrettyTime(final Date reference) {
-        this();
-        setReference(reference);
-    }
-
-    /**
-     * Accept a {@link Date} timestamp to represent the point of reference for comparison. This may be changed by the
-     * user, after construction. Use the given {@link Locale} instead of the system default.
-     * <p>
-     * See {@code PrettyTime.setReference(Date timestamp)}.
-     */
-    public PrettyTime(final Date reference, final Locale locale) {
-        this(locale);
-        setReference(reference);
+    public PrettyTime(final long reference) {
+        setLocale(Locale.getDefault());
+        initTimeUnits();
+        this.reference = new Date(reference);
     }
 
     /**
@@ -82,6 +82,19 @@ public class PrettyTime {
     public PrettyTime(final Locale locale) {
         setLocale(locale);
         initTimeUnits();
+        this.reference = new Date();
+    }
+
+    /**
+     * Accept a {@link Date} timestamp to represent the point of reference for comparison. This may be changed by the
+     * user, after construction. Use the given {@link Locale} instead of the system default.
+     * <p>
+     * See {@code PrettyTime.setReference(Date timestamp)}.
+     */
+    public PrettyTime(final long reference, final Locale locale) {
+        setLocale(locale);
+        initTimeUnits();
+        this.reference = new Date(reference);
     }
 
     /**
@@ -183,12 +196,13 @@ public class PrettyTime {
         if (then == null) {
             throw new IllegalArgumentException("Date to calculate must not be null.");
         }
-        if (null == reference) {
-            reference = new Date();
+        Date ref = reference;
+        if (null == ref) {
+            ref = new Date();
         }
 
         List<Duration> result = new ArrayList<Duration>();
-        long difference = then.getTime() - reference.getTime();
+        long difference = then.getTime() - ref.getTime();
         Duration duration = calculateDuration(difference);
         result.add(duration);
         while (0 != duration.getDelta()) {
@@ -241,11 +255,7 @@ public class PrettyTime {
      * @param then the {@link Date} to be formatted
      * @return A formatted string representing {@code then}
      */
-    public String formatUnrounded(Date then) {
-        if (then == null) {
-            throw new IllegalArgumentException("Date to format must not be null.");
-        }
-
+    public String formatUnrounded(final Date then) {
         Duration d = approximateDuration(then);
         return formatUnrounded(d);
     }
@@ -275,11 +285,10 @@ public class PrettyTime {
      * @param duration the {@link Duration} to be formatted
      * @return A formatted string representing {@code duration}
      */
-    public String formatUnrounded(Duration duration) {
+    public String formatUnrounded(final Duration duration) {
         if (duration == null) {
             throw new IllegalArgumentException("Duration to format must not be null.");
         }
-
         TimeFormat format = getFormat(duration.getUnit());
         String time = format.formatUnrounded(duration);
         return format.decorateUnrounded(duration, time);
@@ -296,24 +305,22 @@ public class PrettyTime {
         if (durations == null) {
             throw new IllegalArgumentException("Duration list must not be null.");
         }
-
         String result = null;
-        if (durations != null) {
-            StringBuilder builder = new StringBuilder();
-            Duration duration = null;
-            TimeFormat format = null;
-            for (int i = 0; i < durations.size(); i++) {
-                duration = durations.get(i);
-                format = getFormat(duration.getUnit());
-
-                boolean isLast = (i == durations.size() - 1);
-                if (!isLast) {
-                    builder.append(format.formatUnrounded(duration));
-                    builder.append(" ");
-                } else {
-                    builder.append(format.format(duration));
-                }
+        StringBuilder builder = new StringBuilder();
+        Duration duration = null;
+        TimeFormat format = null;
+        for (int i = 0; i < durations.size(); i++) {
+            duration = durations.get(i);
+            format = getFormat(duration.getUnit());
+            boolean isLast = (i == durations.size() - 1);
+            if (!isLast) {
+                builder.append(format.formatUnrounded(duration));
+                builder.append(" ");
+            } else {
+                builder.append(format.format(duration));
             }
+        }
+        if (format != null) {
             result = format.decorateUnrounded(duration, builder.toString());
         }
         return result;
@@ -356,37 +363,18 @@ public class PrettyTime {
         return null;
     }
 
-    /**
-     * Get the current reference timestamp.
-     * <p>
-     * See {@code PrettyTime.setReference(Date timestamp)}
-     *
-     * @return
-     */
-    public Date getReference() {
-        return reference;
-    }
-
-    /**
-     * Set the reference timestamp.
-     * <p>
-     * If the Date formatted is before the reference timestamp, the format command will produce a String that is in the
-     * past tense. If the Date formatted is after the reference timestamp, the format command will produce a string
-     * that
-     * is in the future tense.
-     */
-    public PrettyTime setReference(final Date timestamp) {
-        reference = timestamp;
+    public PrettyTime setReference(final long reference) {
+        this.reference = new Date(reference);
         return this;
     }
 
     /**
      * Get a {@link List} of the current configured {@link TimeUnit} instances in calculations.
      *
-     * @return
+     * @return list
      */
     public List<TimeUnit> getUnits() {
-        List<TimeUnit> result = new ArrayList<TimeUnit>(units.keySet());
+        List<TimeUnit> result = new ArrayList<>(units.keySet());
         Collections.sort(result, new TimeUnitComparator());
         return Collections.unmodifiableList(result);
     }

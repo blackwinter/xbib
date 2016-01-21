@@ -37,7 +37,7 @@ package org.xbib.text;
 public class Nameprep {
 
     public static String prep(String s) {
-        NameprepCodepointIterator r = null;
+        NameprepCodepointIterator r;
         try {
             StringBuilder buf = new StringBuilder();
             CodepointIterator ci = CodepointIterator.forCharSequence(s);
@@ -50,11 +50,7 @@ public class Nameprep {
                 }
             }
             String n = Normalizer.normalize(buf.toString(), Normalizer.Form.KC);
-            CharUtils.verify(CodepointIterator.forCharSequence(n), new Filter() {
-                public boolean accept(int c) {
-                    return isProhibited(c);
-                }
-            });
+            CharUtils.verify(CodepointIterator.forCharSequence(n), Nameprep::isProhibited);
             return n;
         } catch (Throwable e) {
             return null;
@@ -204,7 +200,7 @@ public class Nameprep {
                     0x1d51e, 0x1d53a, 0x1d53b, 0x1d53f, 0x1d540, 0x1d545, 0x1d546, 0x1d547, 0x1d54a, 0x1d551, 0x1d552, 0x1d6a4,
                     0x1d6a8, 0x1d7ca, 0x20000, 0x2a6d7, 0x2f800, 0x2fa1e, 0xf0000, 0xffffe, 0x100000, 0x10fffe};
 
-    public static final int[] b2index =
+    static final int[] b2index =
             {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 181,
                     192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213,
                     214, 216, 217, 218, 219, 220, 221, 222, 223, 256, 258, 260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280,
@@ -291,7 +287,7 @@ public class Nameprep {
                     120731, 120732, 120733, 120734, 120735, 120736, 120737, 120738, 120739, 120740, 120741, 120742, 120743,
                     120744, 120763};
 
-    public static final int[][] b2data =
+    static final int[][] b2data =
             {{97}, {98}, {99}, {100}, {101}, {102}, {103}, {104}, {105}, {106}, {107}, {108}, {109}, {110}, {111}, {112},
                     {113}, {114}, {115}, {116}, {117}, {118}, {119}, {120}, {121}, {122}, {956}, {224}, {225}, {226}, {227},
                     {228}, {229}, {230}, {231}, {232}, {233}, {234}, {235}, {236}, {237}, {238}, {239}, {240}, {241}, {242},
@@ -398,7 +394,7 @@ public class Nameprep {
                     {945}, {946}, {947}, {948}, {949}, {950}, {951}, {952}, {953}, {954}, {955}, {956}, {957}, {958}, {959},
                     {960}, {961}, {952}, {963}, {964}, {965}, {966}, {967}, {968}, {969}, {963}};
 
-    public static final int[] B2(int c) {
+    private static int[] B2(int c) {
         int i = java.util.Arrays.binarySearch(b2index, c);
         return i > -1 ? b2data[i] : null;
     }
@@ -408,13 +404,7 @@ public class Nameprep {
     }
 
     public static boolean isProhibited(int c) {
-        if ((c & 0xFFFF) == 0xFFFF) {
-            return true;
-        }
-        if ((c & 0xFFFE) == 0xFFFE) {
-            return true;
-        }
-        return CharUtils.invset_contains(PROHIBITED, c);
+        return (c & 0xFFFF) == 0xFFFF || (c & 0xFFFE) == 0xFFFE || CharUtils.invset_contains(PROHIBITED, c);
     }
 
     public static boolean isRandAL(int c) {

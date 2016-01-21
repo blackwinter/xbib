@@ -79,26 +79,24 @@ public final class Medline extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        logger.debug("start uri={}", uri);
-        namespaceContext.add(new HashMap<String, String>() {{
-            put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
-            put("dc", "http://purl.org/dc/elements/1.1/");
-            put("dcterms", "http://purl.org/dc/terms/");
-            put("foaf", "http://xmlns.com/foaf/0.1/");
-            put("frbr", "http://purl.org/vocab/frbr/core#");
-            put("fabio", "http://purl.org/spar/fabio/");
-            put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
-        }});
+        try (InputStream in = InputService.getInputStream(uri)) {
+            namespaceContext.add(new HashMap<String, String>() {{
+                put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
+                put("dc", "http://purl.org/dc/elements/1.1/");
+                put("dcterms", "http://purl.org/dc/terms/");
+                put("foaf", "http://xmlns.com/foaf/0.1/");
+                put("frbr", "http://purl.org/vocab/frbr/core#");
+                put("fabio", "http://purl.org/spar/fabio/");
+                put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
+            }});
 
-        RdfContentParams params = new RdfXContentParams(namespaceContext);
-        AbstractXmlHandler handler = new Handler(params)
-                .setDefaultNamespace("ml", "http://www.nlm.nih.gov/medline");
-        InputStream in = InputService.getInputStream(uri);
-        new XmlContentParser(in).setNamespaces(false)
-                .setHandler(handler)
-                .parse();
-        in.close();
-        logger.debug("end uri={}", uri);
+            RdfContentParams params = new RdfXContentParams(namespaceContext);
+            AbstractXmlHandler handler = new Handler(params)
+                    .setDefaultNamespace("ml", "http://www.nlm.nih.gov/medline");
+            new XmlContentParser(in).setNamespaces(false)
+                    .setHandler(handler)
+                    .parse();
+        }
     }
 
     private class Handler extends AbstractXmlResourceHandler {
