@@ -196,6 +196,10 @@ public class Converter
         return settings;
     }
 
+    protected void setFileInput(FileInput fileInput) {
+        this.fileInput = fileInput;
+    }
+
     protected void writeMetrics(MeterMetric metric) throws Exception {
         if (metric == null) {
             return;
@@ -230,19 +234,23 @@ public class Converter
     @Override
     public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
-        if (pipeline instanceof Converter) {
-            Converter converter = (Converter)pipeline;
-            setSettings(converter.getSettings());
+        if (pipeline instanceof ConverterPipeline) {
+            ConverterPipeline converterPipeline = (ConverterPipeline)pipeline;
+            setSettings(converterPipeline.getSettings());
+            setFileInput(converterPipeline.getFileInput());
             setNumber(threadCounter.getAndIncrement());
         }
         return this;
     }
 
-    class ConverterPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
+    public class ConverterPipeline extends ForkJoinPipeline<Converter, URIWorkerRequest> {
 
         public Settings getSettings() {
             return settings;
         }
 
+        public FileInput getFileInput() {
+            return fileInput;
+        }
     }
 }

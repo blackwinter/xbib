@@ -185,15 +185,12 @@ public class DNBPicaXmlReader implements XMLEventConsumer, DNBPicaConstants, Mar
                 QName attributeName = attr.getName();
                 String attributeLocalName = attributeName.getLocalPart();
                 String attributeValue = attr.getValue();
-                switch (attributeLocalName) {
-                    case ID: {
-                        if (TAG.equals(localName)) {
-                            tag = attributeValue.length() > 3 ? attributeValue.substring(0,3) : attributeValue;
-                            indicator = attributeValue.length() > 3 ? attributeValue.substring(3) : attributeValue;
-                        } else if (SUBF.equals(localName)) {
-                            id = attributeValue;
-                        }
-                        break;
+                if (ID.equals(attributeLocalName)) {
+                    if (TAG.equals(localName)) {
+                        tag = attributeValue.length() > 3 ? attributeValue.substring(0,3) : attributeValue;
+                        indicator = attributeValue.length() > 3 ? attributeValue.substring(3) : attributeValue;
+                    } else if (SUBF.equals(localName)) {
+                        id = attributeValue;
                     }
                 }
             }
@@ -220,6 +217,8 @@ public class DNBPicaXmlReader implements XMLEventConsumer, DNBPicaConstants, Mar
                     }
                     break;
                 }
+                default:
+                    break;
             }
         } else if (event.isCharacters()) {
             Characters c = (Characters) event;
@@ -245,6 +244,8 @@ public class DNBPicaXmlReader implements XMLEventConsumer, DNBPicaConstants, Mar
                     }
                     break;
                 }
+                default:
+                    break;
             }
             sb.setLength(0);
         }

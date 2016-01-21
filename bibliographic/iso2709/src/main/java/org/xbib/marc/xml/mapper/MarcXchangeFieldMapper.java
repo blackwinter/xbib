@@ -306,8 +306,9 @@ public abstract class MarcXchangeFieldMapper implements MarcXchangeConstants, Ma
         if (maps == null) {
             return Operation.KEEP;
         }
-        for (String fieldMapName : maps.keySet()) {
-            Map<String,Object> map = maps.get(fieldMapName);
+        for (Map.Entry<String,Map<String,Object>> entry: maps.entrySet()) {
+            String fieldMapName = entry.getKey();
+            Map<String,Object> map = entry.getValue();
             if (map == null) {
                 continue;
             }

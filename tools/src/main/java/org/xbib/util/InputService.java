@@ -92,10 +92,14 @@ public final class InputService {
                 }
             }
         }
-        for (String codec : StreamCodecService.getCodecs()) {
-            if (uri.getSchemeSpecificPart().endsWith("." + codec) || (suffix != null && suffix.equals(codec))) {
-                in = streamCodecService.getCodec(codec).decode(in);
-                break;
+        if (!"file".equals(uri.getScheme())) {
+            // hack for non-file URIs: apply compression codecs if possible
+            // file:// scheme is already decoded :)
+            for (String codec : StreamCodecService.getCodecs()) {
+                if (uri.getSchemeSpecificPart().endsWith("." + codec) || (suffix != null && suffix.equals(codec))) {
+                    in = streamCodecService.getCodec(codec).decode(in);
+                    break;
+                }
             }
         }
         return in;

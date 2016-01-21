@@ -28,13 +28,6 @@ public interface Pipeline<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRe
     BlockingQueue<R> getQueue();
 
     /**
-     * Set pipeline sink
-     * @param sink the pipeline sink
-     * @return this setExecutor
-     */
-    Pipeline<W,R> setSink(Sink<R> sink);
-
-    /**
      * Prepare the pipeline execution.
      * @return this setExecutor
      */

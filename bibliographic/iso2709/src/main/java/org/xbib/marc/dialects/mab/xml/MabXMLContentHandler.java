@@ -356,6 +356,8 @@ public class MabXMLContentHandler
                 }
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -419,6 +421,8 @@ public class MabXMLContentHandler
                     break;
                 }
             }
+            default:
+                break;
         }
         content.setLength(0);
     }

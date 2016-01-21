@@ -489,8 +489,25 @@ public class BufferedFieldStreamReader extends Reader implements FieldStream {
             result.append(buf, pos, count - pos);
             pos = count;
             while (true) {
-                if (pos >= count) {
-                    if (isSeparator(eod)) {
+                if (isSeparator(eod)) {
+                    String s = result.toString();
+                    if (listener != null) {
+                        listener.data(s);
+                    }
+                    switch (eod) {
+                        case FieldSeparator.US:
+                            return new UnitField(s);
+                        case FieldSeparator.GS:
+                            return new GroupField(s);
+                        case FieldSeparator.RS:
+                            return new RecordField(s);
+                        case FieldSeparator.FS:
+                            return new FileField(s);
+                    }
+                    throw new IOException();
+                }
+                if (fillbuf() == -1) {
+                    if (result.length() > 0 || eod != '\0') {
                         String s = result.toString();
                         if (listener != null) {
                             listener.data(s);
@@ -505,28 +522,9 @@ public class BufferedFieldStreamReader extends Reader implements FieldStream {
                             case FieldSeparator.FS:
                                 return new FileField(s);
                         }
-                        throw new IOException();
-                    }
-                    if (fillbuf() == -1) {
-                        if (result.length() > 0 || eod != '\0') {
-                            String s = result.toString();
-                            if (listener != null) {
-                                listener.data(s);
-                            }
-                            switch (eod) {
-                                case FieldSeparator.US:
-                                    return new UnitField(s);
-                                case FieldSeparator.GS:
-                                    return new GroupField(s);
-                                case FieldSeparator.RS:
-                                    return new RecordField(s);
-                                case FieldSeparator.FS:
-                                    return new FileField(s);
-                            }
-                            return new FileField(s);
-                        } else {
-                            return null;
-                        }
+                        return new FileField(s);
+                    } else {
+                        return null;
                     }
                 }
                 for (int charPos = pos; charPos < count; charPos++) {
@@ -568,7 +566,7 @@ public class BufferedFieldStreamReader extends Reader implements FieldStream {
             if (result > 0) {
                 markpos = -1;
                 pos = 0;
-                count = result == -1 ? 0 : result;
+                count = result;
             }
             return result;
         }

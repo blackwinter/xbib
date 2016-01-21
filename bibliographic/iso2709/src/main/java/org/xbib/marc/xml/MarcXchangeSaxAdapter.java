@@ -40,8 +40,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.io.field.BufferedFieldStreamReader;
 import org.xbib.io.field.FieldListener;
 import org.xbib.io.field.FieldSeparator;
@@ -71,8 +69,6 @@ import org.xml.sax.helpers.AttributesImpl;
  */
 public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
         implements MarcXchangeConstants, MarcXchangeListener {
-
-    private final static Logger logger = LogManager.getLogger(MarcXchangeSaxAdapter.class);
 
     private static final AttributesImpl EMPTY_ATTRIBUTES = new AttributesImpl();
 
@@ -407,6 +403,8 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
                         case "008":
                             // fix wrong fill characters here
                             value = value.replace('^', '|');
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -779,6 +777,8 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
                         }
                         break;
                     }
+                    default:
+                        break;
                 }
             } finally {
                 position += data.length();
@@ -949,6 +949,8 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
                         }
                         break;
                     }
+                    default:
+                        break;
                 }
             } finally {
                 position += data.length();

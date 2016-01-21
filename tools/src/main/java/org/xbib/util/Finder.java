@@ -89,21 +89,26 @@ public class Finder {
                 Strings.isNullOrEmpty(path) ? null : Paths.get(path), pattern);
     }
 
+
+    /**
+     * Find the most recent version of a file/archive.
+     *
+     * @param base the path of the base directory
+     * @param basePattern a pattern to match directory entries in the base directory or null to match '*'
+     * @param path the path of the file/archive if no recent path can be found in the base directory
+     * @param pattern  th file name pattern to match
+     * @return this Finder
+     * @throws IOException
+     */
     public Finder find(Path base, String basePattern, Path path, String pattern) throws IOException {
         if (base != null) {
-            PathMatcher baseMatcher = base.getFileSystem().getPathMatcher("glob:" + (basePattern != null ? basePattern : "*"));
+            final PathMatcher baseMatcher = base.getFileSystem().getPathMatcher("glob:" + (basePattern != null ? basePattern : "*"));
             Set<Path> recent = new TreeSet<>((p1, p2) -> p2.toString().compareTo(p1.toString()));
-            Files.walkFileTree(base, opts, Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-                    if (path.toFile().isDirectory()) {
-                        if (baseMatcher.matches(path.getFileName())) {
-                            recent.add(path);
-                        }
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+            List<Path> dir = Files.find(base, 1,
+                    (p,a) -> p.toFile().isDirectory() && baseMatcher.matches(p.getFileName()),
+                    FileVisitOption.FOLLOW_LINKS)
+                    .collect(Collectors.toList());
+            recent.addAll(dir);
             if (recent.isEmpty()) {
                 return this;
             }
@@ -124,16 +129,18 @@ public class Finder {
         return this;
     }
 
-    public Finder sortByLastModified(Boolean sorted) {
-        if (sorted) {
+    public Finder sortBy(String mode) {
+        if ("lastmodified".equals(mode)) {
             this.comparator = (p1, p2) -> p1.getAttributes().lastModifiedTime().compareTo(p2.getAttributes().lastModifiedTime());
+        } else if ("name".equals(mode)) {
+            this.comparator = (p1, p2) -> p1.getPath().toString().compareTo(p2.getPath().toString());
         }
         return this;
     }
 
-    public Finder sortByName(Boolean sorted) {
-        if (sorted) {
-            this.comparator = (p1, p2) -> p1.getPath().toString().compareTo(p2.getPath().toString());
+    public Finder order(String mode) {
+        if ("desc".equals(mode)) {
+            this.comparator = Collections.reverseOrder(comparator);
         }
         return this;
     }

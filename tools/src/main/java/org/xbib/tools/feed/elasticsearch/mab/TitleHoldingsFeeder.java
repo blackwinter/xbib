@@ -36,19 +36,26 @@ public abstract class TitleHoldingsFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(TitleHoldingsFeeder.class.getSimpleName());
 
+    private final static String CATALOG_ID = "catalogid";
+
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = InputService.getInputStream(uri)) {
+            String catalogId = settings.get(CATALOG_ID, "DE-605");
             // set identifier prefix (ISIL)
             Map<String, Object> params = new HashMap<>();
-            params.put("identifier", settings.get("identifier", "DE-605"));
-            params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
+            params.put("catalogid", catalogId);
+            params.put("_prefix", "(" + catalogId + ")");
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MABEntityQueue queue = createQueue(params);
-            for (String key : settings.getAsMap().keySet()) {
+            for (Map.Entry<String,List<String>> entry : fileInput.getFileMap().entrySet()) {
+                String key = entry.getKey();
                 if (key.startsWith("taxonomy-")) {
                     String isil = key.substring("taxonomy-".length());
-                    queue.addClassifier("(" + settings.get("identifier", "DE-605") + ")", isil, settings.get(key));
+                    for (String taxFile : entry.getValue()) {
+                        logger.info("adding classifier file from {} for ISIL {}", taxFile, isil);
+                        queue.addClassifier("(" + catalogId + ")", isil, taxFile);
+                    }
                 }
             }
             queue.setUnmappedKeyListener((id, key) -> {
@@ -69,7 +76,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     @Override
     protected void performIndexSwitch() throws IOException {
         IndexDefinition def = indexDefinitionMap.get("title");
-        if ("DE-605".equals(settings.get("identifier"))) {
+        String catalogId = settings.get(CATALOG_ID, "DE-605");
+        if ("DE-605".equals(catalogId)) {
             // for union catalog, create aliases for "main ISILs" using xbib.identifier
             List<String> aliases = new LinkedList<>();
             aliases.add(settings.get("identifier"));
@@ -79,11 +87,11 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             aliases.addAll(sigel2isil.values().stream()
                     .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
             elasticsearchOutput.switchIndex(ingest, def, aliases,
-                        (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
+                    (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
             elasticsearchOutput.retention(ingest, def);
         } else {
             // simple index alias to the value in "identifier"
-            elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), settings.get("identifier")));
+            elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
             elasticsearchOutput.retention(ingest, def);
         }
     }

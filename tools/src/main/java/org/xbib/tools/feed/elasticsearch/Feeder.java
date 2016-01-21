@@ -148,26 +148,23 @@ public abstract class Feeder extends Converter {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected ForkJoinPipeline newPipeline() {
-        return new ConfiguredPipeline();
+        return new FeederPipeline();
     }
 
     @Override
     public Feeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
-        if (pipeline instanceof ConfiguredPipeline) {
-            ConfiguredPipeline configuredPipeline = (ConfiguredPipeline) pipeline;
-            setSettings(configuredPipeline.getSettings());
-            setIngest(configuredPipeline.getIngest());
-            setIndexDefinitionMap(configuredPipeline.getIndexDefinitionMap());
+        if (pipeline instanceof FeederPipeline) {
+            FeederPipeline feederPipeline = (FeederPipeline) pipeline;
+            setIngest(feederPipeline.getIngest());
+            setIndexDefinitionMap(feederPipeline.getIndexDefinitionMap());
         }
         return this;
     }
 
-    class ConfiguredPipeline extends ForkJoinPipeline {
-        public org.xbib.common.settings.Settings getSettings() {
-            return settings;
-        }
+    public class FeederPipeline extends ConverterPipeline {
         public Ingest getIngest() {
             return ingest;
         }

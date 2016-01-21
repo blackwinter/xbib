@@ -31,5 +31,5 @@
  */
 package org.xbib.marc.event;
 
-public interface Event extends Cause, Change {
+interface Event extends Cause, Change {
 }

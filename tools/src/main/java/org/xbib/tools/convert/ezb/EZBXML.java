@@ -89,7 +89,7 @@ public class EZBXML extends Converter {
         }
     }
 
-    class EZBHandler extends AbstractXmlResourceHandler {
+    static class EZBHandler extends AbstractXmlResourceHandler {
 
         public EZBHandler(RdfContentParams params, RdfContentBuilder builder) {
             super(params);

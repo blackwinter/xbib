@@ -65,45 +65,45 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
     /**
      * The format property
      */
-    public static String FORMAT = "format";
+    private final static String FORMAT = "format";
     /**
      * The type property
      */
-    public static String TYPE = "type";
+    private final static String TYPE = "type";
 
     /**
      * Should errors abort the reader.
      */
-    public static String FATAL_ERRORS = "fatal_errors";
+    private final static String FATAL_ERRORS = "fatal_errors";
 
     /**
      * Should the ISO 25577 tags be clean (validateable)?
      * All erraneous tags will be assigned to "999".
      * This mode is active by default.
      */
-    public static String CLEAN_TAGS = "clean_tags";
+    private final static String CLEAN_TAGS = "clean_tags";
 
     /**
      * Shall all data be XML 1.0 safe?
      */
-    public static String SCRUB_DATA = "scrub_data";
+    private final static String SCRUB_DATA = "scrub_data";
 
     /**
      * Shall data transformations be allowed?
      */
-    public static String TRANSFORM_DATA = "transform_data";
+    private final static String TRANSFORM_DATA = "transform_data";
 
     /**
      * Buffer size for input stream
      */
-    public static String BUFFER_SIZE = "buffer_size";
+    private final static String BUFFER_SIZE = "buffer_size";
 
     /**
      * The schema property
      */
-    public static String SCHEMA = "schema";
+    private final static String SCHEMA = "schema";
 
-    public static String FIELDMAPPER = "field_mapper";
+    private final static String FIELDMAPPER = "field_mapper";
 
     /**
      * The SaX service
@@ -263,18 +263,14 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
     }
 
     private MABDisketteSaxAdapter setup(MABDisketteSaxAdapter adapter) {
-        Boolean fatalErrors = properties.get(FATAL_ERRORS) != null ?
-                (properties.get(FATAL_ERRORS) instanceof Boolean ? (Boolean)properties.get(FATAL_ERRORS) :
-                        Boolean.parseBoolean((String)properties.get(FATAL_ERRORS))) : null;
-        Boolean cleanTags = properties.get(CLEAN_TAGS) != null ?
-                (properties.get(CLEAN_TAGS) instanceof Boolean ? (Boolean)properties.get(CLEAN_TAGS) :
-                        Boolean.parseBoolean((String)properties.get(CLEAN_TAGS))) : Boolean.TRUE;
-        Boolean scrubData = properties.get(SCRUB_DATA) != null ?
-                (properties.get(SCRUB_DATA) instanceof Boolean ? (Boolean)properties.get(SCRUB_DATA) :
-                        Boolean.parseBoolean((String)properties.get(SCRUB_DATA))) : Boolean.TRUE;
-        Boolean transformData = properties.get(TRANSFORM_DATA) != null ?
-                (properties.get(TRANSFORM_DATA) instanceof Boolean ? (Boolean)properties.get(TRANSFORM_DATA) :
-                        Boolean.parseBoolean((String)properties.get(TRANSFORM_DATA))) : Boolean.TRUE;
+        Object o = properties.get(FATAL_ERRORS);
+        Boolean fatalErrors = o != null ? (o instanceof Boolean ? (Boolean)o : "true".equalsIgnoreCase(o.toString())) : Boolean.FALSE;
+        o = properties.get(CLEAN_TAGS);
+        Boolean cleanTags = o != null ? (o instanceof Boolean ? (Boolean)o : "true".equalsIgnoreCase(o.toString())) : Boolean.TRUE;
+        o = properties.get(SCRUB_DATA);
+        Boolean scrubData = o != null ? (o instanceof Boolean ? (Boolean)o : "true".equalsIgnoreCase(o.toString())) : Boolean.TRUE;
+        o =  properties.get(TRANSFORM_DATA);
+        Boolean transformData = o != null ? (o instanceof Boolean ? (Boolean)o : "true".equalsIgnoreCase(o.toString())) : Boolean.TRUE;
         return adapter.setBuffersize((Integer) properties.get(BUFFER_SIZE))
                 .setContentHandler(contentHandler)
                 .setSchema((String) properties.get(SCHEMA))

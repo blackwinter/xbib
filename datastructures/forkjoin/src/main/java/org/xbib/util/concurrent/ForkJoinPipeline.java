@@ -34,8 +34,6 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
 
     private CountDownLatch latch;
 
-    private Sink<R> sink;
-
     private List<Throwable> exceptions;
 
     private int workerCount;
@@ -63,12 +61,6 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
     @Override
     public BlockingQueue<R> getQueue() {
         return queue;
-    }
-
-    @Override
-    public ForkJoinPipeline<W,R> setSink(Sink<R> sink) {
-        this.sink = sink;
-        return this;
     }
 
     @Override
@@ -131,9 +123,6 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
         for (Future<R> future : futures) {
             try {
                 R r = future.get();
-                if (sink != null && !future.isCancelled()) {
-                    sink.sink(r);
-                }
             } catch (Throwable e) {
                 exceptions.add(e);
                 latch.countDown();

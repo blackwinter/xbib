@@ -366,6 +366,8 @@ public class MarcXchangeContentHandler
                 }
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -428,6 +430,8 @@ public class MarcXchangeContentHandler
                     break;
                 }
             }
+            default:
+                break;
         }
         content.setLength(0);
     }

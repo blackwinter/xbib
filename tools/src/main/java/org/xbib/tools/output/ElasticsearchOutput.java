@@ -19,6 +19,7 @@ import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ElasticsearchOutput {
 
@@ -28,15 +29,17 @@ public class ElasticsearchOutput {
         if (!settings.containsSetting("cluster")) {
             return null;
         }
-        Settings clientSettings = Settings.settingsBuilder()
+        Settings.Builder clientSettings = Settings.settingsBuilder()
                 .put("cluster.name", settings.get("cluster", "elasticsearch"))
-                .put("host", settings.get("host", "localhost"))
-                .put("port", settings.getAsInt("port", 9300))
                 .put("sniff", settings.getAsBoolean("sniff", false))
-                .put("autodiscover", settings.getAsBoolean("autodiscover", false))
-                .build();
+                .put("autodiscover", settings.getAsBoolean("autodiscover", false));
+        if (settings.getAsArray("host") != null) {
+            clientSettings.putArray("host", settings.getAsArray("host"));
+        } else {
+            clientSettings.put("host", settings.get("host", "localhost"));
+        }
         org.elasticsearch.common.settings.Settings elasticsearchSettings = org.elasticsearch.common.settings.Settings.builder()
-                .put(clientSettings.getAsMap())
+                .put(clientSettings.build().getAsMap())
                 .build();
         ClientBuilder clientBuilder = ClientBuilder.builder()
                 .put(elasticsearchSettings)
@@ -54,9 +57,6 @@ public class ElasticsearchOutput {
     }
 
     public Map<String,IndexDefinition> makeIndexDefinitions(Ingest ingest, Map<String,Settings> map) {
-        if (ingest == null || ingest.client() == null) {
-            return null;
-        }
         Map<String,IndexDefinition> defs = new LinkedHashMap<>();
         for (Map.Entry<String,Settings> entry : map.entrySet()) {
             Settings settings = entry.getValue();
@@ -146,27 +146,50 @@ public class ElasticsearchOutput {
         }
     }
 
-    public void switchIndex(Ingest ingest, IndexDefinition indexDefinition,
-                            List<String> extraAliases) throws IOException {
+    public void switchIndex(Ingest ingest, IndexDefinition indexDefinition, List<String> extraAliases) {
         if (ingest == null || ingest.client() == null) {
             return;
         }
+        if (extraAliases == null) {
+            return;
+        }
         if (indexDefinition.isSwitchAliases()) {
-            ingest.switchAliases(indexDefinition.getIndex(), indexDefinition.getConcreteIndex(), extraAliases);
+            // filter out null/empty values
+            List<String> validAliases = extraAliases.stream()
+                    .filter(a -> a != null && !a.isEmpty())
+                    .collect(Collectors.toList());
+            try {
+                ingest.switchAliases(indexDefinition.getIndex(), indexDefinition.getConcreteIndex(), validAliases);
+            } catch (Exception e) {
+                logger.warn("switching index failed: " + e.getMessage(), e);
+            }
         }
     }
 
     public void switchIndex(Ingest ingest, IndexDefinition indexDefinition,
-                            List<String> extraAliases, IndexAliasAdder indexAliasAdder) throws IOException {
+                            List<String> extraAliases, IndexAliasAdder indexAliasAdder) {
         if (ingest == null || ingest.client() == null) {
             return;
         }
+        if (extraAliases == null) {
+            return;
+        }
         if (indexDefinition.isSwitchAliases()) {
-            ingest.switchAliases(indexDefinition.getIndex(), indexDefinition.getConcreteIndex(), extraAliases, indexAliasAdder);
+            // filter out null/empty values
+            List<String> validAliases = extraAliases.stream()
+                    .filter(a -> a != null && !a.isEmpty())
+                    .collect(Collectors.toList());
+            try {
+                ingest.switchAliases(indexDefinition.getIndex(), indexDefinition.getConcreteIndex(),
+                        validAliases, indexAliasAdder);
+            } catch (Exception e) {
+                logger.warn("switching index failed: " + e.getMessage(), e);
+            }
         }
     }
 
-    public void retention(Ingest ingest, IndexDefinition indexDefinition) throws IOException {
+
+    public void retention(Ingest ingest, IndexDefinition indexDefinition) {
         if (ingest == null || ingest.client() == null) {
             return;
         }
@@ -176,12 +199,16 @@ public class ElasticsearchOutput {
         }
     }
 
-    public void replica(Ingest ingest, IndexDefinition indexDefinition) throws IOException {
+    public void replica(Ingest ingest, IndexDefinition indexDefinition) {
         if (ingest == null || ingest.client() == null) {
             return;
         }
         if (indexDefinition.getReplicaLevel() > 0) {
-            ingest.updateReplicaLevel(indexDefinition.getConcreteIndex(), indexDefinition.getReplicaLevel());
+            try {
+                ingest.updateReplicaLevel(indexDefinition.getConcreteIndex(), indexDefinition.getReplicaLevel());
+            } catch (Exception e) {
+                logger.warn("settigng replica failed: " + e.getMessage(), e);
+            }
         }
     }
 

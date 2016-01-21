@@ -365,6 +365,8 @@ public class MarcXchangeFieldMapperContentHandler
                     inData = true;
                 }
             }
+            default:
+                break;
         }
     }
 
@@ -428,6 +430,8 @@ public class MarcXchangeFieldMapperContentHandler
                 }
                 break;
             }
+            default:
+                break;
         }
         content.setLength(0);
     }

@@ -31,7 +31,7 @@
  */
 package org.xbib.marc.event;
 
-public interface Cause {
+interface Cause {
 
     Cause setCause(String cause);
 

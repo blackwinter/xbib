@@ -102,7 +102,7 @@ public final class PICA extends Converter {
         }
     }
 
-    class MyQueue extends PicaEntityQueue {
+    static class MyQueue extends PicaEntityQueue {
 
         public MyQueue(String path, int workers) {
             super(path, workers);
@@ -110,7 +110,6 @@ public final class PICA extends Converter {
 
         @Override
         public void afterCompletion(PicaEntityBuilderState state) throws IOException {
-
         }
     }
 

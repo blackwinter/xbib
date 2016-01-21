@@ -385,6 +385,8 @@ public class MarcXchangeFieldMapperReader extends MarcXchangeFieldMapper
                     }
                     break;
                 }
+                default:
+                    break;
             }
         } else if (event.isEndElement()) {
             EndElement element = (EndElement) event;
@@ -452,6 +454,8 @@ public class MarcXchangeFieldMapperReader extends MarcXchangeFieldMapper
                         break;
                     }
                 }
+                default:
+                    break;
             }
             content.setLength(0);
         } else if (event.isCharacters()) {

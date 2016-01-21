@@ -36,20 +36,27 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Iterate over Aleph Records with sys numbers from file
  */
 public class AlephSysNumberFileIterator implements Closeable, Iterator<Integer> {
 
-    private final static Logger logger = LogManager.getLogger(AlephSysNumberFileIterator.class.getName());
+    private final static Logger logger = LogManager.getLogger(AlephSysNumberFileIterator.class);
+
     private BufferedReader reader;
+
     private boolean error;
+
     private String filename;
+
     private String id;
+
     private int count;
 
     public AlephSysNumberFileIterator() {
@@ -68,7 +75,7 @@ public class AlephSysNumberFileIterator implements Closeable, Iterator<Integer> 
             return;
         }
         try {
-            this.reader = new BufferedReader(new FileReader(filename));
+            this.reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -107,13 +114,13 @@ public class AlephSysNumberFileIterator implements Closeable, Iterator<Integer> 
     @Override
     public Integer next() {
         if (reader == null) {
-            return null;
+            throw new NoSuchElementException();
         }
         if (id != null) {
             count++;
             return Integer.valueOf(id);
         } else {
-            return null;
+            throw new NoSuchElementException();
         }
     }
 

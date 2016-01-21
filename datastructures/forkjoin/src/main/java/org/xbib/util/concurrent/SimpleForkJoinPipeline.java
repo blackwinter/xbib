@@ -79,7 +79,7 @@ public abstract class SimpleForkJoinPipeline<R> {
             throw new RuntimeException("no workers available");
         }
         try {
-            queue.offer(job, 30, TimeUnit.SECONDS);
+            queue.put(job);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -87,7 +87,7 @@ public abstract class SimpleForkJoinPipeline<R> {
 
     public void finish(long timeout, TimeUnit timeUnit) throws InterruptedException {
         for (int i = 0; i < workers.size(); i++) {
-            queue.offer(poison());
+            queue.put(poison());
         }
         service.shutdownNow();
         service.awaitTermination(timeout, timeUnit);

@@ -53,6 +53,8 @@ public class RecordEventLogger implements EventListener<RecordEvent> {
             case "info" : logger.info("{}", event); break;
             case "debug" : logger.debug("{}", event); break;
             case "trace" : logger.trace("{}", event); break;
+            default:
+                break;
         }
     }
 }

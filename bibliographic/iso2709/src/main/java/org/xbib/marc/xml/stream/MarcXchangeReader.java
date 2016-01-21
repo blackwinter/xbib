@@ -393,6 +393,8 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
                     }
                     break;
                 }
+                default:
+                    break;
             }
         } else if (event.isEndElement()) {
             EndElement element = (EndElement) event;
@@ -458,6 +460,8 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
                         break;
                     }
                 }
+                default:
+                    break;
             }
             content.setLength(0);
         } else if (event.isCharacters()) {
