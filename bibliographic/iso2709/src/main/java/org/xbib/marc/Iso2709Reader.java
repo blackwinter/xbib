@@ -62,55 +62,55 @@ public class Iso2709Reader implements FieldReader, XMLReader, MarcXchangeConstan
     /**
      * The format property
      */
-    private final static String FORMAT = "format";
+    public final static String FORMAT = "format";
     /**
      * The type property
      */
-    private final static String TYPE = "type";
+    public final static String TYPE = "type";
 
     /**
      * Should errors abort the reader.
      */
-    private final static String FATAL_ERRORS = "fatal_errors";
+    public final static String FATAL_ERRORS = "fatal_errors";
 
     /**
      * Should the ISO 25577 tags be clean (validateable)?
      * All erraneous tags will be assigned to "999".
      * This mode is active by default.
      */
-    private final static String CLEAN_TAGS = "clean_tags";
+    public final static String CLEAN_TAGS = "clean_tags";
 
     /**
      * Shall all data be XML 1.0 safe?
      */
-    private final static String SCRUB_DATA = "scrub_data";
+    public final static String SCRUB_DATA = "scrub_data";
 
     /**
      * Shall data transformations be allowed?
      */
-    private final static String TRANSFORM_DATA = "transform_data";
+    public final static String TRANSFORM_DATA = "transform_data";
 
     /**
      * Buffer size for input stream
      */
-    private final static String BUFFER_SIZE = "buffer_size";
+    public final static String BUFFER_SIZE = "buffer_size";
 
     /**
      * The schema property
      */
-    private final static String SCHEMA = "schema";
+    public final static String SCHEMA = "schema";
 
     /**
      * Subfield delimiter
      */
-    private final static String SUBFIELD_DELIMITER = "subfield_delimiter";
+    public final static String SUBFIELD_DELIMITER = "subfield_delimiter";
 
     /**
      * Subfield delimiter
      */
-    private final static String SUBFIELD_CODE_LENGTH = "subfield_code_length";
+    public final static String SUBFIELD_CODE_LENGTH = "subfield_code_length";
 
-    private final static String FIELDMAPPER = "field_mapper";
+    public final static String FIELDMAPPER = "field_mapper";
 
     /**
      * The SaX service
