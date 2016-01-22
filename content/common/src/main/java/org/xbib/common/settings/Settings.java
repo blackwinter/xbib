@@ -8,6 +8,9 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -196,7 +199,7 @@ public class Settings {
             settingPrefix = settingPrefix + ".";
         }
         // we don't really care that it might happen twice
-        Map<String, Map<String, String>> map = new LinkedHashMap<String, Map<String, String>>();
+        Map<String, Map<String, String>> map = new LinkedHashMap<>();
         for (Object o : settings.keySet()) {
             String setting = (String) o;
             if (setting.startsWith(settingPrefix)) {
@@ -209,13 +212,13 @@ public class Settings {
                 String value = nameValue.substring(dotIndex + 1);
                 Map<String, String> groupSettings = map.get(name);
                 if (groupSettings == null) {
-                    groupSettings = new LinkedHashMap<String, String>();
+                    groupSettings = new LinkedHashMap<>();
                     map.put(name, groupSettings);
                 }
                 groupSettings.put(value, get(setting));
             }
         }
-        Map<String, Settings> retVal = new LinkedHashMap<String, Settings>();
+        Map<String, Settings> retVal = new LinkedHashMap<>();
         for (Map.Entry<String, Map<String, String>> entry : map.entrySet()) {
             retVal.put(entry.getKey(), new Settings(Collections.unmodifiableMap(entry.getValue())));
         }
@@ -277,7 +280,7 @@ public class Settings {
 
     public static class Builder {
 
-        private final Map<String, String> map = new LinkedHashMap<String, String>();
+        private final Map<String, String> map = new LinkedHashMap<>();
 
         private Builder() {
         }
@@ -524,10 +527,11 @@ public class Settings {
         /**
          * Runs across all the settings set on this builder and replaces <tt>${...}</tt> elements in the
          * each setting value according to the following logic:
-         * <p/>
-         * <p>First, tries to resolve it against a System property ({@link System#getProperty(String)}), next,
-         * tries and resolve it against an environment variable ({@link System#getenv(String)}), and last, tries
-         * and replace it with another setting already set on this builder.
+         *
+         * First, tries to resolve it against a System property ({@link System#getProperty(String)}), next,
+         * tries and resolve it against an environment variable ({@link System#getenv(String)}), next,
+         * tries and resolve it against a date pattern to resolve the current date,
+         * and last, tries and replace it with another setting already set on this builder.
          */
         public Builder replacePropertyPlaceholders() {
             PropertyPlaceholder propertyPlaceholder = new PropertyPlaceholder("${", "}", false);
@@ -539,6 +543,11 @@ public class Settings {
                 value = System.getenv(placeholderName);
                 if (value != null) {
                     return value;
+                }
+                try {
+                    return DateTimeFormatter.ofPattern(placeholderName).format(LocalDate.now());
+                } catch (IllegalArgumentException | DateTimeException e) {
+                    // ignore
                 }
                 return map.get(placeholderName);
             };

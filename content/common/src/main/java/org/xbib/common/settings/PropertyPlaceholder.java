@@ -1,7 +1,6 @@
 package org.xbib.common.settings;
 
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -9,8 +8,7 @@ import java.util.Set;
  * A placeholder takes the form <tt>${name}</tt>.
  * Using <tt>PropertyPlaceholder</tt> these placeholders can be substituted for user-supplied values.
  *
- * Values for substitution can be supplied using a {@link Properties} instance or using a
- * {@link PlaceholderResolver}.
+ * Values for substitution can be supplied using a {@link PlaceholderResolver}.
  */
 public class PropertyPlaceholder {
 

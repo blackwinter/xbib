@@ -60,4 +60,13 @@ public class SettingsTest extends Assert {
         assertEquals("{map.hello=world}", settings.getAsMap().toString());
     }
 
+    @Test
+    public void testCurrentYearInSettings() {
+        Settings settings = Settings.settingsBuilder()
+                .put("date", "${yyyy}")
+                .replacePropertyPlaceholders()
+                .build();
+        assertTrue(Integer.parseInt(settings.get("date")) > 2000);
+    }
+
 }
