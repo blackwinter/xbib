@@ -81,8 +81,9 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             // for union catalog, create aliases for "main ISILs" using xbib.identifier
             List<String> aliases = new LinkedList<>();
             aliases.add(settings.get("identifier"));
-            Map<String, String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
-                    settings.get("sigel2isil", "/org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
+            ValueMaps valueMaps = new ValueMaps();
+            Map<String, String> sigel2isil =
+                    valueMaps.getAssocStringMap(settings.get("sigel2isil", "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
             // "main ISIL" = only one (or none) hyphen
             aliases.addAll(sigel2isil.values().stream()
                     .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));

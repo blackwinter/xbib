@@ -33,8 +33,8 @@ package org.xbib.tools.analyze;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.count.CountRequestBuilder;
-import org.elasticsearch.action.count.CountResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
@@ -47,50 +47,57 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 public class CheckOpenAccess extends Analyzer {
 
-    private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(CheckOpenAccess.class);
 
     @Override
-    public void run(Settings settings) throws Exception {
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
-        Client client = search.client();
-        BufferedReader fileReader = getFileReader(settings.get("input"));
-        String line;
-        int oa = 0;
-        int nonoa = 0;
-        while  ((line = fileReader.readLine()) != null) {
-            String[] s = line.split(",");
-            if (s.length != 2 && s.length !=3) {
-                logger.warn("invalid line: {}", line);
-                continue;
+    public int run(Settings settings) throws Exception {
+        try {
+            SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+            Client client = search.client();
+            BufferedReader fileReader = getFileReader(settings.get("input"));
+            String line;
+            int oa = 0;
+            int nonoa = 0;
+            while ((line = fileReader.readLine()) != null) {
+                String[] s = line.split(",");
+                if (s.length != 2 && s.length != 3) {
+                    logger.warn("invalid line: {}", line);
+                    continue;
+                }
+                String zdbid = s[0].replaceAll("\\-", "").toLowerCase();
+                String year = s[1];
+                if (year.length() != 4) {
+                    logger.warn("invalid line: {}", line);
+                    continue;
+                }
+                int count = s.length == 3 ? Integer.parseInt(s[2]) : 1;
+                QueryBuilder queryBuilder =
+                        boolQuery().must(termQuery("_id", zdbid)).filter(termQuery("openaccess", true));
+                SearchRequestBuilder countRequestBuilder = client.prepareSearch()
+                        .setIndices(settings.get("ezdb-index", "ezdb"))
+                        .setTypes(settings.get("ezdb-type", "Manifestation"))
+                        .setSize(0)
+                        .setQuery(queryBuilder);
+                SearchResponse countResponse = countRequestBuilder.execute().actionGet();
+                if (countResponse.getHits().getTotalHits() > 0) {
+                    oa += count;
+                } else {
+                    nonoa += count;
+                }
             }
-            String zdbid = s[0].replaceAll("\\-", "").toLowerCase();
-            String year = s[1];
-            if (year.length() != 4) {
-                logger.warn("invalid line: {}", line);
-                continue;
-            }
-            int count = s.length == 3 ? Integer.parseInt(s[2]) : 1;
-            QueryBuilder queryBuilder =
-                    boolQuery().must(termQuery("_id", zdbid)).filter(termQuery("openaccess", true));
-            CountRequestBuilder countRequestBuilder = client.prepareCount()
-                    .setIndices(settings.get("ezdb-index", "ezdb"))
-                    .setTypes(settings.get("ezdb-type", "Manifestation"))
-                    .setQuery(queryBuilder);
-            CountResponse countResponse = countRequestBuilder.execute().actionGet();
-            if (countResponse.getCount() > 0) {
-                oa += count;
-            } else {
-                nonoa += count;
-            }
+            fileReader.close();
+            logger.info("oa={} nonoa={}", oa, nonoa);
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
         }
-        fileReader.close();
-        logger.info("oa={} nonoa={}", oa, nonoa);
+        return 0;
     }
 
 }

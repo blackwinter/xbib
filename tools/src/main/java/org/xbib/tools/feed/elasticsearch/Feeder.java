@@ -51,7 +51,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public abstract class Feeder extends Converter {
+public class Feeder extends Converter {
 
     private final static Logger logger = LogManager.getLogger(Feeder.class);
 
@@ -96,17 +96,25 @@ public abstract class Feeder extends Converter {
 
     @Override
     protected void disposeOutput() throws IOException {
+        if (throwable != null) {
+            logger.warn("there was an error, shutting down Elasticsearch output");
+        }
         logger.info("close down of {}", indexDefinitionMap.keySet());
         elasticsearchOutput.close(ingest, indexDefinitionMap);
-        performIndexSwitch();
-        for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
-            elasticsearchOutput.replica(ingest, entry.getValue());
+        if (throwable == null) {
+            // post processing only in case of success
+            performIndexSwitch();
+            logger.info("performing replica setting for {}", indexDefinitionMap.keySet());
+            for (Map.Entry<String, IndexDefinition> entry : indexDefinitionMap.entrySet()) {
+                elasticsearchOutput.replica(ingest, entry.getValue());
+            }
         }
         elasticsearchOutput.shutdown(ingest);
         super.disposeOutput();
     }
 
     protected void performIndexSwitch() throws IOException {
+        // default is "bib" definition
         IndexDefinition def = indexDefinitionMap.get("bib");
         if (def != null && def.getTimeWindow() != null) {
             logger.info("switching index {}", def.getIndex());

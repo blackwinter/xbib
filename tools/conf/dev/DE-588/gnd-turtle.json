@@ -7,11 +7,10 @@
   "output": {
     "elasticsearch": {
       "cluster": "zbn",
-      "host": "zephyros:9300",
+      "host" : [ "zephyros:9300", "boreas:9300", "notos:9300" ],
       "autodiscover": true,
       "maxbulkactions" : 10000,
       "maxconcurrentbulkrequests" : 8,
-      "mock" : false,
       "index" : {
         "bib" : {
           "name" : "gnd",

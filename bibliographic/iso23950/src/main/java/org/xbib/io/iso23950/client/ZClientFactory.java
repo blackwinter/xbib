@@ -59,37 +59,25 @@ public final class ZClientFactory implements ZConstants {
         return instance;
     }
 
-    public Properties getProperties(String name) {
+    public Properties getProperties(String name) throws IOException {
         Properties properties = new Properties();
-        InputStream in = instance.getClass().getResourceAsStream("/org/xbib/io/iso23950/service/" + name + ".properties");
-        if (in != null) {
-            try {
-                properties.load(in);
-            } catch (IOException ex) {
-                // ignore
-            }
-        }
-        if (in == null || properties.isEmpty()) {
-            throw new IllegalArgumentException("service " + name + " not found");
+        try (InputStream in = getClass().getResourceAsStream("/org/xbib/io/iso23950/service/" + name + ".properties")) {
+            properties.load(in);
         }
         return properties;
     }
 
-    public ZClient newZClient(String name) {
+    public ZClient newZClient(String name) throws IOException {
         return newZClient(getProperties(name));
     }
 
-    public ZClient newZClient(Properties properties ) {
-        try {
-            URI uri = URI.create(properties.getProperty(ADDRESS_PROPERTY));
-            Connection<ZSession> connection = connectionService
-                    .getConnectionFactory(uri)
-                    .getConnection(uri);
-            ZSession session = connection.createSession();
-            return session.newZClient(properties);
-        } catch (IOException ex) {
-            return null;
-        }
+    public ZClient newZClient(Properties properties) throws IOException{
+        URI uri = URI.create(properties.getProperty(ADDRESS_PROPERTY));
+        Connection<ZSession> connection = connectionService
+                .getConnectionFactory(uri)
+                .getConnection(uri);
+        ZSession session = connection.createSession();
+        return session.newZClient(properties);
     }
 
 

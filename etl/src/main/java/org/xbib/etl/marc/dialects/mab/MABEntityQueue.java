@@ -37,7 +37,6 @@ import org.xbib.etl.EntityQueue;
 import org.xbib.etl.UnmappedKeyListener;
 import org.xbib.etl.marc.MARCSpecification;
 import org.xbib.etl.marc.SubfieldValueMapper;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.IdentifierMapper;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ConfigurableClassifier;
@@ -110,30 +109,34 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
     protected IdentifierMapper setupIdentifierMapper(Map<String,Object> params) {
         IdentifierMapper identifierMapper = new IdentifierMapper();
         // configured sigel
-        Map<String,String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
-                "org/xbib/analyzer/mab/sigel2isil.json", "sigel2isil");
-        identifierMapper.add(sigel2isil);
-        if (params != null && params.containsKey("tab_sigel_url")) {
-            try {
+        try {
+            ValueMaps valueMaps = new ValueMaps();
+            Map<String,String> sigel2isil = valueMaps.getAssocStringMap("org/xbib/analyzer/mab/sigel2isil.json", "sigel2isil");
+            identifierMapper.add(sigel2isil);
+            if (params != null && params.containsKey("tab_sigel_url")) {
                 // current sigel
                 URL url = new URL((String) params.get("tab_sigel_url"));
                 logger.info("loading tab_sigel from {}", url);
                 identifierMapper.load(url.openStream());
                 logger.info("sigel2isil size = {}, plus tab_sigel = {}",
                         sigel2isil.size(), identifierMapper.getMap().size());
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
             }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
         return identifierMapper;
     }
 
     @SuppressWarnings("unchecked")
     protected StatusCodeMapper setupStatusMapper(Map<String,Object> params) {
-        Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
-                "org/xbib/analyzer/mab/status.json", "status");
         StatusCodeMapper statusMapper = new StatusCodeMapper();
-        statusMapper.add(statuscodes);
+        try {
+            ValueMaps valueMaps = new ValueMaps();
+            Map<String,Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
+            statusMapper.add(statuscodes);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
         return statusMapper;
     }
 
@@ -151,9 +154,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         if (classifier == null) {
             classifier = new ConfigurableClassifier();
         }
-        URL url = classifierPath.startsWith("classpath:") ?
-                new URL(null, classifierPath, new ClasspathURLStreamHandler()) :
-                new URL(classifierPath);
+        URL url = new URL(classifierPath);
         InputStream in = url.openStream();
         if (in == null) {
             in = getClass().getResource(classifierPath).openStream();
@@ -234,11 +235,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         }
 
         @SuppressWarnings("unchecked")
-        public Resource addToResource(Resource resource,
-                                      FieldList fields,
-                                      MABEntity element) throws IOException {
+        public Resource addToResource(Resource resource, FieldList fields, MABEntity entity) throws IOException {
             // setup
-            Map<String, Object> defaultSubfields = (Map<String, Object>) element.getSettings().get("subfields");
+            Map<String, Object> defaultSubfields = (Map<String, Object>) entity.getSettings().get("subfields");
             if (defaultSubfields == null) {
                 return resource;
             }
@@ -246,35 +245,36 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             // create another anoymous resource
             Resource newResource = resource.newResource(tempPredicate);
             // default predicate is the name of the element class
-            String predicate = element.getClass().getSimpleName();
+            String predicate = entity.getClass().getSimpleName();
             // the _predicate field allows to select a field to name the resource by a coded value
-            if (element.getSettings().containsKey("_predicate")) {
-                predicate = (String) element.getSettings().get("_predicate");
+            if (entity.getSettings().containsKey("_predicate")) {
+                predicate = (String) entity.getSettings().get("_predicate");
             }
             boolean overridePredicate = false;
             // put all found fields with configured subfield names to this resource
             for (Field field : fields) {
                 // skip all data fields without subfield ID (but not control fields)
-                if (!field.isControlField() && field.subfieldId() == null) {
+                // skip fields that have no data (invalid / degraded)
+                if (!field.isControlField() && (field.subfieldId() == null || field.data() == null || field.data().isEmpty())) {
                     continue;
                 }
                 Map<String, Object> subfields = defaultSubfields;
                 // tag predicates defined?
-                if (element.getSettings().containsKey("tags")) {
-                    Map<String, Object> tags = (Map<String, Object>) element.getSettings().get("tags");
+                if (entity.getSettings().containsKey("tags")) {
+                    Map<String, Object> tags = (Map<String, Object>) entity.getSettings().get("tags");
                     if (tags.containsKey(field.tag())) {
                         if (!overridePredicate) {
                             predicate = (String) tags.get(field.tag());
                         }
-                        subfields = (Map<String, Object>) element.getSettings().get(predicate);
+                        subfields = (Map<String, Object>) entity.getSettings().get(predicate);
                         if (subfields == null) {
                             subfields = defaultSubfields;
                         }
                     }
                 }
                 // indicator-based predicate defined?
-                if (element.getSettings().containsKey("indicators")) {
-                    Map<String, Object> indicators = (Map<String, Object>) element.getSettings().get("indicators");
+                if (entity.getSettings().containsKey("indicators")) {
+                    Map<String, Object> indicators = (Map<String, Object>) entity.getSettings().get("indicators");
                     if (indicators.containsKey(field.tag())) {
                         Map<String, Object> indicatorMap = (Map<String, Object>) indicators.get(field.tag());
                         if (indicatorMap.containsKey(field.indicator())) {
@@ -282,24 +282,24 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                 predicate = (String) indicatorMap.get(field.indicator());
                                 fieldNames.put(field, predicate);
                             }
-                            subfields = (Map<String, Object>) element.getSettings().get(predicate);
+                            subfields = (Map<String, Object>) entity.getSettings().get(predicate);
                             if (subfields == null) {
                                 subfields = defaultSubfields;
                             }
                         }
                     }
                 }
-
                 // is there a subfield value decoder?
                 Map.Entry<String, Object> me = SubfieldValueMapper.map(subfields, field);
                 if (me.getKey() != null && me.getValue() != null) {
                     String v = me.getValue().toString();
                     if (fieldNames.containsKey(field)) {
                         // field-specific subfield map
-                        Map<String, Object> vm = (Map<String, Object>) element.getSettings().get(fieldNames.get(field));
+                        String fieldName = fieldNames.get(field);
+                        Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
                         if (vm == null) {
                             // fallback to "subfields"
-                            vm = (Map<String, Object>) element.getSettings().get("subfields");
+                            vm = (Map<String, Object>) entity.getSettings().get("subfields");
                         }
                         // is value containing a blank?
                         int pos = v.indexOf(' ');
@@ -314,7 +314,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                             v = (String) vm.get(vv);
                         } else {
                             // relation by pattern?
-                            List<Map<String, String>> patterns = (List<Map<String, String>>) element.getSettings().get(fieldNames.get(field) + "pattern");
+                            List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
                             if (patterns != null) {
                                 for (Map<String, String> pattern : patterns) {
                                     Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -331,20 +331,21 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                         }
                     } else {
                         // default subfield map
-                        if (element.getSettings().containsKey(me.getKey())) {
+                        String fieldName = me.getKey();
+                        if (entity.getSettings().containsKey(fieldName)) {
                             try {
-                                Map<String, Object> vm = (Map<String, Object>) element.getSettings().get(me.getKey());
+                                Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
                                 int pos = v.indexOf(' ');
                                 String vv = pos > 0 ? v.substring(0, pos) : v;
                                 if (vm.containsKey(v)) {
-                                    newResource.add(me.getKey() + "Source", v);
+                                    newResource.add(fieldName + "Source", v);
                                     v = (String) vm.get(v);
                                 } else if (vm.containsKey(vv)) {
-                                    newResource.add(me.getKey() + "Source", v);
+                                    newResource.add(fieldName + "Source", v);
                                     v = (String) vm.get(vv);
                                 } else {
                                     // relation by pattern?
-                                    List<Map<String, String>> patterns = (List<Map<String, String>>) element.getSettings().get(me.getKey() + "pattern");
+                                    List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
                                     if (patterns != null) {
                                         for (Map<String, String> pattern : patterns) {
                                             Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -352,7 +353,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                             String rel = mme.getValue();
                                             Matcher m = Pattern.compile(p, Pattern.CASE_INSENSITIVE).matcher(v);
                                             if (m.matches()) {
-                                                newResource.add(me.getKey() + "Source", v);
+                                                newResource.add(fieldName + "Source", v);
                                                 v = rel;
                                                 break;
                                             }
@@ -360,17 +361,17 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                     }
                                 }
                             } catch (ClassCastException e) {
-                                logger.warn("element {}: found {} of class {} in element settings {} for key {} but must be a map",
-                                        element.getClass(),
-                                        element.getSettings().get(me.getKey()),
-                                        element.getSettings().get(me.getKey()).getClass(),
-                                        element.getSettings(),
-                                        me.getKey());
+                                logger.warn("entity {}: found {} of class {} in entity settings {} for key {} but must be a map",
+                                        entity.getClass(),
+                                        entity.getSettings().get(fieldName),
+                                        entity.getSettings().get(fieldName).getClass(),
+                                        entity.getSettings(),
+                                        fieldName);
                             }
                         }
                     }
                     // transform value v
-                    v = element.data(this, predicate, newResource, me.getKey(), v);
+                    v = entity.data(this, predicate, newResource, me.getKey(), v);
                     // is this the predicate field or a value?
                     if (me.getKey().equals(predicate)) {
                         predicate = v;
@@ -391,7 +392,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                         logger.error("cannot use string property of '" + subfieldId + "' for field " + field);
                     }
                     if (property != null) {
-                        newResource.add(property, element.data(this, predicate, newResource, property, field.data()));
+                        newResource.add(property, entity.data(this, predicate, newResource, property, field.data()));
                     }
                 }
             }

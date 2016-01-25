@@ -1,17 +1,20 @@
 {
     "RecordFormat" : {
         "values" : [
-        "__FORMAT"
-        ]  
+            "__FORMAT",
+            "__FORMAT$"
+        ]
     },
     "RecordType" : {
         "values" : [
-        "__TYPE"
-        ]  
+            "__TYPE",
+            "__TYPE$"
+        ]
     },
     "RecordLeader" : {
         "values" : [
-        "__LEADER"
+            "__LEADER",
+            "__LEADER$"
         ],
         "codes" : {
             "5" : {
@@ -77,14 +80,17 @@
         }
     },
     "RecordIdentifier" : {
-        "values" : [
+        "values": [
             "001"
         ],
-        "_predicate" : "identifierForTheRecord"
+        "subfields" : {
+            "" : "identifierForTheRecord"
+        }
     },
     "PhysicalDescriptionCode" : {
         "values" : [
-        "007"
+            "007",
+            "007$"
         ],
         "tags" : {
             "007" : "physicalDescription"
@@ -92,7 +98,7 @@
         "codes" : {
             "0" : {
                 "a" : { /* Map (007/00=a) */
-                    "_predicate" : "physicalDescriptionMap",
+                    /*"_predicate" : "physicalDescriptionMap",*/
                     "1" : { /* Specific material designation */
                         "d" : "atlas",
                         "g" : "diagram",
@@ -154,7 +160,7 @@
                     }
                 },
                 "c" : { /* 007/00=c Electronic resource */
-                    "_predicate" : "physicalDescriptionElectronicResource",
+                    /*"_predicate" : "physicalDescriptionElectronicResource",*/
                     "1" : { /* Specific material designation */
                         "a" : "computer tape cartridge",
                         "b" : "computer chip cartridge",
@@ -205,10 +211,11 @@
                     }
                 },
                 "d" : {
-                    "_predicate" : "physicalDescriptionGlobe"
+                    /*"_predicate" : "physicalDescriptionGlobe"*/
                 },
                 "e" : {
-                    "_predicate" : "physicalDescriptionStereographicCarriers", /* RDA */
+                    /* RDA */
+                    /*"_predicate" : "physicalDescriptionStereographicCarriers",*/
                     "1" : {
                         "h" : "stereograph card",
                         "s" : "stereograph disc",
@@ -216,7 +223,7 @@
                     }
                 },
                 "f" : {
-                    "_predicate" : "physicalDescriptionTactileMaterial",
+                    /*"_predicate" : "physicalDescriptionTactileMaterial", */
                     "1" : {  /* Specific material designation */
                         "a" : "moon",
                         "b" : "braille",
@@ -315,7 +322,7 @@
                     }
                 },
                 "g" : {
-                    "_predicate" : "physicalDescriptionProjectedGraphic",
+                    /*"_predicate" : "physicalDescriptionProjectedGraphic",*/
                     "1" : {
                         "d" : "filmslip",
                         "f" : "filmstrip",
@@ -325,7 +332,7 @@
                     }
                 },
                 "h" : {
-                    "_predicate" : "physicalDescriptionMicroform",
+                    /*"_predicate" : "physicalDescriptionMicroform",*/
                     "1" : { /* Specific material designation */
                     "a" : "aperture card",
                     "b" : "microfilm cartridge",
@@ -405,10 +412,10 @@
                     }
                 },
                 "k" : {
-                    "_predicate" : "physicalDescriptionNonprojectedGraphic"
+                    /*"_predicate" : "physicalDescriptionNonprojectedGraphic"*/
                 },
                 "m" : {
-                    "_predicate" : "physicalDescriptionMotionPicture",
+                    /*"_predicate" : "physicalDescriptionMotionPicture",*/
                     "1" : {
                         "c" : "film cartridge",
                         "f" : "film cassette",
@@ -418,7 +425,7 @@
                     }
                 },
                 "n" : {
-                    "_predicate" : "physicalDescriptionUnmediatedCarriers",
+                    /*"_predicate" : "physicalDescriptionUnmediatedCarriers",*/
                     "1" : {
                         "o" : "card",
                         "n" : "flipchart",
@@ -430,23 +437,24 @@
                     }
                 },
                 "o" : {
-                    "_predicate" : "physicalDescriptionKit"
+                    /*"_predicate" : "physicalDescriptionKit"*/
                 },
                 "p" : {
-                    "_predicate" : "physicalDescriptionMicroscopicCarriers", /* RDA */
+                    /* RDA */
+                    /*"_predicate" : "physicalDescriptionMicroscopicCarriers",*/
                     "1" : {
                         "p" : "microscopic slide",
                         "z" : "other"
                     }
                 },
                 "q" : {
-                    "_predicate" : "physicalDescriptionNotatedMusic"
+                    /* "_predicate" : "physicalDescriptionNotatedMusic" */
                 },
                 "r" : {
-                    "_predicate" : "physicalDescriptionRemoteSensingImage"
+                    /* "_predicate" : "physicalDescriptionRemoteSensingImage" */
                 },
                 "s" : {
-                    "_predicate" : "physicalDescriptionSoundRecording",
+                    /* "_predicate" : "physicalDescriptionSoundRecording", */
                     "1" : {
                        "g" : "audio cartridge",
                        "e" : "audio cylinder",
@@ -459,7 +467,7 @@
                     }
                 },
                 "t" : {
-                    "_predicate" : "physicalDescriptionText",
+                    /* "_predicate" : "physicalDescriptionText", */
                     "1" : {
                        "a" : "regular print",
                        "b" : "large print",
@@ -470,7 +478,7 @@
                     }
                 },
                 "v" : {
-                    "_predicate" : "physicalDescriptionVideorecording",
+                    /* "_predicate" : "physicalDescriptionVideorecording", */
                     "1" : {
                         "c" : "video cartridge",
                         "f" : "videocassette",
@@ -480,7 +488,7 @@
                     }
                 },
                 "z" : {
-                    "_predicate" : "physicalDescriptionUnspecified",
+                    /* "_predicate" : "physicalDescriptionUnspecified", */
                     "1" : {
                         "u" : "unspecified"
                     }
@@ -490,13 +498,15 @@
     },
     "GeneralInformation" :{
         "values" : [
-            "008"
+            "008",
+            "008$"
         ],
         "codes" : {
             /* Date entered on file */
             "0-5" : "date",
-            "6" : { /* */
-                "_predicate" : "typeOfDate", /* Type of date/Publication status */
+            "6" : {
+                /* Type of date/Publication status */
+                /*"_predicate" : "typeOfDate",*/
                 "b" : "No dates given",
                 "c" : "Continuing resource currently published",
                 "d" : "Continuing resource ceased publication",
@@ -521,7 +531,8 @@
                 "und" : "undetermined"
             },
             "38" : {
-                "_predicate" : "modifiedRecord", /* Modified record */
+                /* Modified record */
+                /* "_predicate" : "modifiedRecord", */
                 "d" : "Dashed-on information omitted",
                 "o" : "Completely romanized/printed cards romanized",
                 "r" : "Completely romanized/printed cards in script",
@@ -529,7 +540,8 @@
                 "x" : "Missing characters"
             },
             "39" : {
-                "_predicate" : "catalogingSource", /* Cataloging source */
+                /* Cataloging source */
+                /*"_predicate" : "catalogingSource",*/
                 "c" : "Cooperative cataloging program",
                 "d" : "Other",
                 "u" : "Unknown"
@@ -537,7 +549,7 @@
         },
         "continuingresource" : {
             "18" : { /* Frequency (006/01) */
-            "_predicate" : "frequency",
+            /*"_predicate" : "frequency",*/
             "a" : "Annual",
             "b" : "Bimonthly",
             "c" : "Semiweekly",
@@ -558,14 +570,14 @@
             "z" : "Other"
             },
             "19" : { /* Regularity (006/02) */
-            "_predicate" : "regularity",
+            /*"_predicate" : "regularity", */
             "n" : "Normalized irregular",
             "r" : "Regular",
             "u" : "Unknown",
             "x" : "Completely irregular"
             },
             "21" : { /* Type of continuing resource (006/04) */
-            "_predicate" : "typeOfContinuingResource",
+            /* "_predicate" : "typeOfContinuingResource", */
             "d" : "Updating database",
             "l" : "Updating loose-leaf",
             "m" : "Monographic series",
@@ -574,7 +586,7 @@
             "w" : "Updating Web site"
             },
             "22" : { /* Form of original item (006/05) */
-            "_predicate" : "formOfOriginalItem",
+            /* "_predicate" : "formOfOriginalItem", */
             "a" : "Microfilm",
             "b" : "Microfiche",
             "c" : "Microopaque",
@@ -586,7 +598,7 @@
             "s" : "Electronic"
             },
             "23" : { /* Form of item (006/06) */
-            "_predicate" : "formOfItem",
+            /* "_predicate" : "formOfItem", */
             "a" : "Microfilm",
             "b" : "Microfiche",
             "c" : "Microopaque",
@@ -598,7 +610,7 @@
             "s" : "Electronic"
             },
             "24" : { /* Nature of entire work (006/07) */
-            "_predicate" : "natureOfWork",
+            /* "_predicate" : "natureOfWork", */
             "a" : "Abstracts/summaries",
             "b" : "Bibliographies",
             "c" : "Catalogs",
@@ -627,7 +639,7 @@
             "6" : "Comics/graphic novels"
             },
             "25" : {  /* Nature of contents (006/08-10) */
-            "_predicate" : "natureOfContent",
+            /* "_predicate" : "natureOfContent", */
             "a" : "Abstracts/summaries",
             "b" : "Bibliographies",
             "c" : "Catalogs",
@@ -656,7 +668,7 @@
             "6" : "Comics/graphic novels"
             },
             "28" : { /* Government publication (006/11) */
-            "_predicate" : "governmentPublication",
+            /*"_predicate" : "governmentPublication",*/
             "a" : "Autonomous or semi-autonomous component",
             "c" : "Multilocal",
             "f" : "Federal/national",
@@ -669,12 +681,12 @@
             "z" : "Other"
             },
             "29" : { /* Conference publication (006/12) */
-            "_predicate" : "conferencePublication",
+            /*"_predicate" : "conferencePublication",*/
             "0" : "Not a conference publication",
             "1" : "Conference publication"
             },
             "33" : { /* Original alphabet or script of title (006/16) */
-            "_predicate" : "scriptOfTitle",
+            /*"_predicate" : "scriptOfTitle",*/
             "a" : "Basic Roman",
             "b" : "Extended Roman",
             "c" : "Cyrillic",
@@ -691,7 +703,7 @@
             "z" : "Other"
             },
             "34" : { /* Entry convention (006/17) */
-            "_predicate" : "entryConvention",
+            /*"_predicate" : "entryConvention",*/
             "0" : "Successive entry",
             "1" : "Latest entry",
             "2" : "Integrated entry"
@@ -1332,7 +1344,7 @@
         /* NBN control number */
         "016$7 $2a"
         ],
-        "_predicate" : "type",
+        /*"_predicate" : "type",*/
         "subfields" : {
             "a" : "value",
             "2" : "type"
@@ -2462,7 +2474,7 @@
         /* 086 = Amtliche Druckschriftennummer */
         "086$  $2a"
         ],
-        "_predicate" : "type",
+        /*"_predicate" : "type",*/
         "tags" : {
             "082" : "DDCClassificationNumber",
             "083" : "DDCClassificationNumber",
@@ -2485,7 +2497,7 @@
             "8" : "sequenceNumber"
         },
         "NBNClassificationNumber" : {
-            "_predicate" : "type",
+            /*"_predicate" : "type",*/
             "a" : "value",
             "b" : "itemNumber",
             "q" : "agency",
@@ -4820,9 +4832,9 @@
             "c" : "dimensions",
             "e" : "accompanyingMaterial",
             "f" : "typeOfUnit",
-            "i" : null,
-            "t" : null,
-            "w" : null,
+            "i" : "intro",
+            "t" : "title",
+            "w" : "workIdentifier",
             "g" : "sizeOfUnit",
             "3" : "materialsSpecified",
             "6" : "linkage",
@@ -5437,12 +5449,12 @@
             "c" : "titles",
             "d" : "dates",
             "e" : "relatorTerm",
-            "f" : "dateOfaWork",
+            "f" : "dateOfWork",
             "g" : "miscInfo",
             "h" : "medium",
             "j" : "attribution",
             "k" : "formSubheading",
-            "l" : "languageOfaWork",
+            "l" : "languageOfWork",
             "m" : "mediumOfPerformance",
             "n" : "number",
             "o" : "statement",
@@ -5450,7 +5462,7 @@
             "q" : "fullForm",
             "r" : "key",
             "s" : "version",
-            "t" : "titleOfAWork",
+            "t" : "titleOfWork",
             "u" : "affiliation",
             "v" : "formSubdivision",
             "x" : "generalSubdivision",
@@ -7248,11 +7260,11 @@
     "Skip" : {
         "values" : [
         /*  Control Number Identifier */
-        "003",
+        "003$",
         /* Date and Time of Latest Transaction */
-        "005",
+        "005$",
         /*Fixed-Length Data Elements - Additional Material Characteristics  */
-        "006",
+        "006$",
         /* ??? */
         "012$53$",
         /* 028 = publisher number */

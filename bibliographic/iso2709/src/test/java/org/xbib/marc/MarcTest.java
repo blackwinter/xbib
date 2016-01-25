@@ -42,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 
 public class MarcTest extends StreamTester {
 
@@ -138,7 +139,44 @@ public class MarcTest extends StreamTester {
         assertStream(s, getClass().getResource(s + ".xml").openStream(),
                 new FileInputStream(file));
     }
-    
+
+    /**
+     * ZDB MARC Bibliographic
+     *
+     * @throws IOException
+     * @throws SAXException
+     */
+    @Test
+    public void testZDBBib() throws IOException, SAXException {
+        String s = "zdbtitutf8.mrc";
+        InputStream in = getClass().getResource(s).openStream();
+        File file = File.createTempFile(s +".", ".xml");
+        file.deleteOnExit();
+        FileOutputStream out = new FileOutputStream(file);
+        try (InputStreamReader r = new InputStreamReader(in, "UTF-8")) {
+            Iso2709Reader reader = new Iso2709Reader(r);
+            reader.setFormat(MarcXchangeConstants.MARC21);
+            MarcXchangeWriter writer = new MarcXchangeWriter(out);
+            reader.setMarcXchangeListener(writer);
+            writer.startDocument();
+            writer.beginCollection();
+            reader.parse();
+            writer.endCollection();
+            writer.endDocument();
+            assertNull(writer.getException());
+        }
+        in.close();
+        out.close();
+        assertStream(s, getClass().getResource(s + ".xml").openStream(),
+                new FileInputStream(file));
+    }
+
+
+    /**
+     * ZDB MARC Holdings
+     * @throws IOException
+     * @throws SAXException
+     */
     @Test
     public void testZDBLok() throws IOException, SAXException {
         String s = "zdblokutf8.mrc";

@@ -34,8 +34,6 @@ package org.xbib.tools.convert;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
-import org.xbib.common.settings.loader.SettingsLoader;
-import org.xbib.common.settings.loader.SettingsLoaderFactory;
 import org.xbib.tools.input.FileInput;
 import org.xbib.tools.output.FileOutput;
 import org.xbib.metric.MeterMetric;
@@ -49,20 +47,14 @@ import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public class Converter
         extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest>
@@ -80,6 +72,8 @@ public class Converter
 
     protected FileOutput fileOutput = new FileOutput();
 
+    protected Throwable throwable;
+
     private final static AtomicInteger threadCounter = new AtomicInteger();
 
     private int number;
@@ -93,50 +87,14 @@ public class Converter
         return number;
     }
 
-    @Override
-    public int from(String arg) throws Exception {
-        InputStream in;
-        try {
-            URL url = new URL(arg);
-            in = url.openStream();
-        } catch (MalformedURLException e) {
-            in = new FileInputStream(arg);
-        }
-        try (Reader reader = new InputStreamReader(in, UTF8)) {
-            return from(arg, reader);
-        }
+    public Throwable getThrowable() {
+        return throwable;
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public int from(String arg, Reader reader) throws Exception {
-        try {
-            SettingsLoader settingsLoader = SettingsLoaderFactory.loaderFromResource(arg);
-            Settings settings = settingsBuilder()
-                    .put(settingsLoader.load(Settings.copyToString(reader)))
-                    .replacePropertyPlaceholders()
-                    .build();
-            logger.info("settings = {}", settings.getAsMap());
-            run(settings);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
-        } finally {
-            if (getPipeline() != null) {
-                getPipeline().shutdown();
-                if (getPipeline().getWorkers() != null) {
-                    for (Worker worker : getPipeline().getWorkers()) {
-                        writeMetrics(worker.getMetric());
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-
-    public void run(Settings settings) throws Exception {
+    public int run(Settings settings) throws Exception {
         this.settings = settings;
-        int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors() * 2);
+        logger.info("starting run with settings = {}", settings.getAsMap());
+        int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors());
         logger.info("configuring fork/join pipeline with concurrency {}", concurrency);
         ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline();
         pipeline.setQueue(new SynchronousQueue<>(true));
@@ -149,11 +107,22 @@ public class Converter
                     .execute();
             prepareInput();
             pipeline.waitFor(new URIWorkerRequest());
+            return 0;
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             disposeInput();
             disposeOutput();
+            if (getPipeline() != null) {
+                getPipeline().shutdown();
+                if (getPipeline().getWorkers() != null) {
+                    for (Worker worker : getPipeline().getWorkers()) {
+                        writeMetrics(worker.getMetric());
+                    }
+                }
+            }
         }
-        logger.info("execution completed");
     }
 
     @Override
@@ -167,8 +136,9 @@ public class Converter
             URI uri = request.get();
             logger.info("processing URI {}", uri);
             process(uri);
-        } catch (Throwable ex) {
-            logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
+        } catch (Throwable t) {
+            this.throwable = t;
+            logger.error(request.get() + ": error while processing input: " + t.getMessage(), t);
         }
     }
 
@@ -252,5 +222,18 @@ public class Converter
         public FileInput getFileInput() {
             return fileInput;
         }
+    }
+
+    public class ConverterException extends Exception {
+        List<Throwable> list = new LinkedList<>();
+
+        public void add(Throwable throwable) {
+            list.add(throwable);
+        }
+
+        public List<Throwable> getThrowables() {
+            return list;
+        }
+
     }
 }

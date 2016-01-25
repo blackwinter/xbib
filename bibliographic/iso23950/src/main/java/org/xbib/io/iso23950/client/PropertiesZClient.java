@@ -34,7 +34,7 @@ package org.xbib.io.iso23950.client;
 import org.xbib.io.iso23950.ZConstants;
 import org.xbib.io.iso23950.ZSession;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -49,7 +49,7 @@ public class PropertiesZClient extends DefaultZClient implements ZClient, ZConst
 
     @Override
     public List<String> getDatabases() {
-        return Arrays.asList(properties.getProperty(DATABASE_PROPERTY));
+        return Collections.singletonList(properties.getProperty(DATABASE_PROPERTY));
     }
 
     @Override

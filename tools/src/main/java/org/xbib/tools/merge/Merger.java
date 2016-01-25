@@ -56,8 +56,7 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
 
     private final static Logger logger = LogManager.getLogger(Merger.class.getSimpleName());
 
-    @Override
-    public int from(String arg) throws Exception {
+/*    public int from(String arg) throws Exception {
         URL url = new URL(arg);
         try (Reader reader = new InputStreamReader(url.openStream(), Charset.forName("UTF-8"))) {
             return from(arg, reader);
@@ -79,22 +78,28 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
         }
         return 0;
     }
+*/
 
-
-    public void run(Settings settings) throws Exception {
-        int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors() * 2);
-        logger.info("executing with concurrency {}", concurrency);
-        Pipeline<W,R> pipeline = newPipeline();
-        pipeline.setQueue(new SynchronousQueue<>(true));
-        logger.info("preparing sink");
-        prepareSink();
-        logger.info("preparing execution");
-        pipeline.setConcurrency(concurrency)
-                .setWorkerProvider(provider())
-                .prepare()
-                .execute();
-        logger.info("preparing source");
-        prepareSource();
+    public int run(Settings settings) throws Exception {
+        try {
+            int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors() * 2);
+            logger.info("executing with concurrency {}", concurrency);
+            Pipeline<W, R> pipeline = newPipeline();
+            pipeline.setQueue(new SynchronousQueue<>(true));
+            logger.info("preparing sink");
+            prepareSink();
+            logger.info("preparing execution");
+            pipeline.setConcurrency(concurrency)
+                    .setWorkerProvider(provider())
+                    .prepare()
+                    .execute();
+            logger.info("preparing source");
+            prepareSource();
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
+        }
+        return 0;
     }
 
     protected Pipeline<W,R> newPipeline() {

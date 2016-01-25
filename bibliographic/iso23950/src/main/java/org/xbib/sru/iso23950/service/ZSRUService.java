@@ -65,7 +65,7 @@ public class ZSRUService implements SRUService, SRUConstants, ZService, ZConstan
     }
 
     @Override
-    public ZClient newZClient() {
+    public ZClient newZClient() throws IOException {
         return ZClientFactory.getInstance().newZClient(properties);
     }
 

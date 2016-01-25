@@ -38,11 +38,15 @@ import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.iri.IRI;
+import org.xbib.marc.Field;
+import org.xbib.marc.FieldList;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.transformer.StringTransformer;
 import org.xbib.marc.xml.MarcXchangeReader;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RdfXContentParams;
+import org.xbib.util.KeyValueStreamAdapter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,7 +79,8 @@ public class ZDBBibTest extends Assert {
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
-                .addListener(queue);
+                .addListener(queue)
+                .addListener(new OurAdapter());
         Iso2709Reader reader = new Iso2709Reader(br).setMarcXchangeListener(kv);
         reader.setProperty(Iso2709Reader.FORMAT, "MARC");
         reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
@@ -95,7 +100,9 @@ public class ZDBBibTest extends Assert {
         queue.setUnmappedKeyListener((id, key) -> unmapped.add(key.toString()));
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .addListener(queue);
+                .setStringTransformer(new OurTransformer())
+                .addListener(queue)
+                .addListener(new OurAdapter());
         MarcXchangeReader reader = new MarcXchangeReader(in).setMarcXchangeListener(kv);
         reader.parse();
         in.close();
@@ -110,7 +117,7 @@ public class ZDBBibTest extends Assert {
         final AtomicInteger counter = new AtomicInteger();
 
         public MyQueue() {
-            super("org.xbib.analyzer.marc.bib",
+            super("org.xbib.analyzer.marc.zdb.bib",
                     Runtime.getRuntime().availableProcessors(),
                     "org/xbib/analyzer/marc/zdb/bib.json");
         }
@@ -136,4 +143,37 @@ public class ZDBBibTest extends Assert {
         }
 
     }
+
+    class OurTransformer implements StringTransformer {
+        @Override
+        public String transform(String value) {
+            return Normalizer.normalize(value, Normalizer.Form.NFKC);
+        }
+    }
+
+    class OurAdapter extends KeyValueStreamAdapter<FieldList, String> {
+        @Override
+        public KeyValueStreamAdapter<FieldList, String> begin() {
+            logger.info("start object");
+            return this;
+        }
+
+        @Override
+        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
+            logger.info("start");
+            for (Field f : key) {
+                logger.info("tag={} ind={} subf={} data={}",
+                        f.tag(), f.indicator(), f.subfieldId(), f.data());
+            }
+            logger.info("end {}", key);
+            return this;
+        }
+
+        @Override
+        public KeyValueStreamAdapter<FieldList, String> end() {
+            logger.info("end object");
+            return this;
+        }
+    }
+
 }

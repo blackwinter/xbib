@@ -68,26 +68,25 @@ public final class MARCJson extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
+        final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+        final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
+                new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
+                new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+        queue.setUnmappedKeyListener((id, key) -> {
+            if ((settings.getAsBoolean("detect", false))) {
+                logger.warn("unmapped field {}", key);
+                unmapped.add("\"" + key + "\"");
+            }
+        });
+        queue.execute();
+        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
         try (InputStream in = InputService.getInputStream(uri)) {
-            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                    new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                    new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
-            queue.setUnmappedKeyListener((id, key) -> {
-                if ((settings.getAsBoolean("detect", false))) {
-                    logger.warn("unmapped field {}", key);
-                    unmapped.add("\"" + key + "\"");
-                }
-            });
-            queue.execute();
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
             MarcXchangeJSONLinesReader marcXchangeJSONLinesReader = new MarcXchangeJSONLinesReader(in, kv);
             marcXchangeJSONLinesReader.parse();
-            in.close();
-            queue.close();
-            if (settings.getAsBoolean("detect", false)) {
-                logger.info("unknown keys={}", unmapped);
-            }
+        }
+        queue.close();
+        if (settings.getAsBoolean("detect", false)) {
+            logger.info("unknown keys={}", unmapped);
         }
     }
 

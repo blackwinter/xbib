@@ -29,13 +29,13 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.feed.elasticsearch.zdb.bib;
+package org.xbib.tools.feed.elasticsearch.zdb;
 
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.tools.convert.Converter;
-import org.xbib.tools.feed.elasticsearch.marc.BibliographicFeeder;
+import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -43,30 +43,29 @@ import org.xml.sax.SAXNotSupportedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.text.Normalizer;
 
 /**
- * Index Zeitschriftendatenbank (ZDB) MARC Bibliographic ISO2709 files
+ * Index Zeitschriftendatenbank (ZDB) MARC Holdings ISO2709 files
  */
-public class MarcBib extends BibliographicFeeder {
+public class MarcHol extends HoldingsFeeder {
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new MarcBib().setPipeline(p);
+        return p -> new MarcHol().setPipeline(p);
     }
 
     @Override
-    public void process(InputStream in, MARCEntityQueue queue) throws IOException {
+    protected void process(InputStream in, MARCEntityQueue queue) throws IOException {
         final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
                 .addListener(queue);
         try {
             InputStreamReader r = new InputStreamReader(in, ISO88591);
             final Iso2709Reader reader = new Iso2709Reader(r)
-                    .setMarcXchangeListener(kv);
+                    .setMarcXchangeListener("Holdings", kv);
             reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
-            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
+            reader.setProperty(Iso2709Reader.TYPE, "Holdings");
             reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
             reader.parse();
             r.close();

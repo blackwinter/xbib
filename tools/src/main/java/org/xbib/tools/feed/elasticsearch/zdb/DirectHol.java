@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.feed.elasticsearch.zdb.hol;
+package org.xbib.tools.feed.elasticsearch.zdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,7 +51,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;

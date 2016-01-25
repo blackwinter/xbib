@@ -47,6 +47,14 @@ public final class ASN1BitString extends ASN1Any {
 
     public static final int TAG = 0x03;
 
+
+    /**
+     * The values of the BIT STRING are stored in this array of boolean
+     * values.
+     */
+
+    private boolean[] bits;
+
     /**
      * Constructor for an ASN.1 BIT STRING object. It sets the tag
      * to the default value of UNIVERSAL 3, and the bits to the
@@ -55,7 +63,7 @@ public final class ASN1BitString extends ASN1Any {
      * @param    bit_values - array of booleans representing the bit string.
      */
 
-    public ASN1BitString(boolean bit_values[]) {
+    public ASN1BitString(boolean[] bit_values) {
         bits = bit_values;
     }
 
@@ -109,14 +117,9 @@ public final class ASN1BitString extends ASN1Any {
             for (int bit = 0; bit < num_bits; bit++) {
                 int octet = encoding[(bit / 8) + 1];
                 octet <<= (bit % 8);
-                if ((octet & 0x80) == 0) {
-                    bits[bit] = false;
-                } else {
-                    bits[bit] = true;
-                }
+                bits[bit] = (octet & 0x80) != 0;
             }
         } else {
-            BERConstructed ber = (BERConstructed) ber_enc;
             throw new ASN1EncodingException("ASN.1 BIT STRING: decoding constructed NOT IMPLEMENTED YET");
         }
     }
@@ -183,7 +186,7 @@ public final class ASN1BitString extends ASN1Any {
      * @return the object.
      */
 
-    public ASN1BitString set(boolean new_bits[]) {
+    public ASN1BitString set(boolean[] new_bits) {
         bits = new_bits;
         return this;
     }
@@ -204,24 +207,14 @@ public final class ASN1BitString extends ASN1Any {
      * @return A text string representation of the BitString.
      */
 
-    public String
-    toString() {
-        StringBuffer str = new StringBuffer();
-
+    public String toString() {
+        StringBuilder str = new StringBuilder();
         str.append('\'');
-        for (int x = 0; x < bits.length; x++) {
-            str.append(bits[x] ? '1' : '0');
+        for (boolean bit : bits) {
+            str.append(bit ? '1' : '0');
         }
         str.append("'B");
-
         return str.toString();
     }
-
-    /**
-     * The values of the BIT STRING are stored in this array of boolean
-     * values.
-     */
-
-    private boolean bits[];
 
 }

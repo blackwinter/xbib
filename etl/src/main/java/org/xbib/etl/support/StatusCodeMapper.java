@@ -42,7 +42,8 @@ public class StatusCodeMapper {
 
     @SuppressWarnings("unchecked")
     public StatusCodeMapper load(String path) throws IOException {
-        map.putAll(ValueMaps.getMap(getClass().getClassLoader(), path, path));
+        ValueMaps valueMaps = new ValueMaps();
+        map.putAll(valueMaps.getMap(path, path));
         return this;
     }
 

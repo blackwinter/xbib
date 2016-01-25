@@ -8,17 +8,19 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.output.IndexDefinition;
+import org.xbib.util.InputService;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.GZIPInputStream;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -43,22 +45,17 @@ public abstract class HoldingsFeeder extends Feeder {
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         final MARCEntityQueue queue = createQueue(params);
         queue.setUnmappedKeyListener((id,key) -> {
-                    if ((settings.getAsBoolean("detect-unknown", false))) {
-                        logger.warn("record {} unmapped field {}", id, key);
-                        unmapped.add("\"" + key + "\"");
-                    }
-                });
-        queue.execute();
-        String fileName = uri.getSchemeSpecificPart();
-        InputStream in = new FileInputStream(fileName);
-        try {
-            ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
-            if (fileName.endsWith(".gz")) {
-                in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
+            if ((settings.getAsBoolean("detect-unknown", false))) {
+                logger.warn("record {} unmapped field {}", id, key);
+                unmapped.add("\"" + key + "\"");
             }
+        });
+        queue.execute();
+        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+        try (InputStream in = InputService.getInputStream(uri, uri.getSchemeSpecificPart(), bufferSize)) {
+            logger.info("start of processing {}", uri);
             process(in, queue);
-        } finally {
-            in.close();
+            logger.info("end of processing {}", uri);
         }
         queue.close();
         if (settings.getAsBoolean("detect-unknown", false)) {
@@ -66,25 +63,44 @@ public abstract class HoldingsFeeder extends Feeder {
         }
     }
 
+    @Override
+    protected void performIndexSwitch() throws IOException {
+        if (settings.getAsBoolean("mock", false)) {
+            logger.warn("not doing alias when mock is active");
+            return;
+        }
+        if (!settings.getAsBoolean("aliases", true)) {
+            logger.warn("not doing alias settings because of configuration");
+            return;
+        }
+        IndexDefinition def = indexDefinitionMap.get("hol");
+        if (def == null ||  def.getTimeWindow() == null) {
+            logger.warn("not doing index switch when index is not time windowed");
+            return;
+        }
+        List<String> aliases = new LinkedList<>();
+        ingest.switchAliases(def.getIndex(), def.getConcreteIndex(), aliases);
+        elasticsearchOutput.retention(ingest, def);
+    }
+
     protected MARCEntityQueue createQueue(Map<String,Object> params) {
-        return new MyQueue(params);
+        return new HolQueue(params);
     }
 
     protected abstract void process(InputStream in, MARCEntityQueue queue) throws IOException;
 
-    class MyQueue extends MARCEntityQueue {
+    class HolQueue extends MARCEntityQueue {
 
-        public MyQueue(Map<String,Object> params) {
+        public HolQueue(Map<String,Object> params) {
             super(settings.get("package", "org.xbib.analyzer.marc.hol"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements")
+                    settings.get("elements",  "/org/xbib/analyzer/marc/hol.json")
             );
         }
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            // write resource
             RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("hol").getConcreteIndex(),
                     indexDefinitionMap.get("hol").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
@@ -93,7 +109,8 @@ public abstract class HoldingsFeeder extends Feeder {
                 state.getResource().add("collection", settings.get("collection"));
             }
             builder.receive(state.getResource());
-            if (settings.getAsBoolean("mock", false)) {
+            getMetric().mark();
+            if (indexDefinitionMap.get("hol").isMock()) {
                 logger.debug("{}", builder.string());
             }
         }

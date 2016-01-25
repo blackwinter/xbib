@@ -168,18 +168,15 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
             PresentOperation present = new PresentOperation(
                     resultSetName, elementSetName, preferredRecordSyntax,
                     offset, length);
-            RecordHandler handler  = new RecordHandler() {
-                @Override
-                public void receivedRecord(Record record) {
-                    try {
-                        if (record instanceof ErrorRecord) {
-                            errors.write(record.getContent());
-                        } else {
-                            records.write(record.getContent());
-                        }
-                    } catch (IOException e) {
-                        logger.error(e.getMessage(), e);
+            RecordHandler handler  = record -> {
+                try {
+                    if (record instanceof ErrorRecord) {
+                        errors.write(record.getContent());
+                    } else {
+                        records.write(record.getContent());
                     }
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
                 }
             };
             present.execute(session, handler);
@@ -193,7 +190,6 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
         }
         return new ZSearchRetrieveResponse(this)
                 .setResultCount(search.getResultCount())
-                .setSession(session)
                 .setRecords(records.toByteArray())
                 .setErrors(errors.toByteArray());
     }

@@ -37,11 +37,11 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
 import java.io.BufferedWriter;
@@ -62,17 +62,18 @@ public class PublisherFile extends Analyzer {
     private final static Logger logger = LogManager.getLogger(PublisherFile.class.getName());
 
     @Override
-    public void run(org.xbib.common.settings.Settings settings) throws Exception {
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build());
-        Client client = search.client();
-        Map<String,Collection<Object>> publishers = new TreeMap<>();
+    public int run(Settings settings) throws Exception {
+        SearchTransportClient search = new SearchTransportClient();
         try {
+            search = search.init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+            Client client = search.client();
+            Map<String,Collection<Object>> publishers = new TreeMap<>();
             SearchRequestBuilder searchRequest = client.prepareSearch()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
@@ -143,11 +144,6 @@ public class PublisherFile extends Analyzer {
                     }
                 }
             }
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-        } finally {
-            search.shutdown();
-        }
         BufferedWriter fileWriter = getFileWriter(settings.get("output","publishers.tsv"));
         for (Map.Entry<String,Collection<Object>> entry : publishers.entrySet()) {
             fileWriter.write(entry.getKey());
@@ -158,6 +154,13 @@ public class PublisherFile extends Analyzer {
             fileWriter.write("\n");
         }
         fileWriter.close();
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
+        } finally {
+            search.shutdown();
+        }
+        return 0;
     }
 
 }

@@ -31,6 +31,8 @@
  */
 package org.xbib.tools.analyze;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -54,6 +56,8 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class HoldingsStatistics extends Analyzer {
 
+    private final static Logger logger = LogManager.getLogger(HoldingsStatistics.class);
+
     private Map<String,Integer> volume = new HashMap<>();
 
     private Map<String,Integer> online = new HashMap<>();
@@ -61,101 +65,107 @@ public class HoldingsStatistics extends Analyzer {
     private Map<String,Integer> singles = new HashMap<>();
 
     @Override
-    public void run(Settings settings) throws Exception {
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
-        Client client = search.client();
-        QueryBuilder queryBuilder = matchAllQuery();
-        SearchRequestBuilder searchRequestBuilder = client.prepareSearch()
-                .setIndices(settings.get("ezdb-index", "ezdb"))
-                .setTypes(settings.get("ezdb-type", "DateHoldings"))
-                .setSize(1000) // per shard
-                .setSearchType(SearchType.SCAN)
-                .setScroll(TimeValue.timeValueMinutes(1))
-                .setQuery(queryBuilder)
-                .addFields("institution.service.serviceisil", "institution.service.carriertype");
-        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
-        while (searchResponse.getScrollId() != null) {
-            searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+    public int run(Settings settings) throws Exception {
+        try {
+            SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+            Client client = search.client();
+            QueryBuilder queryBuilder = matchAllQuery();
+            SearchRequestBuilder searchRequestBuilder = client.prepareSearch()
+                    .setIndices(settings.get("ezdb-index", "ezdb"))
+                    .setTypes(settings.get("ezdb-type", "DateHoldings"))
+                    .setSize(1000) // per shard
+                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMinutes(1))
-                    .execute().actionGet();
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit hit : hits) {
-                List<Object> isils = hit.getFields().containsKey("institution.service.serviceisil") ?
-                        hit.getFields().get("institution.service.serviceisil").getValues() : Collections.EMPTY_LIST;
-                List<Object> carriers = hit.getFields().containsKey("institution.service.carriertype") ?
-                        hit.getFields().get("institution.service.carriertype").getValues() : Collections.EMPTY_LIST;
-                for (int i = 0; i < isils.size(); i++) {
-                    String isil = isils.get(i).toString();
-                    switch (carriers.get(i).toString()) {
-                        case "volume" : {
-                            if (volume.containsKey(isil)) {
-                                volume.put(isil, volume.get(isil) + 1);
-                            } else {
-                                volume.put(isil, 1);
+                    .setQuery(queryBuilder)
+                    .addFields("institution.service.serviceisil", "institution.service.carriertype");
+            SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+            while (searchResponse.getScrollId() != null) {
+                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMinutes(1))
+                        .execute().actionGet();
+                SearchHits hits = searchResponse.getHits();
+                if (hits.getHits().length == 0) {
+                    break;
+                }
+                for (SearchHit hit : hits) {
+                    List<Object> isils = hit.getFields().containsKey("institution.service.serviceisil") ?
+                            hit.getFields().get("institution.service.serviceisil").getValues() : Collections.EMPTY_LIST;
+                    List<Object> carriers = hit.getFields().containsKey("institution.service.carriertype") ?
+                            hit.getFields().get("institution.service.carriertype").getValues() : Collections.EMPTY_LIST;
+                    for (int i = 0; i < isils.size(); i++) {
+                        String isil = isils.get(i).toString();
+                        switch (carriers.get(i).toString()) {
+                            case "volume": {
+                                if (volume.containsKey(isil)) {
+                                    volume.put(isil, volume.get(isil) + 1);
+                                } else {
+                                    volume.put(isil, 1);
+                                }
+                                break;
                             }
-                            break;
-                        }
-                        case "online resource" : {
-                            if (online.containsKey(isil)) {
-                                online.put(isil, online.get(isil) + 1);
-                            } else {
-                                online.put(isil, 1);
+                            case "online resource": {
+                                if (online.containsKey(isil)) {
+                                    online.put(isil, online.get(isil) + 1);
+                                } else {
+                                    online.put(isil, 1);
+                                }
+                                break;
                             }
-                            break;
+                            default:
+                                break;
                         }
-                        default:
-                            break;
+                    }
+                    if (isils.size() == 1) {
+                        String isil = isils.get(0).toString();
+                        if (singles.containsKey(isil)) {
+                            singles.put(isil, singles.get(isil) + 1);
+                        } else {
+                            singles.put(isil, 1);
+                        }
                     }
                 }
-                if (isils.size() == 1) {
-                    String isil = isils.get(0).toString();
-                    if (singles.containsKey(isil)) {
-                        singles.put(isil, singles.get(isil) + 1);
-                    } else {
-                        singles.put(isil, 1);
-                    }
-                }
             }
-        }
 
-        Map<String,Integer> sortedVolumes = sortByValue(volume);
-        BufferedWriter fileWriter = getFileWriter("volumes-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedVolumes.entrySet()) {
-            fileWriter.write(entry.getKey());
-            fileWriter.write("\t");
-            fileWriter.write(Integer.toString(entry.getValue()));
-            fileWriter.write("\n");
-        }
-        fileWriter.close();
+            Map<String, Integer> sortedVolumes = sortByValue(volume);
+            BufferedWriter fileWriter = getFileWriter("volumes-statistics.txt");
+            for (Map.Entry<String, Integer> entry : sortedVolumes.entrySet()) {
+                fileWriter.write(entry.getKey());
+                fileWriter.write("\t");
+                fileWriter.write(Integer.toString(entry.getValue()));
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
 
-        Map<String,Integer> sortedOnline = sortByValue(online);
-        fileWriter = getFileWriter("online-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedOnline.entrySet()) {
-            fileWriter.write(entry.getKey());
-            fileWriter.write("\t");
-            fileWriter.write(Integer.toString(entry.getValue()));
-            fileWriter.write("\n");
-        }
-        fileWriter.close();
+            Map<String, Integer> sortedOnline = sortByValue(online);
+            fileWriter = getFileWriter("online-statistics.txt");
+            for (Map.Entry<String, Integer> entry : sortedOnline.entrySet()) {
+                fileWriter.write(entry.getKey());
+                fileWriter.write("\t");
+                fileWriter.write(Integer.toString(entry.getValue()));
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
 
-        Map<String,Integer> sortedSingles = sortByValue(singles);
-        fileWriter = getFileWriter("single-statistics.txt");
-        for (Map.Entry<String, Integer> entry : sortedSingles.entrySet()) {
-            fileWriter.write(entry.getKey());
-            fileWriter.write("\t");
-            fileWriter.write(Integer.toString(entry.getValue()));
-            fileWriter.write("\n");
+            Map<String, Integer> sortedSingles = sortByValue(singles);
+            fileWriter = getFileWriter("single-statistics.txt");
+            for (Map.Entry<String, Integer> entry : sortedSingles.entrySet()) {
+                fileWriter.write(entry.getKey());
+                fileWriter.write("\t");
+                fileWriter.write(Integer.toString(entry.getValue()));
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
         }
-        fileWriter.close();
+        return 0;
     }
 
     static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {

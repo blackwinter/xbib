@@ -2,6 +2,9 @@
   "index" : {
     "number_of_shards" : 3,
     "number_of_replicas" : 0,
+    "mapper" : {
+      "dynamic" : false
+    },
     "analysis" : {
       "filter" : {
         "snowball_german_umlaut" : {

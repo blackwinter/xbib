@@ -32,16 +32,19 @@
 package asn1;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * Representation of an ASN.1 OCTET STRING.
- * <p/>
+ *
  * This class is used to store an ASN.1 OCTET STRING which is an
  * arbitary string of octets (eight-bit values). An OCTET STRING
  * can have any length including zero. The type is a string type.
  *
  */
 public class ASN1OctetString extends ASN1Any {
+
+    private final static Charset ISO88591 = Charset.forName("ISO-8859-1");
   /*
    * This constant is the ASN.1 UNIVERSAL tag value for OCTET STRING.
    */
@@ -55,9 +58,7 @@ public class ASN1OctetString extends ASN1Any {
 
     public ASN1OctetString(byte data[]) {
         octets = new byte[data.length];
-        for (int i = 0; i < data.length; i++) {
-            octets[i] = data[i];
-        }
+        System.arraycopy(data, 0, octets, 0, data.length);
     }
 
     /**
@@ -67,11 +68,7 @@ public class ASN1OctetString extends ASN1Any {
      */
 
     public ASN1OctetString(String str) {
-        try {
-            octets = str.getBytes("ISO-8859-1");
-        } catch (UnsupportedEncodingException ex) {
-            octets = str.getBytes();
-        }
+        octets = str.getBytes(ISO88591);
     }
 
     /**
@@ -113,15 +110,11 @@ public class ASN1OctetString extends ASN1Any {
 
             StringBuffer buf = new StringBuffer(encoding.length);
 
-            for (int x = 0; x < encoding.length; x++) {
-                buf.append((char) (encoding[x] & 0x00ff));
+            for (int anEncoding : encoding) {
+                buf.append((char) (anEncoding & 0x00ff));
             }
 
-            try {
-                octets = new String(buf).getBytes("ISO-8859-1");
-            } catch (UnsupportedEncodingException ex) {
-                octets = new String(buf).getBytes();
-            }
+            octets = new String(buf).getBytes(ISO88591);
 
         } else {
             // not implemented yet ???
@@ -182,9 +175,7 @@ public class ASN1OctetString extends ASN1Any {
 
     public ASN1OctetString set(byte[] octet_array) {
         octets = new byte[octet_array.length];
-        for (int i = 0; i < octet_array.length; i++) {
-            octets[i] = octet_array[i];
-        }
+        System.arraycopy(octet_array, 0, octets, 0, octet_array.length);
         return this;
     }
 
@@ -195,13 +186,8 @@ public class ASN1OctetString extends ASN1Any {
      * @return the object.
      */
 
-    public ASN1OctetString
-    set(String str) {
-        try {
-            octets = str.getBytes("ISO-8859-1");
-        } catch (UnsupportedEncodingException ex) {
-            octets = str.getBytes();
-        }
+    public ASN1OctetString set(String str) {
+        octets = str.getBytes(ISO88591);
         return this;
     }
 
@@ -211,13 +197,8 @@ public class ASN1OctetString extends ASN1Any {
      * @return the OCTET STRING's current value.
      */
 
-    public String
-    get() {
-        try {
-            return new String(octets, "ISO-8859-1");
-        } catch (UnsupportedEncodingException ex) {
-            return new String(octets);
-        }
+    public String get() {
+        return new String(octets, ISO88591);
     }
 
     /**
@@ -246,8 +227,8 @@ public class ASN1OctetString extends ASN1Any {
         int printable = 0;
         int binary = 0;
 
-        for (int x = 0; x < size; x++) {
-            char octet = (char) octets[x];
+        for (byte octet1 : octets) {
+            char octet = (char) octet1;
 
             if ((' ' <= octet && octet <= '~') ||
                     octet == '\n') {
@@ -262,8 +243,8 @@ public class ASN1OctetString extends ASN1Any {
 
             buf.append('"');
 
-            for (int x = 0; x < size; x++) {
-                char octet = (char) octets[x];
+            for (byte octet1 : octets) {
+                char octet = (char) octet1;
 
                 if (' ' <= octet && octet <= '~') {
                     // Printable character
@@ -302,8 +283,8 @@ public class ASN1OctetString extends ASN1Any {
 
             buf.append('\'');
 
-            for (int x = 0; x < size; x++) {
-                char octet = (char) octets[x];
+            for (byte octet1 : octets) {
+                char octet = (char) octet1;
                 char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                         'a', 'b', 'c', 'd', 'e', 'f'};
 

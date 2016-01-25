@@ -204,15 +204,18 @@ public class DefaultSpecification implements Specification {
 
     @Override
     public Entity getEntity(String key, Map map) {
-        int pos = key != null ? key.indexOf('$') : 0;
+        if (key == null) {
+            return null;
+        }
+        int pos = key.indexOf('$');
         String h = pos > 0 ? key.substring(0, pos) : null;
         String t = pos > 0 ? key.substring(pos+1) : key;
-        return getElement(h, t, map);
+        return getEntity(h, t, map);
     }
 
     @Override
     public Entity getEntityByKey(String key, Map map) {
-        return getElement(null, key, map);
+        return getEntity(null, key, map);
     }
 
     public Map addKey(String value, Entity entity, Map map) {
@@ -231,7 +234,7 @@ public class DefaultSpecification implements Specification {
         mapper.writeValue(writer, elements);
     }
 
-    private Entity getElement(String head, String tail, Map map) {
+    private Entity getEntity(String head, String tail, Map map) {
         if (head == null) {
             return (Entity)map.get(tail);
         }
@@ -240,7 +243,7 @@ public class DefaultSpecification implements Specification {
         String t = pos > 0 ? tail.substring(pos+1) : tail;
         Object o = map.get(head);
         if (o != null) {
-            return o instanceof Map ? getElement(h, t, (Map)o) :
+            return o instanceof Map ? getEntity(h, t, (Map)o) :
                    o instanceof Entity ? (Entity)o : null;
         } else {
             return null;

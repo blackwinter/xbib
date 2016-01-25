@@ -10,8 +10,9 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.output.IndexDefinition;
+import org.xbib.util.InputService;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -54,16 +54,11 @@ public abstract class BibliographicFeeder extends Feeder {
                     }
                 });
         queue.execute();
-        String fileName = uri.getSchemeSpecificPart();
-        InputStream in = new FileInputStream(fileName);
-        try {
-            ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
-            if (fileName.endsWith(".gz")) {
-                in = bufferSize != null ? new GZIPInputStream(in, bufferSize.bytesAsInt()) : new GZIPInputStream(in);
-            }
+        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
+        try (InputStream in = InputService.getInputStream(uri, uri.getSchemeSpecificPart(), bufferSize)) {
+            logger.info("start of processing {}", uri);
             process(in, queue);
-        } finally {
-            in.close();
+            logger.info("end of processing {}", uri);
         }
         queue.close();
         if (settings.getAsBoolean("detect-unknown", false)) {
@@ -72,40 +67,57 @@ public abstract class BibliographicFeeder extends Feeder {
     }
 
     @Override
-    protected void disposeOutput() throws IOException {
-        if (settings.getAsBoolean("aliases", false) && !settings.getAsBoolean("mock", false)) {
-            if ("DE-605".equals(settings.get("identifier"))) {
-                List<String> aliases = new LinkedList<>();
-                aliases.add(settings.get("identifier"));
-                Map<String, String> sigel2isil = ValueMaps.getAssocStringMap(getClass().getClassLoader(),
-                        settings.get("sigel2isil", "/org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
-                // only one (or none) hyphen = "main ISIL"
-                aliases.addAll(sigel2isil.values().stream()
-                        .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
-                ingest.switchAliases(indexDefinitionMap.get("bib").getIndex(),
-                        indexDefinitionMap.get("bib").getConcreteIndex(),
-                        aliases,
+    protected void performIndexSwitch() throws IOException {
+        if (settings.getAsBoolean("mock", false)) {
+            logger.warn("not doing alias when mock is active");
+            return;
+        }
+        if (!settings.getAsBoolean("aliases", true)) {
+            logger.warn("not doing alias settings because of configuration");
+            return;
+        }
+        IndexDefinition def = indexDefinitionMap.get("bib");
+        if (def == null ||  def.getTimeWindow() == null) {
+            logger.warn("not doing index switch when index is not time windowed");
+            return;
+        }
+        String identifier = settings.get("catalogid");
+        List<String> aliases = new LinkedList<>();
+        if (identifier != null) {
+            aliases.add(identifier);
+            if ("DE-605".equals(identifier)) {
+                // only for DE-605, add special "sigel list" as aliases
+                try {
+                    ValueMaps valueMaps = new ValueMaps();
+                    Map<String, String> sigel2isil = valueMaps.getAssocStringMap(settings.get("sigel2isil",
+                            "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
+                    // only one (or none) hyphen = "main ISIL"
+                    aliases.addAll(sigel2isil.values().stream()
+                            .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
+                } catch (Exception e) {
+                    logger.warn("error, sigel2isil not used for aliases");
+                }
+                ingest.switchAliases(def.getIndex(), def.getConcreteIndex(), aliases,
                         (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
             } else {
-                ingest.switchAliases(indexDefinitionMap.get("bib").getIndex(),
-                        indexDefinitionMap.get("bib").getConcreteIndex(),
-                        Collections.singletonList(settings.get("identifier")));
+                ingest.switchAliases(def.getIndex(), def.getConcreteIndex(), aliases);
             }
+            elasticsearchOutput.retention(ingest, def);
         } else {
-            logger.info("not doing alias settings because of configuration");
+            ingest.switchAliases(def.getIndex(), def.getConcreteIndex(), aliases);
+            elasticsearchOutput.retention(ingest, def);
         }
-        super.disposeOutput();
     }
 
     protected MARCEntityQueue createQueue(Map<String,Object> params) {
-        return new MyQueue(params);
+        return new BibQueue(params);
     }
 
     protected abstract void process(InputStream in, MARCEntityQueue queue) throws IOException;
 
-    class MyQueue extends MARCEntityQueue {
+    class BibQueue extends MARCEntityQueue {
 
-        public MyQueue(Map<String,Object> params) {
+        public BibQueue(Map<String,Object> params) {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),
@@ -123,7 +135,8 @@ public abstract class BibliographicFeeder extends Feeder {
                 state.getResource().add("collection", settings.get("collection"));
             }
             builder.receive(state.getResource());
-            if (settings.getAsBoolean("mock", false)) {
+            getMetric().mark();
+            if (indexDefinitionMap.get("bib").isMock()) {
                 logger.debug("{}", builder.string());
             }
         }

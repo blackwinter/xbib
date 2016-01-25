@@ -35,7 +35,6 @@ import org.xbib.sru.SRUVersion;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.SRUFilterReader;
 import org.xbib.io.iso23950.ZResponse;
-import org.xbib.io.iso23950.ZSession;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xml.sax.InputSource;
@@ -54,8 +53,6 @@ public class ZSearchRetrieveResponse extends SearchRetrieveResponse
 
     private SearchRetrieveRequest request;
 
-    private ZSession session;
-
     private byte[] records;
 
     private String format;
@@ -67,11 +64,6 @@ public class ZSearchRetrieveResponse extends SearchRetrieveResponse
     public ZSearchRetrieveResponse(SearchRetrieveRequest request) {
         super(request);
         this.request = request;
-    }
-
-    public ZSearchRetrieveResponse setSession(ZSession session) {
-        this.session = session;
-        return this;
     }
 
     public ZSearchRetrieveResponse setRecords(byte[] records) {
@@ -119,10 +111,6 @@ public class ZSearchRetrieveResponse extends SearchRetrieveResponse
             SRUVersion version = SRUVersion.fromString(request.getVersion());
             if (getStylesheets(version) != null) {
                 getTransformer().transform(Arrays.asList(getStylesheets(version)));
-            } else {
-                // this gives NPE in Saxon!
-                // t net.sf.saxon.event.ReceivingContentHandler.getNodeName(ReceivingContentHandler.java:391)
-                //getTransformer().transform();
             }
         } catch (Exception e) {
             throw new IOException(e);

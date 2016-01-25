@@ -53,26 +53,25 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class SerialsOfArticlesFile extends Analyzer {
 
-    private final static Logger logger = LogManager.getLogger(SerialsOfArticlesFile.class.getSimpleName());
-
-    private final static Set<String> issns = new TreeSet<>();
+    private final static Logger logger = LogManager.getLogger(SerialsOfArticlesFile.class);
 
     @Override
-    public void run(Settings settings) throws Exception {
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
-        Client client = search.client();
+    public int run(Settings settings) throws Exception {
+        SearchTransportClient search = new SearchTransportClient();
         try {
+            search = search.init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+
+            Client client = search.client();
             SearchRequestBuilder searchRequest = client.prepareSearch()
                     .setIndices(settings.get("articles-index", "articles"))
                     .setTypes(settings.get("articles-type", "articles"))
                     .setSize(1000) // per shard
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMillis(1000));
 
             QueryBuilder queryBuilder = matchAllQuery();
@@ -80,6 +79,7 @@ public class SerialsOfArticlesFile extends Analyzer {
                     .addFields("frbr:partOf.prism:issn");
 
             SearchResponse searchResponse = searchRequest.execute().actionGet();
+            Set<String> issns = new TreeSet<>();
             while (searchResponse.getScrollId() != null) {
                 searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(1000))
@@ -97,17 +97,19 @@ public class SerialsOfArticlesFile extends Analyzer {
                     }
                 }
             }
+            BufferedWriter fileWriter = getFileWriter(settings.get("output","serials.tsv"));
+            for (String issn : issns) {
+                fileWriter.write(issn);
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             search.shutdown();
         }
-        BufferedWriter fileWriter = getFileWriter(settings.get("output","serials.tsv"));
-        for (String issn : issns) {
-            fileWriter.write(issn);
-            fileWriter.write("\n");
-        }
-        fileWriter.close();
+        return 0;
     }
 
 }

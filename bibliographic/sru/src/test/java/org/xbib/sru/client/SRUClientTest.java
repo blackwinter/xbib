@@ -52,11 +52,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.ConnectException;
 import java.net.URI;
 import java.text.Normalizer;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 
 public class SRUClientTest {
 
@@ -148,8 +146,9 @@ public class SRUClientTest {
             client.close();
             writer.close();
             out.close();
-        } catch (ConnectException| ExecutionException e) {
-            logger.warn("skipped, can not connect");
+        } catch (Exception e) {
+            // we tolerate failures
+            logger.warn(e.getMessage(), e);
         }
     }
 
@@ -274,8 +273,9 @@ public class SRUClientTest {
                 w.close();
                 out.close();
             }
-        } catch (ConnectException | ExecutionException e) {
-            logger.warn("skipped, can not connect");
+        } catch (Exception e) {
+            // we tolerate failures but log them
+            logger.warn(e.getMessage(), e);
         }
     }
 }

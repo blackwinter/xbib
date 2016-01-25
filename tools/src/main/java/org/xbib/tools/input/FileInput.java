@@ -63,6 +63,7 @@ public class FileInput {
                         request.set(URI.create(input));
                         queue.put(request);
                     } else {
+                        logger.warn("not putting into queue because of key {}", inputKey);
                         fileMap.put(inputKey, Arrays.asList(inputs));
                     }
                 }
@@ -83,6 +84,7 @@ public class FileInput {
                         }
                     }
                 } else {
+                    logger.warn("not putting into queue because of key {}", inputKey);
                     fileMap.put(inputKey, Collections.singletonList(input));
                 }
             } else if (inputSettings.get("pattern") != null) {
@@ -107,6 +109,7 @@ public class FileInput {
                         }
                     }
                 } else {
+                    logger.warn("not putting into queue because of key {}", inputKey);
                     fileMap.put(inputKey, uris.stream().map(URI::toString).collect(Collectors.toList()));
                 }
             } else if (inputSettings.get("archive") != null) {
@@ -118,6 +121,7 @@ public class FileInput {
                     element.set(uri);
                     queue.put(element);
                 } else {
+                    logger.warn("not putting into queue because of key {}", inputKey);
                     fileMap.put(inputKey, Collections.singletonList(archive));
                 }
             }

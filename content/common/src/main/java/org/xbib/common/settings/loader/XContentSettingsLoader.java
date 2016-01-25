@@ -20,11 +20,8 @@ public abstract class XContentSettingsLoader implements SettingsLoader {
 
     @Override
     public Map<String, String> load(String source) throws IOException {
-        XContentParser parser = content().createParser(source);
-        try {
+        try (XContentParser parser = content().createParser(source)) {
             return load(parser);
-        } finally {
-            parser.close();
         }
     }
 
@@ -61,8 +58,6 @@ public abstract class XContentSettingsLoader implements SettingsLoader {
                 serializeArray(settings, sb, path, parser, currentFieldName);
             } else if (token == XContentParser.Token.FIELD_NAME) {
                 currentFieldName = parser.currentName();
-            } else if (token == XContentParser.Token.VALUE_NULL) {
-                // ignore this
             } else {
                 serializeValue(settings, sb, path, parser, currentFieldName);
 
@@ -84,8 +79,6 @@ public abstract class XContentSettingsLoader implements SettingsLoader {
                 serializeArray(settings, sb, path, parser, fieldName + '.' + (counter++));
             } else if (token == XContentParser.Token.FIELD_NAME) {
                 fieldName = parser.currentName();
-            } else if (token == XContentParser.Token.VALUE_NULL) {
-                // ignore
             } else {
                 serializeValue(settings, sb, path, parser, fieldName + '.' + (counter++));
             }

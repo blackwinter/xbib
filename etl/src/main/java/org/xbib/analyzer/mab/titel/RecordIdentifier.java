@@ -58,6 +58,7 @@ public class RecordIdentifier extends MABEntity {
     private String catalogid = "";
 
     @Override
+    @SuppressWarnings("unchecked")
     public MABEntity setSettings(Map params) {
         super.setSettings(params);
         if (params.containsKey("_prefix")) {

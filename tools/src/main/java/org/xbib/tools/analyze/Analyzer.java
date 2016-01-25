@@ -31,11 +31,6 @@
  */
 package org.xbib.tools.analyze;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.xbib.common.settings.Settings;
-import org.xbib.common.settings.loader.SettingsLoader;
-import org.xbib.common.settings.loader.SettingsLoaderFactory;
 import org.xbib.tools.Processor;
 
 import java.io.BufferedReader;
@@ -43,19 +38,11 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.Charset;
 
-import static org.xbib.common.settings.Settings.settingsBuilder;
-
 abstract class Analyzer implements Processor {
-
-    private final static Logger logger = LogManager.getLogger(Analyzer.class.getSimpleName());
 
     protected final static Charset UTF8 = Charset.forName("UTF-8");
 
@@ -66,37 +53,5 @@ abstract class Analyzer implements Processor {
     protected BufferedWriter getFileWriter(String name) throws FileNotFoundException {
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name), UTF8));
     }
-
-    @Override
-    public int from(String arg) throws Exception {
-        InputStream in;
-        try {
-            URL url = new URL(arg);
-            in = url.openStream();
-        } catch (MalformedURLException e) {
-            in = new FileInputStream(arg);
-        }
-        try (Reader reader = new InputStreamReader(in, UTF8)) {
-            return from(arg, reader);
-        }
-    }
-
-    @Override
-    public int from(String arg, Reader reader) throws Exception {
-        try {
-            SettingsLoader settingsLoader = SettingsLoaderFactory.loaderFromResource(arg);
-            Settings settings = settingsBuilder()
-                    .put(settingsLoader.load(Settings.copyToString(reader)))
-                    .replacePropertyPlaceholders()
-                    .build();
-            run(settings);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
-        }
-        return 0;
-    }
-
-    protected abstract void run(Settings settings) throws Exception;
 
 }

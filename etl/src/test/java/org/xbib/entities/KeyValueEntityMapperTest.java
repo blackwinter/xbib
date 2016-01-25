@@ -34,7 +34,6 @@ package org.xbib.entities;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.etl.marc.MARCSpecification;
-import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
@@ -49,7 +48,7 @@ public class KeyValueEntityMapperTest extends Assert {
         String value = "100$01$abc";
         Entity entity = new NullEntity();
         Map map = new TreeMap(); // for sorted output in assertEquals matching
-        DefaultSpecification specification = new MARCSpecification();
+        MARCSpecification specification = new MARCSpecification();
         Map m = specification.addKey(value, entity, map);
         value = "100$02$abc";
         entity = new NullEntity();
@@ -81,6 +80,22 @@ public class KeyValueEntityMapperTest extends Assert {
         c.add(f);
         c.add(f1);
         c.add(f2);
+        Entity e = specification.getEntity(c.toKey(), m);
+        assertNotNull(e);
+    }
+
+    @Test
+    public void testMARCControlField() {
+        String value = "001";
+        Entity entity = new NullEntity();
+        Map map = new TreeMap(); // for sorted output in assertEquals matching
+        MARCSpecification specification = new MARCSpecification();
+        Map m = specification.addKey(value, entity, map);
+        Field f = new Field().tag("001");
+        Field f1 = new Field(f).data("123456");
+        FieldList c = new FieldList();
+        c.add(f);
+        c.add(f1);
         Entity e = specification.getEntity(c.toKey(), m);
         assertNotNull(e);
     }

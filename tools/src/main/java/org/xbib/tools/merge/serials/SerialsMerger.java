@@ -38,7 +38,6 @@ import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -47,7 +46,6 @@ import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
@@ -134,13 +132,16 @@ public class SerialsMerger extends Merger {
     }
 
     @Override
-    public void run(Settings settings) throws Exception {
+    public int run(Settings settings) throws Exception {
         this.serialsMerger = this;
         this.settings = settings;
         try {
             super.run(settings);
             // send poison elements and wait for completion
             getPipeline().waitFor(new TitelRecordRequest());
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             getPipeline().shutdown();
             logger.info("query: started {}, ended {}, took {}, count = {}",
@@ -162,6 +163,7 @@ public class SerialsMerger extends Merger {
             search.shutdown();
             logger.info("run complete");
         }
+        return 0;
     }
 
     @Override
@@ -217,8 +219,8 @@ public class SerialsMerger extends Merger {
         logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
 
         logger.info("preparing status code mapper...");
-        Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
-                "org/xbib/analyzer/mab/status.json", "status");
+        ValueMaps valueMaps = new ValueMaps();
+        Map<String,Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
         statusCodeMapper = new StatusCodeMapper();
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared");
@@ -355,9 +357,7 @@ public class SerialsMerger extends Merger {
         String indexSettingsLocation = settings.get("index-settings",
                 "classpath:" + packageName + "/settings.json");
         logger.info("using index settings from {}", indexSettingsLocation);
-        URL indexSettingsUrl = (indexSettingsLocation.startsWith("classpath:") ?
-                new URL(null, indexSettingsLocation, new ClasspathURLStreamHandler()) :
-                new URL(indexSettingsLocation));
+        URL indexSettingsUrl = new URL(indexSettingsLocation);
         logger.info("creating index {}", index);
         ingest.newIndex(index, org.elasticsearch.common.settings.Settings.settingsBuilder()
                 .loadFromStream(indexSettingsUrl.toString(), indexSettingsUrl.openStream()).build(), null);
@@ -366,9 +366,7 @@ public class SerialsMerger extends Merger {
         String indexMappingsLocation = settings.get("index-mapping",
                 "classpath:" + packageName + "/mapping.json");
         logger.info("using index mappings from {}", indexMappingsLocation);
-        URL indexMappingsUrl = (indexMappingsLocation.startsWith("classpath:") ?
-                new URL(null, indexMappingsLocation, new ClasspathURLStreamHandler()) :
-                new URL(indexMappingsLocation));
+        URL indexMappingsUrl = new URL(indexMappingsLocation);
         Map<String,Object> indexMappings = Settings.settingsBuilder()
                 .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
         if (indexMappings != null) {

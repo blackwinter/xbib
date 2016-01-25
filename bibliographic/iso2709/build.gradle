@@ -6,6 +6,10 @@ configurations {
 
 test {
     classpath += configurations.provided
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
 }
 
 dependencies {

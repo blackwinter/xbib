@@ -66,56 +66,56 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
 
     private final static Logger logger = LogManager.getLogger(ISSNsOfZDBInJournalTOCs.class.getName());
 
-    String issn;
 
     @Override
-    public void run(Settings settings) throws Exception {
-        Set<String> issns = new TreeSet<>();
-        NettyHttpSession session = new NettyHttpSession();
-        session.open(Session.Mode.READ);
-        HttpRequest httpRequest = session.newRequest();
-        final AtomicInteger found = new AtomicInteger();
-        final AtomicInteger notfound =  new AtomicInteger();;
-
-        HttpResponseListener listener = new HttpResponseListener() {
-            @Override
-            public void receivedResponse(HttpResponse response) throws IOException {
-                logger.info("status={}", response.getStatusCode());
-            }
-
-            @Override
-            public void onConnect(Request request) throws IOException {
-            }
-
-            @Override
-            public void onDisconnect(Request request) throws IOException {
-            }
-
-            @Override
-            public void onReceive(Request request, CharSequence message) throws IOException {
-                if (!message.toString().contains("has returned 0 articles")) {
-                    issns.add(issn);
-                    found.incrementAndGet();
-                } else {
-                    notfound.incrementAndGet();
-                }
-            }
-
-            @Override
-            public void onError(Request request, CharSequence errorMessage) throws IOException {
-
-            }
-        };
-
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
-        Client client = search.client();
+    public int run(Settings settings) throws Exception {
+        SearchTransportClient search = new SearchTransportClient();
         try {
+            Set<String> issns = new TreeSet<>();
+            NettyHttpSession session = new NettyHttpSession();
+            session.open(Session.Mode.READ);
+            HttpRequest httpRequest = session.newRequest();
+            final AtomicInteger found = new AtomicInteger();
+            final AtomicInteger notfound =  new AtomicInteger();;
+
+            HttpResponseListener listener = new HttpResponseListener() {
+                @Override
+                public void receivedResponse(HttpResponse response) throws IOException {
+                    logger.info("status={}", response.getStatusCode());
+                }
+
+                @Override
+                public void onConnect(Request request) throws IOException {
+                }
+
+                @Override
+                public void onDisconnect(Request request) throws IOException {
+                }
+
+                @Override
+                public void onReceive(Request request, CharSequence message) throws IOException {
+                    if (!message.toString().contains("has returned 0 articles")) {
+                        issns.add(getISSN());
+                        found.incrementAndGet();
+                    } else {
+                        notfound.incrementAndGet();
+                    }
+                }
+
+                @Override
+                public void onError(Request request, CharSequence errorMessage) throws IOException {
+
+                }
+            };
+
+            search = search.init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+            Client client = search.client();
             SearchRequestBuilder searchRequestBuilder = client.prepareSearch()
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
@@ -141,13 +141,13 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                     if (hit.getFields().containsKey("identifiers.issn")) {
                         List<Object> l = hit.getFields().get("identifiers.issn").getValues();
                         for (Object o : l) {
-                            issn = o.toString();
-                            if (issn.length() > 8) {
-                                issn = issn.substring(0,8); // cut to first 8 letters
+                            String s = o.toString();
+                            if (s.length() > 8) {
+                                s = s.substring(0,8); // cut to first 8 letters
                             }
-                            logger.info("issn={}", issn);
+                            setISSN(s);
                             httpRequest.setMethod("GET")
-                                    .setURL(URI.create("http://www.journaltocs.ac.uk/api/journals/" + issn))
+                                    .setURL(URI.create("http://www.journaltocs.ac.uk/api/journals/" + s))
                                     .addParameter("output", "articles")
                                     .addParameter("user", "joergprante@gmail.com")
                                     .prepare()
@@ -158,18 +158,30 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                     }
                 }
             }
+            session.close();
+            BufferedWriter fileWriter = getFileWriter(settings.get("output","journaltocs-issns.txt"));
+            for (String s : issns) {
+                fileWriter.write(s);
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             search.shutdown();
         }
-        session.close();
-        BufferedWriter fileWriter = getFileWriter(settings.get("output","journaltocs-issns.txt"));
-        for (String s : issns) {
-            fileWriter.write(s);
-            fileWriter.write("\n");
-        }
-        fileWriter.close();
+        return 0;
+    }
+
+    String issn;
+
+    public void setISSN(String issn) {
+        this.issn = issn;
+    }
+
+    public String getISSN() {
+        return issn;
     }
 
 }

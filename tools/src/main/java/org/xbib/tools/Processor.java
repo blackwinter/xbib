@@ -31,12 +31,10 @@
  */
 package org.xbib.tools;
 
-import java.io.Reader;
+import org.xbib.common.settings.Settings;
 
 public interface Processor {
 
-    int from(String arg) throws Exception;
-
-    int from(String arg, Reader reader) throws Exception;
+    int run(Settings settings) throws Exception;
 
 }

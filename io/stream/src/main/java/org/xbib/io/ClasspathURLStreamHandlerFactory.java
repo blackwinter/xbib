@@ -29,23 +29,20 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.etl.support;
+package org.xbib.io;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConfigurableStreamHandlerFactory implements URLStreamHandlerFactory {
+public class ClasspathURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
-    private final static Map<String, URLStreamHandler> protocolHandlers = new HashMap<String, URLStreamHandler>();
+    private final static Map<String, URLStreamHandler> protocolHandlers = new HashMap<String, URLStreamHandler>() {{
+        put("classpath", new ClasspathURLStreamHandler());
+    }};
 
-    static {
-        protocolHandlers.put("classpath", new ClasspathURLStreamHandler());
-    }
-
-    public ConfigurableStreamHandlerFactory(String protocol, URLStreamHandler urlHandler) {
-        addHandler(protocol, urlHandler);
+    public ClasspathURLStreamHandlerFactory() {
     }
 
     public void addHandler(String protocol, URLStreamHandler urlHandler) {

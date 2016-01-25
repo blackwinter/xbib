@@ -77,11 +77,11 @@
         }
     },
     "RecordIdentifier" : {
-        "values" : [
-        "001"
+        "values": [
+            "001"
         ],
-        "tags" : {
-            "001" : "identifierForTheRecord"
+        "subfields" : {
+            "" : "identifierForTheRecord"
         }
     },
     "PhysicalDescriptionCode" : {

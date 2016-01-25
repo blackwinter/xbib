@@ -1,0 +1,44 @@
+{
+  "processor" : {
+    "class" : "org.xbib.tools.feed.elasticsearch.zdb.MarcHol"
+  },
+  "input" : {
+    "queue" : {
+      "path" : "/data/zdb",
+      "pattern" : "1509zdbgesamtlokutf8.mrc.gz"
+    }
+  },
+  "output" : {
+    "elasticsearch" : {
+      "cluster" : "zbn",
+      "host" : [ "zephyros:9300", "boreas:9300", "notos:9300" ],
+      "autodetect" : true,
+      "maxbulkactions" : 2000,
+      "maxconcurrentbulkrequests" : 24,
+      "mock" : false,
+      "index" : {
+        "hol" : {
+          "name" : "zdbholdings",
+          "type" : "zdbholdings",
+          "settings" : "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/hol/settings.json",
+          "mapping": "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/hol/mapping.json",
+          "timewindow" : "yyyyMMddHH",
+          "aliases" : true,
+          "skiperrors" : true,
+          "replica" : 1,
+          "retention" : {
+            "enabled" : true,
+            "mintokeep" : 1
+          }
+        }
+      }
+    }
+  },
+  "concurrency" : 1,
+  "elements" : "/org/xbib/analyzer/marc/zdb/hol.json",
+  "package" : "org.xbib.analyzer.marc.zdb.hol",
+  "pipelines" : 24,
+  "collection" : "Zeitschriften",
+  "catalogid" : "DE-600",
+  "detect-unknown" : true
+}

@@ -27,8 +27,8 @@ public class WithHoldingAndLicensesTest extends Assert {
         isilMapped.buildLookup(getClass().getResourceAsStream("isil.map"));
         assertFalse(isilMapped.lookup().isEmpty());
 
-        Map<String,Object> statuscodes = ValueMaps.getMap(getClass().getClassLoader(),
-                "org/xbib/analyzer/mab/status.json", "status");
+        ValueMaps valueMaps = new ValueMaps();
+        Map<String,Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
         statusCodeMapper = new StatusCodeMapper();
         statusCodeMapper.add(statuscodes);
         assertFalse(statusCodeMapper.getMap().isEmpty());

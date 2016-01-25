@@ -11,7 +11,7 @@ import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.IndexAliasAdder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
+import org.xbib.elasticsearch.helper.client.MockTransportClient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +48,7 @@ public class ElasticsearchOutput {
                         Runtime.getRuntime().availableProcessors()))
                 .setMetric(new LongAdderIngestMetric());
         if (settings.getAsBoolean("mock", false)) {
+            logger.info("mock");
             return clientBuilder.toMockTransportClient();
         }
         if ("ingest".equals(settings.get("client"))) {
@@ -56,7 +57,8 @@ public class ElasticsearchOutput {
         return clientBuilder.toBulkTransportClient();
     }
 
-    public Map<String,IndexDefinition> makeIndexDefinitions(Ingest ingest, Map<String,Settings> map) {
+    public Map<String,IndexDefinition> makeIndexDefinitions(final Ingest ingest, Map<String,Settings> map) {
+        boolean mock = ingest.client() instanceof MockTransportClient;
         Map<String,IndexDefinition> defs = new LinkedHashMap<>();
         for (Map.Entry<String,Settings> entry : map.entrySet()) {
             Settings settings = entry.getValue();
@@ -71,8 +73,9 @@ public class ElasticsearchOutput {
             defs.put(entry.getKey(), new IndexDefinition(indexName, concreteIndexName,
                     settings.get("type"),
                     settings.get("settings", "classpath:org/xbib/tools/feed/elasticsearch/settings.json"),
-                    settings.get("mappings", "classpath:org/xbib/tools/feed/elasticsearch/mapping.json"),
+                    settings.get("mapping", "classpath:org/xbib/tools/feed/elasticsearch/mapping.json"),
                     timeWindow,
+                    settings.getAsBoolean("mock", mock),
                     settings.getAsBoolean("skiperrors", false),
                     settings.getAsBoolean("aliases", true),
                     settings.getAsBoolean("retention.enabled", false),
@@ -84,7 +87,7 @@ public class ElasticsearchOutput {
         return defs;
     }
 
-    public void createIndex(Ingest ingest, IndexDefinition indexDefinition) throws IOException {
+    public void createIndex(final Ingest ingest, final IndexDefinition indexDefinition) throws IOException {
         if (ingest == null || ingest.client() == null) {
             return;
         }
@@ -97,11 +100,8 @@ public class ElasticsearchOutput {
         if (indexMappings == null) {
             throw new IllegalArgumentException("no mappings deinfed for index " + indexDefinition.getIndex());
         }
-        try (InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
-                new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
-                new URL(indexSettings)).openStream(); InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
-                new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
-                new URL(indexMappings)).openStream()) {
+        try (InputStream indexSettingsInput = new URL(indexSettings).openStream();
+             InputStream indexMappingsInput = new URL(indexMappings).openStream()) {
             ingest.newIndex(indexDefinition.getConcreteIndex(), indexDefinition.getType(), indexSettingsInput, indexMappingsInput);
         } catch (Exception e) {
             if (!indexDefinition.ignoreErrors()) {
@@ -188,14 +188,20 @@ public class ElasticsearchOutput {
         }
     }
 
-
     public void retention(Ingest ingest, IndexDefinition indexDefinition) {
         if (ingest == null || ingest.client() == null) {
             return;
         }
-        if (indexDefinition.hasRetention() && indexDefinition.getTimestampDiff() > 0 &&  indexDefinition.getMinToKeep() > 0) {
-            ingest.performRetentionPolicy(indexDefinition.getIndex(), indexDefinition.getConcreteIndex(),
-                    indexDefinition.getTimestampDiff(), indexDefinition.getMinToKeep());
+        logger.info("retention parameters: name={} enabled={} timestampDiff={} minToKeep={}",
+                indexDefinition.getIndex(),
+                indexDefinition.hasRetention(),
+                indexDefinition.getTimestampDiff(),
+                indexDefinition.getMinToKeep());
+        if (indexDefinition.hasRetention() && (indexDefinition.getTimestampDiff() > 0 || indexDefinition.getMinToKeep() > 0)) {
+            ingest.performRetentionPolicy(indexDefinition.getIndex(),
+                    indexDefinition.getConcreteIndex(),
+                    indexDefinition.getTimestampDiff(),
+                    indexDefinition.getMinToKeep());
         }
     }
 

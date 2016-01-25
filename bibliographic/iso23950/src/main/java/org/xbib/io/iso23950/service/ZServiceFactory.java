@@ -19,11 +19,8 @@ public class ZServiceFactory {
 
     public static ZService getService(String name) throws IOException {
         Properties properties = new Properties();
-        InputStream in = instance.getClass().getResourceAsStream("/org/xbib/io/iso23950/service/" + name + ".properties");
-        if (in != null) {
+        try (InputStream in = instance.getClass().getResourceAsStream("/org/xbib/io/iso23950/service/" + name + ".properties")) {
             properties.load(in);
-        } else {
-            throw new IllegalArgumentException("service " + name + " not found");
         }
         URI uri = URI.create(properties.getProperty("uri"));
         ConnectionService<ZSession> service = ConnectionService.getInstance();

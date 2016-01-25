@@ -46,7 +46,6 @@ import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.etl.support.ClasspathURLStreamHandler;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.time.DateUtil;
@@ -110,7 +109,7 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    public void run(Settings settings) throws Exception {
+    public int run(Settings settings) throws Exception {
         this.merger = this;
         this.settings = settings;
         try {
@@ -130,6 +129,7 @@ public class ArticlesMerger extends Merger {
             logger.info("total={}", total);
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            return 1;
         } finally {
             getPipeline().shutdown();
             search.shutdown();
@@ -137,6 +137,7 @@ public class ArticlesMerger extends Merger {
             ingest.waitForResponses(TimeValue.timeValueSeconds(60));
             ingest.shutdown();
         }
+        return 0;
     }
 
     protected void prepareSink() throws Exception {
@@ -144,14 +145,10 @@ public class ArticlesMerger extends Merger {
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         String indexSettings = settings.get("target-index-settings",
                 "classpath:org/xbib/tools/merge/articles/settings.json");
-        InputStream indexSettingsInput = (indexSettings.startsWith("classpath:") ?
-                new URL(null, indexSettings, new ClasspathURLStreamHandler()) :
-                new URL(indexSettings)).openStream();
+        InputStream indexSettingsInput = new URL(indexSettings).openStream();
         String indexMappings = settings.get("target-index-mapping",
                 "classpath:org/xbib/tools/merge/articles/mapping.json");
-        InputStream indexMappingsInput = (indexMappings.startsWith("classpath:") ?
-                new URL(null, indexMappings, new ClasspathURLStreamHandler()) :
-                new URL(indexMappings)).openStream();
+        InputStream indexMappingsInput = new URL(indexMappings).openStream();
         ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
                 indexSettingsInput, indexMappingsInput);
         ingest.startBulk(settings.get("target-index"), -1, 1);

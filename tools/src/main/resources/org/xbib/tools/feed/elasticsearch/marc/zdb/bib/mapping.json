@@ -1,0 +1,1080 @@
+{
+  "date_detection": false,
+  "properties": {
+    "RecordIdentifier": {
+      "properties": {
+        "identifierForTheRecord": {
+          "type": "string",
+          "analyzer": "keyword",
+          "norms": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    "xbib": {
+      "properties": {
+        "uid": {
+          "type": "string",
+          "analyzer": "keyword",
+          "norms": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    "CatalogingSource": {
+      "properties": {
+        "agency": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "transcribingAgency": {
+          "type": "string"
+        },
+        "modifyingAgency": {
+          "type": "string"
+        }
+      }
+    },
+    "collection": {
+      "type": "string",
+      "analyzer": "keyword",
+      "norms": {
+        "enabled": false
+      }
+    },
+    "AbbreviatedTitle": {
+      "properties": {
+        "titleMain": {
+          "type": "string"
+        }
+      }
+    },
+    "ActionNote": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "dateOfAction": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "methodOfAction": {
+          "type": "string"
+        }
+      }
+    },
+    "AdditionalPhysicalFormNote": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "ClassificationNumber": {
+      "properties": {
+        "baseNumberText": {
+          "type": "string"
+        },
+        "sortkey": {
+          "type": "string"
+        },
+        "digitsFromclassificationNumber": {
+          "type": "string"
+        },
+        "digitsFromclassificationNumberText": {
+          "type": "string"
+        },
+        "tableIdentification": {
+          "type": "string"
+        },
+        "baseNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "ComputerFileNote": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "CorporateName": {
+      "properties": {
+        "corporateName": {
+          "type": "string"
+        },
+        "corporateNumber": {
+          "type": "string"
+        },
+        "corporateIdentifier": {
+          "type": "string"
+        },
+        "formatted": {
+          "type": "string"
+        },
+        "corporatePlace": {
+          "type": "string"
+        },
+        "corporateUnit": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "roleTerm": {
+          "type": "string"
+        }
+      }
+    },
+    "CustomIdentifier": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "DDCClassificationNumber": {
+      "properties": {
+        "agency": {
+          "type": "string"
+        },
+        "ddc": {
+          "type": "string"
+        },
+        "ddcSource": {
+          "type": "string"
+        },
+        "editionNumber": {
+          "type": "string"
+        },
+        "sequenceNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "Dates" : {
+      "type" : "long"
+    },
+    "DatesOfPublication": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "EditionStatement": {
+      "properties": {
+        "edition": {
+          "type": "string"
+        }
+      }
+    },
+    "ElectronicLocationAndAccess": {
+      "properties": {
+        "nonpublicnote": {
+          "type": "string"
+        },
+        "hostname": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "locationofhost": {
+          "type": "string"
+        },
+        "publicnote": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "relatedto": {
+          "type": "string"
+        }
+      }
+    },
+    "EnumerationAndChronology": {
+      "properties": {
+        "group": {
+          "properties": {
+            "beginvolume": {
+              "type": "string"
+            },
+            "beginpubdate": {
+              "type": "string"
+            },
+            "begindate": {
+              "type": "string"
+            },
+            "enddate": {
+              "type": "string"
+            },
+            "endpubdate": {
+              "type": "string"
+            },
+            "endvolume": {
+              "type": "string"
+            },
+            "open": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "Extent": {
+      "properties": {
+        "t": {
+          "type": "string"
+        },
+        "w": {
+          "type": "string"
+        },
+        "i": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "physicalDetails": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "accompanyingMaterial": {
+          "type": "string"
+        },
+        "dimensions": {
+          "type": "string"
+        }
+      }
+    },
+    "FormerTitle": {
+      "properties": {
+        "titleDatesOrSequentialDesignation": {
+          "type": "string"
+        },
+        "titleInformation": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "titleMain": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierCODEN": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierDNB": {
+      "properties": {
+        "identifierDNB": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierEAN": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierISBN": {
+      "properties": {
+        "formatted": {
+          "type": "string"
+        },
+        "incorrect": {
+          "type": "string"
+        },
+        "termsOfAvailability": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierISIL": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierISSN": {
+      "properties": {
+        "sourceISSNSource": {
+          "type": "string"
+        },
+        "incorrect": {
+          "type": "string"
+        },
+        "sourceISSN": {
+          "type": "string"
+        },
+        "value": {
+          "type": "standardnumber",
+          "fields": {
+            "standardnumber": {
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "IdentifierLCCN": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierNBN": {
+      "properties": {
+        "typeSource": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierPostal": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentifierZDB": {
+      "properties": {
+        "identifierEKI": {
+          "type": "string"
+        },
+        "identifierOCLC": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        }
+      }
+    },
+    "IndexNote": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "IssuingBodyNote": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "KeyTitle": {
+      "properties": {
+        "titleMain": {
+          "type": "string"
+        },
+        "titleRemainder": {
+          "type": "string"
+        }
+      }
+    },
+    "Language": {
+      "properties": {
+        "originalLanguage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueSource": {
+          "type": "string"
+        }
+      }
+    },
+    "LanguageNote": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "LocalNote": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "MeetingName": {
+      "properties": {
+        "titleOfWork": {
+          "type": "string"
+        },
+        "meetingIdentifier": {
+          "type": "string"
+        },
+        "miscellaneousInformation": {
+          "type": "string"
+        },
+        "dates": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "titles": {
+          "type": "string"
+        },
+        "subordinateUnit": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "numberOfPart": {
+          "type": "string"
+        },
+        "meetingName": {
+          "type": "string"
+        },
+        "relatorTerm": {
+          "type": "string"
+        },
+        "subjectIdentifier": {
+          "type": "string"
+        },
+        "relatorCode": {
+          "type": "string"
+        },
+        "locationOfMeeting": {
+          "type": "string"
+        },
+        "dateOfMeeting": {
+          "type": "string"
+        },
+        "miscInfo": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "NBNClassificationNumber": {
+      "properties": {
+        "valueText": {
+          "type": "string"
+        },
+        "agency": {
+          "type": "string"
+        },
+        "typeText": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "NormalizedDatesOfPublication": {
+      "properties": {
+        "firstLevelOfChronology": {
+          "type": "string"
+        },
+        "firstLevelOfEnumeration": {
+          "type": "string"
+        },
+        "firstLevelTextualDesignation": {
+          "type": "string"
+        },
+        "secondLevelOfChronology": {
+          "type": "string"
+        },
+        "secondLevelOfEnumeration": {
+          "type": "string"
+        },
+        "sequenceNumber": {
+          "type": "string"
+        },
+        "thirdLevelOfChronology": {
+          "type": "string"
+        }
+      }
+    },
+    "Note": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "NumberingNote": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "OfficialClassificationNumber": {
+      "properties": {
+        "valueText": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "OtherEditionEntry": {
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "relationSource": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "OtherIdentfier": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "OtherRelationshipEntry": {
+      "properties": {
+        "mainEntryHeading": {
+          "type": "string"
+        },
+        "issn": {
+          "type": "string"
+        },
+        "relationshipInformation": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "OtherStandardIdentifier": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "typeSource": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "PersonalName": {
+      "properties": {
+        "personalIdentifier": {
+          "type": "string"
+        },
+        "personalDate": {
+          "type": "string"
+        },
+        "personalNumeration": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "relatorTerm": {
+          "type": "string"
+        },
+        "personalInformation": {
+          "type": "string"
+        },
+        "personalName": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "personalNumber": {
+          "type": "string"
+        },
+        "personalTitle": {
+          "type": "string"
+        },
+        "roleTerm": {
+          "type": "string"
+        }
+      }
+    },
+    "PrecedingEntry": {
+      "properties": {
+        "issn": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "relationSource": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      }
+    },
+    "ProductionNote": {
+      "properties": {
+        "agencyResponsibleForReproduction": {
+          "type": "string"
+        },
+        "elementsOfReproduction": {
+          "type": "string"
+        },
+        "noteAboutReproduction": {
+          "type": "string"
+        },
+        "physicalDescriptionOfReproduction": {
+          "type": "string"
+        },
+        "placeOfReproduction": {
+          "type": "string"
+        },
+        "seriesStatementOfReproduction": {
+          "type": "string"
+        }
+      }
+    },
+    "PublicationStatement": {
+      "properties": {
+        "manufacturerName": {
+          "type": "string"
+        },
+        "placeOfPublication": {
+          "type": "string"
+        },
+        "publisherName": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "placeOfManufacture": {
+          "type": "string"
+        },
+        "dateOfPublication": {
+          "type": "string"
+        }
+      }
+    },
+    "PublishingCountry": {
+      "properties": {
+        "isoCountryCodes": {
+          "type": "string"
+        },
+        "isoCountryCodesSource": {
+          "type": "string"
+        }
+      }
+    },
+    "Subject": {
+      "properties": {
+        "dateOfWork": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "generalSubdivision": {
+          "type": "string"
+        },
+        "part": {
+          "type": "string"
+        },
+        "subjectIdentifier": {
+          "type": "string"
+        },
+        "geographicSubdivision": {
+          "type": "string"
+        },
+        "relatorCode": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "miscInfo": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SubjectCorporateName": {
+      "properties": {
+        "dateOfWork": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "numeration": {
+          "type": "string"
+        },
+        "titleOfAWork": {
+          "type": "string"
+        },
+        "part": {
+          "type": "string"
+        },
+        "subjectIdentifier": {
+          "type": "string"
+        },
+        "miscInfo": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SubjectPersonalName": {
+      "properties": {
+        "numeration": {
+          "type": "string"
+        },
+        "generalSubdivision": {
+          "type": "string"
+        },
+        "titleOfAWork": {
+          "type": "string"
+        },
+        "subjectIdentifier": {
+          "type": "string"
+        },
+        "dates": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "titles": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SucceedingEntry": {
+      "properties": {
+        "issn": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "relationSource": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      }
+    },
+    "SummaryNote": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SupplementParentEntry": {
+      "properties": {
+        "issn": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "relationSource": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      }
+    },
+    "SupplementSpecialIssueEntry": {
+      "properties": {
+        "issn": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "identifierZDB": {
+          "type": "string"
+        },
+        "identifierDNB": {
+          "type": "string"
+        },
+        "linkage": {
+          "type": "string"
+        },
+        "relationSource": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string"
+        }
+      }
+    },
+    "SystemDetailsNote": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "TitleStatement": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "titleMain": {
+          "type": "string"
+        },
+        "titleMedium": {
+          "type": "string"
+        },
+        "titlePartName": {
+          "type": "string"
+        },
+        "titlePartNumber": {
+          "type": "string"
+        },
+        "titleRemainder": {
+          "type": "string"
+        },
+        "titleStatement": {
+          "type": "string"
+        }
+      }
+    },
+    "TranslatedTitle": {
+      "properties": {
+        "titleLanguageCode": {
+          "type": "string"
+        },
+        "titleMain": {
+          "type": "string"
+        }
+      }
+    },
+    "VaryingTitle": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "titleMain": {
+          "type": "string"
+        },
+        "titleParallel": {
+          "type": "string"
+        }
+      }
+    },
+    "WithNote": {
+      "properties": {
+        "linkage": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "date1": {
+      "type": "long"
+    },
+    "date2": {
+      "type": "long"
+    },
+    "leader": {
+      "type": "string"
+    },
+    "OtherCodes": {
+      "properties": {
+        "genre": {
+          "type": "string"
+        },
+        "genreSource": {
+          "type": "string"
+        },
+        "paper": {
+          "type": "string"
+        },
+        "paperSource": {
+          "type": "string"
+        }
+      }
+    },
+    "physicalDescriptionElectronicResource": {
+      "type": "string"
+    },
+    "physicalDescriptionMicroform": {
+      "type": "string"
+    },
+    "physicalDescriptionText": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "TextualEnumerationAndChronology": {
+      "type": "string"
+    }
+  }
+}

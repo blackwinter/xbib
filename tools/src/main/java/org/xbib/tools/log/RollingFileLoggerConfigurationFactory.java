@@ -16,8 +16,8 @@ public class RollingFileLoggerConfigurationFactory extends ConfigurationFactory 
         builder.setConfigurationName(name);
         builder.setStatusLevel(Level.OFF);
         String fileName = "logs/xbib.log";
-        if (System.getProperty("log.filename") != null) {
-            fileName = System.getProperty("log.filename");
+        if (System.getProperty("log4j.filename") != null) {
+            fileName = System.getProperty("log4j.filename");
         }
         AppenderComponentBuilder appenderBuilder = builder.newAppender("RollingFile", "RollingFile")
                 .addAttribute("fileName", fileName)
@@ -28,7 +28,7 @@ public class RollingFileLoggerConfigurationFactory extends ConfigurationFactory 
                 .addComponent(builder.newComponent("TimeBasedTriggeringPolicy"))
                 .addComponent(builder.newComponent("SizeBasedTriggeringPolicy").addAttribute("size", "100 MB")));
         builder.add(appenderBuilder);
-        Level level = System.getProperty("log.debug") != null ? Level.DEBUG : Level.INFO;
+        Level level = System.getProperty("log4j.debug") != null ? Level.DEBUG : Level.INFO;
         builder.add(builder.newRootLogger(level).add(builder.newAppenderRef("RollingFile")));
         return builder.build();
     }

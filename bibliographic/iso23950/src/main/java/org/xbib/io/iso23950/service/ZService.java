@@ -43,7 +43,7 @@ public interface ZService {
     
     URI getURI();
 
-    ZClient newZClient();
+    ZClient newZClient() throws IOException;
 
     void close(ZClient client) throws IOException;
 }

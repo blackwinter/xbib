@@ -45,17 +45,10 @@ public class ZSRUServiceFactory {
     private ZSRUServiceFactory() {
     }
 
-    public static Properties getProperties(String name) {
+    public static Properties getProperties(String name) throws IOException {
         Properties properties = new Properties();
-        InputStream in = instance.getClass().getResourceAsStream("/org/xbib/sru/iso23950/service/" + name + ".properties");
-        if (in != null) {
-            try {
-                properties.load(in);
-            } catch (IOException ex) {
-            }
-        }
-        if (in == null || properties.isEmpty()) {
-            throw new IllegalArgumentException("service " + name + " not found");
+        try (InputStream in = instance.getClass().getResourceAsStream("/org/xbib/sru/iso23950/service/" + name + ".properties")) {
+            properties.load(in);
         }
         return properties;
     }

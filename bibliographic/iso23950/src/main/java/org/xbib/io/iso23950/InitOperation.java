@@ -72,13 +72,13 @@ public class InitOperation {
             throw new IOException("no connection");
         }
         InitializeRequest init = new InitializeRequest();
-        boolean version[] = new boolean[3];
+        boolean[] version = new boolean[3];
         version[0] = true; // any version, should alwasy be true
         version[1] = true; // Z39.50 version 2
         version[2] = true; // Z39.50 version 3
         init.s_protocolVersion = new ProtocolVersion();
         init.s_protocolVersion.value = new ASN1BitString(version);
-        boolean options[] = new boolean[15];
+        boolean[] options = new boolean[15];
         options[0] = true; // search
         options[1] = true; // present
         options[2] = true;  // delete set

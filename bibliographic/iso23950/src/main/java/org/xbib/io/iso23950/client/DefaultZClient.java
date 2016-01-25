@@ -39,6 +39,7 @@ import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -100,7 +101,7 @@ public class DefaultZClient implements ZClient {
 
     @Override
     public List<String> getDatabases() {
-        return Arrays.asList("");
+        return Collections.singletonList("");
     }
 
     @Override

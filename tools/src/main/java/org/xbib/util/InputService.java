@@ -31,6 +31,7 @@
  */
 package org.xbib.util;
 
+import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.io.ConnectionFactory;
 import org.xbib.io.ConnectionService;
 import org.xbib.io.StreamCodecService;
@@ -70,6 +71,10 @@ public final class InputService {
     }
 
     public static InputStream getInputStream(URI uri, String suffix) throws IOException {
+        return getInputStream(uri, suffix, null);
+    }
+
+    public static InputStream getInputStream(URI uri, String suffix, ByteSizeValue bufferSize) throws IOException {
         if (uri == null || uri.getScheme() == null) {
             return null;
         }
@@ -97,7 +102,9 @@ public final class InputService {
             // file:// scheme is already decoded :)
             for (String codec : StreamCodecService.getCodecs()) {
                 if (uri.getSchemeSpecificPart().endsWith("." + codec) || (suffix != null && suffix.equals(codec))) {
-                    in = streamCodecService.getCodec(codec).decode(in);
+                    in = bufferSize != null ?
+                            streamCodecService.getCodec(codec).decode(in, bufferSize.bytesAsInt()) :
+                            streamCodecService.getCodec(codec).decode(in);
                     break;
                 }
             }

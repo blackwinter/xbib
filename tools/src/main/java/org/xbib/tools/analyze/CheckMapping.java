@@ -61,20 +61,26 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class CheckMapping extends Analyzer {
 
-    private final static Logger logger = LogManager.getLogger(CheckMapping.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(CheckMapping.class);
 
     @Override
-    public void run(Settings settings) throws Exception {
-        SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
-        Client client = search.client();
-        checkMapping(client, settings.get("index"));
-        client.close();
+    public int run(Settings settings) throws Exception {
+        try {
+            SearchTransportClient search = new SearchTransportClient().init(Settings.settingsBuilder()
+                    .put("cluster.name", settings.get("elasticsearch.cluster"))
+                    .put("host", settings.get("elasticsearch.host"))
+                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
+                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
+                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
+                    .build().getAsMap());
+            Client client = search.client();
+            checkMapping(client, settings.get("index"));
+            client.close();
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            return 1;
+        }
+        return 0;
     }
 
     protected void checkMapping(Client client, String index) throws IOException {

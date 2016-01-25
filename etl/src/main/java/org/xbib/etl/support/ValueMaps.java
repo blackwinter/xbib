@@ -32,8 +32,6 @@
 package org.xbib.etl.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,44 +43,39 @@ import java.util.Map;
 
 public class ValueMaps {
 
-    private final static Logger logger = LogManager.getLogger(ValueMaps.class.getName());
-
     private final static Map<String, Object> maps = new HashMap<>();
 
-    private ValueMaps() {
+    private final ClassLoader classLoader;
+
+    public ValueMaps() {
+        this.classLoader = getClass().getClassLoader();
     }
 
-    public synchronized static Map getMap(ClassLoader cl, String path, String format) {
-        if (cl != null && !maps.containsKey(format)) {
-            try {
-                URL url = cl.getResource(path);
-                if (url == null) {
-                    throw new IllegalArgumentException("resource in class path does not exist " + path);
-                }
-                InputStream in = url.openStream();
-                if (in == null) {
-                    throw new IOException("format " + format + " not found: " + path + format);
-                }
+    public ValueMaps(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    public synchronized Map getMap(String path, String format) throws IOException {
+        if (!maps.containsKey(format)) {
+            URL url = classLoader.getResource(path);
+            if (url == null) {
+                throw new IllegalArgumentException("resource in class path does not exist " + path);
+            }
+            try (InputStream in = url.openStream()) {
                 maps.put(format, new ObjectMapper().readValue(in, HashMap.class));
-                in.close();
-            } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
             }
         }
         return (Map) maps.get(format);
     }
 
-    public synchronized static Map<String, String> getAssocStringMap(ClassLoader cl, String path, String format) {
-        if (cl != null && !maps.containsKey(format)) {
-            try {
-                URL url = cl.getResource(path);
-                if (url == null) {
-                    throw new IllegalArgumentException("resource in class path does not exist " + path);
-                }
-                InputStream in = url.openStream();
-                if (in == null) {
-                    throw new IOException("format " + format + " not found: " + path + format);
-                }
+    @SuppressWarnings("unchecked")
+    public synchronized Map<String, String> getAssocStringMap(String path, String format) throws IOException {
+        if (!maps.containsKey(format)) {
+            URL url = classLoader.getResource(path);
+            if (url == null) {
+                throw new IllegalArgumentException("resource in class path does not exist " + path);
+            }
+            try (InputStream in = url.openStream()) {
                 Map result = new ObjectMapper().readValue(in, HashMap.class);
                 Object values = result.get(format);
                 Collection<String> c = (Collection<String>) values;
@@ -95,9 +88,6 @@ public class ValueMaps {
                     }
                     maps.put(format, map);
                 }
-                in.close();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
             }
         }
         return (Map<String, String>) maps.get(format);

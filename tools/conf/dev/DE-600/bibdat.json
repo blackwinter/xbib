@@ -10,8 +10,7 @@
   "output" : {
     "elasticsearch" : {
       "cluster" : "zbn",
-      "host" : "zephyros",
-      "port" : 9300,
+      "host" : [ "zephyros:9300", "boreas:9300", "notos:9300" ],
       "autodetect" : true,
       "maxbulkactions" : 1000,
       "maxconcurrentbulkrequests" : 1,
