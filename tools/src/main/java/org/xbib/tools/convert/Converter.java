@@ -109,16 +109,24 @@ public class Converter
             pipeline.waitFor(new URIWorkerRequest());
             return 0;
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
+            this.throwable = t;
+            throw t;
         } finally {
             disposeInput();
             disposeOutput();
             if (getPipeline() != null) {
                 getPipeline().shutdown();
                 if (getPipeline().getWorkers() != null) {
-                    for (Worker worker : getPipeline().getWorkers()) {
-                        writeMetrics(worker.getMetric());
+                    ConverterException converterException = new ConverterException();
+                    for (Converter converter : getPipeline().getWorkers()) {
+                        Throwable t = converter.getThrowable();
+                        if (t != null) {
+                            converterException.add(t);
+                        }
+                        writeMetrics(converter.getMetric());
+                    }
+                    if (!converterException.getThrowables().isEmpty()) {
+                        this.throwable = converterException;
                     }
                 }
             }
