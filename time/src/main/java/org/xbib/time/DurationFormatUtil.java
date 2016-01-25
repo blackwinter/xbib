@@ -212,7 +212,7 @@ public class DurationFormatUtil {
     /**
      * <p>Formats the time gap as a string, using the specified format, and
      * the timezone may be specified. </p>
-     * <p/>
+     *
      * <p>When calculating the difference between months/days, it chooses to
      * calculate months first. So when working out the number of months and
      * days between January 15th and March 10th, it choose 1 month and
@@ -220,9 +220,6 @@ public class DurationFormatUtil {
      * calculating days forwards, and not the 1 month and 26 days gained by
      * choosing March -> February = 1 month and then calculating days
      * backwards. </p>
-     * <p/>
-     * <p>For more control, the <a href="http://joda-time.sf.net/">Joda-Time</a>
-     * library is recommended.</p>
      *
      * @param startMillis the start of the duration
      * @param endMillis   the end of the duration

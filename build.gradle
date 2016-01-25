@@ -1,11 +1,13 @@
 
 def xbibGroup = 'org.xbib'
-def xbibVersion = '2.0.0-SNAPSHOT'
+def xbibVersion = '2.0'
+def xbibBuildNumber = System.getenv("BUILD_NUMBER") as Integer ?: 0
 
 group = xbibGroup
-version = xbibVersion
+version = xbibVersion + '.' + xbibBuildNumber + '-SNAPSHOT'
 
 println "Current JVM: " + org.gradle.internal.jvm.Jvm.current()
+println "Build: ${project.group} ${project.name} ${project.version}"
 
 ext {
   versions = [
@@ -15,14 +17,15 @@ ext {
     'log4j': '2.5',
     'junit' : '4.12',
     'gradle-plugin-jflex': '1.0.0',
-    'gradle-plugin-jacc': '1.0.3'
+    'gradle-plugin-jacc': '1.0.3',
+    'xbib-elasticsearch-helper' : '2.1.1.4'
   ]
 }
 
 allprojects {
     apply plugin: 'maven'
     group = xbibGroup
-    version = xbibVersion
+    version = xbibVersion + '.' + xbibBuildNumber + '-SNAPSHOT'
     repositories {
         mavenCentral()
         mavenLocal()

@@ -4,8 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.unit.TimeValue;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.IndexAliasAdder;
@@ -16,6 +14,8 @@ import org.xbib.elasticsearch.helper.client.MockTransportClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,7 @@ public class ElasticsearchOutput {
             String concreteIndexName = indexName;
             String timeWindow = settings.get("timewindow");
             if (timeWindow != null) {
-                String timeWindowStr = DateTimeFormat.forPattern(timeWindow).print(new DateTime());
+                String timeWindowStr = DateTimeFormatter.ofPattern(timeWindow).format(LocalDate.now());
                 concreteIndexName = ingest.resolveAlias(indexName + timeWindowStr);
                 logger.info("index name {} resolved to concrete index name = {}", indexName, concreteIndexName);
             }
