@@ -1,27 +1,25 @@
 package org.xbib.io.archive.tar;
 
-import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
 import org.xbib.io.Packet;
 import org.xbib.io.Session;
 import org.xbib.io.StreamCodecService;
-import org.xbib.io.archive.tar2.TarArchiveInputEntry;
-import org.xbib.io.archive.tar2.TarArchiveInputStream;
-import org.xbib.io.archive.tar2.TarSession;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 
 public class PerformanceTest {
 
-    private final static String path = "/Users/joerg/import/hbz/vk/20140816/clob-20140815-20140816.tar.gz";
+    private final static Path path = Paths.get("/Users/joerg/import/hbz/vk/20140816/clob-20140815-20140816.tar.gz");
 
     public void test1() throws Exception {
         int buffersize = 4096;
         long t0 = System.nanoTime();
-        FileInputStream in = new FileInputStream(path);
+        InputStream in = Files.newInputStream(path);
         GZIPInputStream gzin = new GZIPInputStream(in, buffersize);
         long counter = 0L;
         TarArchiveInputStream tin = new TarArchiveInputStream(gzin);
@@ -39,7 +37,7 @@ public class PerformanceTest {
         int buffersize = 4096;
         long t0 = System.nanoTime();
         StreamCodecService codecFactory = StreamCodecService.getInstance();
-        FileInputStream in = new FileInputStream(path);
+        InputStream in = Files.newInputStream(path);
         InputStream gzin = codecFactory.getCodec("gz").decode(in, buffersize);
         long counter = 0L;
         TarArchiveInputStream tin = new TarArchiveInputStream(gzin);
@@ -57,7 +55,7 @@ public class PerformanceTest {
         int buffersize = 1024*1024;
         long t0 = System.nanoTime();
         StreamCodecService codecFactory = StreamCodecService.getInstance();
-        FileInputStream in = new FileInputStream(path);
+        InputStream in = Files.newInputStream(path);
         InputStream gzin = codecFactory.getCodec("gz").decode(in, buffersize);
         long counter = 0L;
         TarArchiveInputStream tin = new TarArchiveInputStream(gzin);
@@ -75,7 +73,7 @@ public class PerformanceTest {
         int buffersize = 1024*1024;
         long t0 = System.nanoTime();
         StreamCodecService codecFactory = StreamCodecService.getInstance();
-        FileInputStream in = new FileInputStream(path);
+        InputStream in = Files.newInputStream(path);
         InputStream gzin = codecFactory.getCodec("gz").decode(in, buffersize);
         long counter = 0L;
         TarArchiveInputStream tin = new TarArchiveInputStream(gzin);
@@ -90,12 +88,9 @@ public class PerformanceTest {
     }
 
     public void test5() throws Exception {
-        URI uri = URI.create("file:" + path);
-        Connection<Session> c = ConnectionService.getInstance()
-                .getConnectionFactory(uri)
-                .getConnection(uri);
         long t0 = System.nanoTime();
-        TarSession session = (TarSession) c.createSession();
+        TarConnection c = new TarConnection(new URL("file:" + path));
+        TarSession session = c.createSession();
         session.open(Session.Mode.READ);
         long counter = 0L;
         Packet message;
@@ -112,11 +107,9 @@ public class PerformanceTest {
     public void test6() throws Exception {
         int buffersize = 65536;
         URI uri = URI.create("file:" + path);
-        Connection<Session> c = ConnectionService.getInstance()
-                .getConnectionFactory(uri)
-                .getConnection(uri);
+        TarConnection c = new TarConnection(new URL("file:" + path));
         long t0 = System.nanoTime();
-        TarSession session = (TarSession) c.createSession();
+        TarSession session = c.createSession();
         session.setBufferSize(buffersize);
         session.open(Session.Mode.READ);
         long counter = 0L;
@@ -133,12 +126,9 @@ public class PerformanceTest {
 
     public void test7() throws Exception {
         long t0 = System.nanoTime();
-        URI uri = URI.create("file:" + path);
-        Connection<Session> c = ConnectionService.getInstance()
-                .getConnectionFactory(uri)
-                .getConnection(uri);
+        TarConnection c = new TarConnection(new URL("file:" + path));
         int buffersize = 65536;
-        TarSession session = (TarSession) c.createSession();
+        TarSession session = c.createSession();
         session.setBufferSize(buffersize);
         session.open(Session.Mode.READ);
         long counter = 0L;

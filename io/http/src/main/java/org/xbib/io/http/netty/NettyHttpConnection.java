@@ -31,43 +31,44 @@
  */
 package org.xbib.io.http.netty;
 
-import org.xbib.io.Session;
-import org.xbib.io.http.HttpConnection;
+import org.xbib.io.Connection;
 import org.xbib.io.http.HttpSession;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 
-public class NettyHttpConnection implements HttpConnection {
+public class NettyHttpConnection extends URLConnection implements Connection<HttpSession> {
 
-    private URI uri;
-    private List<HttpSession> sessions = new ArrayList<>();
+    private HttpSession session;
 
-    @Override
-    public URI getURI() {
-        return uri;
+    private URL url;
+
+    /**
+     * Constructs a URL connection to the specified URL. A connection to
+     * the object referenced by the URL is not created.
+     *
+     * @param url the specified URL.
+     */
+    public NettyHttpConnection(URL url) throws URISyntaxException {
+        super(url);
+        this.url = url;
     }
 
     @Override
-    public NettyHttpConnection setURI(URI uri) {
-        this.uri = uri;
-        return this;
+    public void connect() throws IOException {
+        this.session = createSession();
     }
 
     @Override
     public HttpSession createSession() throws IOException {
-        HttpSession session = new NettyHttpSession();
-        sessions.add(session);
-        return session;
+        return new NettyHttpSession();
     }
 
     @Override
     public void close() throws IOException {
-        for (Session session : sessions) {
-            session.close();
-        }
+        session.close();
     }
 
 }

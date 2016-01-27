@@ -31,7 +31,7 @@
  */
 package org.xbib.io.jdbc.operator;
 
-import org.xbib.io.jdbc.SQLSession;
+import org.xbib.io.jdbc.JDBCSession;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,7 +49,7 @@ public class PageableQuery extends Query {
     }
 
     @Override
-    protected PreparedStatement prepareStatement(SQLSession session, String sql) throws SQLException {
+    protected PreparedStatement prepareStatement(JDBCSession session, String sql) throws SQLException {
         return session.getConnection().prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, // for absolute()
                 ResultSet.CONCUR_READ_ONLY);
     }

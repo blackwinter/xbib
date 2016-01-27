@@ -32,28 +32,24 @@
 package org.xbib.util;
 
 import org.xbib.common.unit.ByteSizeValue;
-import org.xbib.io.ConnectionFactory;
-import org.xbib.io.ConnectionService;
 import org.xbib.io.StreamCodecService;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
 public final class InputService {
 
     private final static Charset UTF8 = Charset.forName("UTF-8");
-
-    private final static ConnectionService connectionService = ConnectionService.getInstance();
 
     private final static StreamCodecService streamCodecService = StreamCodecService.getInstance();
 
@@ -67,32 +63,33 @@ public final class InputService {
     }
 
     public static InputStream getInputStream(URI uri) throws IOException {
-        return getInputStream(uri, null);
-    }
-
-    public static InputStream getInputStream(URI uri, String suffix) throws IOException {
-        return getInputStream(uri, suffix, null);
-    }
-
-    public static InputStream getInputStream(URI uri, String suffix, ByteSizeValue bufferSize) throws IOException {
         if (uri == null || uri.getScheme() == null) {
             return null;
         }
         InputStream in;
-        // archive/protocol?
-        ConnectionFactory connectionFactory = connectionService.getConnectionFactory(uri);
-        if (connectionFactory.canOpen(uri)) {
-            in = connectionFactory.open(uri);
-        } else {
+        try {
+            in = uri.toURL().openStream();
+        } catch (MalformedURLException e) {
+            // ordinary file path?
+            Path path = Paths.get(uri.getSchemeSpecificPart());
+            if (Files.isRegularFile(path)) {
+                in = Files.newInputStream(path);
+            } else {
+                throw new IOException("can't open for input, check file existence or access rights: "
+                        + uri.getSchemeSpecificPart());
+            }
+        }
+        /*} else {
             // URL?
             try {
                 in = uri.toURL().openStream();
             } catch (MalformedURLException e) {
-                File f = new File(uri.getSchemeSpecificPart());
-                if (f.isFile() && f.canRead()) {
-                    in = new FileInputStream(f);
+                // ordinary file path?
+                Path path = Paths.get(uri.getSchemeSpecificPart());
+                if (Files.isRegularFile(path)) {
+                    in = Files.newInputStream(path);
                 } else {
-                    throw new FileNotFoundException("can't open for input, check file existence or access rights: "
+                    throw new IOException("can't open for input, check file existence or access rights: "
                             + uri.getSchemeSpecificPart());
                 }
             }
@@ -108,7 +105,7 @@ public final class InputService {
                     break;
                 }
             }
-        }
+        }*/
         return in;
     }
 

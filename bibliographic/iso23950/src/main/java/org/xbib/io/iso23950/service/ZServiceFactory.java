@@ -1,13 +1,12 @@
 
 package org.xbib.io.iso23950.service;
 
-import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
-import org.xbib.io.iso23950.ZSession;
+import org.xbib.io.iso23950.ZConnection;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Properties;
 
 public class ZServiceFactory {
@@ -22,12 +21,12 @@ public class ZServiceFactory {
         try (InputStream in = instance.getClass().getResourceAsStream("/org/xbib/io/iso23950/service/" + name + ".properties")) {
             properties.load(in);
         }
-        URI uri = URI.create(properties.getProperty("uri"));
-        ConnectionService<ZSession> service = ConnectionService.getInstance();
-        Connection<ZSession> connection = service
-                .getConnectionFactory(uri)
-                .getConnection(uri);
-        return connection.createSession().setProperties(properties);
+        try {
+            ZConnection connection = new ZConnection(new URL(properties.getProperty("uri")));
+            return connection.createSession().setProperties(properties);
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
     }
 
 }

@@ -1,26 +1,22 @@
 package org.xbib.io.archive.tar;
 
-import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
 import org.xbib.io.Session;
-import org.xbib.io.ObjectPacket;
+import org.xbib.io.StringPacket;
 
 public class TarSessionTest {
 
     private static final Logger logger = LogManager.getLogger(TarSessionTest.class.getName());
 
     public void readFromTar() throws Exception {
-        URI uri = URI.create("resource:test.tar.bz2");
-        Connection<Session> c = ConnectionService.getInstance()
-                .getConnectionFactory(uri)
-                .getConnection(uri);
-        Session<ObjectPacket> session = c.createSession();
+        TarConnection c = new TarConnection(new URL("tar:test.tar.bz2"));
+        TarSession session = c.createSession();
         session.open(Session.Mode.READ);
-        ObjectPacket message;
+        StringPacket message;
         while ((message = session.read()) != null) {
             logger.info("name = {} object = {}", message.name(), message.packet());
         }
@@ -29,19 +25,13 @@ public class TarSessionTest {
     }
 
     public void writeToTar() throws Exception {
-        URI fromUri = URI.create("file:src/test/resources/test.tar.bz2");
-        URI toUri = URI.create("file:test.tar.bz2");
-        Connection<Session> from = ConnectionService.getInstance()
-                .getConnectionFactory(fromUri)
-                .getConnection(fromUri);
-        Connection<Session> to = ConnectionService.getInstance()
-                .getConnectionFactory(toUri)
-                .getConnection(toUri);
-        Session<ObjectPacket> fromSession = from.createSession();
+        TarConnection from = new TarConnection(new URL("src/test/resources/test.tar.bz2"));
+        TarSession fromSession = from.createSession();
         fromSession.open(Session.Mode.READ);
-        Session<ObjectPacket> toSession = to.createSession();
+        TarConnection to = new TarConnection(new URL("file:test.tar.bz2"));
+        TarSession toSession = to.createSession();
         toSession.open(Session.Mode.WRITE);
-        ObjectPacket message;
+        StringPacket message;
         while ((message = fromSession.read()) != null) {
             logger.info("name = {} object = {}", message.name(), message.packet());
             toSession.write(message);

@@ -31,8 +31,7 @@
  */
 package org.xbib.sru.iso23950.client;
 
-import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
+import org.xbib.io.iso23950.ZConnection;
 import org.xbib.io.iso23950.ZSession;
 import org.xbib.io.iso23950.client.ZClient;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
@@ -43,6 +42,7 @@ import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -53,23 +53,10 @@ public class ZSRUClient extends DefaultSRUClient {
 
     private final ZSRUService service;
 
-    private final ConnectionService<ZSession> connectionService = ConnectionService.getInstance();
-
     protected ZSRUClient(ZSRUService service) throws IOException {
         super();
         this.service = service;
     }
-
-    /*@Override
-    public String getRecordSchema() {
-        return service.getRecordSchema();
-    }
-
-    @Override
-    public String getRecordPacking() {
-        return service.getRecordPacking();
-    }
-    */
 
     @Override
     public SearchRetrieveRequest newSearchRetrieveRequest(URI uri) {
@@ -78,12 +65,10 @@ public class ZSRUClient extends DefaultSRUClient {
 
     @Override
     public ZSearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
-            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+            throws IOException, InterruptedException, ExecutionException, TimeoutException, URISyntaxException {
         // connect to Z service
         URI uri = request.getURI();
-        Connection<ZSession> connection = connectionService
-                .getConnectionFactory(uri)
-                .getConnection(uri);
+        ZConnection connection = new ZConnection(uri.toURL());
         ZSession session = connection.createSession();
         ZClient client = session.newZClient();
         try {

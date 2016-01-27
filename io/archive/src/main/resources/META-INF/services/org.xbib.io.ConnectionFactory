@@ -1,7 +1,0 @@
-org.xbib.io.archive.ar.ArConnectionFactory
-org.xbib.io.archive.cpio.CpioConnectionFactory
-org.xbib.io.archive.tar2.TarConnectionFactory
-org.xbib.io.archive.zip.ZipConnectionFactory
-org.xbib.io.archive.jar.JarConnectionFactory
-org.xbib.io.archive.file.FileConnectionFactory
-org.xbib.io.archive.classpath.ClasspathConnectionFactory

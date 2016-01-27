@@ -33,11 +33,9 @@ package org.xbib.tools.convert.zdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.Connection;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
-import org.xbib.io.archive.tar.TarConnectionFactory;
-import org.xbib.io.archive.tar.TarSession;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
@@ -52,6 +50,8 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -75,13 +75,13 @@ public class OAI extends Converter {
     @Override
     public void prepareOutput() throws IOException {
         // open output TAR archive
-        TarConnectionFactory factory = new TarConnectionFactory();
-        Connection<TarSession> connection = factory.getConnection(URI.create(settings.get("output")));
-        session = connection.createSession();
-        if (session == null) {
-            throw new IOException("can not open " + settings.get("output") + " for output");
+        try {
+            TarConnection connection = new TarConnection(new URL(settings.get("output")));
+            session = connection.createSession();
+            session.open(Session.Mode.WRITE);
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
         }
-        session.open(Session.Mode.WRITE);
     }
 
     @Override

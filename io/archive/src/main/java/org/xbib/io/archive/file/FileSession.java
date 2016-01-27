@@ -43,7 +43,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
 
 /**
  * A File session
@@ -54,7 +55,9 @@ public class FileSession<P extends StringPacket> implements Session<P> {
 
     private final static String encoding = System.getProperty("file.encoding");
 
-    private URI uri;
+    private Path path;
+
+    private OpenOption option;
 
     private boolean isOpen;
 
@@ -62,12 +65,12 @@ public class FileSession<P extends StringPacket> implements Session<P> {
 
     private Reader reader;
 
-    public FileSession(URI uri) {
-        this.isOpen = false;
-        if (uri == null) {
-            throw new IllegalArgumentException("uri must not be null");
-        }
-        this.uri = uri;
+    public FileSession() {
+    }
+
+    public void setPath(Path path, OpenOption option) {
+        this.path = path;
+        this.option = option;
     }
 
     @Override
@@ -76,19 +79,12 @@ public class FileSession<P extends StringPacket> implements Session<P> {
             return;
         }
         this.isOpen = false;
-        String filename = uri.getSchemeSpecificPart();
-        if ("filegz".equals(uri.getScheme()) && !filename.endsWith(".gz")) {
-            filename = filename + ".gz";
-        } else if ("filebz2".equals(uri.getScheme()) && !filename.endsWith(".bz2")) {
-            filename = filename + ".bz2";
-        } else if ("filexz".equals(uri.getScheme()) && !filename.endsWith(".xz")) {
-            filename = filename + ".xz";
-        }
+        String filename = path.toString();
         File file = new File(filename);
         switch (mode) {
             case READ: {
                 if (!file.exists()) {
-                    throw new IOException("file does not exist: " + uri);
+                    throw new IOException("file does not exist: " + path);
                 }
                 if (filename.endsWith(".gz")) {
                     FileInputStream in = new FileInputStream(file);

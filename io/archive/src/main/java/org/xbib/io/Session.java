@@ -42,7 +42,7 @@ public interface Session<P extends Packet> {
 
     enum Mode {
 
-        READ, WRITE, READ_WRITE, APPEND, DEFERRED_WRITE, DRY, CONTROL, DELETE;
+        READ, WRITE, APPEND,CONTROL, DELETE;
     }
 
     /**

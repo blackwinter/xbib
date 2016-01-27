@@ -4,7 +4,6 @@ import org.xbib.io.archive.ArchiveOutputStream;
 import org.xbib.io.archive.ArchiveUtils;
 import org.xbib.io.archive.CountingOutputStream;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;

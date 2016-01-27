@@ -35,14 +35,14 @@ import org.xbib.io.Session;
 import org.xbib.io.StreamCodecService;
 import org.xbib.io.StringPacket;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Set;
 
@@ -60,13 +60,16 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
 
     private boolean isOpen;
 
-    private URI uri;
+    private Path path;
+
+    private OpenOption option;
 
     protected ArchiveSession() {
     }
 
-    public ArchiveSession setURI(URI uri) {
-        this.uri = uri;
+    public ArchiveSession setPath(Path path, OpenOption option) {
+        this.path = path;
+        this.option = option;
         return this;
     }
 
@@ -81,49 +84,17 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
             return;
         }
         final String suffix = getSuffix();
-        final String scheme = uri.getScheme() != null ? uri.getScheme() : "file";
-        final String part = uri.getSchemeSpecificPart();
         switch (mode) {
             case READ: {
-                FileInputStream fin;
-                if (scheme.equals(suffix) || part.endsWith("." + suffix)) {
-                    fin = createFileInputStream(uri, "." + suffix);
-                    open(fin);
-                } else {
-                    Set<String> codecs = StreamCodecService.getCodecs();
-                    for (String codec : codecs) {
-                        if (scheme.equals(suffix + codec) || part.endsWith("." + suffix + "." + codec)) {
-                            fin = createFileInputStream(uri, "." + suffix + "." + codec);
-                            open(codecFactory.getCodec(codec).decode(fin, bufferSize));
-                            break;
-                        }
-                    }
-                }
+                InputStream in = newInputStream(path, option, "." + suffix);
+                open(in);
                 this.isOpen = getInputStream() != null;
-                if (!isOpen) {
-                    throw new FileNotFoundException("can't open for input, check existence or access rights: " + uri);
-                }
                 break;
             }
             case WRITE: {
-                FileOutputStream fout;
-                if (scheme.equals(suffix) || part.endsWith("." + suffix)) {
-                    fout = createFileOutputStream(uri, "." + suffix);
-                    open(fout);
-                } else {
-                    Set<String> codecs = StreamCodecService.getCodecs();
-                    for (String codec : codecs) {
-                        if (scheme.equals(suffix + codec) || part.endsWith("." + suffix + "." + codec)) {
-                            fout = createFileOutputStream(uri, "." + suffix + "." + codec);
-                            open(codecFactory.getCodec(codec).encode(fout));
-                            break;
-                        }
-                    }
-                }
+                OutputStream out = newOutputStream(path, option, "." + suffix);
+                open(out);
                 this.isOpen = getOutputStream() != null;
-                if (!isOpen) {
-                    throw new FileNotFoundException("can't open for output, check existence or access rights: " + uri);
-                }
                 break;
             }
         }
@@ -239,19 +210,25 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
     /**
      * Helper method for creating the FileInputStream
      *
-     * @param uri    the URI
      * @param suffix the suffix
-     * @return a FileInputStream
+     * @return an InputStream
      * @throws java.io.IOException if existence or access rights do not suffice
      */
-    private FileInputStream createFileInputStream(URI uri, String suffix) throws IOException {
-        String part = uri.getSchemeSpecificPart();
-        String s = part.endsWith(suffix) ? part : part + suffix;
-        File f = new File(s);
-        if (f.isFile() && f.canRead()) {
-            return new FileInputStream(f);
+    public static InputStream newInputStream(Path path, OpenOption option, String suffix) throws IOException {
+        String part = path.toUri().getSchemeSpecificPart();
+        path = suffix != null ? Paths.get(part.endsWith(suffix) ? part : part + suffix) : path;
+        if (Files.isReadable(path) && Files.isRegularFile(path)) {
+            InputStream in = Files.newInputStream(path, option);
+            Set<String> codecs = StreamCodecService.getCodecs();
+            for (String codec : codecs) {
+                String s = "." + codec;
+                if (part.endsWith(s.toLowerCase()) || part.endsWith(s.toUpperCase())) {
+                    in = StreamCodecService.getInstance().getCodec(codec).decode(in);
+                }
+            }
+            return in;
         } else {
-            throw new FileNotFoundException("can't open for input, check existence or access rights: " + s);
+            throw new IOException("can't open for input, check existence or access rights: " + path);
         }
     }
 
@@ -259,22 +236,23 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
      * Helper method for creating the FileOutputStream. Creates the directory if
      * it does not exist.
      *
-     * @param uri    the URI
-     * @param suffix the suffix
-     * @throws java.io.IOException
+     * @throws java.io.IOException if existence or access rights do not suffice
      */
-    private FileOutputStream createFileOutputStream(URI uri, String suffix) throws IOException {
-        String part = uri.getSchemeSpecificPart();
-        String s = part.endsWith(suffix) ? part : part + suffix;
-        File f = new File(s);
-        if (!f.getAbsoluteFile().getParentFile().exists()
-                && !f.getAbsoluteFile().getParentFile().mkdirs()) {
-            throw new IOException("could not create directories to write: " + f);
-        }
-        if (!f.exists()) {
-            return new FileOutputStream(f);
+    public static OutputStream newOutputStream(Path path, OpenOption option, String suffix) throws IOException {
+        String part = path.toUri().getSchemeSpecificPart();
+        path = suffix != null ? Paths.get(part.endsWith(suffix) ? part : part + suffix) : path;
+        if (Files.isWritable(path) && Files.isRegularFile(path)) {
+            OutputStream out = Files.newOutputStream(path, option);
+            Set<String> codecs = StreamCodecService.getCodecs();
+            for (String codec : codecs) {
+                String s = "." + codec;
+                if (part.endsWith(s.toLowerCase()) || part.endsWith(s.toUpperCase())) {
+                    out = StreamCodecService.getInstance().getCodec(codec).encode(out);
+                }
+            }
+            return out;
         } else {
-            throw new IOException("file " + f.getAbsolutePath() + " already exists");
+            throw new IOException("can't open for output, check existence or access rights: " + path);
         }
     }
 

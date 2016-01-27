@@ -10,7 +10,7 @@ import java.util.Date;
  * A cpio archive consists of a sequence of files. There are several types of
  * headers defided in two categories of new and old format. The headers are
  * recognized by magic numbers:
- * <p/>
+ *
  * <ul>
  * <li>"070701" ASCII for new portable format</li>
  * <li>"070702" ASCII for new portable format with CRC format</li>

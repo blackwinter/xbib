@@ -96,7 +96,7 @@ public class ZSession implements Session<ZPacket>, ZService {
 
     @Override
     public void close() throws IOException {
-        connection.close();
+        // close connection in connection.close(), not here
     }
 
     @Override
@@ -109,11 +109,6 @@ public class ZSession implements Session<ZPacket>, ZService {
         if (client != null) {
             client.close();
         }
-    }
-
-    @Override
-    public URI getURI() {
-        return connection.getURI();
     }
 
     public ZConnection getConnection() {

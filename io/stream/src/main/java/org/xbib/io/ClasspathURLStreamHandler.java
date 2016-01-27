@@ -34,9 +34,8 @@ package org.xbib.io;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLStreamHandler;
 
-public class ClasspathURLStreamHandler extends URLStreamHandler {
+public class ClasspathURLStreamHandler extends CustomURLStreamHandler {
 
     /**
      * The classloader to find resources from.
@@ -57,4 +56,8 @@ public class ClasspathURLStreamHandler extends URLStreamHandler {
         return resourceUrl != null ? resourceUrl.openConnection() : null;
     }
 
+    @Override
+    public String getName() {
+        return "classpath";
+    }
 }

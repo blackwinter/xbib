@@ -35,7 +35,7 @@ import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.settings.loader.SettingsLoader;
 import org.xbib.common.settings.loader.SettingsLoaderFactory;
-import org.xbib.io.ClasspathURLStreamHandlerFactory;
+import org.xbib.io.CustomURLStreamHandlerFactory;
 import org.xbib.tools.log.ConsoleConfigurationFactory;
 import org.xbib.tools.log.FileLoggerConfigurationFactory;
 import org.xbib.tools.log.RollingFileLoggerConfigurationFactory;
@@ -94,7 +94,7 @@ public class Runner {
                 }
             }
         }
-        URL.setURLStreamHandlerFactory(new ClasspathURLStreamHandlerFactory());
+        URL.setURLStreamHandlerFactory(new CustomURLStreamHandlerFactory());
         int exitcode = 0;
         try {
             Processor processor = null;

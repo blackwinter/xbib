@@ -34,13 +34,12 @@ package org.xbib.oai.client;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.io.StringPacket;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.exceptions.OAIException;
 import org.xbib.util.DateUtil;
-import org.xbib.io.Connection;
 import org.xbib.io.Session;
-import org.xbib.io.archive.tar.TarConnectionFactory;
 import org.xbib.io.archive.tar.TarSession;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.xml.XmlSimpleMetadataHandler;
@@ -49,7 +48,8 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.ConnectException;
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -63,7 +63,7 @@ public class NatLizClientTest {
 
     private TarSession session;
 
-    public void testListRecordsNatLiz() throws InterruptedException, TimeoutException, IOException {
+    public void testListRecordsNatLiz() throws InterruptedException, TimeoutException, IOException, URISyntaxException {
         try {
             OAIClient client = OAIClientFactory.newClient("http://dl380-47.gbv.de/oai/natliz/");
             ListRecordsRequest request = client.newListRecordsRequest()
@@ -71,8 +71,7 @@ public class NatLizClientTest {
                     .setUntil(DateUtil.parseDateISO("2014-01-01T00:00:00Z"), OAIDateResolution.SECOND)
                     .setMetadataPrefix("extpp2"); // extpp, extpp2, oai_dc, mods, marcxml, telap, mab, mab_opc
 
-            TarConnectionFactory factory = new TarConnectionFactory();
-            Connection<TarSession> connection = factory.getConnection(URI.create("targz:natliz-extpp2"));
+            TarConnection connection = new TarConnection(new URL("tar:natliz-extpp2.tar.gz"));
             session = connection.createSession();
             session.open(Session.Mode.WRITE);
 

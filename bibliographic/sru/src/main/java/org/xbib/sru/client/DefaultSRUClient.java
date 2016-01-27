@@ -71,7 +71,7 @@ public class DefaultSRUClient implements SRUClient {
     }
 
     public SearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
-            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException {
+            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException, URISyntaxException {
         if (request == null) {
             throw new IOException("request not set");
         }

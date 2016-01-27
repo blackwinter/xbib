@@ -4,45 +4,60 @@ package org.xbib.io.archive.ar;
 import org.xbib.io.Connection;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.LinkedList;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Ar connection
  */
-public class ArConnection implements Connection<ArSession> {
+public class ArConnection  extends URLConnection implements Connection<ArSession> {
 
-    private List<ArSession> sessions = new LinkedList();
+    private ArSession session;
 
-    private URI uri;
+    private Path path;
 
-    protected ArConnection() {
+    private OpenOption option;
+
+    /**
+     * Constructs a URL connection to the specified URL. A connection to
+     * the object referenced by the URL is not created.
+     *
+     * @param url the specified URL.
+     */
+    public ArConnection(URL url) throws URISyntaxException {
+        super(url);
+        this.path = Paths.get(url.toURI().getSchemeSpecificPart());
+        this.option = StandardOpenOption.READ;
     }
 
     @Override
-    public ArConnection setURI(URI uri) {
-        this.uri = uri;
-        return this;
+    public void connect() throws IOException {
+        this.session = createSession();
     }
 
-    @Override
-    public URI getURI() {
-        return uri;
+    public void setPath(Path path, OpenOption option) {
+        this.path = path;
+        this.option = option;
+    }
+
+    public Path getPath() {
+        return path;
     }
 
     @Override
     public ArSession createSession() throws IOException {
         ArSession session = new ArSession();
-        session.setURI(uri);
-        sessions.add(session);
+        session.setPath(path, option);
         return session;
     }
 
     @Override
     public void close() throws IOException {
-        for (ArSession session : sessions) {
-            session.close();
-        }
+        session.close();
     }
 }

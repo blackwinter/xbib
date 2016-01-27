@@ -32,7 +32,7 @@
 package org.xbib.io.jdbc.operator;
 
 import org.xbib.io.jdbc.ResultSetListener;
-import org.xbib.io.jdbc.SQLSession;
+import org.xbib.io.jdbc.JDBCSession;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,7 +57,7 @@ import java.util.Map;
  */
 public class Query {
 
-    protected SQLSession session;
+    protected JDBCSession session;
     /**
      * the request
      */
@@ -219,7 +219,7 @@ public class Query {
         listeners.remove(listener);
     }
 
-    public void execute(SQLSession session) throws IOException {
+    public void execute(JDBCSession session) throws IOException {
         this.pstmt = null;
         this.results = null;
         try {
@@ -249,7 +249,7 @@ public class Query {
      * @return a prepared triple
      * @throws java.sql.SQLException
      */
-    protected PreparedStatement prepareStatement(SQLSession session) throws SQLException {
+    protected PreparedStatement prepareStatement(JDBCSession session) throws SQLException {
         StringBuilder sb = new StringBuilder();
         if (getSQL() != null) {
             sb.append(getSQL());
@@ -312,7 +312,7 @@ public class Query {
         return pstmt;
     }
 
-    protected PreparedStatement prepareStatement(SQLSession session, String sql) throws SQLException {
+    protected PreparedStatement prepareStatement(JDBCSession session, String sql) throws SQLException {
         return session.getConnection().prepareStatement(sql);
     }
 
@@ -397,7 +397,7 @@ public class Query {
             p.setNull(pos, Types.VARCHAR);
             return;
         }
-        if (SQLSession.DEFAULT_ENCODING.equalsIgnoreCase(session.getEncoding())) {
+        if (JDBCSession.DEFAULT_ENCODING.equalsIgnoreCase(session.getEncoding())) {
             p.setString(pos, s);
             return;
         }

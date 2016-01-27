@@ -67,8 +67,6 @@ public abstract class AbstractSearchOperation {
 
     private boolean status;
 
-    private int[] results;
-
     private List<String> databases;
 
     private String resultSetName;
@@ -123,22 +121,23 @@ public abstract class AbstractSearchOperation {
             this.count = response.s_resultCount.get();
             if (response.s_searchStatus != null) {
                 this.status = response.s_searchStatus.get();
-                if (status == false) {
+                if (!status) {
                     String message = "no message";
                     if (response.s_records != null && response.s_records.c_nonSurrogateDiagnostic != null) {
                         try {
                             message = "ASN error, non-surrogate diagnostics: " + response.s_records.c_nonSurrogateDiagnostic.ber_encode();
                         } catch (ASN1Exception e) {
+                            //
                         }
                     }
-                    throw new IOException(session.getConnection().getURI().getHost() + ": " + message);
+                    throw new IOException(session.getConnection().getURL().getHost() + ": " + message);
                 }
             }
             if (response.s_additionalSearchInfo != null && response.s_additionalSearchInfo.value[0] != null) {
                 OtherInformation1 info = response.s_additionalSearchInfo.value[0];
                 ASN1Sequence targetSeq = (ASN1Sequence) info.s_information.c_externallyDefinedInfo.c_singleASN1type;
                 ASN1Any[] targets = targetSeq.get();
-                this.results = new int[targets.length];
+                int[] results = new int[targets.length];
                 DatabaseName dbName;
                 for (int i = 0; i < targets.length; i++) {
                     try {
@@ -147,7 +146,7 @@ public abstract class AbstractSearchOperation {
                         dbName = new DatabaseName(details[0].ber_encode(), false);
                         if (!dbName.value.value.get().equalsIgnoreCase(databases.get(i))) {
                             String message = "database name listed in additional search info doesn't match database name in names set.";
-                            throw new IOException(session.getConnection().getURI().getHost() + ": " + message);
+                            throw new IOException(session.getConnection().getURL().getHost() + ": " + message);
                         }
                         ASN1Integer res = (ASN1Integer) details[1];
                         results[i] = res.get();
@@ -160,7 +159,7 @@ public abstract class AbstractSearchOperation {
         } catch (SocketTimeoutException e) {
             t1 = System.currentTimeMillis();
             setMillis(t1 - t0);
-            throw new IOException(session.getConnection().getURI().getHost() + ": timeout (" 
+            throw new IOException(session.getConnection().getURL().getHost() + ": timeout ("
                     + getMillis() + " millis passed, max "
                     + session.getConnection().getTimeout() + " millis)" , e);
         }

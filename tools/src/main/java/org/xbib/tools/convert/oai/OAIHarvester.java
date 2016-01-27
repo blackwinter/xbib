@@ -33,11 +33,9 @@ package org.xbib.tools.convert.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.Connection;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
-import org.xbib.io.archive.tar2.TarConnectionFactory;
-import org.xbib.io.archive.tar2.TarSession;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
@@ -58,6 +56,8 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Date;
 import java.util.Map;
@@ -77,11 +77,14 @@ public abstract class OAIHarvester extends Converter {
 
     @Override
     public void prepareOutput() throws IOException {
-        String output = settings.get("output");
-        TarConnectionFactory factory = new TarConnectionFactory();
-        Connection<TarSession> connection = factory.getConnection(URI.create(output));
-        session = connection.createSession();
-        session.open(Session.Mode.WRITE);
+        try {
+            String output = settings.get("output");
+            TarConnection connection = new TarConnection(new URL(output));
+            session = connection.createSession();
+            session.open(Session.Mode.WRITE);
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage(), e);
+        }
         super.prepareOutput();
     }
 

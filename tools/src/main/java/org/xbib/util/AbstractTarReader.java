@@ -3,9 +3,9 @@ package org.xbib.util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
 import org.xbib.io.Packet;
 import org.xbib.io.Session;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.io.archive.tar.TarSession;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.LongWorkerRequest;
@@ -14,6 +14,7 @@ import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -23,8 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class AbstractTarReader extends AbstractWorker<Pipeline,LongWorkerRequest> {
 
     private final static Logger logger = LogManager.getLogger(AbstractTarReader.class.getName());
-
-    private final ConnectionService<TarSession> service = ConnectionService.getInstance();
 
     private final LongWorkerRequest counter = new LongWorkerRequest().set(new AtomicLong(0L));
 
@@ -43,26 +42,6 @@ public abstract class AbstractTarReader extends AbstractWorker<Pipeline,LongWork
         return this;
     }
 
-    /*@Override
-    public boolean hasNext() {
-        try {
-            return prepareRead();
-        } catch (IOException ex) {
-            logger.error(ex.getMessage(), ex);
-            return false;
-        }
-    }
-
-    @Override
-    public LongPipelineElement next() {
-        return nextRead();
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException("Not supported");
-    }
-*/
     @Override
     public void newRequest(Worker<Pipeline, LongWorkerRequest> worker, LongWorkerRequest request) {
 
@@ -110,10 +89,8 @@ public abstract class AbstractTarReader extends AbstractWorker<Pipeline,LongWork
         return counter;
     }
 
-    private void createSession() throws IOException {
-        this.connection = service
-                .getConnectionFactory(uri)
-                .getConnection(uri);
+    private void createSession() throws IOException, URISyntaxException {
+        this.connection = new TarConnection(uri.toURL());
         this.session = connection.createSession();
         session.open(Session.Mode.READ);
         if (!session.isOpen()) {

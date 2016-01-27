@@ -54,7 +54,7 @@ public class ZServiceTest {
             try {
                 ZService service = ZServiceFactory.getService(serviceName);
                 ZClient client = service.newZClient();
-                File file = File.createTempFile("service-" + service.getURI().getHost(), ".xml");
+                File file = File.createTempFile("service-" + serviceName, ".xml");
                 FileOutputStream out = new FileOutputStream(file);
                 Writer sw = new OutputStreamWriter(out, "UTF-8");
                 String query = "@attr 1=4 test";

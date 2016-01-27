@@ -31,14 +31,14 @@
  */
 package org.xbib.io.jdbc.operator;
 
-import org.xbib.io.jdbc.SQLSession;
+import org.xbib.io.jdbc.JDBCSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
 public class Commit {
 
-    public void execute(SQLSession session) throws IOException {
+    public void execute(JDBCSession session) throws IOException {
         try {
             session.getConnection().commit();
         } catch (SQLException ex) {

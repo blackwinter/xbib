@@ -3,42 +3,57 @@ package org.xbib.io.archive.zip;
 import org.xbib.io.Connection;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.LinkedList;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
-public class ZipConnection implements Connection<ZipSession> {
+public class ZipConnection extends URLConnection implements Connection<ZipSession> {
 
-    private List<ZipSession> sessions = new LinkedList();
+    private ZipSession session;
 
-    private URI uri;
+    private Path path;
 
-    protected ZipConnection() {
+    private OpenOption option;
+
+    /**
+     * Constructs a URL connection to the specified URL. A connection to
+     * the object referenced by the URL is not created.
+     *
+     * @param url the specified URL.
+     */
+    public ZipConnection(URL url) throws URISyntaxException {
+        super(url);
+        this.path = Paths.get(url.toURI().getSchemeSpecificPart());
+        this.option = StandardOpenOption.READ;
     }
 
     @Override
-    public ZipConnection setURI(URI uri) {
-        this.uri = uri;
-        return this;
+    public void connect() throws IOException {
+        this.session = createSession();
     }
 
-    @Override
-    public URI getURI() {
-        return uri;
+    public void setPath(Path path, OpenOption option) {
+        this.path = path;
+        this.option = option;
+    }
+
+    public Path getPath() {
+        return path;
     }
 
     @Override
     public ZipSession createSession() throws IOException {
         ZipSession session = new ZipSession();
-        session.setURI(uri);
-        sessions.add(session);
+        session.setPath(path, option);
         return session;
     }
 
     @Override
     public void close() throws IOException {
-        for (ZipSession session : sessions) {
-            session.close();
-        }
+        session.close();
     }
 }

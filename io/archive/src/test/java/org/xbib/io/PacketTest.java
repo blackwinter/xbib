@@ -3,20 +3,19 @@ package org.xbib.io;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xbib.io.archive.file.FileConnection;
 
-import java.io.FileInputStream;
-import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 
 public class PacketTest extends Assert {
 
     @Test
     public void testPacketWrite() throws Exception {
-        URI uri = URI.create("file:target/packetdemo.gz");
-        ConnectionService<Session<StringPacket>> service = ConnectionService.getInstance();
-        Connection<Session<StringPacket>> c = service
-                .getConnectionFactory(uri)
-                .getConnection(uri);
+        Path path = Paths.get("build/packetdemo.gz");
+        FileConnection c = new FileConnection(path.toUri().toURL());
         Session<StringPacket> session = c.createSession();
         session.open(Session.Mode.APPEND);
         StringPacket data = session.newPacket();
@@ -25,10 +24,9 @@ public class PacketTest extends Assert {
         session.write(data);
         session.close();
         // check file
-        FileInputStream in = new FileInputStream("target/packetdemo.gz");
-        GZIPInputStream gz = new GZIPInputStream(in);
+        GZIPInputStream gz = new GZIPInputStream(Files.newInputStream(path));
         byte[] buf = new byte[11];
-        gz.read(buf);
+        int i = gz.read(buf);
         gz.close();
         assertEquals(new String(buf), "Hello World");
     }

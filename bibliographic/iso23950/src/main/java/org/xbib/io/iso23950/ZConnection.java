@@ -40,7 +40,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,19 +53,16 @@ import z3950.v3.PDU;
 
 /**
  * A Z39.50 connection
- *
  */
-public class ZConnection implements Connection<ZSession> {
+public class ZConnection extends URLConnection implements Connection<ZSession> {
 
     private static final Logger logger = LogManager.getLogger(ZConnection.class.getName());
 
-    private final long DEFAULT_TIMEOUT_MILLIS = 30000L;
+    private ZSession session;
 
-    private URI uri;
+    private URL url;
 
     private Socket socket;
-
-    private int targetVersion = 0;
 
     private BufferedInputStream src;
 
@@ -71,23 +70,30 @@ public class ZConnection implements Connection<ZSession> {
 
     private long timeout;
 
-    private long readmillis;
-
-    private long writemillis;
-
-    public ZConnection() {
+    /**
+     * Constructs a URL connection to the specified URL. A connection to
+     * the object referenced by the URL is not created.
+     *
+     * @param url the specified URL.
+     */
+    public ZConnection(URL url) throws URISyntaxException {
+        super(url);
+        this.url = url;
+        this.timeout = 30000L;
     }
 
     @Override
-    public ZConnection setURI(URI uri) {
-        this.uri = uri;
-        this.timeout = DEFAULT_TIMEOUT_MILLIS;
-        return this;
-    }
-
-    @Override
-    public URI getURI() {
-        return uri;
+    public void connect() throws IOException {
+        if (isConnected()) {
+            return;
+        }
+        this.socket = new Socket();
+        socket.connect(new InetSocketAddress(url.getHost(), url.getPort()), (int) timeout);
+        socket.setSoTimeout((int) timeout);
+        // initialize bi-directional communication channel
+        this.src = new BufferedInputStream(socket.getInputStream());
+        this.dest = new BufferedOutputStream(socket.getOutputStream());
+        this.session = createSession();
     }
 
     public void setTimeout(long millis) {
@@ -107,21 +113,15 @@ public class ZConnection implements Connection<ZSession> {
 
     @Override
     public ZSession createSession() throws IOException {
-        connect();
-        if (!isConnected()) {
-            throw new IOException("not connected");
-        }
-        ZSession session = new ZSession(this);
-        return session;
+        return new ZSession(this);
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
+        session.close();
         if (isConnected()) {
             try {
-                if (targetVersion > 2 || targetVersion == 0) {
-                    initClose(0);
-                }
+                initClose(0);
             } catch (IOException e) {
                 logger.warn("while attempting to initiate connection close: {}", e.getMessage());
             }
@@ -144,31 +144,8 @@ public class ZConnection implements Connection<ZSession> {
         }
     }
 
-    public void connect() {
-        if (isConnected()) {
-            return;
-        }
-        try {
-            this.socket = new Socket();
-            socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort()), (int) timeout);
-            socket.setSoTimeout((int) timeout);
-            // initialize bi-directional communication channel
-            this.src = new BufferedInputStream(socket.getInputStream());
-            this.dest = new BufferedOutputStream(socket.getOutputStream());
-        } catch (Exception e) {
-            logger.warn(e.getMessage() + ": " + getURI().getHost(), e);
-            try {
-                if (socket != null) {
-                    socket.close();
-                }
-            } catch (IOException ex) {
-                logger.warn(ex.getMessage(), ex);
-            }
-        }
-    }
-
     public boolean isConnected() {
-        return socket != null ? socket.isConnected() : false;
+        return socket != null && socket.isConnected();
     }
 
     public void writePDU(PDU pdu) throws IOException {
@@ -176,11 +153,8 @@ public class ZConnection implements Connection<ZSession> {
             throw new IOException("no output stream");
         }
         try {
-            long t0 = System.currentTimeMillis();
             pdu.ber_encode().output(dest);
             dest.flush();
-            long t1 = System.currentTimeMillis();
-            this.writemillis = t1 - t0;
         } catch (ASN1Exception ex) {
             throw new IOException(ex.getMessage(), ex);
         }
@@ -191,13 +165,10 @@ public class ZConnection implements Connection<ZSession> {
             throw new IOException("no input stream");
         }
         try {
-            long t0 = System.currentTimeMillis();
             BEREncoding ber = BEREncoding.input(src);
             if (ber == null) {
                 throw new IOException("connection read PDU error");
             }
-            long t1 = System.currentTimeMillis();
-            this.readmillis = t1 - t0;
             return new PDU(ber, true);
         } catch (ASN1Exception ex) {
             throw new IOException(ex.getMessage(), ex);
@@ -213,7 +184,7 @@ public class ZConnection implements Connection<ZSession> {
      * 4=resources 5=security violation 6=protocol error 7=lack of activity
      * 8=peer abort 9=unspecified
 
-     * @param reason
+     * @param reason reason
      * @throws IOException
      */
     public void initClose(int reason) throws IOException {

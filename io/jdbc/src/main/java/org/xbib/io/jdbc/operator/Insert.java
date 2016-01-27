@@ -31,7 +31,7 @@
  */
 package org.xbib.io.jdbc.operator;
 
-import org.xbib.io.jdbc.SQLSession;
+import org.xbib.io.jdbc.JDBCSession;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -58,7 +58,7 @@ public class Insert extends Update {
     }
 
     @Override
-    public void execute(SQLSession session) throws IOException {
+    public void execute(JDBCSession session) throws IOException {
         try {
             this.session = session;
             PreparedStatement pstmt = prepareStatement(session);
@@ -78,7 +78,7 @@ public class Insert extends Update {
      * @throws java.sql.SQLException if triple preparation fails
      */
     @Override
-    protected PreparedStatement prepareStatement(SQLSession session) throws SQLException {
+    protected PreparedStatement prepareStatement(JDBCSession session) throws SQLException {
         PreparedStatement stmt = super.prepareStatement(session, getSQL());
         if (getRequestParams() != null) {
             bind(stmt, getRequest(), getRequestParams());

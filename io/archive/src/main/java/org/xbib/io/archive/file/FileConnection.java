@@ -32,51 +32,63 @@
 package org.xbib.io.archive.file;
 
 import org.xbib.io.Connection;
-import org.xbib.io.Session;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * File connection
  */
-public class FileConnection implements Connection<FileSession> {
+public class FileConnection extends URLConnection implements Connection<FileSession> {
 
-    private List<FileSession> sessions = new ArrayList<FileSession>();
-    private URI uri;
+    private FileSession session;
 
-    public FileConnection() {
+    private Path path;
+
+    private OpenOption option;
+
+    /**
+     * Constructs a URL connection to the specified URL. A connection to
+     * the object referenced by the URL is not created.
+     *
+     * @param url the specified URL.
+     */
+    public FileConnection(URL url) throws URISyntaxException {
+        super(url);
+        this.path = Paths.get(url.toURI().getSchemeSpecificPart());
+        this.option = StandardOpenOption.READ;
     }
 
     @Override
-    public FileConnection setURI(URI uri) {
-        this.uri = uri;
-        return this;
+    public void connect() throws IOException {
+        this.session = createSession();
     }
 
-    @Override
-    public URI getURI() {
-        return uri;
+    public void setPath(Path path, OpenOption option) {
+        this.path = path;
+        this.option = option;
+    }
+
+    public Path getPath() {
+        return path;
     }
 
     @Override
     public FileSession createSession() throws IOException {
-        if (uri == null) {
-            throw new IOException("unable to open session with a null URI");
-        }
-        FileSession session = new FileSession(uri);
-        sessions.add(session);
+        FileSession session = new FileSession();
+        session.setPath(path, option);
         return session;
     }
 
     @Override
     public void close() throws IOException {
-        for (Session session : sessions) {
-            session.close();
-        }
+        session.close();
     }
-
 }
 

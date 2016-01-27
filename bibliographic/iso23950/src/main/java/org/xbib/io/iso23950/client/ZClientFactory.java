@@ -32,13 +32,15 @@
 package org.xbib.io.iso23950.client;
 
 import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
+import org.xbib.io.iso23950.ZConnection;
 import org.xbib.io.iso23950.ZConstants;
 import org.xbib.io.iso23950.ZSession;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -47,12 +49,9 @@ import java.util.Properties;
  */
 public final class ZClientFactory implements ZConstants {
 
-    private final ConnectionService<ZSession> connectionService;
-
     private final static ZClientFactory instance = new ZClientFactory();
 
     private ZClientFactory() {
-        connectionService = ConnectionService.getInstance();
     }
 
     public static ZClientFactory getInstance() {
@@ -72,12 +71,13 @@ public final class ZClientFactory implements ZConstants {
     }
 
     public ZClient newZClient(Properties properties) throws IOException{
-        URI uri = URI.create(properties.getProperty(ADDRESS_PROPERTY));
-        Connection<ZSession> connection = connectionService
-                .getConnectionFactory(uri)
-                .getConnection(uri);
-        ZSession session = connection.createSession();
-        return session.newZClient(properties);
+        try {
+            ZConnection connection = new ZConnection(new URL(properties.getProperty(ADDRESS_PROPERTY)));
+            ZSession session = connection.createSession();
+            return session.newZClient(properties);
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
     }
 
 

@@ -34,14 +34,11 @@ package org.xbib.io.iso23950.service;
 import org.xbib.io.iso23950.client.ZClient;
 
 import java.io.IOException;
-import java.net.URI;
 
 /**
  * A Z service
  */
 public interface ZService {
-    
-    URI getURI();
 
     ZClient newZClient() throws IOException;
 

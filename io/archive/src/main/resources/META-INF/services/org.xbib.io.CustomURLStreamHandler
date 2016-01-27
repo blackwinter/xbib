@@ -1,0 +1,7 @@
+org.xbib.io.ClasspathURLStreamHandler
+org.xbib.io.archive.ar.ArURLStreamHandler
+org.xbib.io.archive.cpio.CpioURLStreamHandler
+org.xbib.io.archive.jar.JarURLStreamHandler
+org.xbib.io.archive.tar.TarURLStreamHandler
+org.xbib.io.archive.zip.ZipURLStreamHandler
+org.xbib.io.archive.file.FileURLStreamHandler

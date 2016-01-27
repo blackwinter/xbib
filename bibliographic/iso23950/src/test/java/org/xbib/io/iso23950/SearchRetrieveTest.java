@@ -34,21 +34,17 @@ package org.xbib.io.iso23950;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.io.Connection;
-import org.xbib.io.ConnectionService;
 import org.xbib.io.iso23950.client.ZClient;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.Collections;
 
 public class SearchRetrieveTest {
 
     private final static Logger logger = LogManager.getLogger(SearchRetrieveTest.class.getName());
-
-    private final static ConnectionService<ZSession> service = ConnectionService.getInstance();
 
     @Test
     public void testCopac() {
@@ -62,13 +58,11 @@ public class SearchRetrieveTest {
         int length = 10;
         try {
             URI uri = URI.create(address);
-            Connection<ZSession> connection = service
-                    .getConnectionFactory(uri)
-                    .getConnection(uri);
+            ZConnection connection = new ZConnection(uri.toURL());
             ZSession session = connection.createSession();
             ZClient client = session.newZClient();
             ZSearchRetrieveRequest searchRetrieve = client.newPQFSearchRetrieveRequest();
-            searchRetrieve.setDatabase(Arrays.asList(database))
+            searchRetrieve.setDatabase(Collections.singletonList(database))
                     .setQuery(query)
                     .setResultSetName(resultSetName)
                     .setElementSetName(elementSetName)

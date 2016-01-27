@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -148,7 +149,7 @@ public class AsyncClientTest {
                             .searchRetrieve(request)
                             .setStylesheetTransformer(transformer)
                             .to(writer);
-                } catch (ConnectTimeoutException e) {
+                } catch (ConnectTimeoutException | URISyntaxException e) {
                     logger.error(e.getMessage(), e);
                 }
                 transformer.close();

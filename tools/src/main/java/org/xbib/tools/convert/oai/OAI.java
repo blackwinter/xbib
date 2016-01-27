@@ -31,6 +31,7 @@
  */
 package org.xbib.tools.convert.oai;
 
+import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
 /**
@@ -38,7 +39,7 @@ import org.xbib.util.concurrent.WorkerProvider;
  */
 public class OAI extends OAIHarvester {
 
-    protected WorkerProvider provider() {
+    protected WorkerProvider<Converter> provider() {
         return p -> new OAI().setPipeline(p);
     }
 

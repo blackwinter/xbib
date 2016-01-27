@@ -1,23 +1,22 @@
-
 package org.xbib.io.archive.tar;
 
 /**
  * This interface contains all the definitions used in the package.
- * <p/>
  * For tar formats (FORMAT_OLDGNU, FORMAT_POSIX, etc.) see GNU tar
  * <I>tar.h</I> type <I>enum archive_format</I>
  */
 public interface TarConstants {
 
-    /**
-     * GNU format as per before tar 1.12.
-     */
-    int FORMAT_OLDGNU = 2;
+    int GNU_FORMAT = 0;
+
+    int USTAR_FORMAT = 1;
+
+    int UNIX_FORMAT = 2;
 
     /**
      * Pure Posix format.
      */
-    int FORMAT_POSIX = 3;
+    int POSIX_FORMAT = 3;
 
     /**
      * The length of the name field in a header buffer.
@@ -146,16 +145,6 @@ public interface TarConstants {
     int REALSIZELEN_GNU = 12;
 
     /**
-     * The sum of the length of all sparse headers in a sparse header buffer.
-     */
-    int SPARSELEN_GNU_SPARSE = 504;
-
-    /**
-     * The length of the is extension field in a sparse header buffer.
-     */
-    int ISEXTENDEDLEN_GNU_SPARSE = 1;
-
-    /**
      * LF_ constants represent the "link flag" of an entry, or more commonly,
      * the "entry type". This is the "old way" of indicating a normal file.
      */
@@ -228,6 +217,8 @@ public interface TarConstants {
      */
     byte LF_PAX_GLOBAL_EXTENDED_HEADER = (byte) 'g';
 
+    String MAGIC_UNIX = "\0\0\0\0\0";
+
     /**
      * The magic tag representing a POSIX tar archive.
      */
@@ -259,4 +250,50 @@ public interface TarConstants {
      */
     String GNU_LONGLINK = "././@LongLink";
 
+    /**
+     * Fail if a long file name is required in the archive.
+     */
+    int LONGFILE_ERROR = 0;
+
+    /**
+     * Long paths will be truncated in the archive.
+     */
+    int LONGFILE_TRUNCATE = 1;
+
+    /**
+     * GNU tar extensions are used to store long file names in the archive.
+     */
+    int LONGFILE_GNU = 2;
+
+    /**
+     * POSIX/PAX extensions are used to store long file names in the archive.
+     */
+    int LONGFILE_POSIX = 3;
+
+    /**
+     * Fail if a big number (e.g. size &gt; 8GiB) is required in the archive.
+     */
+    int BIGNUMBER_ERROR = 0;
+
+    /**
+     * star/GNU tar/BSD tar extensions are used to store big number in the archive.
+     */
+    int BIGNUMBER_STAR = 1;
+
+    /**
+     * POSIX/PAX extensions are used to store big numbers in the archive.
+     */
+    int BIGNUMBER_POSIX = 2;
+
+    /**
+     * Default record size
+     */
+    int DEFAULT_RECORD_SIZE = 512;
+
+    /**
+     * Default block size
+     */
+    int DEFAULT_BLOCK_SIZE = DEFAULT_RECORD_SIZE * 20;
+
+    int SMALL_BUFFER_SIZE = 256;
 }

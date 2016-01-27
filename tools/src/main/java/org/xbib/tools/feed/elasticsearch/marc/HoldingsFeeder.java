@@ -2,7 +2,6 @@ package org.xbib.tools.feed.elasticsearch.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.common.unit.ByteSizeValue;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.RdfContentBuilder;
@@ -51,8 +50,7 @@ public abstract class HoldingsFeeder extends Feeder {
             }
         });
         queue.execute();
-        ByteSizeValue bufferSize = settings.getAsBytesSize("buffersize", ByteSizeValue.parseBytesSizeValue("1m"));
-        try (InputStream in = InputService.getInputStream(uri, uri.getSchemeSpecificPart(), bufferSize)) {
+        try (InputStream in = InputService.getInputStream(uri)) {
             logger.info("start of processing {}", uri);
             process(in, queue);
             logger.info("end of processing {}", uri);

@@ -34,11 +34,9 @@ package org.xbib.tools.feed.elasticsearch.orcid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
-import org.xbib.io.Connection;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
-import org.xbib.io.archive.tar2.TarConnectionFactory;
-import org.xbib.io.archive.tar2.TarSession;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
@@ -78,8 +76,7 @@ public class ORCID extends Feeder {
             put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
         }});
         // public_profiles.tar(.gz)
-        TarConnectionFactory factory = new TarConnectionFactory();
-        Connection<TarSession> connection = factory.getConnection(uri);
+        TarConnection connection = new TarConnection(uri.toURL());
         Session<StringPacket> session = connection.createSession();
         if (session == null) {
             throw new IOException("can not open for input: " + uri);
