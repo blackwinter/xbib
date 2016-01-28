@@ -34,7 +34,6 @@ package org.xbib.io.iso23950;
 import org.xbib.io.CustomURLStreamHandler;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -46,10 +45,6 @@ public class ZURLStreamHandler extends CustomURLStreamHandler {
 
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
-        try {
-            return new ZConnection(u);
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        }
+        return new ZConnection(u);
     }
 }

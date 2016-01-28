@@ -32,7 +32,6 @@
 package org.xbib.oai.service;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 
@@ -88,14 +87,19 @@ public class SimpleServer implements OAIServer {
     }
 
     @Override
-    public URI getURI() {
-        return URI.create("http://localhost:8080/oai");
+    public URL getURL() {
+        try {
+            return new URL("http://localhost:8080/oai");
+        } catch (MalformedURLException e) {
+            //
+        }
+        return null;
     }
 
     @Override
     public OAISession newSession() {
         return new DefaultOAIClient()
-                .setURL(getURI());
+                .setURL(getURL());
     }
 
     @Override
@@ -110,11 +114,7 @@ public class SimpleServer implements OAIServer {
 
     @Override
     public URL getBaseURL() {
-        try {
-            return getURI().toURL();
-        } catch (MalformedURLException ex) {
-            return null;
-        }
+        return getURL();
     }
 
     @Override

@@ -31,7 +31,8 @@
  */
 package org.xbib.sru;
 
-import java.net.URI;
+
+import java.net.URL;
 
 /**
  * Default SRU request
@@ -39,17 +40,17 @@ import java.net.URI;
  */
 public class DefaultSRURequest implements SRURequest {
 
-    private URI uri;
+    private URL url;
 
     private String query;
 
-    public DefaultSRURequest setURI(URI uri) {
-        this.uri = uri;
+    public DefaultSRURequest setURL(URL url) {
+        this.url = url;
         return this;
     }
     
-    public URI getURI() {
-        return uri;
+    public URL getURL() {
+        return url;
     }
 
     public DefaultSRURequest setQuery(String query) {

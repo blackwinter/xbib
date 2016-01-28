@@ -33,7 +33,7 @@ public class PrivateSRUServiceTest {
                     String query = "dc.title = test";
                     int from = 1;
                     int size = 10;
-                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI());
+                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI().toURL());
                     request.setQuery(query)
                             .setStartRecord(from)
                             .setMaximumRecords(size);

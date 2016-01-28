@@ -15,7 +15,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * Ar connection
  */
-public class ArConnection  extends URLConnection implements Connection<ArSession> {
+public class ArConnection extends URLConnection implements Connection<ArSession> {
 
     private ArSession session;
 

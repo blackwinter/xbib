@@ -41,8 +41,9 @@ import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
 import org.xbib.util.URIUtil;
 
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Date;
 
@@ -71,8 +72,12 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     }
 
     @Override
-    public R setURL(URI uri) throws URISyntaxException {
-        super.setURL(uri);
+    public R setURL(URL url) {
+        try {
+            super.setURL(url);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
         return (R) this;
     }
 

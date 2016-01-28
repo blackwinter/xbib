@@ -43,7 +43,6 @@ import org.xbib.io.http.client.BoundRequestBuilder;
 import org.xbib.io.http.client.HttpResponseBodyPart;
 import org.xbib.io.http.client.HttpResponseHeaders;
 import org.xbib.io.http.client.HttpResponseStatus;
-import org.xbib.io.http.client.Request;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,15 +53,15 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
     private final HttpRequest request;
 
-    private final BoundRequestBuilder bound;
+    private final BoundRequestBuilder requestBuilder;
 
     private String encoding = System.getProperty("file.encoding");
 
     private OutputStream out;
 
-    NettyPreparedHttpRequest(HttpRequest request, BoundRequestBuilder bound) {
+    NettyPreparedHttpRequest(HttpRequest request, BoundRequestBuilder requestBuilder) {
         this.request = request;
-        this.bound = bound;
+        this.requestBuilder = requestBuilder;
     }
 
     public String getEncoding() {
@@ -87,20 +86,12 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
     @Override
     public HttpFuture execute() throws IOException {
-        Request r = bound.build();
-        if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getUrl());
-        }
-        return new NettyHttpFuture(bound.execute());
+        return new NettyHttpFuture(requestBuilder.execute());
     }
 
     @Override
     public HttpFuture execute(HttpResponseListener listener) throws IOException {
-        Request r = bound.build();
-        if (logger.isDebugEnabled()) {
-            logger.debug("executing URL {}", r.getUrl());
-        }
-        return new NettyHttpFuture(bound.execute(new Handler(listener)));
+        return new NettyHttpFuture(requestBuilder.execute(new Handler(listener)));
     }
 
     class Handler implements AsyncHandler<HttpResponse> {

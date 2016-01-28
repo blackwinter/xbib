@@ -34,14 +34,15 @@ package org.xbib.io.http;
 import org.xbib.io.Request;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 public interface HttpRequest extends Request {
 
-    URI getURL();
+    URL getURL();
 
-    HttpRequest setURL(URI uri) throws URISyntaxException;
+    HttpRequest setURL(URL uri) throws URISyntaxException, MalformedURLException;
 
     HttpRequest setMethod(String method);
 

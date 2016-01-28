@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
@@ -91,7 +92,7 @@ public class NatLizCrawler extends Feeder {
             session.open(Session.Mode.CONTROL); // do not follow redirect
             HttpRequest request = session.newRequest()
                     .setMethod("POST")
-                    .setURL(URI.create("https://www.nationallizenzen.de/anmeldung/inform_registration"))
+                    .setURL(new URL("https://www.nationallizenzen.de/anmeldung/inform_registration"))
                     .addHeader("Origin", "https://www.nationallizenzen.de")
                     .addHeader("Content-Type", "application/x-www-form-urlencoded")
                     .addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
@@ -134,7 +135,7 @@ public class NatLizCrawler extends Feeder {
     }
 
     private Collection<String> findInstitutions(String cookie) throws Exception {
-        URI uri = URI.create("https://www.nationallizenzen.de/Members/institutionen");
+        URL url = new URL("https://www.nationallizenzen.de/Members/institutionen");
         int n = 0;
         int count;
         Set<String> members = new LinkedHashSet<>();
@@ -144,7 +145,7 @@ public class NatLizCrawler extends Feeder {
                 session.open(Session.Mode.READ);
                 HttpRequest request = session.newRequest()
                         .setMethod("GET")
-                        .setURL(uri)
+                        .setURL(url)
                         .addParameter("b_start:int", Integer.toString(n))
                         .addHeader("Cookie", "ZopeId=\"67065706A6-9xahwvd0\"; " + cookie)
                         .addHeader("Accept", "text/html, */*; q=0.01")
@@ -189,7 +190,7 @@ public class NatLizCrawler extends Feeder {
                     count++;
                 }
                 n += 50;
-                logger.info("n={} count={} members={} next={}", n, count, members.size(), uri);
+                logger.info("n={} count={} members={} next={}", n, count, members.size(), url);
             } finally {
                 session.close();
             }
@@ -203,7 +204,7 @@ public class NatLizCrawler extends Feeder {
             session.open(Session.Mode.READ);
             HttpRequest request = session.newRequest()
                     .setMethod("GET")
-                    .setURL(URI.create("https://www.nationallizenzen.de/Members/" + member))
+                    .setURL(new URL("https://www.nationallizenzen.de/Members/" + member))
                     .addHeader("Cookie", "ZopeId=\"67065706A6-9xahwvd0\"; " + cookie)
                     .addHeader("Accept", "text/html, */*; q=0.01")
                     .addHeader("Connection", "keep-alive");
@@ -264,7 +265,7 @@ public class NatLizCrawler extends Feeder {
             for (String license: new String[] {"NLLicence", "NLOptLicence"}) {
                 HttpRequest request = session.newRequest()
                         .setMethod("GET")
-                        .setURL(URI.create("https://www.nationallizenzen.de/Members/" + member + "/nl3_inst_get_licences"))
+                        .setURL(new URL("https://www.nationallizenzen.de/Members/" + member + "/nl3_inst_get_licences"))
                         .addParameter("base_url", "nl3_inst_get_licences")
                         .addParameter("ltype", license)
                         .addParameter("state", "authorized")
@@ -389,7 +390,7 @@ public class NatLizCrawler extends Feeder {
             session.open(Session.Mode.READ, settings.getAsInt("timeout", 3 * 3600 * 1000));
             HttpRequest request = session.newRequest()
                     .setMethod("GET")
-                    .setURL(URI.create("https://www.nationallizenzen.de" + uri.getPath()))
+                    .setURL(new URL("https://www.nationallizenzen.de" + uri.getPath()))
                     .addParameter("lname", lname)
                     .addParameter("puid", puid)
                     .addParameter("mid", mid)

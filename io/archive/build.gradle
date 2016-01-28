@@ -2,3 +2,10 @@
 dependencies {
     compile project(':io:stream')
 }
+
+test {
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
+}

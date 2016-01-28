@@ -33,7 +33,7 @@ package org.xbib.oai.client;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.net.URL;
 import java.util.Properties;
 
 
@@ -66,11 +66,19 @@ public class OAIClientFactory {
                 // ignore
             }
             DefaultOAIClient client = new DefaultOAIClient();
-            client.setURL(URI.create(properties.getProperty("uri")));
+            try {
+                client.setURL(new URL(properties.getProperty("uri")));
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
             return client;
         } else {
             DefaultOAIClient client = new DefaultOAIClient();
-            client.setURL(URI.create(spec));
+            try {
+                client.setURL(new URL(spec));
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
             return client;
         }
     }

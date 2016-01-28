@@ -41,8 +41,7 @@ import org.xbib.sru.iso23950.service.ZSRUService;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -59,16 +58,16 @@ public class ZSRUClient extends DefaultSRUClient {
     }
 
     @Override
-    public SearchRetrieveRequest newSearchRetrieveRequest(URI uri) {
-        return super.newSearchRetrieveRequest(uri);
+    public SearchRetrieveRequest newSearchRetrieveRequest(URL url) {
+        return super.newSearchRetrieveRequest(url);
     }
 
     @Override
     public ZSearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
-            throws IOException, InterruptedException, ExecutionException, TimeoutException, URISyntaxException {
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         // connect to Z service
-        URI uri = request.getURI();
-        ZConnection connection = new ZConnection(uri.toURL());
+        URL url = request.getURL();
+        ZConnection connection = new ZConnection(url);
         ZSession session = connection.createSession();
         ZClient client = session.newZClient();
         try {

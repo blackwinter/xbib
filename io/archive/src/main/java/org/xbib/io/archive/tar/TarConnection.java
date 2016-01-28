@@ -22,13 +22,17 @@ public class TarConnection extends URLConnection implements Connection<TarSessio
 
     private OpenOption option;
 
+    public TarConnection() {
+        super(null);
+    }
+
     /**
      * Constructs a URL connection to the specified URL. A connection to
      * the object referenced by the URL is not created.
      *
      * @param url the specified URL.
      */
-    public TarConnection(URL url) throws URISyntaxException {
+    protected TarConnection(URL url) throws URISyntaxException {
         super(url);
         this.path = Paths.get(url.toURI().getSchemeSpecificPart());
         this.option = StandardOpenOption.READ;
@@ -57,6 +61,8 @@ public class TarConnection extends URLConnection implements Connection<TarSessio
 
     @Override
     public void close() throws IOException {
-        session.close();
+        if (session != null) {
+            session.close();
+        }
     }
 }

@@ -48,8 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -70,7 +69,7 @@ public class AsyncClientTest {
                 int from = 0;
                 int size = 10;
                 SearchRetrieveRequest request = client
-                        .newSearchRetrieveRequest(URI.create(s))
+                        .newSearchRetrieveRequest(new URL(s))
                         .setQuery(query)
                         .setStartRecord(from)
                         .setMaximumRecords(size);
@@ -149,7 +148,7 @@ public class AsyncClientTest {
                             .searchRetrieve(request)
                             .setStylesheetTransformer(transformer)
                             .to(writer);
-                } catch (ConnectTimeoutException | URISyntaxException e) {
+                } catch (ConnectTimeoutException e) {
                     logger.error(e.getMessage(), e);
                 }
                 transformer.close();

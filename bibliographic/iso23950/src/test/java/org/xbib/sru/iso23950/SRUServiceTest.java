@@ -131,7 +131,7 @@ public class SRUServiceTest {
                     String query = "dc.title = Linux";
                     int from = 1;
                     int size = 10;
-                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI())
+                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI().toURL())
                             .addListener(listener)
                             .setQuery(query)
                             .setStartRecord(from)

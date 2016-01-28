@@ -47,6 +47,9 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Fetch SRU result from ZDB SRU service.
@@ -55,6 +58,8 @@ import java.net.URL;
 public class SRU extends Converter {
 
     private final static Logger logger = LogManager.getLogger(SRU.class.getName());
+
+    private TarConnection connection;
 
     private Session<StringPacket> session;
 
@@ -65,14 +70,11 @@ public class SRU extends Converter {
 
     @Override
     public void prepareOutput() throws IOException {
-        // open output TAR archive
-        try {
-            TarConnection connection = new TarConnection(new URL(settings.get("output")));
-            session = connection.createSession();
-            session.open(Session.Mode.WRITE);
-        } catch (URISyntaxException e) {
-            logger.error(e.getMessage(), e);
-        }
+        Path path = Paths.get(settings.get("output"));
+        connection = new TarConnection();
+        connection.setPath(path, StandardOpenOption.CREATE);
+        session = connection.createSession();
+        session.open(Session.Mode.WRITE);
     }
 
     @Override
@@ -114,14 +116,14 @@ public class SRU extends Converter {
     }
 
     @Override
-    protected void disposeOutput() {
+    protected void disposeOutput() throws IOException {
         if (session != null) {
-            try {
-                session.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
+            session.close();
         }
+        if (connection != null) {
+            connection.close();
+        }
+        super.disposeOutput();
     }
 
 }

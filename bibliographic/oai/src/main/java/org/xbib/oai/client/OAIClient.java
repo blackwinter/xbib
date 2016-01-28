@@ -31,7 +31,7 @@
  */
 package org.xbib.oai.client;
 
-import java.net.URI;
+import java.net.URL;
 
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAISession;
@@ -49,9 +49,9 @@ import org.xbib.oai.util.ResumptionToken;
  */
 public interface OAIClient extends OAISession, OAIConstants {
 
-    OAIClient setURL(URI uri);
+    OAIClient setURL(URL uri);
 
-    URI getURL();
+    URL getURL();
 
     /**
      * This verb is used to retrieve information about a repository.

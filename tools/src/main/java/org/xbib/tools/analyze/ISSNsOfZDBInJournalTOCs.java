@@ -52,7 +52,7 @@ import org.xbib.io.http.netty.NettyHttpSession;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -147,7 +147,7 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                             }
                             setISSN(s);
                             httpRequest.setMethod("GET")
-                                    .setURL(URI.create("http://www.journaltocs.ac.uk/api/journals/" + s))
+                                    .setURL(new URL("http://www.journaltocs.ac.uk/api/journals/" + s))
                                     .addParameter("output", "articles")
                                     .addParameter("user", "joergprante@gmail.com")
                                     .prepare()

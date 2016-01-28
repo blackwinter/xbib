@@ -48,6 +48,8 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +78,8 @@ public class ORCID extends Feeder {
             put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
         }});
         // public_profiles.tar(.gz)
-        TarConnection connection = new TarConnection(uri.toURL());
+        TarConnection connection = new TarConnection();
+        connection.setPath(Paths.get(uri.getSchemeSpecificPart()), StandardOpenOption.READ);
         Session<StringPacket> session = connection.createSession();
         if (session == null) {
             throw new IOException("can not open for input: " + uri);

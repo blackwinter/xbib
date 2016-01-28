@@ -41,8 +41,10 @@ import org.xbib.io.http.client.Request;
 import org.xbib.io.http.client.RequestBuilder;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 public class NettyHttpRequest extends HttpPacket implements HttpRequest {
 
@@ -52,7 +54,7 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
 
     private String method = "GET";
 
-    private URI uri;
+    private URL url;
 
     private RequestBuilder requestBuilder;
 
@@ -66,24 +68,25 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
 
     @Override
     public String getQuery() {
-        return uri != null ? uri.toString() : null;
+        return url != null ? url.toString() : null;
     }
 
     @Override
-    public URI getURL() {
-        return uri;
+    public URL getURL() {
+        return url;
     }
 
     @Override
-    public NettyHttpRequest setURL(URI uri) throws URISyntaxException {
-        if (uri.getUserInfo() != null) {
-            String[] userInfo = uri.getUserInfo().split(":");
+    public NettyHttpRequest setURL(URL url) throws URISyntaxException, MalformedURLException {
+        if (url.getUserInfo() != null) {
+            String[] userInfo = url.getUserInfo().split(":");
             this.realmBuilder = new Realm.Builder(userInfo[0], userInfo[1]);
             realmBuilder = realmBuilder.setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC);
         }
-        String authority = uri.getHost() + (uri.getPort() > 0 ? ":" + uri.getPort() : "");
+        String authority = url.getHost() + (url.getPort() > 0 ? ":" + url.getPort() : "");
         // add authority, drop all query parameters (use the RequestBuilder for that)
-        this.uri = new URI(uri.getScheme(), authority, uri.getPath(), null, uri.getFragment());
+        URI uri = new URI(url.toURI().getScheme(), authority, url.getPath(), null, url.toURI().getFragment());
+        this.url = uri.toURL();
         return this;
     }
 
@@ -124,7 +127,7 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
 
     @Override
     public PreparedHttpRequest prepare() throws IOException {
-        if (uri == null) {
+        if (url == null) {
             throw new IOException("no URL set");
         }
         if (request == null) {
@@ -134,7 +137,7 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
                 }
                 this.requestBuilder = new RequestBuilder(method, true);
             }
-            requestBuilder = requestBuilder.setUrl(uri.toString());
+            requestBuilder = requestBuilder.setUrl(url.toString());
             if (realmBuilder != null) {
                 requestBuilder.setRealm(realmBuilder.build());
             }
@@ -150,9 +153,9 @@ public class NettyHttpRequest extends HttpPacket implements HttpRequest {
 
     public String toString() {
         return "[method=" + method + "]" +
-                "[uri=" + uri + "]" +
+                "[url=" + url + "]" +
                 "[parameter=" + requestBuilder
-                .setUrl(uri.toString())
+                .setUrl(url.toString())
                 .setRealm(realmBuilder != null ? realmBuilder.build() : null)
                 .build() + "]";
     }

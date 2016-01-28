@@ -192,7 +192,7 @@ public class MarcSRU extends Feeder {
         StringWriter w = new StringWriter();
         SRUClient client = new DefaultSRUClient();
 
-        SearchRetrieveRequest request = client.newSearchRetrieveRequest(uri)
+        SearchRetrieveRequest request = client.newSearchRetrieveRequest(uri.toURL())
                 .addListener(listener);
         client.searchRetrieve(request).to(w);
 

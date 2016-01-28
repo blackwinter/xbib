@@ -2,33 +2,44 @@ package org.xbib.io.archive.tar;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.junit.Test;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 
-public class TarSessionTest {
+public class TarTest {
 
-    private static final Logger logger = LogManager.getLogger(TarSessionTest.class.getName());
+    private static final Logger logger = LogManager.getLogger(TarTest.class);
 
+    @Test
     public void readFromTar() throws Exception {
-        TarConnection c = new TarConnection(new URL("tar:test.tar.bz2"));
-        TarSession session = c.createSession();
+        Path fromPath = Paths.get("src/test/resources/test.tar.bz2");
+        TarConnection from = new TarConnection();
+        from.setPath(fromPath, StandardOpenOption.READ);
+        TarSession session = from.createSession();
         session.open(Session.Mode.READ);
         StringPacket message;
         while ((message = session.read()) != null) {
             logger.info("name = {} object = {}", message.name(), message.packet());
         }
         session.close();
-        c.close();
+        from.close();
     }
 
+    @Test
     public void writeToTar() throws Exception {
-        TarConnection from = new TarConnection(new URL("src/test/resources/test.tar.bz2"));
+        Path fromPath = Paths.get("src/test/resources/test.tar.bz2");
+        TarConnection from = new TarConnection();
+        from.setPath(fromPath, StandardOpenOption.READ);
         TarSession fromSession = from.createSession();
         fromSession.open(Session.Mode.READ);
-        TarConnection to = new TarConnection(new URL("file:test.tar.bz2"));
+        Path toPath = Paths.get("build/test.tar.bz2");
+        TarConnection to = new TarConnection();
+        to.setPath(toPath, StandardOpenOption.CREATE);
         TarSession toSession = to.createSession();
         toSession.open(Session.Mode.WRITE);
         StringPacket message;

@@ -33,13 +33,13 @@ package org.xbib.sru;
 
 import org.xbib.io.Request;
 
-import java.net.URI;
+import java.net.URL;
 
 public interface SRURequest extends Request {
 
-    SRURequest setURI(URI uri);
+    SRURequest setURL(URL url);
 
-    URI getURI();
+    URL getURL();
 
     SRURequest setQuery(String query);
 

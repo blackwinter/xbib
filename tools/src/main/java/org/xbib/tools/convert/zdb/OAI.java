@@ -50,8 +50,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -62,6 +63,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class OAI extends Converter {
 
     private final static Logger logger = LogManager.getLogger(OAI.class.getName());
+
+    private TarConnection connection;
 
     private Session<StringPacket> session;
 
@@ -74,14 +77,11 @@ public class OAI extends Converter {
 
     @Override
     public void prepareOutput() throws IOException {
-        // open output TAR archive
-        try {
-            TarConnection connection = new TarConnection(new URL(settings.get("output")));
-            session = connection.createSession();
-            session.open(Session.Mode.WRITE);
-        } catch (URISyntaxException e) {
-            logger.error(e.getMessage(), e);
-        }
+        Path path = Paths.get(settings.get("output"));
+        connection = new TarConnection();
+        connection.setPath(path, StandardOpenOption.CREATE);
+        session = connection.createSession();
+        session.open(Session.Mode.WRITE);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class OAI extends Converter {
     @Override
     public void process(URI uri) throws Exception {
         Map<String, String> params = URIUtil.parseQueryString(uri);
-        final OAIClient client = OAIClientFactory.newClient().setURL(uri);
+        final OAIClient client = OAIClientFactory.newClient().setURL(uri.toURL());
         client.setTimeout(settings.getAsInt("timeout", 60000));
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(params.get("metadataPrefix"))
@@ -132,6 +132,9 @@ public class OAI extends Converter {
     protected void disposeOutput() throws IOException {
         if (session != null) {
             session.close();
+        }
+        if (connection != null) {
+            connection.close();
         }
         super.disposeOutput();
     }

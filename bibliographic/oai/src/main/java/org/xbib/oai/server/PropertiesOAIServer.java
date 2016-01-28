@@ -32,7 +32,6 @@
 package org.xbib.oai.server;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.Properties;
@@ -79,8 +78,13 @@ public class PropertiesOAIServer implements OAIServer {
     }
 
     @Override
-    public URI getURI() {
-        return URI.create(properties.getProperty(ADAPTER_URI).trim());
+    public URL getURL() {
+        try {
+            return new URL(properties.getProperty(ADAPTER_URI).trim());
+        } catch (MalformedURLException e) {
+            //
+        }
+        return null;
     }
 
     public String getStylesheet() {

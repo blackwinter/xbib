@@ -76,7 +76,7 @@ public class ZConnection extends URLConnection implements Connection<ZSession> {
      *
      * @param url the specified URL.
      */
-    public ZConnection(URL url) throws URISyntaxException {
+    public ZConnection(URL url) {
         super(url);
         this.url = url;
         this.timeout = 30000L;

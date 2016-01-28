@@ -42,8 +42,6 @@ import java.util.Map;
 
 public class NettyHttpResponse extends HttpPacket implements HttpResponse {
 
-    private URI uri;
-
     private int statusCode;
 
     private HttpHeaders headers;
@@ -53,15 +51,6 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
     private String encoding;
 
     private Throwable throwable;
-
-    public URI getURI() {
-        return uri;
-    }
-
-    public NettyHttpResponse setURI(URI uri) {
-        this.uri = uri;
-        return this;
-    }
 
     @Override
     public int getStatusCode() {
@@ -137,8 +126,7 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
     }
 
     public String toString() {
-        return "[uri=" + uri + "]" +
-                "[headers=]" + getHeaders() + "]";
+        return "[headers=]" + getHeaders() + "]";
     }
 
 }

@@ -56,8 +56,9 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.Normalizer;
 import java.util.Date;
 import java.util.Map;
@@ -67,7 +68,9 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public abstract class OAIHarvester extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(OAIHarvester.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(OAIHarvester.class);
+
+    private TarConnection connection;
 
     private Session<StringPacket> session;
 
@@ -77,14 +80,11 @@ public abstract class OAIHarvester extends Converter {
 
     @Override
     public void prepareOutput() throws IOException {
-        try {
-            String output = settings.get("output");
-            TarConnection connection = new TarConnection(new URL(output));
-            session = connection.createSession();
-            session.open(Session.Mode.WRITE);
-        } catch (URISyntaxException e) {
-            logger.error(e.getMessage(), e);
-        }
+        Path path = Paths.get(settings.get("output"));
+        connection = new TarConnection();
+        connection.setPath(path, StandardOpenOption.CREATE);
+        session = connection.createSession();
+        session.open(Session.Mode.WRITE);
         super.prepareOutput();
     }
 
@@ -134,6 +134,9 @@ public abstract class OAIHarvester extends Converter {
     protected void disposeOutput() throws IOException {
         if (session != null) {
             session.close();
+        }
+        if (connection != null) {
+            connection.close();
         }
         super.disposeOutput();
     }

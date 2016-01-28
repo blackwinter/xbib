@@ -52,7 +52,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URI;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Arrays;
 
@@ -65,7 +65,7 @@ public class SRUClientTest {
         try {
             SRUClient client = new DefaultSRUClient();
             SearchRetrieveRequest request = client
-                    .newSearchRetrieveRequest(URI.create("http://pub.uni-bielefeld.de/sru"))
+                    .newSearchRetrieveRequest(new URL("http://pub.uni-bielefeld.de/sru"))
                     .setQuery("title=linux")
                     .setStartRecord(0)
                     .setMaximumRecords(10);
@@ -262,7 +262,7 @@ public class SRUClientTest {
                     }
                 };
                 SRUClient client = new DefaultSRUClient();
-                SearchRetrieveRequest request = client.newSearchRetrieveRequest(URI.create(clientName))
+                SearchRetrieveRequest request = client.newSearchRetrieveRequest(new URL(clientName))
                         .addListener(listener)
                         .setQuery(query)
                         .setStartRecord(from)

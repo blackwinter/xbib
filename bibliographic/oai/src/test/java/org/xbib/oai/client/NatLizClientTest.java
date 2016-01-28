@@ -49,7 +49,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.ConnectException;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -71,7 +73,9 @@ public class NatLizClientTest {
                     .setUntil(DateUtil.parseDateISO("2014-01-01T00:00:00Z"), OAIDateResolution.SECOND)
                     .setMetadataPrefix("extpp2"); // extpp, extpp2, oai_dc, mods, marcxml, telap, mab, mab_opc
 
-            TarConnection connection = new TarConnection(new URL("tar:natliz-extpp2.tar.gz"));
+            Path path = Paths.get("natliz-extpp2.tar.gz");
+            TarConnection connection = new TarConnection();
+            connection.setPath(path, StandardOpenOption.READ);
             session = connection.createSession();
             session.open(Session.Mode.WRITE);
 

@@ -1,0 +1,2 @@
+org.xbib.io.http.netty.HttpURLStreamHandler
+org.xbib.io.http.netty.HttpsURLStreamHandler

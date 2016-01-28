@@ -32,7 +32,6 @@
 package org.xbib.io.archive.ar;
 
 import org.xbib.io.CustomURLStreamHandler;
-import org.xbib.io.archive.file.FileConnection;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

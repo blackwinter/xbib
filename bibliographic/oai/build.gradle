@@ -6,3 +6,10 @@ dependencies {
     testCompile "xalan:xalan:2.7.2"
     testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
 }
+
+test {
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
+}

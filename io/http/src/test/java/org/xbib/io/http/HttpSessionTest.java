@@ -29,17 +29,27 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io.http.netty;
+package org.xbib.io.http;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Test;
+import org.xbib.io.Request;
 import org.xbib.io.Session;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpResponse;
+import org.xbib.io.http.netty.NettyHttpResponseListener;
+import org.xbib.io.http.netty.NettyHttpSession;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertTrue;
 
 public class HttpSessionTest {
+
+    private final static Logger logger = LogManager.getLogger(HttpSessionTest.class);
 
     @Test
     public void testGet() throws Exception {
@@ -47,15 +57,22 @@ public class HttpSessionTest {
         session.open(Session.Mode.READ);
         HttpRequest request = session.newRequest()
                 .setMethod("GET")
-                .setURL(URI.create("http://www.google.com/search"))
+                .setURL(new URL("http://www.google.com/search"))
                 .addParameter("q", "köln");
+        AtomicInteger counter = new AtomicInteger();
         request.prepare().execute(new NettyHttpResponseListener() {
             @Override
             public void receivedResponse(HttpResponse result) {
-                //logger.info("result = {}", result);
+                logger.info("result = {}", result);
+                counter.incrementAndGet();
             }
-        });
+            @Override
+            public void onError(Request request, CharSequence errorMessage) throws IOException {
+                logger.error("error = {}", errorMessage);
+            }
+        }).waitFor(15L, TimeUnit.SECONDS);
         session.close();
+        assertTrue(counter.get() > 0);
     }
 
     @Test
@@ -64,16 +81,18 @@ public class HttpSessionTest {
         session.open(Session.Mode.READ);
         HttpRequest request = session.newRequest()
                 .setMethod("POST")
-                .setURL(URI.create("http://www.google.com/search"))
+                .setURL(new URL("http://www.google.com/search"))
                 .addHeader("Content-Length", "0")
                 .addParameter("q", "köln");
+        AtomicInteger counter = new AtomicInteger();
         request.prepare().execute(new NettyHttpResponseListener() {
-
             @Override
             public void receivedResponse(HttpResponse result) {
-                //logger.info("result = {}",result);
+                logger.info("result = {}",result);
+                counter.incrementAndGet();
             }
         }).waitFor(15, TimeUnit.SECONDS);
         session.close();
+        assertTrue(counter.get() > 0);
     }
 }

@@ -83,16 +83,15 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
         if (isOpen) {
             return;
         }
-        final String suffix = getSuffix();
         switch (mode) {
             case READ: {
-                InputStream in = newInputStream(path, option, "." + suffix);
+                InputStream in = newInputStream(path, option);
                 open(in);
                 this.isOpen = getInputStream() != null;
                 break;
             }
             case WRITE: {
-                OutputStream out = newOutputStream(path, option, "." + suffix);
+                OutputStream out = newOutputStream(path, option);
                 open(out);
                 this.isOpen = getOutputStream() != null;
                 break;
@@ -210,13 +209,15 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
     /**
      * Helper method for creating the FileInputStream
      *
-     * @param suffix the suffix
+     * @param path the path
      * @return an InputStream
      * @throws java.io.IOException if existence or access rights do not suffice
      */
-    public static InputStream newInputStream(Path path, OpenOption option, String suffix) throws IOException {
+    public static InputStream newInputStream(Path path, OpenOption option) throws IOException {
+        if (path == null) {
+            throw new IOException("no path given");
+        }
         String part = path.toUri().getSchemeSpecificPart();
-        path = suffix != null ? Paths.get(part.endsWith(suffix) ? part : part + suffix) : path;
         if (Files.isReadable(path) && Files.isRegularFile(path)) {
             InputStream in = Files.newInputStream(path, option);
             Set<String> codecs = StreamCodecService.getCodecs();
@@ -238,22 +239,17 @@ public abstract class ArchiveSession<I extends ArchiveInputStream, O extends Arc
      *
      * @throws java.io.IOException if existence or access rights do not suffice
      */
-    public static OutputStream newOutputStream(Path path, OpenOption option, String suffix) throws IOException {
+    public static OutputStream newOutputStream(Path path, OpenOption option) throws IOException {
         String part = path.toUri().getSchemeSpecificPart();
-        path = suffix != null ? Paths.get(part.endsWith(suffix) ? part : part + suffix) : path;
-        if (Files.isWritable(path) && Files.isRegularFile(path)) {
-            OutputStream out = Files.newOutputStream(path, option);
-            Set<String> codecs = StreamCodecService.getCodecs();
-            for (String codec : codecs) {
-                String s = "." + codec;
-                if (part.endsWith(s.toLowerCase()) || part.endsWith(s.toUpperCase())) {
-                    out = StreamCodecService.getInstance().getCodec(codec).encode(out);
-                }
+        OutputStream out = Files.newOutputStream(path, option);
+        Set<String> codecs = StreamCodecService.getCodecs();
+        for (String codec : codecs) {
+            String s = "." + codec;
+            if (part.endsWith(s.toLowerCase()) || part.endsWith(s.toUpperCase())) {
+                out = StreamCodecService.getInstance().getCodec(codec).encode(out);
             }
-            return out;
-        } else {
-            throw new IOException("can't open for output, check existence or access rights: " + path);
         }
+        return out;
     }
 
 }

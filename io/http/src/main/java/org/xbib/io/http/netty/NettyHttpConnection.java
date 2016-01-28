@@ -35,6 +35,7 @@ import org.xbib.io.Connection;
 import org.xbib.io.http.HttpSession;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -43,17 +44,14 @@ public class NettyHttpConnection extends URLConnection implements Connection<Htt
 
     private HttpSession session;
 
-    private URL url;
-
     /**
      * Constructs a URL connection to the specified URL. A connection to
      * the object referenced by the URL is not created.
      *
      * @param url the specified URL.
      */
-    public NettyHttpConnection(URL url) throws URISyntaxException {
+    protected NettyHttpConnection(URL url) throws URISyntaxException {
         super(url);
-        this.url = url;
     }
 
     @Override
@@ -68,7 +66,9 @@ public class NettyHttpConnection extends URLConnection implements Connection<Htt
 
     @Override
     public void close() throws IOException {
-        session.close();
+        if (session != null) {
+            session.close();
+        }
     }
 
 }

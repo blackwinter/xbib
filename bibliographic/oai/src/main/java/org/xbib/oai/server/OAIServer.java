@@ -31,7 +31,6 @@
  */
 package org.xbib.oai.server;
 
-import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 
@@ -56,7 +55,7 @@ import org.xbib.oai.server.listsets.ListSetsServerResponse;
  */
 public interface OAIServer {
 
-    URI getURI();
+    URL getURL();
 
     OAISession newSession();
 

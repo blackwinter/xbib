@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io.http;
+package org.xbib.io.http.netty;
 
 import org.xbib.io.CustomURLStreamHandler;
 import org.xbib.io.http.netty.NettyHttpConnection;
@@ -39,10 +39,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class HttpsURLStreamHandler extends CustomURLStreamHandler {
+public class HttpURLStreamHandler extends CustomURLStreamHandler {
     @Override
     public String getName() {
-        return "https";
+        return "http";
     }
 
     @Override

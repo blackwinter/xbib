@@ -38,8 +38,7 @@ import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -48,9 +47,9 @@ import java.util.concurrent.TimeoutException;
  */
 public interface SRUClient extends SRUConstants, Closeable {
 
-    SearchRetrieveRequest newSearchRetrieveRequest(URI uri);
+    SearchRetrieveRequest newSearchRetrieveRequest(URL url);
 
     SearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
-            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException, URISyntaxException;
+            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException;
 
 }

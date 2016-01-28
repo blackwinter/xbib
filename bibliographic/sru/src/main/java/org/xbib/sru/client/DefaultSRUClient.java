@@ -41,8 +41,8 @@ import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -64,18 +64,18 @@ public class DefaultSRUClient implements SRUClient {
     }
 
     @Override
-    public SearchRetrieveRequest newSearchRetrieveRequest(URI uri) {
+    public SearchRetrieveRequest newSearchRetrieveRequest(URL url) {
         SearchRetrieveRequest request = new ClientSearchRetrieveRequest();
-        request.setURI(uri);
+        request.setURL(url);
         return request;
     }
 
     public SearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
-            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException, URISyntaxException {
+            throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException {
         if (request == null) {
             throw new IOException("request not set");
         }
-        if (request.getURI() == null) {
+        if (request.getURL() == null) {
             throw new IOException("request URI not set");
         }
         final SearchRetrieveResponse response = new SearchRetrieveResponse(request);
@@ -83,7 +83,7 @@ public class DefaultSRUClient implements SRUClient {
         try {
             HttpRequest req = session.newRequest()
                     .setMethod("GET")
-                    .setURL(request.getURI())
+                    .setURL(request.getURL())
                     .addParameter(SRUConstants.OPERATION_PARAMETER, "searchRetrieve")
                     .addParameter(SRUConstants.VERSION_PARAMETER, request.getVersion())
                     .addParameter(SRUConstants.QUERY_PARAMETER, request.getQuery())

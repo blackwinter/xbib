@@ -2,8 +2,16 @@
 dependencies {
     compile project(':io:stream')
     compile project(':io:archive')
+    compile project(':io:zlib')
     compile "io.netty:netty-all:${versions.netty}"
     compile "org.reactivestreams:reactive-streams:1.0.0"
     compile "com.typesafe.netty:netty-reactive-streams:1.0.0"
     compile "org.javassist:javassist:3.20.0-GA"
+}
+
+test {
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
 }
