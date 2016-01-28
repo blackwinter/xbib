@@ -57,7 +57,7 @@ public class SearchRetrieveResponseAdapter implements SearchRetrieveListener {
     }
 
     @Override
-    public void onError(Request request, CharSequence errorMessage) {
+    public void onError(Request request, Throwable error) {
     }
 
     @Override

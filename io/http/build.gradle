@@ -15,3 +15,7 @@ test {
         exceptionFormat = 'full'
     }
 }
+
+clean {
+    delete "work"
+}

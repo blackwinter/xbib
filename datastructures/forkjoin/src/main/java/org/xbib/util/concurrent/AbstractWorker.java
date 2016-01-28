@@ -104,7 +104,7 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
         try {
             r = getQueue().take();
             while (r != null && r.get() != null) {
-                newRequest(this, r);
+                processRequest(this, r);
                 metric.mark();
                 r = getQueue().take();
             }
@@ -123,6 +123,6 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
      * @param worker the pipeline
      * @param request the pipeline request
      */
-    public abstract void newRequest(Worker<P,R> worker, R request);
+    public abstract void processRequest(Worker<P,R> worker, R request) throws Exception;
 
 }

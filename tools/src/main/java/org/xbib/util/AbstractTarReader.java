@@ -43,7 +43,7 @@ public abstract class AbstractTarReader extends AbstractWorker<Pipeline,LongWork
     }
 
     @Override
-    public void newRequest(Worker<Pipeline, LongWorkerRequest> worker, LongWorkerRequest request) {
+    public void processRequest(Worker<Pipeline, LongWorkerRequest> worker, LongWorkerRequest request) {
 
     }
 

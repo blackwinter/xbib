@@ -97,9 +97,9 @@ public class SearchRetrieveResponse extends DefaultSRUResponse
     }
 
     @Override
-    public void onError(Request request, CharSequence errorMessage) throws IOException {
+    public void onError(Request request, Throwable error) throws IOException {
         for (SearchRetrieveListener listener : this.request.getListeners()) {
-            listener.onError(request, errorMessage);
+            listener.onError(request, error);
         }
     }
 

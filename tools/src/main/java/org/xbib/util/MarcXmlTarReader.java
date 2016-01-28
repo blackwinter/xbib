@@ -55,7 +55,7 @@ public class MarcXmlTarReader extends AbstractTarReader {
     }
 
     @Override
-    public void newRequest(Worker<Pipeline, LongWorkerRequest> pipeline, LongWorkerRequest request) {
+    public void processRequest(Worker<Pipeline, LongWorkerRequest> pipeline, LongWorkerRequest request) {
         try {
             StringReader sr = new StringReader(packet.toString());
             XMLEventReader xmlReader = factory.createXMLEventReader(sr);

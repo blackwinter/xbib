@@ -40,7 +40,6 @@ import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,8 +66,8 @@ public class HttpSessionTest {
                 counter.incrementAndGet();
             }
             @Override
-            public void onError(Request request, CharSequence errorMessage) throws IOException {
-                logger.error("error = {}", errorMessage);
+            public void onError(Request request, Throwable error) throws IOException {
+                logger.error(error.getMessage(), error);
             }
         }).waitFor(15L, TimeUnit.SECONDS);
         session.close();

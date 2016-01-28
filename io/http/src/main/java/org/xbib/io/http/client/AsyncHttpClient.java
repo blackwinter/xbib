@@ -13,8 +13,8 @@ import java.util.concurrent.Future;
  * </pre></blockquote>
  * <br>
  * The code above will block until the response is fully received. To execute asynchronous HTTP request, you
- * create an {@link org.asynchttpclient.AsyncHandler} or its abstract implementation, {@link
- * org.asynchttpclient.AsyncCompletionHandler}
+ * create an {@link AsyncHandler} or its abstract implementation, {@link
+ * .AsyncCompletionHandler}
  * <br>
  * <blockquote><pre>
  *       AsyncHttpClient c = new AsyncHttpClient();
@@ -48,12 +48,12 @@ import java.util.concurrent.Future;
  *      &#125;);
  *      Integer statusCode = f.get();
  * </pre></blockquote>
- * The {@link org.asynchttpclient.AsyncCompletionHandler#onCompleted(Response)} will be invoked once the http response
+ * The {@link AsyncCompletionHandler#onCompleted(Response)} will be invoked once the http response
  * has been fully read, which include
  * the http headers and the response body. Note that the entire response will be buffered in memory.
  * <br>
  * You can also have more control about the how the response is asynchronously processed by using a {@link
- * org.asynchttpclient.AsyncHandler}
+ * AsyncHandler}
  * <blockquote><pre>
  *      AsyncHttpClient c = new AsyncHttpClient();
  *      Future&lt;String&gt; f = c.prepareGet(TARGET_URL).execute(new AsyncHandler&lt;String&gt;() &#123;
@@ -94,10 +94,10 @@ import java.util.concurrent.Future;
  *      String bodyResponse = f.get();
  * </pre></blockquote>
  * You can asynchronously process the response status,headers and body and decide when to
- * stop the processing the response by returning a new {@link org.asynchttpclient.AsyncHandler.State#ABORT} at any
+ * stop the processing the response by returning a new {@link AsyncHandler.State#ABORT} at any
  * moment.
  *
- * This class can also be used without the need of {@link org.asynchttpclient.AsyncHandler}.
+ * This class can also be used without the need of {@link AsyncHandler}.
  * <br>
  * <blockquote><pre>
  *      AsyncHttpClient c = new AsyncHttpClient();
@@ -226,7 +226,7 @@ public interface AsyncHttpClient extends Closeable {
      * Execute an HTTP request.
      *
      * @param request {@link Request}
-     * @param handler an instance of {@link org.asynchttpclient.AsyncHandler}
+     * @param handler an instance of {@link AsyncHandler}
      * @param <T>     Type of the value that will be returned by the associated {@link Future}
      * @return a {@link Future} of type T
      */
@@ -236,7 +236,7 @@ public interface AsyncHttpClient extends Closeable {
      * Execute an HTTP request.
      *
      * @param requestBuilder {@link RequestBuilder}
-     * @param handler        an instance of {@link org.asynchttpclient.AsyncHandler}
+     * @param handler        an instance of {@link AsyncHandler}
      * @param <T>            Type of the value that will be returned by the associated {@link Future}
      * @return a {@link Future} of type T
      */

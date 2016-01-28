@@ -77,19 +77,19 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
         this.response = (Response)new ClientOAIResponse();
         if (!result.ok()) {
             String msg = "HTTP error " + result.getStatusCode();
-            if (result.getThrowable() == null) {
+            /*if (result.getThrowable() == null) {
                 Throwable t = new IOException(msg);
                 result.setThrowable(t);
                 throw new IOException(t);
-            }
+            }*/
             return;
         }
-        if (result.getThrowable() != null) {
+        /*if (result.getThrowable() != null) {
             throw new IOException(result.getThrowable());
-        }
+        }*/
         logger.debug("got response: status = {}, headers = {}, body = {}",
                 result.getStatusCode(),
-                result.getHeaders(),
+                result.getHeaderMap(),
                 sb.toString()
         );
         if (!result.getContentType().endsWith("xml")) {
@@ -112,8 +112,8 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
     }
 
     @Override
-    public void onError(Request request, CharSequence errorMessage) throws IOException {
-        logger.error("received error {}", errorMessage);
+    public void onError(Request request, Throwable error) throws IOException {
+        logger.error("received error {}", error);
         this.failure = true;
     }
 

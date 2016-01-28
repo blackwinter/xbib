@@ -104,8 +104,8 @@ public class NatLizCrawler extends Feeder {
                 @Override
                 public void receivedResponse(HttpResponse response) throws IOException {
                     logger.info("login: status code={} headers={}",
-                            response.getStatusCode(), response.getHeaders());
-                    cookie.append(response.getHeaders().get("Set-Cookie").get(0));
+                            response.getStatusCode(), response.getHeaderMap());
+                    cookie.append(response.getHeaderMap().get("Set-Cookie").get(0));
                 }
 
                 @Override
@@ -123,8 +123,8 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onError(Request request, CharSequence errorMessage) throws IOException {
-                    logger.error("{}", errorMessage);
+                public void onError(Request request, Throwable errorMessage) throws IOException {
+                    logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };
             request.prepare().execute(listener).waitFor();
@@ -173,8 +173,8 @@ public class NatLizCrawler extends Feeder {
                     }
 
                     @Override
-                    public void onError(Request request, CharSequence errorMessage) throws IOException {
-                        logger.error("{}", errorMessage);
+                    public void onError(Request request, Throwable errorMessage) throws IOException {
+                        logger.error(errorMessage.getMessage(), errorMessage);
 
                     }
                 };
@@ -231,8 +231,8 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onError(Request request, CharSequence errorMessage) throws IOException {
-                    logger.error("{}", errorMessage);
+                public void onError(Request request, Throwable errorMessage) throws IOException {
+                    logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };
             request.prepare().execute(listener).waitFor();
@@ -298,8 +298,8 @@ public class NatLizCrawler extends Feeder {
                     }
 
                     @Override
-                    public void onError(Request request, CharSequence errorMessage) throws IOException {
-                        logger.error("{}", errorMessage);
+                    public void onError(Request request, Throwable errorMessage) throws IOException {
+                        logger.error(errorMessage.getMessage(), errorMessage);
                     }
                 };
                 request.prepare().execute(listener).waitFor();
@@ -419,8 +419,8 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onError(Request request, CharSequence errorMessage) throws IOException {
-                    logger.error("{}", errorMessage);
+                public void onError(Request request, Throwable errorMessage) throws IOException {
+                    logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };
             request.prepare().setOutputStream(out).execute(listener).waitFor();

@@ -32,17 +32,29 @@
 package org.xbib.io.http.netty;
 
 import org.xbib.io.Connection;
+import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
+import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpSession;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownServiceException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class NettyHttpConnection extends URLConnection implements Connection<HttpSession> {
 
     private HttpSession session;
+
+    private NettyHttpResponse nettyHttpResponse;
+
+    private Throwable throwable;
 
     /**
      * Constructs a URL connection to the specified URL. A connection to
@@ -57,6 +69,47 @@ public class NettyHttpConnection extends URLConnection implements Connection<Htt
     @Override
     public void connect() throws IOException {
         this.session = createSession();
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+        if (session == null) {
+            connect();
+        }
+        try {
+            HttpRequest request = session.newRequest().setMethod("GET").setURL(url);
+            NettyHttpResponseListener listener = new NettyHttpResponseListener() {
+                @Override
+                public void receivedResponse(HttpResponse result) {
+                    setNettyHttpResponse((NettyHttpResponse) result);
+                }
+                @Override
+                public void onError(Request request, Throwable error) throws IOException {
+                    setThrowable(error);
+                }
+            };
+            request.prepare().execute(listener).waitFor(15L, TimeUnit.SECONDS);
+            return nettyHttpResponse != null ? nettyHttpResponse.getResponseBodyAsStream() : null;
+        } catch (URISyntaxException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new IOException(e);
+        }
+    }
+
+    void setNettyHttpResponse(NettyHttpResponse nettyHttpResponse) {
+        this.nettyHttpResponse = nettyHttpResponse;
+    }
+
+    void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        throw new UnknownServiceException("protocol doesn't support output");
     }
 
     @Override

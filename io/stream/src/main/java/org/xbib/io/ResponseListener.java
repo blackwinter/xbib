@@ -41,6 +41,6 @@ public interface ResponseListener {
 
     void onReceive(Request request, CharSequence message) throws IOException;
 
-    void onError(Request request, CharSequence errorMessage) throws IOException;
+    void onError(Request request, Throwable error) throws IOException;
 
 }

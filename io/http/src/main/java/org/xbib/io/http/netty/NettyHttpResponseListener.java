@@ -40,10 +40,6 @@ import java.io.IOException;
 public class NettyHttpResponseListener implements HttpResponseListener {
 
     @Override
-    public void receivedResponse(HttpResponse response) throws IOException {
-    }
-
-    @Override
     public void onConnect(Request request) throws IOException {
     }
 
@@ -56,6 +52,11 @@ public class NettyHttpResponseListener implements HttpResponseListener {
     }
 
     @Override
-    public void onError(Request request, CharSequence errorMessage) throws IOException {
+    public void onError(Request request, Throwable error) throws IOException {
     }
+
+    @Override
+    public void receivedResponse(HttpResponse response) throws IOException {
+    }
+
 }

@@ -31,20 +31,11 @@
  */
 package org.xbib.io.http;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 public interface HttpResponse {
-
-    int getStatusCode();
-
-    String getContentType();
-
-    Map<String, List<String>> getHeaders();
-
-    Throwable getThrowable();
-
-    void setThrowable(Throwable t);
 
     boolean ok();
 
@@ -53,5 +44,13 @@ public interface HttpResponse {
     boolean notfound();
 
     boolean fatal();
+
+    int getStatusCode();
+
+    String getContentType();
+
+    Map<String, List<String>> getHeaderMap();
+
+    InputStream getResponseBodyAsStream();
 
 }

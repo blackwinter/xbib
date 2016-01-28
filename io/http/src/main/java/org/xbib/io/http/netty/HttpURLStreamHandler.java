@@ -32,7 +32,6 @@
 package org.xbib.io.http.netty;
 
 import org.xbib.io.CustomURLStreamHandler;
-import org.xbib.io.http.netty.NettyHttpConnection;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

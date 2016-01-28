@@ -32,46 +32,27 @@
 package org.xbib.io.http.netty;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.xbib.io.http.HttpPacket;
 import org.xbib.io.http.HttpResponse;
+import org.xbib.io.http.client.HttpResponseBodyPart;
+import org.xbib.io.http.client.HttpResponseHeaders;
+import org.xbib.io.http.client.HttpResponseStatus;
+import org.xbib.io.http.client.netty.NettyResponse;
 
-import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NettyHttpResponse extends HttpPacket implements HttpResponse {
-
-    private int statusCode;
+public class NettyHttpResponse extends NettyResponse implements HttpResponse {
 
     private HttpHeaders headers;
 
-    private String contentType;
-
-    private String encoding;
-
-    private Throwable throwable;
-
-    @Override
-    public int getStatusCode() {
-        return statusCode;
+    public NettyHttpResponse(HttpResponseStatus status,
+            HttpResponseHeaders headers,
+            List<HttpResponseBodyPart> bodyParts) {
+        super(status, headers, bodyParts);
     }
 
-    public NettyHttpResponse setStatusCode(int code) {
-        this.statusCode = code;
-        return this;
-    }
-
-    @Override
-    public String getContentType() {
-        return contentType;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public Map<String, List<String>> getHeaders() {
+    public Map<String, List<String>> getHeaderMap() {
         Map<String, List<String>> map = new LinkedHashMap<>();
         if (headers == null) {
             return map;
@@ -85,23 +66,12 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
 
     public NettyHttpResponse setHeaders(HttpHeaders headers) {
         this.headers = headers;
-        parseContentType(headers.get("content-type"));
         return this;
     }
 
     @Override
-    public Throwable getThrowable() {
-        return throwable;
-    }
-
-    @Override
-    public void setThrowable(Throwable throwable) {
-        this.throwable = throwable;
-    }
-
-    @Override
     public boolean ok() {
-        return getStatusCode() == 200 && getThrowable() == null;
+        return getStatusCode() == 200;
     }
 
     @Override
@@ -116,17 +86,6 @@ public class NettyHttpResponse extends HttpPacket implements HttpResponse {
 
     @Override
     public boolean fatal() {
-        return (getStatusCode() >= 500 && getStatusCode() < 600) || getThrowable() != null;
+        return (getStatusCode() >= 500 && getStatusCode() < 600);
     }
-
-    private void parseContentType(String contentType) {
-        int pos = contentType.indexOf(';');
-        this.contentType = pos > 0 ? contentType.substring(0, pos).trim() : contentType;
-        this.encoding = pos > 0 ? contentType.substring(pos + 1).trim() : System.getProperty("file.encoding");
-    }
-
-    public String toString() {
-        return "[headers=]" + getHeaders() + "]";
-    }
-
 }

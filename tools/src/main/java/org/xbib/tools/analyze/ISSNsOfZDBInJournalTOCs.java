@@ -103,8 +103,8 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                 }
 
                 @Override
-                public void onError(Request request, CharSequence errorMessage) throws IOException {
-
+                public void onError(Request request, Throwable error) throws IOException {
+                    logger.error(error.getMessage(), error);
                 }
             };
 

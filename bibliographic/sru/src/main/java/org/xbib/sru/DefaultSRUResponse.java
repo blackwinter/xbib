@@ -51,7 +51,7 @@ public class DefaultSRUResponse implements SRUResponse {
     private String format;
 
     public DefaultSRUResponse() {
-        this.stylesheets = new HashMap();
+        this.stylesheets = new HashMap<>();
     }
 
     @Override

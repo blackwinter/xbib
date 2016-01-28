@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the asynchronous HTTP response callback for an {@link org.asynchttpclient.AsyncCompletionHandler}
+ * Represents the asynchronous HTTP response callback for an {@link AsyncCompletionHandler}
  */
 public interface Response {
     /**

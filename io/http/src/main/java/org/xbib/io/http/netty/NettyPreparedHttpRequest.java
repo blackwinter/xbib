@@ -46,6 +46,8 @@ import org.xbib.io.http.client.HttpResponseStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
@@ -74,15 +76,16 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
         return this;
     }
 
-    public OutputStream getOutputStream() {
-        return out;
-    }
-
     @Override
     public NettyPreparedHttpRequest setOutputStream(OutputStream out) {
         this.out = out;
         return this;
     }
+
+    public OutputStream getOutputStream() {
+        return out;
+    }
+
 
     @Override
     public HttpFuture execute() throws IOException {
@@ -98,27 +101,31 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
         private final HttpResponseListener listener;
 
-        private final NettyHttpResponse result;
+        private NettyHttpResponse nettyResponse;
+        private HttpResponseStatus status;
+        private HttpResponseHeaders headers;
+        private List<HttpResponseBodyPart> bodyParts;
 
         Handler(HttpResponseListener listener) {
             this.listener = listener;
-            this.result = new NettyHttpResponse();
+            this.bodyParts = new LinkedList<>();
         }
 
         @Override
         public State onStatusReceived(HttpResponseStatus hrs) throws Exception {
-            result.setStatusCode(hrs.getStatusCode());
+            this.status = hrs;
             return State.CONTINUE;
         }
 
         @Override
         public State onHeadersReceived(HttpResponseHeaders hrh) throws Exception {
-            result.setHeaders(hrh.getHeaders());
+            this.headers = hrh;
             return State.CONTINUE;
         }
 
         @Override
         public State onBodyPartReceived(HttpResponseBodyPart hrbp) throws Exception {
+            bodyParts.add(hrbp);
             if (out != null) {
                 out.write(hrbp.getBodyPartBytes());
             } else {
@@ -132,23 +139,23 @@ public class NettyPreparedHttpRequest implements PreparedHttpRequest {
 
         @Override
         public NettyHttpResponse onCompleted() throws Exception {
+            nettyResponse = new NettyHttpResponse(status, headers, bodyParts);
             if (listener != null) {
                 try {
-                    listener.receivedResponse(result);
+                    listener.receivedResponse(nettyResponse);
                 } catch (IOException e) {
                     onThrowable(e);
                 }
             }
-            return result;
+            return nettyResponse;
         }
 
         @Override
         public void onThrowable(Throwable t) {
             logger.error(t.getMessage(), t);
-            result.setThrowable(t);
             if (listener != null) {
                 try {
-                    listener.onError(request, t.toString());
+                    listener.onError(request, t);
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }

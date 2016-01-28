@@ -48,6 +48,7 @@ import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
@@ -55,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class Converter
         extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest>
@@ -139,7 +141,7 @@ public class Converter
     }
 
     @Override
-    public void newRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
+    public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
         try {
             URI uri = request.get();
             logger.info("processing URI {}", uri);
@@ -243,5 +245,15 @@ public class Converter
             return list;
         }
 
+        @Override
+        public String getMessage() {
+            return String.join("; ", list.stream().map(Throwable::getMessage).collect(Collectors.toList()));
+        }
+
+        @Override
+        public void printStackTrace(PrintWriter writer) {
+            super.printStackTrace(writer);
+            list.stream().forEach(t -> t.printStackTrace(writer));
+        }
     }
 }

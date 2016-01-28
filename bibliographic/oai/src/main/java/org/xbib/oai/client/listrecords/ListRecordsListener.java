@@ -81,16 +81,21 @@ public class ListRecordsListener extends NettyHttpResponseListener
     }
 
     @Override
+    public void onError(Request request, Throwable error) throws IOException {
+        logger.error(request.getQuery(), error);
+    }
+
+    @Override
     public void receivedResponse(HttpResponse result) throws IOException {
         super.receivedResponse(result);
         int status = result.getStatusCode();
         if (status == 503) {
-            logger.warn("got 503 status: headers={} body={}", result.getHeaders(), body);
+            logger.warn("got 503 status: headers={} body={}", result.getHeaderMap(), body);
             doRetryAfter(result);
             return;
         }
         if (!result.ok()) {
-            throw new IOException("status  = " + status + " response = " + body, result.getThrowable());
+            throw new IOException("status  = " + status + " response = " + body);
         }
         // activate XSLT only if XML content type
         if (result.getContentType().endsWith("xml")) {
@@ -110,11 +115,11 @@ public class ListRecordsListener extends NettyHttpResponseListener
     };
 
     private void doRetryAfter(HttpResponse httpResponse) {
-        if (httpResponse.getHeaders() == null) {
+        if (httpResponse.getHeaderMap() == null) {
             return;
         }
         for (String retryAfterHeader : RETRY_AFTER) {
-            List<String> retryAfterValues = httpResponse.getHeaders().get(retryAfterHeader);
+            List<String> retryAfterValues = httpResponse.getHeaderMap().get(retryAfterHeader);
             if (retryAfterValues == null) {
                 continue;
             }
@@ -157,11 +162,6 @@ public class ListRecordsListener extends NettyHttpResponseListener
     @Override
     public void onReceive(Request request, CharSequence message) throws IOException {
         body.append(message);
-    }
-
-    @Override
-    public void onError(Request request, CharSequence errorMessage) throws IOException {
-        logger.error("request {} received error {}", request.getQuery(), errorMessage);
     }
 
     public ResumptionToken getResumptionToken() {
