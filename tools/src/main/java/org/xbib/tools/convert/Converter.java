@@ -141,7 +141,8 @@ public class Converter
     }
 
     @Override
-    public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
+    public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker,
+                               URIWorkerRequest request) throws Exception {
         try {
             URI uri = request.get();
             logger.info("processing URI {}", uri);
@@ -149,6 +150,7 @@ public class Converter
         } catch (Throwable t) {
             this.throwable = t;
             logger.error(request.get() + ": error while processing input: " + t.getMessage(), t);
+            throw t;
         }
     }
 

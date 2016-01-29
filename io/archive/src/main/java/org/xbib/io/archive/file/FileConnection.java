@@ -34,9 +34,12 @@ package org.xbib.io.archive.file;
 import org.xbib.io.Connection;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +71,16 @@ public class FileConnection extends URLConnection implements Connection<FileSess
     @Override
     public void connect() throws IOException {
         this.session = createSession();
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+        return Files.newInputStream(path, StandardOpenOption.READ);
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        return Files.newOutputStream(path, StandardOpenOption.CREATE);
     }
 
     public void setPath(Path path, OpenOption option) {
