@@ -50,7 +50,6 @@ import org.xbib.tools.merge.serials.entities.License;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.tools.merge.serials.entities.MonographVolume;
 import org.xbib.tools.merge.serials.entities.MonographVolumeHolding;
-import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.ForkJoinPipeline;
@@ -207,12 +206,13 @@ public class SerialsMergerWorker
                 element = getPipeline().getQueue().take();
                 titleRecord = element != null ? element.get() : null;
             }
+            getPipeline().quit(this);
         } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
-            logger.error(ExceptionFormatter.format(e));
-            logger.error("exiting, exception while processing {}", titleRecord);
+            //logger.error(e.getMessage(), e);
+            //logger.error(ExceptionFormatter.format(e));
+            //logger.error("exiting, exception while processing {}", titleRecord);
+            getPipeline().quit(this, e);
         } finally {
-            serialsMerger.getPipeline().countDown();
             logger.info("worker terminating");
         }
         return element;

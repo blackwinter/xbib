@@ -36,15 +36,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequest>,URIWorkerRequest> {
+public class ExceptionMockWorker extends AbstractWorker<Pipeline<ExceptionMockWorker,URIWorkerRequest>,URIWorkerRequest> {
 
-    private final static Logger logger = LogManager.getLogger(MockWorker.class.getName());
-
-    private final static AtomicInteger count = new AtomicInteger();
+    private final static Logger logger = LogManager.getLogger(ExceptionMockWorker.class.getName());
 
     private String config;
 
@@ -67,23 +65,30 @@ public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequ
             logger.info("execution completed");
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            throw t;
         } finally {
             cleanup();
             if (getPipeline() != null) {
                 getPipeline().shutdown();
-                for (Worker worker : getPipeline().getWorkers()) {
-                    logger.info(worker.getMetric());
+                if (getPipeline().getWorkers() != null) {
+                    for (ExceptionMockWorker worker : getPipeline().getWorkers()) {
+                        logger.info(worker.getMetric());
+                    }
+                }
+                if (!getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
+                    logger.error("found {} worker exceptions", getPipeline().getWorkerErrors().getThrowables().size());
+                    for (Map.Entry<ExceptionMockWorker, Throwable> entry : getPipeline().getWorkerErrors().getThrowables().entrySet()) {
+                        ExceptionMockWorker w = entry.getKey();
+                        Throwable t = entry.getValue();
+                        logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
+                    }
                 }
             }
         }
     }
 
-    public Integer getCount() {
-        return count.get();
-    }
-
     @Override
-    public MockWorker setPipeline(Pipeline<MockWorker,URIWorkerRequest> pipeline) {
+    public ExceptionMockWorker setPipeline(Pipeline<ExceptionMockWorker,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
         logger.info("setPipeline: {}", pipeline.getClass());
         if (pipeline instanceof ConfiguredPipeline) {
@@ -112,38 +117,35 @@ public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequ
         for (URI uri : uris) {
             URIWorkerRequest element = new URIWorkerRequest();
             element.set(uri);
+            logger.info("putting element {}", element);
             getPipeline().putQueue(element);
+            logger.info("element {} put", element);
         }
         logger.info("source prepared");
     }
 
-    protected MockWorker cleanup() throws IOException {
+    protected ExceptionMockWorker cleanup() throws IOException {
         return this;
     }
 
     protected void process(URI uri) throws Exception {
         logger.info("start of processing {}", uri);
         logger.info("got config={}", config);
-        // simlulate busy processing
-        Thread.sleep(2000L);
-        logger.info("end of processing {}", uri);
-        count.incrementAndGet();
+        // simlulate error
+        throw new IOException("dummy");
     }
 
     @SuppressWarnings("unchecked")
     protected WorkerProvider provider() {
-        return pipeline -> new MockWorker().setPipeline(pipeline);
+        return pipeline -> new ExceptionMockWorker().setPipeline(pipeline);
     }
 
     @Override
-    public void processRequest(Worker<Pipeline<MockWorker, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
-        try {
-            URI uri = request.get();
-            logger.info("new request for URI {}", uri);
-            process(uri);
-        } catch (Throwable ex) {
-            logger.error(request.get() + ": error while processing input: " + ex.getMessage(), ex);
-        }
+    public void processRequest(Worker<Pipeline<ExceptionMockWorker, URIWorkerRequest>, URIWorkerRequest> worker,
+                               URIWorkerRequest request) throws Exception {
+        URI uri = request.get();
+        logger.info("new request for URI {}", uri);
+        process(uri);
     }
 
     class ConfiguredPipeline extends ForkJoinPipeline {
@@ -153,5 +155,6 @@ public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequ
         }
 
     }
+
 }
 

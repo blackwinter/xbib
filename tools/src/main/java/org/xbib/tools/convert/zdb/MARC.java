@@ -34,7 +34,7 @@ package org.xbib.tools.convert.zdb;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.util.InputService;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
@@ -66,7 +66,7 @@ public final class MARC extends Converter {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             Reader r = new InputStreamReader(in, ISO88591);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCEntityQueue queue = new MARCEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));

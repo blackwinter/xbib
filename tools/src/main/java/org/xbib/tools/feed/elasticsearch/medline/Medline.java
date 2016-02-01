@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfConstants;
@@ -49,6 +48,7 @@ import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import javax.xml.namespace.QName;
@@ -79,7 +79,7 @@ public final class Medline extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             namespaceContext.add(new HashMap<String, String>() {{
                 put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
                 put("dc", "http://purl.org/dc/elements/1.1/");

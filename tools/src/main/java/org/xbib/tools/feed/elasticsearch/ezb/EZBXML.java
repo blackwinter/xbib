@@ -38,7 +38,6 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.index.VersionType;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
@@ -48,6 +47,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
@@ -80,7 +80,7 @@ public final class EZBXML extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             RdfContentParams params = new RdfXContentParams(namespaceContext);
             Pattern pattern = Pattern.compile("(\\d{4,})");
             Matcher matcher = pattern.matcher(uri.toString());

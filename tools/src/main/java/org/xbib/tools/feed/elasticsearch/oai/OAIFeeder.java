@@ -120,7 +120,7 @@ public abstract class OAIFeeder extends Feeder {
                     throw new IOException(e);
                 }
                 for (URIWorkerRequest uriWorkerRequest : list) {
-                    getQueue().put(uriWorkerRequest);
+                    getPipeline().getQueue().put(uriWorkerRequest);
                 }
             }
         }

@@ -33,8 +33,8 @@ package org.xbib.tools.feed.elasticsearch.geonames;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -58,7 +58,7 @@ public class GeonamesFromZIP extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             ZipInputStream zin = new ZipInputStream(in);
             while (zin.getNextEntry() != null) {
                 Scanner sc = new Scanner(zin, "UTF-8");

@@ -31,10 +31,10 @@
  */
 package org.xbib.tools.convert.dnb.gnd;
 
-import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;
@@ -57,7 +57,7 @@ public class RdfXml extends Converter {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             final Writer writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(settings.get("output") + ".gz")) {
                 {
                     def.setLevel(Deflater.BEST_COMPRESSION);

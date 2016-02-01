@@ -3,8 +3,8 @@ package org.xbib.tools.feed.elasticsearch.natliz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
@@ -25,7 +25,7 @@ public class NatLizMembers extends Feeder {
     @SuppressWarnings("unchecked")
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> map = mapper.readValue(in, Map.class);
             for (Map.Entry<String, Object> entry : map.entrySet()) {

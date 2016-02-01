@@ -47,15 +47,11 @@ import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.stream.SaxEventConsumer;
 
 import javax.xml.stream.util.XMLEventConsumer;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.text.Normalizer;
@@ -65,16 +61,16 @@ import java.util.TreeSet;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
-public class MarcSRU extends Feeder {
+public class SRU extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(MarcSRU.class.getName());
+    private final static Logger logger = LogManager.getLogger(SRU.class.getName());
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new MarcSRU().setPipeline(p);
+        return p -> new SRU().setPipeline(p);
     }
 
-    @Override
+    /*@Override
     protected void prepareInput() throws IOException, InterruptedException {
         if (settings.get("numbers") != null) {
             // fetch from SRU by number file, each line is an ID
@@ -90,7 +86,7 @@ public class MarcSRU extends Feeder {
         } else {
             super.prepareInput();
         }
-    }
+    }*/
 
     @Override
     public void process(URI uri) throws Exception {

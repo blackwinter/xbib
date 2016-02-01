@@ -33,8 +33,8 @@ package org.xbib.tools.convert.geonames;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.util.InputService;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -57,7 +57,7 @@ public class GeonamesFromZIP extends Converter {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             ZipInputStream zin = new ZipInputStream(in);
             for (ZipEntry zipEntry; (zipEntry = zin.getNextEntry()) != null; ) {
                 logger.info("reading zip entry {}", zipEntry.getName());

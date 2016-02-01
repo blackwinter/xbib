@@ -7,8 +7,8 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.tools.output.IndexDefinition;
-import org.xbib.util.InputService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public abstract class HoldingsFeeder extends Feeder {
             }
         });
         queue.execute();
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             logger.info("start of processing {}", uri);
             process(in, queue);
             logger.info("end of processing {}", uri);

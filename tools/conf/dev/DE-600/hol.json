@@ -22,7 +22,7 @@
           "type" : "zdbholdings",
           "settings" : "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/hol/settings.json",
           "mapping": "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/hol/mapping.json",
-          "timewindow" : "yyyyMMddHH",
+          "timewindow" : "yyyyMMdd",
           "aliases" : true,
           "skiperrors" : true,
           "replica" : 1,

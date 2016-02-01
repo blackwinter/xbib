@@ -10,8 +10,8 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.tools.output.IndexDefinition;
-import org.xbib.util.InputService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             String catalogId = settings.get(CATALOG_ID, "DE-605");
             // set identifier prefix (ISIL)
             Map<String, Object> params = new HashMap<>();

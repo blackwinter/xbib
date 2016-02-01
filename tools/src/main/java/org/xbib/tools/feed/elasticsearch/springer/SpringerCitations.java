@@ -33,7 +33,6 @@ package org.xbib.tools.feed.elasticsearch.springer;
 
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.RdfContentBuilder;
@@ -42,6 +41,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -69,26 +69,15 @@ public class SpringerCitations extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
             process(reader);
         }
-        /*if (session != null) {
-            StringPacket packet;
-            do {
-                packet = session.read();
-                if (packet != null) {
-                    BufferedReader reader = new BufferedReader(new StringReader(packet.packet()));
-                    process(reader);
-                    reader.close();
-                }
-            } while (packet != null);
-        }*/
     }
 
     private void process(BufferedReader reader) throws IOException {
         String title = null;
-        List<String> author = new LinkedList<String>();
+        List<String> author = new LinkedList<>();
         String year = null;
         String journal = null;
         String issn = null;

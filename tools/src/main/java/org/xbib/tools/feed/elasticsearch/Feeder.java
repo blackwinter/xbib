@@ -96,12 +96,9 @@ public class Feeder extends Converter {
 
     @Override
     protected void disposeOutput() throws IOException {
-        if (throwable != null) {
-            logger.warn("there was an error, shutting down Elasticsearch output");
-        }
         logger.info("close down of {}", indexDefinitionMap.keySet());
         elasticsearchOutput.close(ingest, indexDefinitionMap);
-        if (throwable == null) {
+        if (getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
             // post processing only in case of success
             performIndexSwitch();
             logger.info("performing replica setting for {}", indexDefinitionMap.keySet());

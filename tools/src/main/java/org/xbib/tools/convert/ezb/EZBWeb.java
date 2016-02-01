@@ -34,7 +34,6 @@ package org.xbib.tools.convert.ezb;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
@@ -42,6 +41,7 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -76,7 +76,7 @@ public class EZBWeb extends Converter {
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
         namespaceContext.addNamespace("prism", "http://prismstandard.org/namespaces/basic/2.1/");
-        InputStream in = InputService.getInputStream(uri);
+        InputStream in = FileInput.getInputStream(uri);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8))) {
             FileOutputStream out = new FileOutputStream(settings.get("output"));
             TurtleContentParams params = new TurtleContentParams(namespaceContext, true);

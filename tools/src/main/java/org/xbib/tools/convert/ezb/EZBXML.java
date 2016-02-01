@@ -31,7 +31,6 @@
  */
 package org.xbib.tools.convert.ezb;
 
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
@@ -42,6 +41,7 @@ import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
@@ -56,10 +56,8 @@ import java.nio.charset.Charset;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 /**
- * Converter for "Elektronische Zeitschriftenbibliothek" (EZB)
- * <p>
- * Format documentation
- * <p>
+ * Converter for "Elektronische Zeitschriftenbibliothek" (EZB).
+ * Format documentation:
  * http://www.zeitschriftendatenbank.de/fileadmin/user_upload/ZDB/pdf/services/Datenlieferdienst_ZDB_EZB_Lizenzdatenformat.pdf
  */
 public class EZBXML extends Converter {
@@ -79,7 +77,7 @@ public class EZBXML extends Converter {
         AbstractXmlHandler handler = new EZBHandler(params, builder)
                 .setDefaultNamespace("ezb", "http://ezb.uni-regensburg.de/ezeit/");
 
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             new XmlContentParser(in).setNamespaces(false)
                     .setHandler(handler)
                     .parse();

@@ -3,13 +3,20 @@ package org.xbib.tools.input;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
+import org.xbib.io.StreamCodecService;
 import org.xbib.util.Finder;
 import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.URI;
+import java.net.UnknownServiceException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,7 +37,7 @@ public class FileInput {
         return fileMap;
     }
 
-    public void createQueue(Settings settings, BlockingQueue<URIWorkerRequest> queue) throws IOException, InterruptedException {
+    public void createRequests(Settings settings, BlockingQueue<URIWorkerRequest> queue) throws IOException, InterruptedException {
         if (settings.get("runhost") != null) {
             // check if we only allowed to run on a certain host
             logger.info("preparing input queue only allowed on host={}", settings.get("runhost"));
@@ -126,5 +133,32 @@ public class FileInput {
                 }
             }
         }
+    }
+
+    public static InputStream getInputStream(URI uri) throws IOException {
+        if (uri == null || uri.getScheme() == null) {
+            return null;
+        }
+        InputStream in;
+        try {
+            in = uri.toURL().openStream();
+        } catch (MalformedURLException | UnknownServiceException e) {
+            // ordinary file path?
+            Path path = Paths.get(uri.getSchemeSpecificPart());
+            if (Files.isRegularFile(path)) {
+                in = Files.newInputStream(path);
+            } else {
+                throw new IOException("can't open for input, check file existence or access rights: "
+                        + uri.getSchemeSpecificPart());
+            }
+        }
+        // unpack gz, bzip2, xz
+        for (String codec : StreamCodecService.getCodecs()) {
+            if (uri.getSchemeSpecificPart().endsWith("." + codec)) {
+                in = StreamCodecService.getInstance().getCodec(codec).decode(in);
+                break;
+            }
+        }
+        return in;
     }
 }

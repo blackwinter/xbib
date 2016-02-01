@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
@@ -72,7 +72,7 @@ public final class BibdatFromPPXML extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             MyQueue queue = new MyQueue("pica/zdb/bib", settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {

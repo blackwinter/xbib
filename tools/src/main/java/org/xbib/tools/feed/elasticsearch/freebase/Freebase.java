@@ -32,10 +32,10 @@
 package org.xbib.tools.feed.elasticsearch.freebase;
 
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.io.ntriple.NTripleContentParser;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.InputStream;
@@ -55,7 +55,7 @@ public class Freebase extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             RdfContentBuilder builder = ntripleBuilder();
             NTripleContentParser reader = new NTripleContentParser(in);
             reader.setBuilder(builder);

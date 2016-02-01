@@ -84,7 +84,7 @@ public class OAI extends Converter {
         session.open(Session.Mode.WRITE);
     }
 
-    @Override
+    /*@Override
     public void prepareInput() throws IOException {
         try {
             for (String uri : settings.getAsArray("input")) {
@@ -96,7 +96,7 @@ public class OAI extends Converter {
             throw new IOException(e);
         }
         logger.info("uris = {}", getQueue().size());
-    }
+    }*/
 
     @Override
     public void process(URI uri) throws Exception {

@@ -29,20 +29,20 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.convert.articles;
+package org.xbib.tools.feed.elasticsearch.xref;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.csv.CSVParser;
 import org.xbib.grouping.bibliographic.endeavor.PublishedJournal;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.tools.input.FileInput;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -64,7 +64,7 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
  */
 public class SerialsDB {
 
-    private final static Logger logger = LogManager.getLogger(SerialsDB.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(SerialsDB.class);
 
     private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
@@ -76,8 +76,7 @@ public class SerialsDB {
     private final static Map<String, Resource> serials = new ConcurrentHashMap<>();
 
     public void process(Settings settings, URI uri) throws IOException {
-        logger.info("next URI is {}", uri);
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             CSVParser parser = new CSVParser(reader);
             int i = 0;

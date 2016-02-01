@@ -21,7 +21,7 @@
           "type" : "zdb",
           "settings" : "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/bib/settings.json",
           "mapping": "classpath:org/xbib/tools/feed/elasticsearch/marc/zdb/bib/mapping.json",
-          "timewindow" : "yyyyMMddHH",
+          "timewindow" : "yyyyMMdd",
           "aliases" : true,
           "skiperrors" : true,
           "retention" : {

@@ -37,12 +37,12 @@ import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -70,7 +70,7 @@ public final class MARC extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
                     new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :

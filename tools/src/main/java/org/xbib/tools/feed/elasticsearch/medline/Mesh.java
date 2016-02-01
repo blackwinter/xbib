@@ -3,7 +3,6 @@ package org.xbib.tools.feed.elasticsearch.medline;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
@@ -15,6 +14,7 @@ import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.InvalidXmlCharacterFilterReader;
 import org.xml.sax.Attributes;
@@ -42,10 +42,11 @@ public final class Mesh extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             RdfContentParams params = new RdfXContentParams();
             Handler handler = new Handler(params).setDefaultNamespace("", "http://xbib.org/ns/mesh/");
-            new XmlContentParser(new InvalidXmlCharacterFilterReader(in, "UTF-8")).setNamespaces(false).setHandler(handler).parse();
+            XmlContentParser parser = new XmlContentParser(new InvalidXmlCharacterFilterReader(in, "UTF-8")).setNamespaces(false).setHandler(handler);
+            parser.parse();
         }
     }
 

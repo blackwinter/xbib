@@ -31,11 +31,8 @@
  */
 package org.xbib.util.concurrent;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.metric.MeterMetric;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,11 +43,15 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest>
     implements Worker<P, R> {
 
-    private final static Logger logger = LogManager.getLogger(AbstractWorker.class);
-
     private P pipeline;
 
     private MeterMetric metric;
+
+    private R element;
+
+    public R getElement() {
+        return element;
+    }
 
     @Override
     public Worker<P, R> setPipeline(P pipeline) {
@@ -66,10 +67,6 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
         return pipeline;
     }
 
-    @SuppressWarnings("unchecked")
-    public BlockingQueue<R> getQueue() {
-        return pipeline != null ? pipeline.getQueue() : null;
-    }
 
     @Override
     public Worker<P, R> setMetric(MeterMetric metric) {
@@ -96,26 +93,27 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
      * @throws Exception if pipeline execution was sborted by a non-PipelineException
      */
     @Override
+    @SuppressWarnings("unchecked")
     public R call() throws Exception {
         if (metric == null) {
             setMetric(new MeterMetric(5L, TimeUnit.SECONDS));
         }
-        R r = null;
+        element = null;
         try {
-            r = getQueue().take();
-            while (r != null && r.get() != null) {
-                processRequest(this, r);
+            element = (R)pipeline.getQueue().take();
+            while (element != null && element.get() != null) {
+                processRequest(this, element);
                 metric.mark();
-                r = getQueue().take();
+                element = (R)pipeline.getQueue().take();
             }
-            close();
+            pipeline.quit(this);
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw t;
+            pipeline.quit(this, t);
         } finally {
+            close();
             metric.stop();
         }
-        return r;
+        return element;
     }
 
     /**

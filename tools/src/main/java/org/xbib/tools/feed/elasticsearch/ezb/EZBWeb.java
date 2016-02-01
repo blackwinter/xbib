@@ -43,6 +43,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -59,6 +60,7 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +74,16 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 public class EZBWeb extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(EZBWeb.class.getName());
+
+    private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+
+    static {
+        namespaceContext.add(new HashMap<String, String>() {{
+            put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
+            put("dc", "http://purl.org/dc/elements/1.1/");
+            put("xbib", "http://xbib.org/elements/1.0/");
+        }});
+    }
 
     @Override
     protected WorkerProvider<Converter> provider() {
@@ -179,7 +191,7 @@ public class EZBWeb extends Feeder {
                             ingest.index(p.getIndex(), p.getType(), key, content));
                     RdfContentBuilder builder = routeRdfXContentBuilder(params);
                     builder.receive(resource);
-                    if (settings.getAsBoolean("mock", false)) {
+                    if (indexDefinitionMap.get("bib").isMock()) {
                         logger.info("{}", builder.string());
                     }
                 } catch (NoSuchElementException e) {

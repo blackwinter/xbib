@@ -31,10 +31,10 @@
  */
 package org.xbib.tools.convert.freebase;
 
-import org.xbib.util.InputService;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.io.turtle.TurtleContentParser;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.FileOutputStream;
@@ -59,7 +59,7 @@ public class Freebase extends Converter {
     // TODO
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             String output = settings.get("output");
             if (!output.endsWith(".gz")) {
                 output = output + ".gz";

@@ -36,9 +36,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.common.settings.Settings;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.Finder;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
@@ -52,9 +54,11 @@ import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.tools.convert.articles.SerialsDB;
 import org.xbib.util.Entities;
 import org.xbib.util.URIUtil;
+import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.xml.XMLUtil;
 
@@ -62,15 +66,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
+import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -98,6 +109,8 @@ public class JsonCoins extends Feeder {
 
     private final static SerialsDB serialsdb = new SerialsDB();
 
+    private final static Lock lock = new ReentrantLock();
+
     @Override
     protected WorkerProvider<Converter> provider() {
         return p -> new JsonCoins().setPipeline(p);
@@ -105,8 +118,11 @@ public class JsonCoins extends Feeder {
 
     @Override
     public void prepareInput() throws IOException, InterruptedException {
+        super.prepareInput();
+        Map<String,Settings> inputMap = settings.getGroups("input");
+        Settings settings = inputMap.get("serials");
         Queue<URI> input = new Finder()
-                .find(settings.get("path"),settings.get("serials"))
+                .find(settings.get("path"), settings.get("name"))
                 .getURIs();
         logger.info("parsing initial set of serials...");
         try {
@@ -118,12 +134,34 @@ public class JsonCoins extends Feeder {
         if (serialsdb.getMap().isEmpty()) {
             throw new IllegalArgumentException("no serials?");
         }
-        super.prepareInput();
+    }
+
+    @Override
+    public void prepareOutput() throws IOException {
+        super.prepareOutput();
+        TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
+        OutputStream out = fileOutput.getFileMap().get("turtle");
+        if (out != null) {
+            setRdfContentBuilder(turtleBuilder(out, params));
+        }
+        out = fileOutput.getFileMap().get("errors");
+        if (out != null) {
+            setErrorRdfContentBuilder(turtleBuilder(out, params));
+        }
+        out = fileOutput.getFileMap().get("noserial");
+        if (out != null) {
+            setMissingRdfContentBuilder(turtleBuilder(out, params));
+        }
+        // extra text file for missing serials
+        out = fileOutput.getFileMap().get("missingserials");
+        if (out != null) {
+            setMissingSerialsWriter(new OutputStreamWriter(out, "UTF-8"));
+        }
     }
 
     @Override
     public void process(URI uri) throws Exception {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
@@ -146,12 +184,36 @@ public class JsonCoins extends Feeder {
                         switch (result) {
                             case OK:
                                 indexType = type;
+                                if (rdfContentBuilder != null) {
+                                    try {
+                                        lock.lock();
+                                        rdfContentBuilder.receive(resource);
+                                    } finally {
+                                        lock.unlock();
+                                    }
+                                }
                                 break;
                             case MISSINGSERIAL:
                                 indexType = "noserials";
+                                if (missingRdfContentBuilder != null) {
+                                    try {
+                                        lock.lock();
+                                        missingRdfContentBuilder.receive(resource);
+                                    } finally {
+                                        lock.unlock();
+                                    }
+                                }
                                 break;
                             case ERROR:
                                 indexType = "errors";
+                                if (errorRdfContentBuilder != null) {
+                                    try {
+                                        lock.lock();
+                                        errorRdfContentBuilder.receive(resource);
+                                    } finally {
+                                        lock.unlock();
+                                    }
+                                }
                                 break;
                         }
                         if (resource != null) {
@@ -306,6 +368,19 @@ public class JsonCoins extends Feeder {
                             }
                         } else {
                             missingserial = true;
+                            if (missingSerialsWriter != null) {
+                                try {
+                                    lock.lock();
+                                    try {
+                                        missingSerialsWriter.write(v);
+                                        missingSerialsWriter.write("\n");
+                                    } catch (IOException e) {
+                                        logger.error("can't write missing serial info", e);
+                                    }
+                                } finally {
+                                    lock.unlock();
+                                }
+                            }
                         }
                         break;
                     }
@@ -525,6 +600,65 @@ public class JsonCoins extends Feeder {
         @Override
         public int hashCode() {
             return normalized.hashCode();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected ForkJoinPipeline newPipeline() {
+        return new BuilderPipeline();
+    }
+
+    private RdfContentBuilder rdfContentBuilder;
+    private RdfContentBuilder errorRdfContentBuilder;
+    private RdfContentBuilder missingRdfContentBuilder;
+    private Writer missingSerialsWriter;
+
+    public void setRdfContentBuilder(RdfContentBuilder rdfContentBuilder) {
+        this.rdfContentBuilder = rdfContentBuilder;
+    }
+
+    public void setErrorRdfContentBuilder(RdfContentBuilder errorRdfContentBuilder) {
+        this.errorRdfContentBuilder = errorRdfContentBuilder;
+    }
+
+    public void setMissingRdfContentBuilder(RdfContentBuilder missingRdfContentBuilder) {
+        this.missingRdfContentBuilder = missingRdfContentBuilder;
+    }
+
+    public void setMissingSerialsWriter(Writer writer) {
+        this.missingSerialsWriter = writer;
+    }
+
+    @Override
+    public Feeder setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
+        super.setPipeline(pipeline);
+        if (pipeline instanceof BuilderPipeline) {
+            BuilderPipeline builderPipeline = (BuilderPipeline) pipeline;
+            setRdfContentBuilder(builderPipeline.getRdfContentBuilder());
+            setErrorRdfContentBuilder(builderPipeline.getErrorRdfContentBuilder());
+            setMissingRdfContentBuilder(builderPipeline.getMissingRdfContentBuilder());
+            setMissingSerialsWriter(builderPipeline.getMissingSerialsWriter());
+        }
+        return this;
+    }
+
+    public class BuilderPipeline extends FeederPipeline {
+
+        public RdfContentBuilder getRdfContentBuilder() {
+            return rdfContentBuilder;
+        }
+
+        public RdfContentBuilder getErrorRdfContentBuilder() {
+            return errorRdfContentBuilder;
+        }
+
+        public RdfContentBuilder getMissingRdfContentBuilder() {
+            return missingRdfContentBuilder;
+        }
+
+        public Writer getMissingSerialsWriter() {
+            return missingSerialsWriter;
         }
     }
 

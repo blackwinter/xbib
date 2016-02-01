@@ -17,7 +17,7 @@
           "type": "gnd",
           "settings": "classpath:org/xbib/tools/feed/elasticsearch/dnb/gnd/settings.json",
           "mapping": "classpath:org/xbib/tools/feed/elasticsearch/dnb/gnd/mapping.json",
-          "timewindow": "yyyyMMddHH",
+          "timewindow": "yyyyMMdd",
           "skiperrors": true,
           "aliases" : true,
           "retention" : {

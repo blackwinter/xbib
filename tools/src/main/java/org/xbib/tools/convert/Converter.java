@@ -48,15 +48,12 @@ import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class Converter
         extends AbstractWorker<Pipeline<Converter,URIWorkerRequest>,URIWorkerRequest>
@@ -74,8 +71,6 @@ public class Converter
 
     protected FileOutput fileOutput = new FileOutput();
 
-    protected Throwable throwable;
-
     private final static AtomicInteger threadCounter = new AtomicInteger();
 
     private int number;
@@ -89,10 +84,6 @@ public class Converter
         return number;
     }
 
-    public Throwable getThrowable() {
-        return throwable;
-    }
-
     public int run(Settings settings) throws Exception {
         this.settings = settings;
         logger.info("starting run with settings = {}", settings.getAsMap());
@@ -101,6 +92,7 @@ public class Converter
         ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline();
         pipeline.setQueue(new SynchronousQueue<>(true));
         setPipeline(pipeline);
+        int returnCode = 0;
         try {
             prepareOutput();
             pipeline.setConcurrency(concurrency)
@@ -109,30 +101,31 @@ public class Converter
                     .execute();
             prepareInput();
             pipeline.waitFor(new URIWorkerRequest());
-            return 0;
         } catch (Throwable t) {
-            this.throwable = t;
-            throw t;
+            logger.error(t.getMessage(), t);
+            returnCode = 1;
         } finally {
             disposeInput();
             disposeOutput();
             if (getPipeline() != null) {
                 getPipeline().shutdown();
                 if (getPipeline().getWorkers() != null) {
-                    ConverterException converterException = new ConverterException();
-                    for (Converter converter : getPipeline().getWorkers()) {
-                        Throwable t = converter.getThrowable();
-                        if (t != null) {
-                            converterException.add(t);
-                        }
-                        writeMetrics(converter.getMetric());
+                    for (Converter worker : getPipeline().getWorkers()) {
+                        writeMetrics(worker.getMetric());
                     }
-                    if (!converterException.getThrowables().isEmpty()) {
-                        this.throwable = converterException;
+                }
+                if (!getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
+                    logger.error("found {} worker exceptions", getPipeline().getWorkerErrors().getThrowables().size());
+                    for (Map.Entry<Converter, Throwable> entry : getPipeline().getWorkerErrors().getThrowables().entrySet()) {
+                        Converter w = entry.getKey();
+                        Throwable t = entry.getValue();
+                        logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
                     }
+                    returnCode = 1;
                 }
             }
         }
+        return returnCode;
     }
 
     @Override
@@ -143,22 +136,17 @@ public class Converter
     @Override
     public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker,
                                URIWorkerRequest request) throws Exception {
-        try {
-            URI uri = request.get();
-            logger.info("processing URI {}", uri);
-            process(uri);
-        } catch (Throwable t) {
-            this.throwable = t;
-            logger.error(request.get() + ": error while processing input: " + t.getMessage(), t);
-            throw t;
-        }
+        URI uri = request.get();
+        logger.info("processing URI {}", uri);
+        process(uri);
     }
 
     protected void prepareOutput() throws IOException {
+        fileOutput.createFileMap(settings);
     }
 
     protected void prepareInput() throws IOException, InterruptedException {
-        fileInput.createQueue(settings, getQueue());
+        fileInput.createRequests(settings, getPipeline().getQueue());
     }
 
     protected void process(URI uri) throws Exception {
@@ -168,6 +156,7 @@ public class Converter
     }
 
     protected void disposeOutput() throws IOException {
+        fileOutput.closeFileMap();
     }
 
     protected void setSettings(Settings settings) {
@@ -236,26 +225,4 @@ public class Converter
         }
     }
 
-    public class ConverterException extends Exception {
-        List<Throwable> list = new LinkedList<>();
-
-        public void add(Throwable throwable) {
-            list.add(throwable);
-        }
-
-        public List<Throwable> getThrowables() {
-            return list;
-        }
-
-        @Override
-        public String getMessage() {
-            return String.join("; ", list.stream().map(Throwable::getMessage).collect(Collectors.toList()));
-        }
-
-        @Override
-        public void printStackTrace(PrintWriter writer) {
-            super.printStackTrace(writer);
-            list.stream().forEach(t -> t.printStackTrace(writer));
-        }
-    }
 }

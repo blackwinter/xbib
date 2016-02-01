@@ -36,12 +36,12 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
-import org.xbib.util.InputService;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -73,7 +73,7 @@ public class DirectHol extends Feeder {
 
     @Override
     public void process(URI uri) throws IOException {
-        try (InputStream in = InputService.getInputStream(uri)) {
+        try (InputStream in = FileInput.getInputStream(uri)) {
             Reader r = new InputStreamReader(in, ISO88591);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
             final MARCDirectQueue queue = new MyEntityQueue();

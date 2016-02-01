@@ -19,7 +19,7 @@
         "bib" : {
           "name" : "bibdat",
           "type" : "bibdat",
-          "timewindow" : "yyyyMMddHH",
+          "timewindow" : "yyyyMMdd",
           "aliases" : true,
           "skiperrors" : true,
           "retention" : {

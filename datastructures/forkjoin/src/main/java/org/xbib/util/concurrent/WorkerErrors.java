@@ -31,25 +31,19 @@
  */
 package org.xbib.util.concurrent;
 
-import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class URIWorkerRequest implements WorkerRequest<URI> {
+public class WorkerErrors<W extends Worker>  {
 
-    private URI uri;
+    Map<W,Throwable> map = new LinkedHashMap<>();
 
-    @Override
-    public URI get() {
-        return uri;
+    public synchronized void add(W worker, Throwable throwable) {
+        map.put(worker, throwable);
     }
 
-    @Override
-    public URIWorkerRequest set(URI uri) {
-        this.uri = uri;
-        return this;
+    public Map<W, Throwable> getThrowables() {
+        return map;
     }
 
-    @Override
-    public String toString() {
-        return uri.toString();
-    }
 }

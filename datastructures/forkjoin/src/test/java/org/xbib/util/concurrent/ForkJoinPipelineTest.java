@@ -11,5 +11,4 @@ public class ForkJoinPipelineTest extends Assert {
         worker.bootstrap();
         assertTrue(worker.getCount() == 3);
     }
-
 }

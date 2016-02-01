@@ -77,7 +77,7 @@ public class SRU extends Converter {
         session.open(Session.Mode.WRITE);
     }
 
-    @Override
+    /*@Override
     public void prepareInput() throws IOException {
         try {
             if (settings.get("numbers") != null) {
@@ -99,7 +99,7 @@ public class SRU extends Converter {
         } catch (InterruptedException e) {
             throw new IOException(e);
         }
-    }
+    }*/
 
     @Override
     public void process(URI uri) throws Exception {
