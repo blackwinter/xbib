@@ -28,7 +28,7 @@ public class RollingFileLoggerConfigurationFactory extends ConfigurationFactory 
                 .addComponent(builder.newComponent("TimeBasedTriggeringPolicy"))
                 .addComponent(builder.newComponent("SizeBasedTriggeringPolicy").addAttribute("size", "100 MB")));
         builder.add(appenderBuilder);
-        Level level = System.getProperty("log4j.debug") != null ? Level.DEBUG : Level.INFO;
+        Level level = Level.getLevel(System.getProperty("log4j.level", "info"));
         builder.add(builder.newRootLogger(level).add(builder.newAppenderRef("RollingFile")));
         return builder.build();
     }

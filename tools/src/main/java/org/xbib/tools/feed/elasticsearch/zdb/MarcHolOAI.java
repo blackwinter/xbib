@@ -77,7 +77,7 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public class MarcHolOAI extends OAIFeeder {
 
-    private final static Logger logger = LogManager.getLogger(MarcHolOAI.class.getName());
+    private final static Logger logger = LogManager.getLogger(MarcHolOAI.class);
 
     @Override
     protected WorkerProvider<Converter> provider() {

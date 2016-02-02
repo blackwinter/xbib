@@ -74,9 +74,9 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 /**
  * Ingest inter library loan codes from EZB web service into Elasticsearch
  */
-public class EZBWeb extends Feeder {
+public class Web extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(EZBWeb.class.getName());
+    private final static Logger logger = LogManager.getLogger(Web.class.getName());
 
     private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
@@ -90,7 +90,7 @@ public class EZBWeb extends Feeder {
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new EZBWeb().setPipeline(p);
+        return p -> new Web().setPipeline(p);
     }
 
     @Override

@@ -26,7 +26,7 @@ public class FileLoggerConfigurationFactory extends ConfigurationFactory {
         appenderBuilder.add(builder.newLayout("PatternLayout").
                 addAttribute("pattern", "[%d{ABSOLUTE}][%-5p][%-25c][%t] %m%n"));
         builder.add(appenderBuilder);
-        Level level = System.getProperty("log4j.debug") != null ? Level.DEBUG : Level.INFO;
+        Level level = Level.getLevel(System.getProperty("log4j.level", "info"));
         builder.add(builder.newRootLogger(level).add(builder.newAppenderRef("File")));
         return builder.build();
     }

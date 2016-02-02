@@ -67,15 +67,15 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  * Format documentation:
  * http://www.zeitschriftendatenbank.de/fileadmin/user_upload/ZDB/pdf/services/Datenlieferdienst_ZDB_EZB_Lizenzdatenformat.pdf
  */
-public final class EZBXML extends Feeder {
+public final class XML extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(EZBXML.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(XML.class.getSimpleName());
 
     private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new EZBXML().setPipeline(p);
+        return p -> new XML().setPipeline(p);
     }
 
     @Override
@@ -139,6 +139,7 @@ public final class EZBXML extends Feeder {
             }
             params.setHandler((content, p) -> {
                 if (ingest.client() != null) {
+                    // use versioning to ensure docs in most recent files win
                     IndexRequestBuilder indexRequestBuilder = new IndexRequestBuilder(ingest.client(), IndexAction.INSTANCE)
                             .setIndex(p.getIndex())
                             .setType(p.getType())
