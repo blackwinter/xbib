@@ -38,7 +38,7 @@ public abstract class BibliographicFeeder extends Feeder {
         if (settings.getAsBoolean("onlyaliases", false)) {
             return;
         }
-        // set identifier prefix (ISIL)
+        // set prefix (ISIL)
         Map<String,Object> params = new HashMap<>();
         if (settings.containsSetting("catalogid")) {
             params.put("catalogid", settings.get("catalogid"));

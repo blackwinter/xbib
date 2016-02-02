@@ -75,7 +75,7 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public final class OAI extends OAIFeeder {
 
-    private final static Logger logger = LogManager.getLogger(OAI.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(OAI.class);
 
     @Override
     protected WorkerProvider<Converter> provider() {
@@ -90,7 +90,7 @@ public final class OAI extends OAIFeeder {
         final PicaEntityQueue queue = createQueue(params);
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         queue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmapped.add("\"" + key + "\"");
             }
@@ -107,7 +107,7 @@ public final class OAI extends OAIFeeder {
         long interval = ChronoUnit.DAYS.between(from.toInstant(), until.toInstant());
         long count = settings.getAsLong("count", 1L);
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
-            logger.warn("no verb {}, returning", OAIConstants.LIST_RECORDS);
+            logger.error("only verb {} is valid, not {}", OAIConstants.LIST_RECORDS);
             return;
         }
         do {
@@ -133,10 +133,9 @@ public final class OAI extends OAIFeeder {
                     if (listener.getResponse() != null) {
                         StringWriter w = new StringWriter();
                         listener.getResponse().to(w);
-                        logger.debug("got OAI response: {}", w);
                         request = client.resume(request, listener.getResumptionToken());
                     } else {
-                        logger.debug("no valid OAI response");
+                        logger.debug("invalid OAI response");
                     }
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);

@@ -73,7 +73,7 @@ import java.util.TreeSet;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
- * Fetch OAI result from OAI service and ingest into ES.
+ * Fetch MARC HOL OAI result from OAI service and ingest into ES.
  */
 public class MarcHolOAI extends OAIFeeder {
 
@@ -88,8 +88,10 @@ public class MarcHolOAI extends OAIFeeder {
     public void process(URI uri) throws Exception {
         // set identifier prefix (ISIL)
         Map<String,Object> params = new HashMap<>();
-        params.put("identifier", settings.get("identifier", "DE-605"));
-        params.put("_prefix", "(" + settings.get("identifier", "DE-605") + ")");
+        if (settings.containsSetting("catalogid")) {
+            params.put("catalogid", settings.get("catalogid"));
+            params.put("_prefix", "(" + settings.get("catalogid") + ")");
+        }
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         final MARCEntityQueue queue = createQueue(params);
         queue.setUnmappedKeyListener((id,key) -> {
@@ -99,23 +101,18 @@ public class MarcHolOAI extends OAIFeeder {
             }
         });
         queue.execute();
-
         Map<String, String> oaiparams = URIUtil.parseQueryString(uri);
         String server = uri.toString();
         String verb = oaiparams.get("verb");
         String metadataPrefix = oaiparams.get("metadataPrefix");
         String set = oaiparams.get("set");
-        // we accept only ISO format in Zulu timezone, e.g.
-        // d=`date +%Y-%m-%d`
-        // from=`date -d "${d} -1 days" +"%Y-%m-%dT%H:%M:%SZ"`
-        // until=`date -d "${d}" +"%Y-%m-%dT%H:%M:%SZ"`
         Date from = Date.from(Instant.parse(oaiparams.get("from")));
         Date until = Date.from(Instant.parse(oaiparams.get("until")));
         // compute interval
         long interval = ChronoUnit.DAYS.between(from.toInstant(), until.toInstant());
         long count = settings.getAsLong("count", 1L);
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
-            logger.warn("no verb {}, returning", OAIConstants.LIST_RECORDS);
+            logger.error("only verb {} is valid, not {}", OAIConstants.LIST_RECORDS);
             return;
         }
         do {
@@ -127,9 +124,8 @@ public class MarcHolOAI extends OAIFeeder {
             ListRecordsRequest request = client.newListRecordsRequest()
                     .setMetadataPrefix(metadataPrefix)
                     .setSet(set)
-                    .setFrom(from, OAIDateResolution.SECOND)
-                    .setUntil(until, OAIDateResolution.SECOND);
-            logger.info("request={}", request);
+                    .setFrom(from, OAIDateResolution.DAY)
+                    .setUntil(until, OAIDateResolution.DAY);
             do {
                 try {
                     final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
@@ -139,12 +135,11 @@ public class MarcHolOAI extends OAIFeeder {
                     ListRecordsListener listener = new ListRecordsListener(request);
                     request.prepare().execute(listener).waitFor();
                     if (listener.getResponse() != null) {
-                        logger.debug("got OAI response");
                         StringWriter w = new StringWriter();
                         listener.getResponse().to(w);
                         request = client.resume(request, listener.getResumptionToken());
                     } else {
-                        logger.debug("no valid OAI response");
+                        logger.debug("invalid OAI response");
                     }
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
@@ -180,7 +175,7 @@ public class MarcHolOAI extends OAIFeeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            // write bib resource
+            // write hol resource
             RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("hol").getConcreteIndex(),
                     indexDefinitionMap.get("hol").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
@@ -189,6 +184,7 @@ public class MarcHolOAI extends OAIFeeder {
                 state.getResource().add("collection", settings.get("collection"));
             }
             builder.receive(state.getResource());
+            getMetric().mark();
             if (settings.getAsBoolean("mock", false)) {
                 logger.info("{}", builder.string());
             }
@@ -197,7 +193,7 @@ public class MarcHolOAI extends OAIFeeder {
 
     static class MarcMetadataHandler implements MetadataHandler {
 
-        final MarcXchangeReader reader;
+        private final MarcXchangeReader reader;
 
         RecordHeader header;
 
