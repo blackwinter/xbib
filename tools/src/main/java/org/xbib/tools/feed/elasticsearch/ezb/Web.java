@@ -222,7 +222,7 @@ public class Web extends Feeder {
         SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(ingest.client(), SearchAction.INSTANCE)
                 .setIndices("zdb")
                 .setSize(1000)
-                .setScroll(TimeValue.timeValueMillis(5000))
+                .setScroll(TimeValue.timeValueSeconds(5))
                 .setQuery(queryBuilder)
                 .addField("IdentifierZDB.identifierZDB");
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
@@ -230,8 +230,8 @@ public class Web extends Feeder {
         logger.info("zdb identifier hits={}", total);
         while (searchResponse.getScrollId() != null) {
             searchResponse = new SearchScrollRequestBuilder(ingest.client(), SearchScrollAction.INSTANCE)
-                    .setScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(5000))
+                    .setScrollId(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueSeconds(5))
                     .execute().actionGet();
             SearchHits hits = searchResponse.getHits();
             if (hits.getHits().length == 0) {
