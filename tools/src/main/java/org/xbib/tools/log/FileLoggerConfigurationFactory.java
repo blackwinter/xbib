@@ -9,6 +9,7 @@ import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 import java.net.URI;
+import java.util.Locale;
 
 public class FileLoggerConfigurationFactory extends ConfigurationFactory {
 
@@ -26,7 +27,7 @@ public class FileLoggerConfigurationFactory extends ConfigurationFactory {
         appenderBuilder.add(builder.newLayout("PatternLayout").
                 addAttribute("pattern", "[%d{ABSOLUTE}][%-5p][%-25c][%t] %m%n"));
         builder.add(appenderBuilder);
-        Level level = Level.getLevel(System.getProperty("log4j.level", "info"));
+        Level level = Level.getLevel(System.getProperty("log4j.level", "info").toUpperCase(Locale.ENGLISH));
         builder.add(builder.newRootLogger(level).add(builder.newAppenderRef("File")));
         return builder.build();
     }

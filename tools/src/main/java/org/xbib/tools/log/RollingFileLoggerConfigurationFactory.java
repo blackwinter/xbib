@@ -9,6 +9,7 @@ import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 import java.net.URI;
+import java.util.Locale;
 
 public class RollingFileLoggerConfigurationFactory extends ConfigurationFactory {
 
@@ -28,7 +29,7 @@ public class RollingFileLoggerConfigurationFactory extends ConfigurationFactory 
                 .addComponent(builder.newComponent("TimeBasedTriggeringPolicy"))
                 .addComponent(builder.newComponent("SizeBasedTriggeringPolicy").addAttribute("size", "100 MB")));
         builder.add(appenderBuilder);
-        Level level = Level.getLevel(System.getProperty("log4j.level", "info"));
+        Level level = Level.getLevel(System.getProperty("log4j.level", "info").toUpperCase(Locale.ENGLISH));
         builder.add(builder.newRootLogger(level).add(builder.newAppenderRef("RollingFile")));
         return builder.build();
     }
