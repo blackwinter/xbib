@@ -97,8 +97,8 @@ public class ListRecordsListener extends NettyHttpResponseListener
         if (!result.ok()) {
             throw new IOException("status  = " + status + " response = " + body);
         }
-        // activate XSLT only if XML content type
-        if (result.getContentType().endsWith("xml")) {
+        // activate XSLT only if OAI XML content type is returned
+        if (result.getContentType().startsWith("text/xml")) {
             StylesheetTransformer transformer = new StylesheetTransformer().setPath("xsl");
             this.filterreader = new ListRecordsFilterReader(request, response);
             String s = !scrubCharacters ? body.toString() : XMLUtil.sanitize(body.toString());
@@ -106,7 +106,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
             transformer.setSource(filterreader, source);
             response.setTransformer(transformer);
         } else {
-            throw new IOException("no XML content type in response");
+            throw new IOException("no XML content type in response: " + result.getContentType());
         }
     }
 

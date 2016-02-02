@@ -104,16 +104,13 @@ public class FileInput {
                                 pattern)
                         .sortBy(inputSettings.get("sort_by"))
                         .order(inputSettings.get("order"))
-                        .getURIs();
-                int max = inputSettings.getAsInt("max", -1);
-                logger.info("{} URIs = {}, max = {}", uris.size(), uris, max);
+                        .getURIs(inputSettings.getAsInt("max", -1));
+                logger.info("{} URIs = {}", uris.size(), uris);
                 if (inputKey.startsWith("queue")) {
                     for (URI uri : uris) {
                         URIWorkerRequest element = new URIWorkerRequest();
                         element.set(uri);
-                        if (max < 0 || (max > 0 && queue.size() < max)) {
-                            queue.put(element);
-                        }
+                        queue.put(element);
                     }
                 } else {
                     logger.warn("not putting into queue because of key {}", inputKey);

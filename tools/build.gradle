@@ -31,6 +31,10 @@ dependencies {
 test {
     useJUnit {
         excludeCategories 'org.xbib.RuntimeTests'
+        testLogging {
+            showStandardStreams = false
+            exceptionFormat = 'full'
+        }
     }
 }
 
@@ -39,7 +43,7 @@ task runnerTest(type: Test) {
         forkEvery 1
         includeCategories 'org.xbib.RuntimeTests'
         testLogging {
-            showStandardStreams = true
+            showStandardStreams = false
             exceptionFormat = 'full'
         }
     }

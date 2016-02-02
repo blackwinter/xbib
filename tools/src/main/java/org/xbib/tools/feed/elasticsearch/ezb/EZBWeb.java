@@ -48,11 +48,13 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,6 +68,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -92,13 +95,17 @@ public class EZBWeb extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
-        namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");
-        namespaceContext.addNamespace("xbib", "http://xbib.org/elements/1.0/");
 
         RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                 indexDefinitionMap.get("bib").getConcreteIndex(),
                 indexDefinitionMap.get("bib").getType());
+
+        RdfContentBuilder turtleBuilder = null;
+        BufferedOutputStream out = fileOutput.getFileMap().get("turtle");
+        if (out != null) {
+            TurtleContentParams turtleParams = new TurtleContentParams(namespaceContext, true);
+            turtleBuilder = turtleBuilder(out, turtleParams);
+        }
 
         Iterator<String> it = searchZDB();
         URL url;
@@ -193,6 +200,9 @@ public class EZBWeb extends Feeder {
                     builder.receive(resource);
                     if (indexDefinitionMap.get("bib").isMock()) {
                         logger.info("{}", builder.string());
+                    }
+                    if (turtleBuilder != null) {
+                        turtleBuilder.receive(resource);
                     }
                 } catch (NoSuchElementException e) {
                     logger.error(url + " " + e.getMessage(), e);

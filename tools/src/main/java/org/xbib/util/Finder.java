@@ -153,9 +153,13 @@ public class Finder {
     }
 
     public Queue<URI> getURIs() {
-        return getPathFiles()
-                .stream()
+        return getURIs(-1);
+    }
+
+    public Queue<URI> getURIs(int max) {
+        return getPathFiles().stream()
                 .map(p -> p.getPath().toAbsolutePath().toUri())
+                .limit(max < 0 ? input.size() : max)
                 .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
     }
 

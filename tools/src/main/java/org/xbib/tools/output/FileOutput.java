@@ -29,12 +29,19 @@ public class FileOutput {
         Map<String,Settings> output = settings.getGroups("output");
         for (Map.Entry<String,Settings> entry : output.entrySet()) {
             String fileName = settings.get("name", entry.getKey());
+            // skip reserved outputs here
+            if ("elasticsearch".equals(fileName)) {
+                continue;
+            }
             Path path = Paths.get(fileName);
             Settings outputSettings = entry.getValue();
             boolean overwrite = outputSettings.getAsBoolean("overwrite", true);
-            StandardOpenOption option = overwrite ?
+            boolean append = outputSettings.getAsBoolean("append", true);
+            StandardOpenOption option1 = overwrite ?
                     StandardOpenOption.CREATE : StandardOpenOption.CREATE_NEW;
-            OutputStream outputStream = Files.newOutputStream(path, option);
+            StandardOpenOption option2 = append ?
+                    StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING;
+            OutputStream outputStream = Files.newOutputStream(path, option1, option2);
             for (String codec : StreamCodecService.getCodecs()) {
                 if (fileName.endsWith("." + codec)) {
                     outputStream = StreamCodecService.getInstance().getCodec(codec).encode(outputStream);

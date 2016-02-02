@@ -72,6 +72,7 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void receivedResponse(HttpResponse result) throws IOException {
         super.receivedResponse(result);
         this.response = (Response)new ClientOAIResponse();
@@ -92,7 +93,7 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
                 result.getHeaderMap(),
                 sb.toString()
         );
-        if (!result.getContentType().endsWith("xml")) {
+        if (!result.getContentType().startsWith("text/xml")) {
             logger.warn("got non-XML body {}", result);
         }
         //response.setReader(getBodyReader());
