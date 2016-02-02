@@ -95,19 +95,16 @@ public class Web extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-
         RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                 indexDefinitionMap.get("bib").getConcreteIndex(),
                 indexDefinitionMap.get("bib").getType());
-
         RdfContentBuilder turtleBuilder = null;
         BufferedOutputStream out = fileOutput.getFileMap().get("turtle");
         if (out != null) {
             TurtleContentParams turtleParams = new TurtleContentParams(namespaceContext, true);
             turtleBuilder = turtleBuilder(out, turtleParams);
         }
-
-        Iterator<String> it = searchZDB();
+        Iterator<String> it = searchZDB(settings.get("zdbindexname", "zdb"));
         URL url;
         while (it.hasNext()) {
             String zdbid = it.next();
@@ -212,7 +209,7 @@ public class Web extends Feeder {
         }
     }
 
-    private Iterator<String> searchZDB() throws IOException {
+    private Iterator<String> searchZDB(String zdbIndexName) throws IOException {
         List<String> list = new LinkedList<>();
         if (ingest.client() == null) {
             // mock
@@ -220,7 +217,7 @@ public class Web extends Feeder {
         }
         QueryBuilder queryBuilder = QueryBuilders.matchQuery("ElectronicLocationAndAccess.nonpublicnote", "EZB");
         SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(ingest.client(), SearchAction.INSTANCE)
-                .setIndices("zdb")
+                .setIndices(zdbIndexName)
                 .setSize(1000)
                 .setScroll(TimeValue.timeValueSeconds(5))
                 .setQuery(queryBuilder)

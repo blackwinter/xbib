@@ -1341,14 +1341,14 @@
           "015$  $2a",
           "015$  $2aa",
           "015$  $2aaa", "015$  $2aaaa",
-        /* NBN control number */
-        "016$7 $2a"
+          /* NBN control number */
+          "016$7 $2a"
         ],
-        /*"_predicate" : "type",*/
         "subfields" : {
             "a" : "value",
             "2" : "type"
         },
+        "_predicate" : "type",
         "type" : {
             "DE-101" : "IdentifierDNB",
             "DE-600" : "IdentifierZDB",
