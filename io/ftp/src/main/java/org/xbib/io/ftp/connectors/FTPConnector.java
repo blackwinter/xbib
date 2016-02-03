@@ -1,4 +1,3 @@
-
 package org.xbib.io.ftp.connectors;
 
 import org.apache.logging.log4j.Logger;
@@ -34,6 +33,7 @@ public abstract class FTPConnector implements Closeable {
     private Socket dataSocket;
 
     private Socket commSocket;
+
     /**
      * Builds the connector.
      *
@@ -168,7 +168,8 @@ public abstract class FTPConnector implements Closeable {
             } catch (Throwable t) {
                 logger.error(t.getMessage(), t);
             }
-        }    }
+        }
+    }
 
     /**
      * This methods returns an established connection to a remote host, suitable

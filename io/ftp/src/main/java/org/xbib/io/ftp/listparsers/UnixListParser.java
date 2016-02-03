@@ -1,7 +1,7 @@
 package org.xbib.io.ftp.listparsers;
 
-import org.xbib.io.ftp.FTPException;
 import org.xbib.io.ftp.FTPEntry;
+import org.xbib.io.ftp.FTPException;
 
 import java.text.DateFormat;
 import java.text.ParseException;

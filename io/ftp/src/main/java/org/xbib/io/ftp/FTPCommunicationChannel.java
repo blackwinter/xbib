@@ -1,4 +1,3 @@
-
 package org.xbib.io.ftp;
 
 import org.apache.logging.log4j.Logger;
@@ -49,9 +48,9 @@ public class FTPCommunicationChannel {
     /**
      * It builds a FTP communication channel.
      *
-     * @param socket  The underlying connection.
+     * @param socket   The underlying connection.
      * @param encoding The name of the charset that has to be used to encode and
-     *                    decode the communication.
+     *                 decode the communication.
      * @throws IOException If a I/O error occurs.
      */
     public FTPCommunicationChannel(Logger logger, Socket socket, String encoding)
@@ -60,7 +59,7 @@ public class FTPCommunicationChannel {
         this.socket = socket;
         this.encoding = encoding;
         this.reader = new NetworkVirtualTerminalASCIIReader(socket.getInputStream(), encoding);
-        this.writer = new NetworkVirtualTerminalASCIIWriter( socket.getOutputStream(), encoding);
+        this.writer = new NetworkVirtualTerminalASCIIWriter(socket.getOutputStream(), encoding);
     }
 
     /**
@@ -134,7 +133,7 @@ public class FTPCommunicationChannel {
      * This method reads and parses a FTP reply triple from the server.
      *
      * @return The reply from the server.
-     * @throws IOException              If an I/O error occurs.
+     * @throws IOException  If an I/O error occurs.
      * @throws FTPException If the server doesn't reply in a FTP-compliant way.
      */
     public FTPReply readFTPReply() throws IOException, FTPException {

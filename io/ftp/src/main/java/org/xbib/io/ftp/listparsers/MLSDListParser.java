@@ -1,7 +1,7 @@
 package org.xbib.io.ftp.listparsers;
 
-import org.xbib.io.ftp.FTPException;
 import org.xbib.io.ftp.FTPEntry;
+import org.xbib.io.ftp.FTPException;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -27,7 +27,6 @@ public class MLSDListParser implements FTPListParser {
      * Date format 2 for MLSD date facts (doesn't support millis).
      */
     //private static final
-
     @Override
     public List<FTPEntry> parse(List<String> lines, TimeZone timeZone) throws FTPException {
         List<FTPEntry> list = new ArrayList<>();

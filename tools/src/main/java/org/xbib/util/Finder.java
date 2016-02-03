@@ -33,12 +33,13 @@ package org.xbib.util;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
@@ -51,44 +52,38 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * A finder for traversing PathFiles
+ * A finder for traversing a NIO file system
  */
 public class Finder {
+
+    private final FileSystem fileSystem;
 
     private final EnumSet<FileVisitOption> opts;
 
     private List<PathFile> input = new LinkedList<>();
 
-    private FileTime modifiedSince;
-
     private Comparator<PathFile> comparator;
 
     public Finder() {
-        this(EnumSet.of(FileVisitOption.FOLLOW_LINKS));
+        this(FileSystems.getDefault(), EnumSet.of(FileVisitOption.FOLLOW_LINKS));
     }
 
-    public Finder(EnumSet<FileVisitOption> opts) {
+    public Finder(FileSystem fileSystem, EnumSet<FileVisitOption> opts) {
+        this.fileSystem = fileSystem;
         this.opts = opts;
     }
 
-    public Finder modifiedSince(long modifiedSince, TimeUnit tu) {
-        this.modifiedSince = FileTime.from(modifiedSince, tu);
-        return this;
-    }
-
     public Finder find(String path, String pattern) throws IOException {
-        return find(null, null, Paths.get(path), pattern);
+        return find(null, null, fileSystem.getPath(path), pattern);
     }
 
     public Finder find(String base, String basePattern, String path, String pattern) throws IOException {
-        return find(Strings.isNullOrEmpty(base) ? null : Paths.get(base), basePattern,
-                Strings.isNullOrEmpty(path) ? null : Paths.get(path), pattern);
+        return find(Strings.isNullOrEmpty(base) ? null : fileSystem.getPath(base), basePattern,
+                Strings.isNullOrEmpty(path) ? null : fileSystem.getPath(path), pattern);
     }
-
 
     /**
      * Find the most recent version of a file/archive.
@@ -96,11 +91,15 @@ public class Finder {
      * @param base the path of the base directory
      * @param basePattern a pattern to match directory entries in the base directory or null to match '*'
      * @param path the path of the file/archive if no recent path can be found in the base directory
-     * @param pattern  th file name pattern to match
+     * @param pattern the file name pattern to match
      * @return this Finder
      * @throws IOException
      */
     public Finder find(Path base, String basePattern, Path path, String pattern) throws IOException {
+        return find(base, basePattern, path, pattern, null);
+    }
+
+    public Finder find(Path base, String basePattern, Path path, String pattern, FileTime modifiedSince) throws IOException {
         if (base != null) {
             final PathMatcher baseMatcher = base.getFileSystem().getPathMatcher("glob:" + (basePattern != null ? basePattern : "*"));
             Set<Path> recent = new TreeSet<>((p1, p2) -> p2.toString().compareTo(p1.toString()));
@@ -161,6 +160,24 @@ public class Finder {
                 .map(p -> p.getPath().toAbsolutePath().toUri())
                 .limit(max < 0 ? input.size() : max)
                 .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
+    }
+
+    class PathFile {
+        private Path path;
+        private BasicFileAttributes attr;
+
+        public PathFile(Path path, BasicFileAttributes attr) {
+            this.path = path;
+            this.attr = attr;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public BasicFileAttributes getAttributes() {
+            return attr;
+        }
     }
 
 }

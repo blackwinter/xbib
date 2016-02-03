@@ -1,4 +1,3 @@
-
 package org.xbib.io.ftp;
 
 import java.io.IOException;

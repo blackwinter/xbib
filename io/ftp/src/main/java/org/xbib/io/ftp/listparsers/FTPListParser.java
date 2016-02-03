@@ -1,8 +1,7 @@
-
 package org.xbib.io.ftp.listparsers;
 
-import org.xbib.io.ftp.FTPException;
 import org.xbib.io.ftp.FTPEntry;
+import org.xbib.io.ftp.FTPException;
 
 import java.util.List;
 import java.util.TimeZone;

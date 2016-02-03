@@ -101,7 +101,7 @@ public class ActiveDataConnector implements Runnable, DataConnector {
         threadPool.shutdownNow();
     }
 
-    public Socket openDataConnection () throws IOException {
+    public Socket openDataConnection() throws IOException {
         try {
             future.get();
         } catch (InterruptedException e) {

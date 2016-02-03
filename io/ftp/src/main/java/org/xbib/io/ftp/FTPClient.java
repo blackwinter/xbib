@@ -43,60 +43,50 @@ import java.util.zip.InflaterInputStream;
 
 public class FTPClient {
 
-    private final static Logger logger = LogManager.getLogger("org.xbib.io.ftp");
-
-    private final static Logger communicationlogger = LogManager.getLogger("org.xbib.io.ftp");
-
     /**
      * The constant for the FTP security level.
      */
     public static final int SECURITY_FTP = 0;
-
     /**
      * The constant for the FTPS (FTP over implicit TLS/SSL) security level.
      */
     public static final int SECURITY_FTPS = 1;
-
     /**
      * The constant for the FTPES (FTP over explicit TLS/SSL) security level.
      */
     public static final int SECURITY_FTPES = 2;
-
     /**
      * The constant for the TEXTUAL file transfer type. It means that the data
      * sent or received is treated as textual information. This implies charset
      * conversion during the transfer.
      */
     public static final int TYPE_TEXTUAL = 1;
-
     /**
      * The constant for the BINARY file transfer type. It means that the data
      * sent or received is treated as a binary stream. The data is taken "as
      * is", without any charset conversion.
      */
     public static final int TYPE_BINARY = 2;
-
     /**
      * The constant for the MLSD policy that causes the client to use the MLSD
      * command instead of LIST, but only if the MLSD command is explicitly
      * supported by the server (the support is tested with the FEAT command).
      */
     public static final int MLSD_IF_SUPPORTED = 0;
-
     /**
      * The constant for the MLSD policy that causes the client to use always the
      * MLSD command instead of LIST, also if the MLSD command is not explicitly
      * supported by the server (the support is tested with the FEAT command).
      */
     public static final int MLSD_ALWAYS = 1;
-
     /**
      * The constant for the MLSD policy that causes the client to use always the
      * LIST command, also if the MLSD command is explicitly supported by the
      * server (the support is tested with the FEAT command).
      */
     public static final int MLSD_NEVER = 2;
-
+    private final static Logger logger = LogManager.getLogger("org.xbib.io.ftp");
+    private final static Logger communicationlogger = LogManager.getLogger("org.xbib.io.ftp");
     /**
      * The size of the buffer used when sending or receiving data.
      */
@@ -281,13 +271,13 @@ public class FTPClient {
         addListParser(new MLSDListParser());
     }
 
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
+
     public FTPClient setTimeZone(TimeZone timeZone) {
         this.timeZone = timeZone;
         return this;
-    }
-
-    public TimeZone getTimeZone() {
-        return timeZone;
     }
 
     /**
@@ -778,8 +768,8 @@ public class FTPClient {
      *
      * @param host The hostname of the remote server.
      * @return The server welcome message, one line per array element.
-     * @throws IOException              If an I/O occurs.
-     * @throws FTPException             If the server refuses the connection.
+     * @throws IOException  If an I/O occurs.
+     * @throws FTPException If the server refuses the connection.
      */
     public List<String> connect(String host) throws IOException, FTPException {
         int def;
@@ -797,8 +787,8 @@ public class FTPClient {
      * @param host The host name or address of the remote server.
      * @param port The port listened by the remote server.
      * @return The server welcome message, one line per array element.
-     * @throws IOException              If an I/O occurs.
-     * @throws FTPException             If the server refuses the connection.
+     * @throws IOException  If an I/O occurs.
+     * @throws FTPException If the server refuses the connection.
      */
     public List<String> connect(String host, int port) throws IOException, FTPException {
         synchronized (lock) {
@@ -869,10 +859,10 @@ public class FTPClient {
      * @param sendQuitCommand If true the QUIT procedure with the server will be performed,
      *                        otherwise the connection is abruptly closed by the client
      *                        without sending any advice to the server.
-     * @throws IOException              If an I/O occurs (can be thrown only if sendQuitCommand is
-     *                                  true).
-     * @throws FTPException             If the server refuses the QUIT command (can be thrown only if
-     *                                  sendQuitCommand is true).
+     * @throws IOException  If an I/O occurs (can be thrown only if sendQuitCommand is
+     *                      true).
+     * @throws FTPException If the server refuses the QUIT command (can be thrown only if
+     *                      sendQuitCommand is true).
      */
     public void disconnect(boolean sendQuitCommand)
             throws IOException, FTPException {
@@ -908,8 +898,8 @@ public class FTPClient {
      *
      * @param username The username.
      * @param password The password (if none set it to null).
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If login fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If login fails.
      */
     public void login(String username, String password)
             throws IOException, FTPException {
@@ -923,11 +913,11 @@ public class FTPClient {
      * @param password The password (if none set it to null).
      * @param account  The account (if none set it to null). Be careful: some servers
      *                 don't implement this feature.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If login fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If login fails.
      */
     public void login(String username, String password, String account)
-            throws  IOException, FTPException {
+            throws IOException, FTPException {
         synchronized (lock) {
             if (!connected) {
                 throw new FTPException("client not connected");
@@ -1020,8 +1010,8 @@ public class FTPClient {
      * Performs some post-login operations, such trying to detect server support
      * for utf8.
      *
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If login fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If login fails.
      */
     private void postLoginOperations()
             throws IOException, FTPException {
@@ -1077,8 +1067,8 @@ public class FTPClient {
      * careful with this: some FTP servers don't implement this feature, even
      * though it is a standard FTP one.
      *
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void rein() throws IOException, FTPException {
         ensureConnected();
@@ -1097,8 +1087,8 @@ public class FTPClient {
     /**
      * This method performs a "noop" operation with the server.
      *
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If login fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If login fails.
      */
     public void noop() throws IOException, FTPException {
         ensureConnected();
@@ -1121,7 +1111,7 @@ public class FTPClient {
      * @param command The site command.
      * @return The reply supplied by the server, parsed and served in an object
      * way mode.
-     * @throws IOException              If a I/O error occurs.
+     * @throws IOException If a I/O error occurs.
      */
     public FTPReply site(String command)
             throws IOException, FTPException {
@@ -1141,8 +1131,8 @@ public class FTPClient {
      * standard FTP one.
      *
      * @param account The account.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If login fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If login fails.
      */
     public void acct(String account) throws IOException, FTPException {
         ensureConnected();
@@ -1160,8 +1150,8 @@ public class FTPClient {
      * This method asks and returns the current working directory.
      *
      * @return path The path to the current working directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public String pwd() throws IOException, FTPException {
         ensureConnected();
@@ -1189,8 +1179,8 @@ public class FTPClient {
      * This method changes the current working directory.
      *
      * @param path The path to the new working directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void cwd(String path) throws IOException, FTPException {
         ensureConnected();
@@ -1207,8 +1197,8 @@ public class FTPClient {
     /**
      * This method changes the current working directory to the parent one.
      *
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void cdup() throws IOException, FTPException {
         ensureConnected();
@@ -1228,8 +1218,8 @@ public class FTPClient {
      *
      * @param path The path to the file or the directory.
      * @return The file/directory last modification date.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public Date mdtm(String path) throws IOException, FTPException {
         ensureConnected();
@@ -1259,8 +1249,8 @@ public class FTPClient {
      *
      * @param path The path to the file.
      * @return The file size in bytes.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public long size(String path) throws IOException, FTPException {
         ensureConnected();
@@ -1306,8 +1296,8 @@ public class FTPClient {
      *
      * @param oldPath The current path of the file (or directory).
      * @param newPath The new path for the file (or directory).
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void rename(String oldPath, String newPath)
             throws IOException, FTPException {
@@ -1332,8 +1322,8 @@ public class FTPClient {
      * This method deletes a remote file.
      *
      * @param path The path to the file.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void dele(String path)
             throws IOException, FTPException {
@@ -1352,8 +1342,8 @@ public class FTPClient {
      * This method deletes a remote directory.
      *
      * @param path The path to the directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void rmd(String path)
             throws IOException, FTPException {
@@ -1372,8 +1362,8 @@ public class FTPClient {
      * This method creates a new remote directory in the current working one.
      *
      * @param directoryName The name of the new directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void mkd(String directoryName)
             throws IOException, FTPException {
@@ -1393,8 +1383,8 @@ public class FTPClient {
      * of lines with the help contents.
      *
      * @return The help contents, splitted by line.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public List<String> help() throws IOException, FTPException {
         ensureConnected();
@@ -1414,8 +1404,8 @@ public class FTPClient {
      * command.
      *
      * @return The remote server status, splitted by line.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public List<String> stat() throws IOException, FTPException {
         ensureConnected();
@@ -1448,10 +1438,10 @@ public class FTPClient {
      *
      * @return The list of the files (and directories) in the current working
      * directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
-    public Map<String,FTPEntry> list() throws IOException, FTPException {
+    public Map<String, FTPEntry> list() throws IOException, FTPException {
         return list(null);
     }
 
@@ -1473,12 +1463,12 @@ public class FTPClient {
      *                 wildcard characters could be accepted.
      * @return The list of the files (and directories) in the current working
      * directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
-    public Map<String,FTPEntry> list(String fileSpec) throws IOException, FTPException {
+    public Map<String, FTPEntry> list(String fileSpec) throws IOException, FTPException {
         ensureConnected();
-        Map<String,FTPEntry> ret = null;
+        Map<String, FTPEntry> ret = null;
         synchronized (lock) {
             communication.sendFTPCommand("TYPE A");
             FTPReply r = communication.readFTPReply();
@@ -1618,8 +1608,8 @@ public class FTPClient {
      *
      * @return The list of the files (and directories) in the current working
      * directory.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public List<String> nlst() throws IOException, FTPException {
         ensureConnected();
@@ -1714,8 +1704,8 @@ public class FTPClient {
      * FTPAbortedException.
      *
      * @param input The file to upload.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void stor(String name, InputStream input) throws IOException, FTPException {
         stor(name, input, 0L, 0L, null);
@@ -1729,10 +1719,10 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param input     The file to upload.
+     * @param input    The file to upload.
      * @param listener The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void stor(String name, InputStream input, FTPDataTransferListener listener)
             throws IOException, FTPException {
@@ -1747,12 +1737,12 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param input      The file to upload.
+     * @param input     The file to upload.
      * @param restartAt The restart point (number of bytes already uploaded). Use
      *                  {@link FTPClient#isResumeSupported()} to check if the server
      *                  supports resuming of broken data transfers.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void stor(String name, InputStream input, long restartAt) throws IOException, FTPException {
         stor(name, input, restartAt, 0L, null);
@@ -1766,18 +1756,18 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param name     The name of the remote file.
+     * @param name         The name of the remote file.
      * @param inputStream  The source of data.
      * @param restartAt    The restart point (number of bytes already uploaded). Use
      *                     {@link FTPClient#isResumeSupported()} to check if the server
      *                     supports resuming of broken data transfers.
      * @param streamOffset The offset to skip in the stream.
      * @param listener     The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void stor(String name, InputStream inputStream,
-                       long restartAt, long streamOffset, FTPDataTransferListener listener)
+                     long restartAt, long streamOffset, FTPDataTransferListener listener)
             throws IOException, FTPException {
         ensureConnected();
         synchronized (lock) {
@@ -1911,9 +1901,9 @@ public class FTPClient {
      * FTPAbortedException.
      *
      * @param input The local file whose contents will be appended to the remote
-     *             file.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     *              file.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void appe(String name, InputStream input)
             throws IOException, FTPException {
@@ -1928,11 +1918,11 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param input     The local file whose contents will be appended to the remote
+     * @param input    The local file whose contents will be appended to the remote
      *                 file.
      * @param listener The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void appe(String name, InputStream input, FTPDataTransferListener listener)
             throws IOException, FTPException {
@@ -1947,12 +1937,12 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param name     The name of the remote file.
+     * @param name         The name of the remote file.
      * @param inputStream  The source of data.
      * @param streamOffset The offset to skip in the stream.
      * @param listener     The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void append(String name, InputStream inputStream,
                        long streamOffset, FTPDataTransferListener listener)
@@ -2083,9 +2073,9 @@ public class FTPClient {
      * FTPAbortedException.
      *
      * @param name The name of the file to download.
-     * @param out      The local file.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @param out  The local file.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void retr(String name, OutputStream out)
             throws IOException, FTPException {
@@ -2100,11 +2090,11 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param name The name of the file to download.
-     * @param output      The local file.
-     * @param listener       The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @param name     The name of the file to download.
+     * @param output   The local file.
+     * @param listener The listener for the operation. Could be null.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void retr(String name, OutputStream output, FTPDataTransferListener listener)
             throws IOException, FTPException {
@@ -2120,13 +2110,13 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param name The name of the file to download.
-     * @param output      The local file.
-     * @param restartAt      The restart point (number of bytes already downloaded). Use
-     *                       {@link FTPClient#isResumeSupported()} to check if the server
-     *                       supports resuming of broken data transfers.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @param name      The name of the file to download.
+     * @param output    The local file.
+     * @param restartAt The restart point (number of bytes already downloaded). Use
+     *                  {@link FTPClient#isResumeSupported()} to check if the server
+     *                  supports resuming of broken data transfers.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void retr(String name, OutputStream output, long restartAt)
             throws IOException, FTPException {
@@ -2141,17 +2131,17 @@ public class FTPClient {
      * abortCurrentDataTransfer(). The method will break with a
      * FTPAbortedException.
      *
-     * @param name     The name of the remote file.
+     * @param name         The name of the remote file.
      * @param outputStream The destination stream of data read during the download.
      * @param restartAt    The restart point (number of bytes already downloaded). Use
      *                     {@link FTPClient#isResumeSupported()} to check if the server
      *                     supports resuming of broken data transfers.
      * @param listener     The listener for the operation. Could be null.
-     * @throws IOException              If an I/O error occurs.
-     * @throws FTPException             If the operation fails.
+     * @throws IOException  If an I/O error occurs.
+     * @throws FTPException If the operation fails.
      */
     public void retr(String name, OutputStream outputStream,
-                         long restartAt, FTPDataTransferListener listener)
+                     long restartAt, FTPDataTransferListener listener)
             throws IOException, FTPException {
         if (name == null) {
             return;
@@ -2377,8 +2367,8 @@ public class FTPClient {
      *                        server, through the standard FTP ABOR command. Otherwise the
      *                        open data transfer connection will be closed without any
      *                        advise has sent to the server.
-     * @throws IOException              If the ABOR command cannot be sent due to any I/O error. This
-     *                                  could happen only if force is false.
+     * @throws IOException If the ABOR command cannot be sent due to any I/O error. This
+     *                     could happen only if force is false.
      */
     public void abortCurrentDataTransfer(boolean sendAborCommand)
             throws IOException, FTPException {
