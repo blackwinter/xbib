@@ -78,9 +78,6 @@ public class VectorGraphics2D extends Graphics2D implements Cloneable {
     public VectorGraphics2D() {
         commands = new LinkedList<Command<?>>();
         emit(new CreateCommand(this));
-        //GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        //GraphicsDevice graphicsDevice = graphicsEnvironment.getDefaultScreenDevice();
-        //deviceConfig = graphicsDevice.getDefaultConfiguration();
         fontRenderContext = new FontRenderContext(null, false, true);
 
         state = new GraphicsState();

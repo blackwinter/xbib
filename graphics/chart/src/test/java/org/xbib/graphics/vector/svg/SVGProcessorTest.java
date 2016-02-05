@@ -21,8 +21,7 @@ public class SVGProcessorTest {
     private static final String HEADER =
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + EOL +
                     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">" + EOL +
-                    //"<svg height=\"7.937499999999999mm\" version=\"1.1\" viewBox=\"0 10 20 30\" width=\"5.291666666666666mm\" x=\"0mm\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" y=\"2.645833333333333mm\">" + EOL;
-                    "<svg height=\"5.183673469387755mm\" version=\"1.1\" viewBox=\"0 10 20 30\" width=\"3.45578231292517mm\" x=\"0mm\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" y=\"1.727891156462585mm\">" + EOL;
+                    "<svg height=\"10.583332098611255mm\" version=\"1.1\" viewBox=\"0 10 20 30\" width=\"7.0555547324075025mm\" x=\"0mm\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" y=\"3.5277773662037513mm\">" + EOL;
     private static final String FOOTER = "</svg>";
     private static final PageSize PAGE_SIZE = new PageSize(0.0, 10.0, 20.0, 30.0);
 

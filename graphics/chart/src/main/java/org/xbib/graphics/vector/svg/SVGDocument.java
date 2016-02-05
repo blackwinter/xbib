@@ -68,9 +68,11 @@ public class SVGDocument extends SizedDocument {
 
     private static final String PREFIX_CLIP = "clip";
 
-    private static final double PX_PER_MM =
-            Toolkit.getDefaultToolkit().getScreenResolution() / 25.4;
     private static final String CHARSET = "UTF-8";
+
+    private static final double DOTS_PER_MM = 2.834646; // 72 dpi
+    //private static final double DOTS_PER_MM = 11.811024; // 300 dpi
+
     /**
      * Mapping of stroke endcap values from Java to SVG.
      */
@@ -248,10 +250,10 @@ public class SVGDocument extends SizedDocument {
         // Add svg element
         root.setAttribute("xmlns:" + XLINK_NAMESPACE, XLINK_NAMESPACE_URI);
         root.setAttribute("version", "1.1");
-        root.setAttribute("x", DataUtils.format(x / PX_PER_MM) + "mm");
-        root.setAttribute("y", DataUtils.format(y / PX_PER_MM) + "mm");
-        root.setAttribute("width", DataUtils.format(width / PX_PER_MM) + "mm");
-        root.setAttribute("height", DataUtils.format(height / PX_PER_MM) + "mm");
+        root.setAttribute("x", DataUtils.format(x / DOTS_PER_MM) + "mm");
+        root.setAttribute("y", DataUtils.format(y / DOTS_PER_MM) + "mm");
+        root.setAttribute("width", DataUtils.format(width / DOTS_PER_MM) + "mm");
+        root.setAttribute("height", DataUtils.format(height / DOTS_PER_MM) + "mm");
         root.setAttribute("viewBox", DataUtils.join(" ", new double[]{x, y, width, height}));
     }
 
