@@ -217,7 +217,8 @@ public class Axis<ST extends StylerAxesChart, S extends Series> implements Chart
     }
 
     /**
-     * The vertical Y-Axis is drawn first, but to know the lower bounds of it, we need to know how high the X-Axis paint
+     * The vertical Y-Axis is drawn first, but to know the lower bounds of it, we need to know how high the X-Axis
+     * paint
      * zone is going to be. Since the tick labels could be rotated, we need to actually
      * determine the tick labels first to get an idea of how tall the X-Axis tick labels will be.
      *

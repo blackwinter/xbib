@@ -14,6 +14,7 @@ public class StylerPie extends Styler {
     private Font annotationFont;
     private double annotationDistance;
     private AnnotationType annotationType;
+
     /**
      * Constructor
      */
@@ -39,7 +40,8 @@ public class StylerPie extends Styler {
     }
 
     /**
-     * Sets the default series render style for the chart (line, scatter, area, etc.) You can override the series render
+     * Sets the default series render style for the chart (line, scatter, area, etc.) You can override the series
+     * render
      * style individually on each Series object.
      *
      * @param chartPieSeriesRenderStyle
@@ -55,7 +57,8 @@ public class StylerPie extends Styler {
     }
 
     /**
-     * Sets whether or not the pie chart is forced to be circular. Otherwise it's shape is oval, matching the containing
+     * Sets whether or not the pie chart is forced to be circular. Otherwise it's shape is oval, matching the
+     * containing
      * plot.
      *
      * @param isCircular

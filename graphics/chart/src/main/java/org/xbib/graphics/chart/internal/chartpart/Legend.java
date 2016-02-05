@@ -20,6 +20,7 @@ public abstract class Legend<ST extends Styler, S extends Series> implements Cha
     protected Rectangle2D bounds = null;
     protected double xOffset = 0;
     protected double yOffset = 0;
+
     /**
      * Constructor
      *

@@ -69,7 +69,8 @@ public final class BitmapEncoder {
     }
 
     /**
-     * Save a chart as a PNG with a custom DPI. The default DPI is 72, which is fine for displaying charts on a computer
+     * Save a chart as a PNG with a custom DPI. The default DPI is 72, which is fine for displaying charts on a
+     * computer
      * monitor, but for printing
      * charts, a DPI of around 300 is much better.
      *

@@ -61,7 +61,7 @@ public class VectorGraphics2D extends Graphics2D implements Cloneable {
     /**
      * Device configuration settings.
      */
-    private final GraphicsConfiguration deviceConfig;
+    //private final GraphicsConfiguration deviceConfig;
     /**
      * Context settings used to render fonts.
      */
@@ -78,9 +78,9 @@ public class VectorGraphics2D extends Graphics2D implements Cloneable {
     public VectorGraphics2D() {
         commands = new LinkedList<Command<?>>();
         emit(new CreateCommand(this));
-        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice graphicsDevice = graphicsEnvironment.getDefaultScreenDevice();
-        deviceConfig = graphicsDevice.getDefaultConfiguration();
+        //GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        //GraphicsDevice graphicsDevice = graphicsEnvironment.getDefaultScreenDevice();
+        //deviceConfig = graphicsDevice.getDefaultConfiguration();
         fontRenderContext = new FontRenderContext(null, false, true);
 
         state = new GraphicsState();
@@ -316,7 +316,7 @@ public class VectorGraphics2D extends Graphics2D implements Cloneable {
 
     @Override
     public GraphicsConfiguration getDeviceConfiguration() {
-        return deviceConfig;
+        throw new UnsupportedOperationException();
     }
 
     @Override

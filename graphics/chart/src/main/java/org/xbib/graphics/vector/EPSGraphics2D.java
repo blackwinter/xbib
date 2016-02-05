@@ -25,7 +25,7 @@ public class EPSGraphics2D extends ProcessingPipeline {
         super(x, y, width, height);
         processor = new EPSProcessor();
         /*
-		 * The following are the default settings for the graphics state in an EPS file.
+         * The following are the default settings for the graphics state in an EPS file.
 		 * Although they currently appear in the document output, they do not have to be set explicitly.
 		 */
         // TODO: Default graphics state does not need to be printed in the document

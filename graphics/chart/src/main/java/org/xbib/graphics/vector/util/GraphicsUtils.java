@@ -311,7 +311,7 @@ public abstract class GraphicsUtils {
         WritableRaster raster;
         // TODO Handle bitmap masks (work on ImageDataStream is necessary)
         /*
-		if (image.getTransparency() == BufferedImage.BITMASK) {
+        if (image.getTransparency() == BufferedImage.BITMASK) {
             byte[] arr = {(byte) 0, (byte) 255};
 
             cm = new IndexColorModel(1, 2, arr, arr, arr);

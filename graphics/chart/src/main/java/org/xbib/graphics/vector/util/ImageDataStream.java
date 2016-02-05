@@ -19,6 +19,7 @@ public class ImageDataStream extends InputStream {
     private final int[] sampleSizes;
     private int x;
     private int y;
+
     public ImageDataStream(BufferedImage image, Interleaving interleaving) {
         this.image = image;
         this.interleaving = interleaving;

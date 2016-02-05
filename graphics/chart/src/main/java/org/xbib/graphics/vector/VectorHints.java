@@ -45,6 +45,7 @@ public abstract class VectorHints {
         private final Key key;
         private final int index;
         private final String description;
+
         public Value(Key key, int index, String description) {
             this.key = key;
             this.index = index;

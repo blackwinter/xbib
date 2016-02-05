@@ -29,7 +29,8 @@ public class StylerXY extends StylerAxesChart {
     }
 
     /**
-     * Sets the default series render style for the chart (line, scatter, area, etc.) You can override the series render
+     * Sets the default series render style for the chart (line, scatter, area, etc.) You can override the series
+     * render
      * style individually on each Series object.
      *
      * @param chartXYSeriesRenderStyle

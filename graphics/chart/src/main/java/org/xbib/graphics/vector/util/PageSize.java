@@ -5,9 +5,9 @@ import java.awt.geom.Rectangle2D;
 public class PageSize {
     private static final double MM_PER_INCH = 2.54;
     public static final PageSize TABLOID = new PageSize(11.0 * MM_PER_INCH, 17.0 * MM_PER_INCH);
-    public static final PageSize LEDGER = TABLOID.getLandscape();
     public static final PageSize LETTER = new PageSize(8.5 * MM_PER_INCH, 11.0 * MM_PER_INCH);
     public static final PageSize LEGAL = new PageSize(8.5 * MM_PER_INCH, 14.0 * MM_PER_INCH);
+    public static final PageSize LEDGER = TABLOID.getLandscape();
     public static final PageSize A3 = new PageSize(297.0, 420.0);
     public static final PageSize A4 = new PageSize(210.0, 297.0);
     public static final PageSize A5 = new PageSize(148.0, 210.0);
