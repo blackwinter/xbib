@@ -54,13 +54,13 @@ public final class FTPPath implements Path {
     @Override
     public Path getFileName() {
         final SlashPath name = path.getLastName();
-        return name == null ? null : new FTPPath(fs, uri, name);
+        return new FTPPath(fs, uri, name != null ? name : SlashPath.fromString("/"));
     }
 
     @Override
     public Path getParent() {
         final SlashPath parent = path.getParent();
-        return parent == null ? null : new FTPPath(fs, uri, parent);
+        return new FTPPath(fs, uri, parent != null ? parent : SlashPath.fromString("/"));
     }
 
     @Override

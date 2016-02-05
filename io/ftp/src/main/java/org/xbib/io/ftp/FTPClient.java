@@ -1558,6 +1558,8 @@ public class FTPClient {
                     consumeAborCommandReply = false;
                 }
             }
+            logger.info("got lines: {}", lines);
+            logger.info("parser {}", parser);
             if (mlsdCommand) {
                 MLSDListParser parser = new MLSDListParser();
                 ret = parser.parse(lines, timeZone).stream()
@@ -2262,6 +2264,41 @@ public class FTPClient {
             if (listener != null) {
                 listener.completed();
             }
+        }
+    }
+
+    /**
+     * Open a file on the FTP server and return input stream
+     * @return input stream
+     * @throws IOException
+     * @throws FTPException
+     */
+    public InputStream openInputStream(String name) throws FTPException, IOException {
+        if (name == null) {
+            return null;
+        }
+        ensureConnected();
+        InputStream inputStream = null;
+        synchronized (lock) {
+            int tp = type;
+            if (tp == TYPE_TEXTUAL) {
+                communication.sendFTPCommand("TYPE A");
+            } else if (tp == TYPE_BINARY) {
+                communication.sendFTPCommand("TYPE I");
+            }
+            FTPReply r = communication.readFTPReply();
+            touchAutoNoopTimer();
+            if (!r.isSuccessCode()) {
+                throw new FTPException(r);
+            }
+            DataConnector connection = openDataTransferChannel();
+            communication.sendFTPCommand("RETR " + name);
+            Socket socket = connection.openDataConnection();
+            inputStream = new BufferedInputStream(socket.getInputStream());
+            if (modezEnabled) {
+                inputStream = new InflaterInputStream(inputStream);
+            }
+            return inputStream;
         }
     }
 

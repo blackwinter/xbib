@@ -15,109 +15,77 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-/**
- * Created by gerard on 20-11-2015.
- * A file system that you obtain with the factor {@link SFTPFileSystemProvider}
- * The default file system, obtained by invoking the FileSystems.getDefault method, provides access to the file system
- * that is accessible to the Java virtual machine.
- */
 public class SFTPFileSystem extends FileSystem {
 
     private final Session session;
 
     private final ChannelSftp channelSftp;
 
-    private final SFTPFileSystemProvider sftpFileSystemProvider;
-    /**
-     * A file system is open upon creation
-     *
-     * @param sftpFileSystemBuilder the file system builder
-     */
-    private SFTPFileSystem(SftpFileSystemBuilder sftpFileSystemBuilder) throws JSchException {
+    private final FileSystemProvider fileSystemProvider;
 
-        // Uri
-        URI uri = sftpFileSystemBuilder.uri;
-        this.sftpFileSystemProvider = sftpFileSystemBuilder.sftpFileSystemProvider;
+    private final FileStore fileStore;
 
-        // Extract the user and the password
-        String userInfo = uri.getUserInfo();
-        String user = userInfo.substring(0, userInfo.indexOf(":"));
-        String password = userInfo.substring(userInfo.indexOf(":") + 1, userInfo.length());
+    private SFTPFileSystem(FileSystemProvider fileSystemProvider, URI uri,
+                           String username, String password, String privateKeyPath) throws JSchException {
+        this.fileSystemProvider = fileSystemProvider;
+        this.fileStore = new SFTPFileStore(uri);
         int port;
         if (uri.getPort() == -1) {
             port = 22;
         } else {
             port = uri.getPort();
         }
+        if (username == null) {
+            String userInfo = uri.getUserInfo();
+            username = userInfo.substring(0, userInfo.indexOf(":"));
+            password = userInfo.substring(userInfo.indexOf(":") + 1, userInfo.length());
+        }
         JSch jsch = new JSch();
-        this.session = jsch.getSession(user, uri.getHost(), port);
-        session.setPassword(password);
-        java.util.Properties config = new java.util.Properties();
-        config.put("StrictHostKeyChecking", "no");
+        this.session = jsch.getSession(username, uri.getHost(), port);
+        if (password != null && !password.isEmpty()) {
+            session.setPassword(password);
+        }
+        if (privateKeyPath != null) {
+            jsch.addIdentity(privateKeyPath);
+        }
+        Properties config = new Properties();
+        config.put("StrictHostKeyChecking", "no"); // hmmmm
         session.setConfig(config);
         session.connect();
         this.channelSftp = (ChannelSftp) session.openChannel("sftp");
         this.channelSftp.connect();
     }
 
-    /**
-     * Is used in the system file provider
-     * to check the access
-     *
-     * @return ChannelSftp
-     */
     protected ChannelSftp getChannelSftp() {
         return channelSftp;
     }
 
     @Override
     public FileSystemProvider provider() {
-
-        return this.sftpFileSystemProvider;
+        return fileSystemProvider;
     }
 
-    /**
-     * A file system is open upon creation and can be closed by invoking its close method. Once closed, any further
-     * attempt to access objects in the file system cause ClosedFileSystemException to be thrown.
-     * Closing a file system causes all open channels, watch services, and other closeable objects associated with the
-     * file system to be closed.
-     */
     @Override
     public void close() throws IOException {
         this.channelSftp.disconnect();
         this.session.disconnect();
     }
 
-    /**
-     * A file system is open upon creation and can be closed by invoking its close method. Once closed, any further
-     * attempt to access objects in the file system cause ClosedFileSystemException to be thrown.
-     */
     @Override
     public boolean isOpen() {
-
         return !this.channelSftp.isClosed();
     }
 
-    /**
-     * Whether or not a file system provides read-only access is established when the FileSystem is created and can be
-     * tested by invoking its isReadOnly
-     *
-     * @return boolean if true
-     */
     @Override
     public boolean isReadOnly() {
-
-        throw new UnsupportedOperationException();
-
+        return false;
     }
 
-    /**
-     * The name separator is used to separate names in a path string.
-     *
-     * @return the separator
-     */
     @Override
     public String getSeparator() {
         return "/";
@@ -133,12 +101,12 @@ public class SFTPFileSystem extends FileSystem {
 
     @Override
     public Iterable<FileStore> getFileStores() {
-        throw new UnsupportedOperationException();
+        return Collections.singletonList(fileStore);
     }
 
     @Override
     public Set<String> supportedFileAttributeViews() {
-        throw new UnsupportedOperationException();
+        return Collections.singleton("basic");
     }
 
     @Override
@@ -147,7 +115,6 @@ public class SFTPFileSystem extends FileSystem {
         if (more.length == 0) {
             path = first;
         } else {
-            // Build the path from the list of directory
             StringBuilder sb = new StringBuilder();
             sb.append(first);
             for (String segment : more) {
@@ -164,8 +131,20 @@ public class SFTPFileSystem extends FileSystem {
     }
 
     @Override
-    public PathMatcher getPathMatcher(String syntaxAndPattern) {
-        throw new UnsupportedOperationException();
+    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
+        if (!syntaxAndPattern.contains(":")) {
+            throw new IllegalArgumentException("PathMatcher requires input syntax:expression");
+        }
+        String[] parts = syntaxAndPattern.split(":", 2);
+        Pattern pattern;
+        if ("glob".equals(parts[0])) {
+            pattern = GlobPattern.compile(parts[1]);
+        } else if ("regex".equals(parts[0])) {
+            pattern = Pattern.compile(parts[1]);
+        } else {
+            throw new UnsupportedOperationException("Unknown PathMatcher syntax: " + parts[0]);
+        }
+        return new SFTPPathMatcher(pattern);
     }
 
     @Override
@@ -178,19 +157,41 @@ public class SFTPFileSystem extends FileSystem {
         throw new UnsupportedOperationException();
     }
 
-    public static class SftpFileSystemBuilder {
+    public static class Builder {
 
-        private final SFTPFileSystemProvider sftpFileSystemProvider;
-        private final URI uri;
+        private FileSystemProvider fileSystemProvider;
+        private URI uri;
+        private String username;
+        private String password;
+        private String privateKeyPath;
 
-        public SftpFileSystemBuilder(SFTPFileSystemProvider sftpFileSystemProvider, URI uri) {
-            this.sftpFileSystemProvider = sftpFileSystemProvider;
+        public Builder setProvider(SFTPFileSystemProvider sftpFileSystemProvider) {
+            this.fileSystemProvider = sftpFileSystemProvider;
+            return this;
+        }
+
+        public Builder setURI(URI uri) {
             this.uri = uri;
+            return this;
+        }
+
+        public Builder setUsername(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Builder setPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder setPrivateKeyPath(String privateKeyPath) {
+            this.privateKeyPath = privateKeyPath;
+            return this;
         }
 
         public SFTPFileSystem build() throws JSchException {
-            return new SFTPFileSystem(this);
+            return new SFTPFileSystem(fileSystemProvider, uri, username, password, privateKeyPath);
         }
-
     }
 }

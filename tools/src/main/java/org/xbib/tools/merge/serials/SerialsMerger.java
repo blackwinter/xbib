@@ -34,8 +34,7 @@ package org.xbib.tools.merge.serials;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.action.count.CountRequestBuilder;
-import org.elasticsearch.action.count.CountResponse;
+import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
@@ -179,7 +178,7 @@ public class SerialsMerger extends Merger {
     }
 
     @Override
-    protected void prepareSource() throws Exception {
+    protected void prepareInput() throws Exception {
         this.search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster"))
                 .put("host", settings.get("elasticsearch.host"))
@@ -342,7 +341,7 @@ public class SerialsMerger extends Merger {
     }
 
     @Override
-    protected void prepareSink() throws Exception {
+    protected void prepareOutput() throws Exception {
         this.sourceTitleIndex = settings.get("bib-index");
         if (Strings.isNullOrEmpty(sourceTitleIndex)) {
             throw new IllegalArgumentException("no bib-index parameter given");
@@ -388,6 +387,15 @@ public class SerialsMerger extends Merger {
         indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
     }
 
+    protected void disposeInput() throws IOException {
+
+    }
+
+    protected void disposeOutput() throws IOException {
+
+    }
+
+
     protected Ingest createIngest() throws IOException {
         org.elasticsearch.common.settings.Settings clientSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
                 .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
@@ -412,11 +420,13 @@ public class SerialsMerger extends Merger {
     }
 
     public boolean findOpenAccess(String issn) {
-        CountRequestBuilder countRequestBuilder = search.client().prepareCount()
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(search.client(), SearchAction.INSTANCE);
+        searchRequestBuilder
+                .setSize(0)
                 .setIndices(settings.get("doaj-index", "doaj"))
                 .setQuery(termQuery("dc:identifier", issn));
-        CountResponse countResponse = countRequestBuilder.execute().actionGet();
-        return countResponse.getCount() > 0;
+        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+        return searchResponse.getHits().getTotalHits() > 0;
     }
 
     public SearchTransportClient search() {

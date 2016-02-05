@@ -154,6 +154,18 @@ public class FTPEntry {
         this.link = link;
     }
 
+    public boolean isRegularFile() {
+        return type == TYPE_FILE;
+    }
+
+    public boolean isDirectory() {
+        return type == TYPE_DIRECTORY;
+    }
+
+    public boolean isSymbolicLink() {
+        return type == TYPE_LINK;
+    }
+
     public String toString() {
         StringBuilder buffer = new StringBuilder();
         buffer.append(getClass().getName());

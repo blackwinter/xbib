@@ -48,8 +48,7 @@ public final class FTPFileStore extends FileStore {
     }
 
     @Override
-    public boolean supportsFileAttributeView(
-            final Class<? extends FileAttributeView> type) {
+    public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
         return type == BasicFileAttributeView.class;
     }
 
@@ -59,14 +58,12 @@ public final class FTPFileStore extends FileStore {
     }
 
     @Override
-    public <V extends FileStoreAttributeView> V getFileStoreAttributeView(
-            final Class<V> type) {
+    public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
         return null;
     }
 
     @Override
-    public Object getAttribute(final String attribute)
-            throws IOException {
+    public Object getAttribute(final String attribute) throws IOException {
         throw new UnsupportedOperationException("no attributes are supported");
     }
 }

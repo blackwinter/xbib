@@ -34,8 +34,6 @@ package org.xbib.tools.merge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
-import org.xbib.common.settings.loader.SettingsLoader;
-import org.xbib.common.settings.loader.SettingsLoaderFactory;
 import org.xbib.tools.Processor;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -43,42 +41,13 @@ import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.util.concurrent.WorkerRequest;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.concurrent.SynchronousQueue;
-
-import static org.xbib.common.settings.Settings.settingsBuilder;
 
 public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest>
         implements Processor {
 
-    private final static Logger logger = LogManager.getLogger(Merger.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(Merger.class);
 
-/*    public int from(String arg) throws Exception {
-        URL url = new URL(arg);
-        try (Reader reader = new InputStreamReader(url.openStream(), Charset.forName("UTF-8"))) {
-            return from(arg, reader);
-        }
-    }
-
-    @Override
-    public int from(String arg, Reader reader) throws Exception {
-        try {
-            SettingsLoader settingsLoader = SettingsLoaderFactory.loaderFromResource(arg);
-            Settings settings = settingsBuilder()
-                    .put(settingsLoader.load(Settings.copyToString(reader)))
-                    .replacePropertyPlaceholders()
-                    .build();
-            run(settings);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
-        }
-        return 0;
-    }
-*/
 
     public int run(Settings settings) throws Exception {
         try {
@@ -86,18 +55,18 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
             logger.info("executing with concurrency {}", concurrency);
             Pipeline<W, R> pipeline = newPipeline();
             pipeline.setQueue(new SynchronousQueue<>(true));
-            logger.info("preparing sink");
-            prepareSink();
-            logger.info("preparing execution");
+            prepareOutput();
             pipeline.setConcurrency(concurrency)
                     .setWorkerProvider(provider())
                     .prepare()
                     .execute();
-            logger.info("preparing source");
-            prepareSource();
+            prepareInput();
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
             return 1;
+        } finally {
+            disposeInput();
+            disposeOutput();
         }
         return 0;
     }
@@ -108,8 +77,11 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
 
     protected abstract WorkerProvider<W> provider();
 
-    protected abstract void prepareSink() throws Exception;
+    protected abstract void prepareInput() throws Exception;
 
-    protected abstract void prepareSource() throws Exception;
+    protected abstract void prepareOutput() throws Exception;
 
+    protected abstract void disposeInput() throws Exception;
+
+    protected abstract void disposeOutput() throws Exception;
 }

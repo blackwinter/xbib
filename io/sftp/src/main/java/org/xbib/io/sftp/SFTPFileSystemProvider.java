@@ -37,32 +37,31 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     static final String SFTP_SCHEME = "sftp";
 
-    // The pool of Sftp Connection
-    private static final Map<URI, SFTPFileSystem> fileSystemPool = new HashMap<URI, SFTPFileSystem>();
-
-    // Checks that the given file is a SftpPath
-    static SFTPPath toSftpPath(Path path) {
-        if (path == null) {
-            throw new NullPointerException();
-        }
-        if (!(path instanceof SFTPPath)) {
-            throw new ProviderMismatchException();
-        }
-        return (SFTPPath) path;
-    }
+    private static final Map<URI, SFTPFileSystem> fileSystemPool = new HashMap<>();
 
     @Override
     public String getScheme() {
         return SFTP_SCHEME;
     }
 
-    /**
-     * The newFileSystem method is used to create a file system
-     */
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         try {
-            SFTPFileSystem sftpFileSystem = new SFTPFileSystem.SftpFileSystemBuilder(this, uri).build();
+            SFTPFileSystem.Builder builder = new SFTPFileSystem.Builder()
+                    .setProvider(this)
+                    .setURI(uri);
+            if (env != null) {
+                if (env.containsKey("username")) {
+                    builder.setUsername(env.get("username").toString());
+                }
+                if (env.containsKey("password")) {
+                    builder.setPassword(env.get("password").toString());
+                }
+                if (env.containsKey("privatekey")) {
+                    builder.setPrivateKeyPath(env.get("privatekey").toString());
+                }
+            }
+            SFTPFileSystem sftpFileSystem = builder.build();
             if (fileSystemPool.containsKey(uri)) {
                 throw new FileSystemAlreadyExistsException();
             } else {
@@ -74,39 +73,21 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
     }
 
-    /**
-     * @param path path
-     * @param options options
-     * @param attrs attributes
-     * @return A FileChannel object that allows a file to be read or written in the file system.
-     * @throws IOException
-     */
     @Override
     public FileChannel newFileChannel(Path path,
                                       Set<? extends OpenOption> options,
-                                      FileAttribute<?>... attrs)
-            throws IOException {
+                                      FileAttribute<?>... attrs) throws IOException {
         return new SFTPFileChannel();
     }
 
-    /**
-     * The getFileSystem method is used to retrieve a reference to an existing file system
-     *
-     * @param uri uri
-     * @return a FileSystem
-     */
     @Override
     public FileSystem getFileSystem(URI uri) {
-
         return fileSystemPool.get(uri);
-
     }
 
     @Override
     public Path getPath(URI uri) {
-
         return getFileSystem(uri).getPath(uri.getPath());
-
     }
 
     @Override
@@ -127,14 +108,6 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Attempts to write to file stores by means of an object associated with a read-only file system throws
-     * ReadOnlyFileSystemException.
-     *
-     * @param dir dir
-     * @param attrs attrs
-     * @throws IOException
-     */
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException();
@@ -142,27 +115,18 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void delete(Path path) throws IOException {
-
         SFTPPath sftpPath = toSftpPath(path);
         if (Files.exists(sftpPath)) {
             try {
-
                 if (Files.isDirectory(sftpPath)) {
-
                     sftpPath.getChannelSftp().rmdir(sftpPath.getStringPath());
-
                 } else {
-
                     sftpPath.getChannelSftp().rm(sftpPath.getStringPath());
-
                 }
-
             } catch (SftpException e) {
                 throw new IOException(e);
             }
         }
-
-
     }
 
     @Override
@@ -269,5 +233,17 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+
+    // Checks that the given file is a SftpPath
+    static SFTPPath toSftpPath(Path path) {
+        if (path == null) {
+            throw new NullPointerException();
+        }
+        if (!(path instanceof SFTPPath)) {
+            throw new ProviderMismatchException();
+        }
+        return (SFTPPath) path;
     }
 }

@@ -11,11 +11,13 @@ import java.nio.file.Path;
 /**
  * Base implementation for an {@link FtpAgent}
  */
-public abstract class AbstractFtpAgent
-        implements FtpAgent {
+public abstract class AbstractFtpAgent implements FtpAgent {
+
     protected final FTPConfiguration cfg;
-    private final FtpAgentQueue queue;
+
     protected Status status = Status.INITIALIZED;
+
+    private final FtpAgentQueue queue;
 
     /**
      * Protected constructor
@@ -54,8 +56,7 @@ public abstract class AbstractFtpAgent
     }
 
     @Override
-    public final void close()
-            throws IOException {
+    public final void close() throws IOException {
         queue.pushBack(this);
     }
 

@@ -22,8 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * which a provider can use. If the queue is exhausted at the time an agent is
  * needed, the provider will block until an agent becomes available.</p>
  */
-public final class FtpAgentQueue
-        implements Closeable {
+public final class FtpAgentQueue implements Closeable {
     private final BlockingQueue<FtpAgent> queue;
     private final FTPConfiguration cfg;
     private final AtomicBoolean initialized = new AtomicBoolean(false);

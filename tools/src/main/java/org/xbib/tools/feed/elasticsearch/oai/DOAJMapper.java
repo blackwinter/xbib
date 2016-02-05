@@ -47,6 +47,7 @@ public class DOAJMapper implements ArticleVocabulary {
         return r;
     }
 
+    @SuppressWarnings("unchecked")
     private void map(Resource r, String prefix, Map<String, Object> map) throws IOException {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();

@@ -1,4 +1,8 @@
 
+import org.gradle.internal.os.OperatingSystem;
+
+println OperatingSystem.current().getFamilyName()
+
 dependencies {
     compile project(':io:stream')
     compile project(':io:archive')
@@ -7,6 +11,12 @@ dependencies {
     compile "org.reactivestreams:reactive-streams:1.0.0"
     compile "com.typesafe.netty:netty-reactive-streams:1.0.0"
     compile "org.javassist:javassist:3.20.0-GA"
+    if ('os x' == OperatingSystem.current().getFamilyName()) {
+        compile "io.netty:netty-tcnative:1.1.33.Fork12:osx-x86_64"
+    }
+    if ('linux' == OperatingSystem.current().getFamilyName()) {
+        compile "io.netty:netty-tcnative:1.1.33.Fork12:linux-x86_64"
+    }
 }
 
 test {

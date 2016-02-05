@@ -192,8 +192,6 @@ public abstract class AbstractQueryReport extends AbstractCreateStatementInterce
 
     /**
      * Class to measure query execute time
-     *
-     * @author fhanik
      */
     protected class StatementProxy implements InvocationHandler {
         protected boolean closed = false;

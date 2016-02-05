@@ -86,7 +86,9 @@ public class Converter
 
     public int run(Settings settings) throws Exception {
         this.settings = settings;
-        logger.info("starting run with settings = {}", settings.getAsMap());
+        logger.info("starting run");
+        logger.info("java.ext.dirs = {}", System.getProperty("java.ext.dirs"));
+        logger.info("settings = {}", settings.getAsMap());
         int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors());
         logger.info("configuring fork/join pipeline with concurrency {}", concurrency);
         ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline();

@@ -1,21 +1,3 @@
-/*
- * Copyright (c) 2014, Francis Galiegue (fgaliegue@gmail.com)
- *
- * This software is dual-licensed under:
- *
- * - the Lesser General Public License (LGPL) version 3.0 or, at your option, any
- *   later version;
- * - the Apache Software License (ASL) version 2.0.
- *
- * The text of both licenses is available under the src/resources/ directory of
- * this project (under the names LGPL-3.0.txt and ASL-2.0.txt respectively).
- *
- * Direct link to the sources:
- *
- * - LGPL 3.0: https://www.gnu.org/licenses/lgpl-3.0.txt
- * - ASL 2.0: http://www.apache.org/licenses/LICENSE-2.0.txt
- */
-
 package org.xbib.io.ftp.path;
 
 import java.nio.file.Path;
@@ -51,21 +33,18 @@ import java.util.regex.Pattern;
  * <p>This class also contains methods to resolve and relativize paths to one
  * another, and to normalize paths.</p>
  *
- * @see Path
  */
-public final class SlashPath
-        implements Comparable<SlashPath>, Iterable<String> {
-    public static final SlashPath ROOT
-            = new SlashPath(Collections.<String>emptyList(), true);
-    public static final SlashPath EMPTY
-            = new SlashPath(Collections.<String>emptyList(), false);
+public final class SlashPath implements Comparable<SlashPath>, Iterable<String> {
+
+    public static final SlashPath ROOT = new SlashPath(Collections.<String>emptyList(), true);
+
+    public static final SlashPath EMPTY = new SlashPath(Collections.<String>emptyList(), false);
 
     private static final String SELF = ".";
     private static final String PARENT = "..";
 
     private static final Pattern SLASHES = Pattern.compile("/+");
-    private static final Pattern LEADING_PARENTS
-            = Pattern.compile("^/+(?:\\.\\./+)*");
+    private static final Pattern LEADING_PARENTS = Pattern.compile("^/+(?:\\.\\./+)*");
 
     private final List<String> components;
     private final String asString;
@@ -80,47 +59,33 @@ public final class SlashPath
         asString = toString(absolute, components);
     }
 
-    /**
-     * Static factory method
-     *
-     * @param input the path as a string
-     * @return a new path
-     * @throws NullPointerException input is null
-     */
     public static SlashPath fromString(final String input) {
         Objects.requireNonNull(input, "null argument is not allowed");
-
         if (input.isEmpty()) {
             return EMPTY;
         }
-
         String s = input;
         final boolean absolute = s.charAt(0) == '/';
         if (absolute) {
             s = LEADING_PARENTS.matcher(input).replaceFirst("");
         }
-
         if (s.isEmpty()) {
             return ROOT;
         }
-
         final List<String> components = Arrays.asList(SLASHES.split(s));
         return new SlashPath(components, absolute);
     }
 
-    private static String toString(final boolean absolute,
-                                   final List<String> list) {
+    private static String toString(final boolean absolute, final List<String> list) {
         final String s = absolute ? "/" : "";
         if (list.isEmpty()) {
             return s;
         }
         final StringBuilder sb = new StringBuilder(s).append(list.get(0));
         final int size = list.size();
-
         for (int i = 1; i < size; i++) {
             sb.append('/').append(list.get(i));
         }
-
         return sb.toString();
     }
 
@@ -324,7 +289,6 @@ public final class SlashPath
         return components.isEmpty() ? null : getName(components.size() - 1);
     }
 
-    // TODO: getRoot()?
     public SlashPath getParent() {
         if (components.isEmpty()) {
             return null;
@@ -332,8 +296,7 @@ public final class SlashPath
         if (components.size() == 1) {
             return absolute ? ROOT : null;
         }
-        return new SlashPath(components.subList(0, components.size() - 1),
-                absolute);
+        return new SlashPath(components.subList(0, components.size() - 1), absolute);
     }
 
     public SlashPath subpath(final int start, final int end) {
@@ -376,8 +339,7 @@ public final class SlashPath
         if (expected < 0) {
             return false;
         }
-        final int actual
-                = Collections.lastIndexOfSubList(components, other.components);
+        final int actual = Collections.lastIndexOfSubList(components, other.components);
         return expected == actual;
     }
 

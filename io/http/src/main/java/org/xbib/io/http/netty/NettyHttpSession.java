@@ -38,7 +38,10 @@ import org.xbib.io.http.PreparedHttpRequest;
 import org.xbib.io.http.client.AsyncHttpClient;
 import org.xbib.io.http.client.DefaultAsyncHttpClient;
 import org.xbib.io.http.client.DefaultAsyncHttpClientConfig;
+import org.xbib.io.http.client.SslEngineFactory;
+import org.xbib.io.http.client.netty.ssl.DefaultSslEngineFactory;
 import org.xbib.io.http.client.proxy.ProxyServer;
+import org.xbib.io.http.netty.ssl.HttpsUtils;
 
 import java.io.IOException;
 
@@ -94,7 +97,9 @@ public class NettyHttpSession implements HttpSession {
             switch (mode) {
                 case READ: {
                     // some reasonable defaults for web browsing
-                    config.setFollowRedirect(true)
+                    config
+                            .setUseOpenSsl(true)
+                            .setFollowRedirect(true)
                             //.setAllowPoolingConnection(true)
                             //.setAllowSslConnectionPool(true)
                             //.setMaximumConnectionsPerHost(16)
@@ -167,5 +172,8 @@ public class NettyHttpSession implements HttpSession {
     @Override
     public void write(HttpPacket packet) throws IOException {
     }
+
+
+
 
 }

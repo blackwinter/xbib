@@ -1,6 +1,8 @@
 
 package org.xbib.io.sftp;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -12,6 +14,7 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,8 +54,12 @@ public class FileSystemsTest extends Assert {
 
     @AfterClass
     static public void closeResources() throws IOException {
-        sftpFileSystem.close();
-        mockSftpServer.stop();
+        if (sftpFileSystem != null) {
+            sftpFileSystem.close();
+        }
+        if (mockSftpServer != null) {
+            mockSftpServer.stop();
+        }
     }
 
     @Test
@@ -98,5 +105,25 @@ public class FileSystemsTest extends Assert {
         expectedPermission.add(PosixFilePermission.GROUP_READ);
         expectedPermission.add(PosixFilePermission.OTHERS_READ);
         assertEquals("The permissions are equal", expectedPermission, attrs.permissions());
+    }
+
+    private final static Logger logger = LogManager.getLogger(FileSystemsTest.class);
+
+
+    // disabled for now
+    public void testFileSystem() throws IOException {
+        FileSystem fileSystem = FileSystems.newFileSystem(URI.create("sftp://herakles.hbz-nrw.de"),
+                new HashMap<String,String>() {{
+                    put("username", "hbz_k1");
+                    put("password", "koehbz");
+                }});
+        assertNotNull(fileSystem);
+
+        Finder finder = new Finder(fileSystem);
+
+        logger.info("result={}", finder.find("/","*").getPathFiles() );
+
+        fileSystem.close();
+
     }
 }

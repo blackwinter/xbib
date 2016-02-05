@@ -4,7 +4,7 @@ dependencies {
     compile project(':io:archive')
     compile project(':io:zlib')
     compile 'com.jcraft:jsch:0.1.53'
-    testCompile 'org.apache.sshd:sshd-core:0.14.0'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.54'
 }
 
 test {

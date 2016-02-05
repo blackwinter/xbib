@@ -94,6 +94,19 @@ public class ArticlesMerger extends Merger {
 
     private long millis;
 
+
+    @Override
+    protected WorkerProvider provider() {
+        return new WorkerProvider<ArticlesMergerWorker>() {
+            int i = 0;
+
+            @Override
+            public ArticlesMergerWorker get(Pipeline pipeline) {
+                return new ArticlesMergerWorker(merger, i++);
+            }
+        };
+    }
+
     @Override
     protected Pipeline<ArticlesMergerWorker, SerialItemRequest> newPipeline() {
         this.pipeline = new ForkJoinPipeline<>();
@@ -140,7 +153,7 @@ public class ArticlesMerger extends Merger {
         return 0;
     }
 
-    protected void prepareSink() throws Exception {
+    protected void prepareOutput() throws Exception {
         this.ingest = createIngest();
         ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
         String indexSettings = settings.get("target-index-settings",
@@ -178,19 +191,7 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    protected WorkerProvider provider() {
-        return new WorkerProvider<ArticlesMergerWorker>() {
-            int i = 0;
-
-            @Override
-            public ArticlesMergerWorker get(Pipeline pipeline) {
-                return new ArticlesMergerWorker(merger, i++);
-            }
-        };
-    }
-
-    @Override
-    protected void prepareSource() throws Exception {
+    protected void prepareInput() throws Exception {
         this.search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
@@ -341,6 +342,14 @@ public class ArticlesMerger extends Merger {
                 }
             }
         }
+    }
+
+    @Override
+    protected void disposeInput() throws IOException {
+    }
+
+    @Override
+    protected void disposeOutput() throws IOException {
     }
 
     public SearchTransportClient search() {

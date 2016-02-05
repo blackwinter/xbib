@@ -2,9 +2,6 @@ package org.xbib.io.http.client.request.body.multipart;
 
 import java.nio.charset.Charset;
 
-/**
- * This class is an adaptation of the Apache HttpClient implementation
- */
 public abstract class FileLikePart extends PartBase {
 
     /**
@@ -47,9 +44,7 @@ public abstract class FileLikePart extends PartBase {
 
     @Override
     public String toString() {
-        return new StringBuilder()//
-                .append(super.toString())//
-                .append(" filename=").append(fileName)//
-                .toString();
+        return super.toString() +
+                " filename=" + fileName;
     }
 }

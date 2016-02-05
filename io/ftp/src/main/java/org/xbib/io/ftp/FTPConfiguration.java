@@ -7,12 +7,14 @@ public final class FTPConfiguration {
     private final int port;
     private final String username;
     private final String password;
+    private final String path;
 
     private FTPConfiguration(final Builder builder) {
         hostname = builder.hostname;
         port = builder.port;
         username = builder.username;
         password = builder.password;
+        path = builder.path;
     }
 
     public static Builder newBuilder() {
@@ -35,6 +37,10 @@ public final class FTPConfiguration {
         return password;
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public static final class Builder {
         private static final int MIN_PORT = 0;
         private static final int MAX_PORT = 65535;
@@ -43,34 +49,38 @@ public final class FTPConfiguration {
         private int port = 21;
         private String username = "anonymous";
         private String password = "jftp@";
+        private String path = "/";
 
         private Builder() {
         }
 
         public Builder setHostname(String hostname) {
-            this.hostname = Objects.requireNonNull(hostname,
-                    "hostname cannot be null");
+            this.hostname = Objects.requireNonNull(hostname, "hostname cannot be null");
             return this;
         }
 
         public Builder setPort(final int port) {
             if (port < MIN_PORT || port > MAX_PORT) {
-                throw new IllegalArgumentException("illegal port number "
-                        + port);
+                throw new IllegalArgumentException("illegal port number " + port);
             }
             this.port = port;
             return this;
         }
 
         public Builder setUsername(final String username) {
-            this.username = Objects.requireNonNull(username,
-                    "username cannot be null");
+            this.username = Objects.requireNonNull(username, "username cannot be null");
             return this;
         }
 
         public Builder setPassword(final String password) {
-            this.password = Objects.requireNonNull(password,
-                    "password cannot be null");
+            this.password = Objects.requireNonNull(password, "password cannot be null");
+            return this;
+        }
+
+        public Builder setPath(final String path) {
+            if (path != null && path.length() > 0) {
+                this.path = path;
+            }
             return this;
         }
 
