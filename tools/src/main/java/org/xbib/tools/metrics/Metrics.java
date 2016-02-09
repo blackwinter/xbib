@@ -31,9 +31,14 @@ public class Metrics {
 
     private final static Logger logger = LogManager.getLogger(Metrics.class);
 
-    private final static Map<Thread,Map<String,MetricWriter>> metrics = new HashMap<>();
+    private final Map<Thread,Map<String,MetricWriter>> metrics;
 
-    private final static ScheduledExecutorService service = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService service;
+
+    public Metrics() {
+        this.metrics = new HashMap<>();
+        this.service = Executors.newScheduledThreadPool(2);
+    }
 
     public void prepareMetrics(Settings settings) {
         if (settings == null) {
@@ -199,7 +204,7 @@ public class Metrics {
         logger.info("metrics disposed");
     }
 
-    class MetricWriter {
+    static class MetricWriter {
         BufferedWriter writer;
         Settings settings;
         Locale locale;

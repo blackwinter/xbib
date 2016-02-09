@@ -64,13 +64,13 @@ public class Converter
 
     protected Settings settings;
 
-    protected FileInput fileInput = new FileInput();
+    protected FileInput fileInput;
 
-    protected FileOutput fileOutput = new FileOutput();
+    protected FileOutput fileOutput;
 
-    protected final static Metrics metrics = new Metrics();
+    protected Metrics metrics;
 
-    private final static AtomicInteger threadCounter = new AtomicInteger();
+    private AtomicInteger threadCounter;
 
     private int number;
 
@@ -84,6 +84,10 @@ public class Converter
     }
 
     public int run(Settings settings) throws Exception {
+        this.threadCounter = new AtomicInteger();
+        this.fileInput = new FileInput();
+        this.fileOutput = new FileOutput();
+        this.metrics = new Metrics();
         this.settings = settings;
         logger.info("starting, settings = {}", settings.getAsMap());
         int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors());
@@ -150,10 +154,11 @@ public class Converter
     }
 
     protected void process(URI uri) throws Exception {
+        // will be overridden
     }
 
     protected void disposeInput() throws IOException {
-        // no need to close fileInput
+        // no need to close fileInput here
     }
 
     protected void disposeOutput() throws IOException {
@@ -176,7 +181,7 @@ public class Converter
         return new ConverterPipeline();
     }
 
-    // this must be overriden
+    // must be overriden
     protected WorkerProvider<Converter> provider() {
         return null;
     }

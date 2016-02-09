@@ -162,7 +162,7 @@ public class Finder {
                 .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
     }
 
-    class PathFile {
+    static class PathFile {
         private Path path;
         private BasicFileAttributes attr;
 
