@@ -124,10 +124,10 @@ public class Metrics {
             }
         }
 
-        logger.info("meter: {} docs, {} = {} ms, {} = {} dps, {} ({} {} {})",
+        logger.info("meter: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
                 docs,
-                FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
+                FormatUtil.formatDurationWords(elapsed, true, true),
                 dps,
                 FormatUtil.formatSpeed(dps),
                 mean,
@@ -146,7 +146,7 @@ public class Metrics {
         double dps = docs * 1000.0 / elapsed;
         long bytes = metric.getTotalIngestSizeInBytes().count();
         double avg = bytes / (docs + 1.0); // avoid div by zero
-        double bps = bytes / elapsed;
+        double bps = bytes * 1000.0 / elapsed;
 
         Map<String,MetricWriter> thisMetrics = metrics.get(Thread.currentThread());
         if (thisMetrics != null) {
@@ -168,10 +168,10 @@ public class Metrics {
             }
         }
 
-        logger.info("ingest: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg, {} = {}, {} = {}",
+        logger.info("ingest: {} docs, {} ms = {}, {} = {}, {} = {} avg, {} = {}, {} = {}",
                 docs,
-                FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
+                FormatUtil.formatDurationWords(elapsed, true, true),
                 bytes,
                 FormatUtil.formatSize(bytes),
                 avg,
