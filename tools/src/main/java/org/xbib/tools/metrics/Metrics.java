@@ -14,6 +14,7 @@ import org.xbib.util.concurrent.Worker;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -54,8 +55,8 @@ public class Metrics {
             String name = entry.getValue().get("name", entry.getKey());
             Path path = Paths.get(name);
             try {
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path, StandardOpenOption.APPEND),
-                        Charset.forName("UTF-8")));
+                OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, Charset.forName("UTF-8")));
                 MetricWriter writer = new MetricWriter();
                 writer.writer = bufferedWriter;
                 writer.settings = entry.getValue();
