@@ -1,11 +1,11 @@
 package org.xbib.graphics.chart;
 
 import org.xbib.graphics.chart.internal.SeriesAxesChart;
-import org.xbib.graphics.chart.internal.chartpart.Axis.AxisDataType;
-import org.xbib.graphics.chart.internal.chartpart.RenderableSeries;
-import org.xbib.graphics.chart.internal.chartpart.RenderableSeries.LegendRenderType;
+import org.xbib.graphics.chart.internal.component.Axis.AxisDataType;
+import org.xbib.graphics.chart.internal.component.RenderableSeries;
+import org.xbib.graphics.chart.internal.component.RenderableSeries.LegendRenderType;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 
@@ -54,10 +54,10 @@ public class SeriesXY extends SeriesAxesChart {
         Object dataPoint = itr.next();
         if (dataPoint instanceof Number) {
             axisType = AxisDataType.Number;
-        } else if (dataPoint instanceof Date) {
-            axisType = AxisDataType.Date;
+        } else if (dataPoint instanceof Instant) {
+            axisType = AxisDataType.Instant;
         } else {
-            throw new IllegalArgumentException("Series data must be either Number or Date type!!!");
+            throw new IllegalArgumentException("series data must be either Number or Instant type");
         }
         return axisType;
     }

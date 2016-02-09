@@ -1,9 +1,9 @@
 package org.xbib.graphics.chart;
 
 import org.xbib.graphics.chart.internal.Series;
-import org.xbib.graphics.chart.internal.chartpart.Chart;
-import org.xbib.graphics.chart.internal.chartpart.Legend_Pie;
-import org.xbib.graphics.chart.internal.chartpart.PlotPie;
+import org.xbib.graphics.chart.internal.component.Chart;
+import org.xbib.graphics.chart.internal.component.LegendPie;
+import org.xbib.graphics.chart.internal.component.PlotPie;
 import org.xbib.graphics.chart.internal.style.SeriesColorMarkerLineStyle;
 import org.xbib.graphics.chart.internal.style.SeriesColorMarkerLineStyleCycler;
 import org.xbib.graphics.chart.internal.style.Styler.ChartTheme;
@@ -24,7 +24,7 @@ public class ChartPie extends Chart<StylerPie, SeriesPie> {
 
         super(width, height, new StylerPie());
         plot = new PlotPie(this);
-        legend = new Legend_Pie(this);
+        legend = new LegendPie(this);
     }
 
     /**
@@ -75,7 +75,7 @@ public class ChartPie extends Chart<StylerPie, SeriesPie> {
         SeriesPie series = new SeriesPie(seriesName, value);
 
         if (seriesMap.keySet().contains(seriesName)) {
-            throw new IllegalArgumentException("Series name >" + seriesName + "< has already been used. Use unique names for each series!!!");
+            throw new IllegalArgumentException("Series name >" + seriesName + "< has already been used. Use unique names for each series");
         }
         seriesMap.put(seriesName, series);
 
@@ -92,13 +92,6 @@ public class ChartPie extends Chart<StylerPie, SeriesPie> {
 
     @Override
     public void paint(Graphics2D g) {
-
-        // Sanity checks
-        // if (getSeriesMap().isEmpty()) {
-        // throw new RuntimeException("No series defined for Chart!!!");
-        // }
-
-        // set the series types if they are not set. Legend and Plot need it.
         for (SeriesPie seriesPie : getSeriesMap().values()) {
             SeriesPie.ChartPieSeriesRenderStyle seriesType = seriesPie.getChartPieSeriesRenderStyle(); // would be directly set
             if (seriesType == null) { // wasn't overridden, use default from Style Manager

@@ -8,19 +8,20 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import static org.junit.Assert.assertEquals;
+
 public class FormatterTest {
 
     @Test
-    public void testTimestampPattern() {
+    public void testLocalDate() {
         String pattern = "yyyyMMdd";
-        String name = DateTimeFormatter.ofPattern(pattern)
+        String name1 = DateTimeFormatter.ofPattern(pattern)
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.now());
-        System.err.println("name 1 = " + name);
-        name = DateTimeFormatter.ofPattern(pattern)
+        String name2 = DateTimeFormatter.ofPattern(pattern)
                 .withZone(ZoneId.systemDefault())
                 .withLocale(Locale.getDefault())
                 .format(LocalDate.now());
-        System.err.println("name 2 = " + name);
+        assertEquals(name1, name2);
     }
 }

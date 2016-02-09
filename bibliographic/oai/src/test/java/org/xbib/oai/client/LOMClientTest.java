@@ -34,7 +34,6 @@ package org.xbib.oai.client;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.exceptions.OAIException;
@@ -45,7 +44,6 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.util.DateUtil;
 import org.xbib.xml.XMLNS;
 import org.xbib.xml.XSI;
 import org.xml.sax.Attributes;
@@ -55,6 +53,7 @@ import org.xml.sax.helpers.AttributesImpl;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.ConnectException;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -69,8 +68,8 @@ public class LOMClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("http://www.melt.fwu.de/oai2.php");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom(DateUtil.parseDateISO("2014-04-04T00:00:00Z"), OAIDateResolution.DAY)
-                    .setUntil(DateUtil.parseDateISO("2015-04-05T00:00:00Z"), OAIDateResolution.DAY)
+                    .setFrom(Instant.parse("2014-04-04T00:00:00Z"))
+                    .setUntil(Instant.parse("2015-04-05T00:00:00Z"))
                     .setMetadataPrefix("oai_lom");
             do {
                 ListRecordsListener listener = new ListRecordsListener(request);

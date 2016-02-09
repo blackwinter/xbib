@@ -75,11 +75,11 @@ public abstract class TestUtils {
     }
 
     public static class Template extends LinkedList<Object> {
-        public Template(Object... lines) {
+        public Template(Object[] lines) {
             Collections.addAll(this, lines);
         }
 
-        public Template(Template... templates) {
+        public Template(Template[] templates) {
             for (Template template : templates) {
                 addAll(template);
             }

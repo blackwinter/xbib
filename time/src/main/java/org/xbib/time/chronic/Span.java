@@ -1,13 +1,9 @@
 package org.xbib.time.chronic;
 
-import java.text.DateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 
-/**
- * A Span represents a range of time. Since this class extends
- * Range, you can use #begin and #end to get the beginning and
- * ending times of the span (they will be of class Time)
- */
 public class Span extends Range {
 
     public Span(Calendar begin, int field, long amount) {
@@ -50,6 +46,11 @@ public class Span extends Range {
 
     @Override
     public String toString() {
-        return "(" + DateFormat.getDateTimeInstance().format(getBeginCalendar().getTime()) + ".." + DateFormat.getDateTimeInstance().format(getEndCalendar().getTime()) + ")";
+        Instant begin = getBeginCalendar().toInstant();
+        Instant end = getEndCalendar().toInstant();
+        return "(" + DateTimeFormatter.ISO_INSTANT.format(begin)
+                + ".."
+                + DateTimeFormatter.ISO_INSTANT.format(end)
+                + ")";
     }
 }

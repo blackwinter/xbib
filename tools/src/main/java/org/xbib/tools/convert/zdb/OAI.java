@@ -36,15 +36,12 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnection;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.tools.convert.Converter;
-import org.xbib.time.DateUtil;
 import org.xbib.util.URIUtil;
-import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -53,6 +50,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -106,8 +104,8 @@ public class OAI extends Converter {
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(params.get("metadataPrefix"))
                 .setSet(params.get("set"))
-                .setFrom(DateUtil.parseDateISO(params.get("from")), OAIDateResolution.DAY)
-                .setUntil(DateUtil.parseDateISO(params.get("until")), OAIDateResolution.DAY);
+                .setFrom(Instant.parse(params.get("from")))
+                .setUntil(Instant.parse(params.get("until")));
         try {
             do {
                 ListRecordsListener listener = new ListRecordsListener(request);

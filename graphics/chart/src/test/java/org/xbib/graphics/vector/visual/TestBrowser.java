@@ -4,11 +4,7 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.ghost4j.GhostscriptException;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
@@ -19,6 +15,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class TestBrowser extends JFrame {
     private final List<TestCase> testCases;
     private final ImageComparisonPanel imageComparisonPanel;
@@ -30,7 +27,7 @@ public class TestBrowser extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(1024, 768);
 
-        testCases = new ArrayList<TestCase>();
+        testCases = new ArrayList<>();
         try {
             testCases.add(new ColorTest());
             testCases.add(new StrokeTest());
@@ -56,25 +53,18 @@ public class TestBrowser extends JFrame {
                 return super.getListCellRendererComponent(list, testName, index, isSelected, cellHasFocus);
             }
         });
-        testList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    int index = testList.getSelectedIndex();
-                    if (index < 0) {
-                        return;
-                    }
-                    TestCase test = testCases.get(index);
-                    testCase = test;
-                    try {
-                        setTestCase(test);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    } catch (GhostscriptException e1) {
-                        e1.printStackTrace();
-                    } catch (TranscoderException e1) {
-                        e1.printStackTrace();
-                    }
+        testList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int index = testList.getSelectedIndex();
+                if (index < 0) {
+                    return;
+                }
+                TestCase test = testCases.get(index);
+                testCase = test;
+                try {
+                    setTestCase(test);
+                } catch (IOException | GhostscriptException | TranscoderException e1) {
+                    e1.printStackTrace();
                 }
             }
         });
@@ -97,11 +87,7 @@ public class TestBrowser extends JFrame {
                 if (test != null) {
                     try {
                         setTestCase(test);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (GhostscriptException e) {
-                        e.printStackTrace();
-                    } catch (TranscoderException e) {
+                    } catch (IOException | GhostscriptException | TranscoderException e) {
                         e.printStackTrace();
                     }
                 }
@@ -183,10 +169,6 @@ public class TestBrowser extends JFrame {
             splitPane.setBottomComponent(rightPanel);
         }
 
-        public JComponent getLeftComponent() {
-            return leftComponent;
-        }
-
         public void setLeftComponent(JComponent leftComponent) {
             if (this.leftComponent != null) {
                 leftPanel.remove(this.leftComponent);
@@ -195,10 +177,6 @@ public class TestBrowser extends JFrame {
             leftPanel.add(leftComponent);
             leftPanel.revalidate();
             leftPanel.repaint();
-        }
-
-        public JComponent getRightComponent() {
-            return rightComponent;
         }
 
         public void setRightComponent(JComponent rightComponent) {
@@ -224,12 +202,10 @@ public class TestBrowser extends JFrame {
     }
 
     private static class ImageDisplayPanel extends JPanel {
-        private final BufferedImage renderedImage;
         private final InputStream imageData;
 
         public ImageDisplayPanel(BufferedImage renderedImage, InputStream imageData) {
             super(new BorderLayout());
-            this.renderedImage = renderedImage;
             this.imageData = imageData;
 
             JLabel imageLabel = new JLabel(new ImageIcon(renderedImage));
@@ -239,34 +215,31 @@ public class TestBrowser extends JFrame {
             if (imageData == null) {
                 saveToFileButton.setEnabled(false);
             }
-            saveToFileButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser saveFileDialog = new JFileChooser();
-                    saveFileDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    saveFileDialog.setMultiSelectionEnabled(false);
-                    int userChoice = saveFileDialog.showSaveDialog(ImageDisplayPanel.this);
-                    if (userChoice != JFileChooser.APPROVE_OPTION) {
-                        return;
-                    }
+            saveToFileButton.addActionListener(e -> {
+                JFileChooser saveFileDialog = new JFileChooser();
+                saveFileDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                saveFileDialog.setMultiSelectionEnabled(false);
+                int userChoice = saveFileDialog.showSaveDialog(ImageDisplayPanel.this);
+                if (userChoice != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
 
-                    File dest = saveFileDialog.getSelectedFile();
-                    FileOutputStream destStream = null;
-                    try {
-                        destStream = new FileOutputStream(dest);
-                        int imageDataChunk;
-                        while ((imageDataChunk = ImageDisplayPanel.this.imageData.read()) != -1) {
-                            destStream.write(imageDataChunk);
-                        }
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    } finally {
-                        if (destStream != null) {
-                            try {
-                                destStream.close();
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            }
+                File dest = saveFileDialog.getSelectedFile();
+                FileOutputStream destStream = null;
+                try {
+                    destStream = new FileOutputStream(dest);
+                    int imageDataChunk;
+                    while ((imageDataChunk = ImageDisplayPanel.this.imageData.read()) != -1) {
+                        destStream.write(imageDataChunk);
+                    }
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } finally {
+                    if (destStream != null) {
+                        try {
+                            destStream.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
                         }
                     }
                 }

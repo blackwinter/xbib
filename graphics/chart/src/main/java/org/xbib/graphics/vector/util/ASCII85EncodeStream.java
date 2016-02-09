@@ -3,9 +3,11 @@ package org.xbib.graphics.vector.util;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public class ASCII85EncodeStream extends FilterOutputStream {
+    private static final Charset ISO88591 = Charset.forName("ISO-8859-1");
     private static final int BASE = 85;
     private static final int[] POW_85 =
             {BASE * BASE * BASE * BASE, BASE * BASE * BASE, BASE * BASE, BASE, 1};
@@ -22,8 +24,8 @@ public class ASCII85EncodeStream extends FilterOutputStream {
 
     public ASCII85EncodeStream(OutputStream out, String prefix, String suffix) {
         super(out);
-        prefixBytes = (prefix != null) ? prefix.getBytes() : "".getBytes();
-        suffixBytes = (suffix != null) ? suffix.getBytes() : "".getBytes();
+        prefixBytes = (prefix != null ? prefix : "").getBytes(ISO88591);
+        suffixBytes = (suffix != null ? suffix : "").getBytes(ISO88591);
         data = new byte[4];
         encoded = new byte[5];
     }

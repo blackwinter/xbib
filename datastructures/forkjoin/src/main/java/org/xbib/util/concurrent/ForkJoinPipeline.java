@@ -148,7 +148,7 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
         if (workerCount == 0) {
             throw new IllegalStateException("no workers to create");
         }
-        futures = new LinkedHashMap<>();
+        this.futures = new LinkedHashMap<>();
         for (int i = 0; i < workerCount; i++) {
             W worker = workerProvider.get(this);
             futures.put(worker, executorService.submit(worker));
@@ -192,9 +192,11 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
             return;
         }
         try {
-            for (int i = 0; i < workerCount; i++) {
-                if (latch.getCount() > 0) {
-                    queue.put(poisonElement);
+            if (workerCount > 0) {
+                for (int i = 0; i < workerCount; i++) {
+                    if (latch != null && latch.getCount() > 0) {
+                        queue.put(poisonElement);
+                    }
                 }
             }
         } catch (InterruptedException e) {
@@ -210,7 +212,7 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
             return;
         }
         try {
-            if (latch.getCount() > 0) {
+            if (latch != null && latch.getCount() > 0) {
                 logger.info("waiting for termination");
                 executorService.awaitTermination(60L, TimeUnit.SECONDS);
             }

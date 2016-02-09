@@ -1,5 +1,7 @@
 package org.xbib.time.chronic;
 
+import java.time.Instant;
+
 public class Range {
     private Long begin;
     private Long end;

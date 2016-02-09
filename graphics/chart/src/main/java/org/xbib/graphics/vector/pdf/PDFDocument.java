@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -49,7 +50,7 @@ public class PDFDocument extends SizedDocument {
     private static final String FOOTER = "%%EOF";
 
     /**
-     * Constant to convert values from millimeters to PostScript®/PDF units (1/72th inch).
+     * Constant to convert values from millimeters to PDF units (1/72th inch).
      */
     private static final double MM_IN_UNITS = 72.0 / 25.4;
 
@@ -82,15 +83,12 @@ public class PDFDocument extends SizedDocument {
 
     public PDFDocument(PageSize pageSize) {
         super(pageSize);
-
-        states = new Stack<GraphicsState>();
+        states = new Stack<>();
         states.push(new GraphicsState());
-
-        objects = new LinkedList<PDFObject>();
+        objects = new LinkedList<>();
         objectIdCounter = 1;
-        xref = new HashMap<PDFObject, Long>();
-        images = new HashMap<Integer, PDFObject>();
-
+        xref = new HashMap<>();
+        images = new HashMap<>();
         initPage();
     }
 
@@ -368,7 +366,7 @@ public class PDFDocument extends SizedDocument {
         PDFObject catalog = addObject(dict, null);
 
         // Pages
-        List<PDFObject> pagesKids = new LinkedList<PDFObject>();
+        List<PDFObject> pagesKids = new LinkedList<>();
         dict = DataUtils.map(
                 new String[]{"Type", "Kids", "Count"},
                 new Object[]{"Pages", pagesKids, 1}
@@ -395,9 +393,13 @@ public class PDFDocument extends SizedDocument {
 
         // Compression
         if (compressed) {
-            contentsPayload.addFilter(FlateEncodeStream.class);
-            contents.dict.put("Filter", new Object[]{"FlateDecode"});
-        }
+            try {
+                contentsPayload.addFilter(FlateEncodeStream.class);
+                contents.dict.put("Filter", new Object[]{"FlateDecode"});
+            } catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+                // ignore
+            }
+    }
 
         // Initial content
         try {
@@ -427,9 +429,7 @@ public class PDFDocument extends SizedDocument {
         StringBuilder out = new StringBuilder();
         out.append("/").append(fontResourceId).append(" ").append(fontSize).append(" Tf").append(EOL);
         try {
-            contentsPayload.write(
-                    out.toString().getBytes(CHARSET)
-            );
+            contentsPayload.write(out.toString().getBytes(CHARSET));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -457,8 +457,12 @@ public class PDFDocument extends SizedDocument {
         // Compression
         String[] imageFilters = {};
         if (compressed) {
-            imagePayload.addFilter(FlateEncodeStream.class);
-            imageFilters = new String[]{"FlateDecode"};
+            try {
+                imagePayload.addFilter(FlateEncodeStream.class);
+                imageFilters = new String[]{"FlateDecode"};
+            } catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+                // ignore
+            }
         }
 
         InputStream imageDataStream =

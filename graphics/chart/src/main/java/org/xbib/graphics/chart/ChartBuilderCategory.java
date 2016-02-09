@@ -4,23 +4,28 @@ import org.xbib.graphics.chart.internal.ChartBuilder;
 
 public class ChartBuilderCategory extends ChartBuilder<ChartBuilderCategory, ChartCategory> {
 
-    String xAxisTitle = "";
-    String yAxisTitle = "";
+    private String xAxisTitle = "";
+    private String yAxisTitle = "";
 
     public ChartBuilderCategory() {
-
     }
 
     public ChartBuilderCategory xAxisTitle(String xAxisTitle) {
-
         this.xAxisTitle = xAxisTitle;
         return this;
     }
 
     public ChartBuilderCategory yAxisTitle(String yAxisTitle) {
-
         this.yAxisTitle = yAxisTitle;
         return this;
+    }
+
+    public String getxAxisTitle() {
+        return xAxisTitle;
+    }
+
+    public String getyAxisTitle() {
+        return yAxisTitle;
     }
 
     /**
@@ -30,7 +35,6 @@ public class ChartBuilderCategory extends ChartBuilder<ChartBuilderCategory, Cha
      */
     @Override
     public ChartCategory build() {
-
         return new ChartCategory(this);
     }
 }

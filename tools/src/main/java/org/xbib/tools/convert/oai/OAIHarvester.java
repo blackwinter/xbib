@@ -37,7 +37,6 @@ import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
@@ -49,7 +48,6 @@ import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.tools.convert.Converter;
-import org.xbib.time.DateUtil;
 import org.xbib.util.URIUtil;
 import org.xml.sax.SAXException;
 
@@ -60,6 +58,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.Normalizer;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -95,8 +96,11 @@ public abstract class OAIHarvester extends Converter {
         String verb = params.get("verb");
         String metadataPrefix = params.get("metadataPrefix");
         String set = params.get("set");
-        Date from = DateUtil.parseDateISO(params.get("from"));
-        Date until = DateUtil.parseDateISO(params.get("until"));
+        //Date from = DateUtil.parseDateISO(params.get("from"));
+        //Date until = DateUtil.parseDateISO(params.get("until"));
+        Instant from = ZonedDateTime.parse(params.get("from")).toInstant();
+        Instant until = ZonedDateTime.parse(params.get("until")).toInstant();
+
         final OAIClient client = OAIClientFactory.newClient(server);
         client.setTimeout(settings.getAsInt("timeout", 60000));
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
@@ -106,8 +110,8 @@ public abstract class OAIHarvester extends Converter {
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(metadataPrefix)
                 .setSet(set)
-                .setFrom(from, OAIDateResolution.DAY)
-                .setUntil(until, OAIDateResolution.DAY);
+                .setFrom(from)
+                .setUntil(until);
         do {
             try {
                 request.addHandler(newMetadataHandler());

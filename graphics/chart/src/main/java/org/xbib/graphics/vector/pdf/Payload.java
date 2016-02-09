@@ -5,6 +5,7 @@ import org.xbib.graphics.vector.util.FlateEncodeStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 
 public class Payload extends OutputStream {
     private final ByteArrayOutputStream byteStream;
@@ -39,17 +40,12 @@ public class Payload extends OutputStream {
         filteredStream.close();
     }
 
-    public void addFilter(Class<FlateEncodeStream> filterClass) {
+    public void addFilter(Class<FlateEncodeStream> filterClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         if (!empty) {
             throw new IllegalStateException("Cannot add filter after writing to payload.");
         }
-        try {
-            // TODO
-            filteredStream = filterClass.getConstructor(OutputStream.class)
-                    .newInstance(filteredStream);
-        } catch (Exception e) {
-            //
-        }
+        filteredStream = filterClass.getConstructor(OutputStream.class)
+                .newInstance(filteredStream);
     }
 }
 

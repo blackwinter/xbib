@@ -1,9 +1,9 @@
 package org.xbib.graphics.chart;
 
-import org.xbib.graphics.chart.internal.chartpart.AxisPair;
-import org.xbib.graphics.chart.internal.chartpart.Chart;
-import org.xbib.graphics.chart.internal.chartpart.LegendAxesChart;
-import org.xbib.graphics.chart.internal.chartpart.PlotXY;
+import org.xbib.graphics.chart.internal.component.AxisPair;
+import org.xbib.graphics.chart.internal.component.Chart;
+import org.xbib.graphics.chart.internal.component.LegendAxesChart;
+import org.xbib.graphics.chart.internal.component.PlotXY;
 import org.xbib.graphics.chart.internal.style.SeriesColorMarkerLineStyle;
 import org.xbib.graphics.chart.internal.style.SeriesColorMarkerLineStyleCycler;
 import org.xbib.graphics.chart.internal.style.Styler.ChartTheme;
@@ -63,8 +63,8 @@ public class ChartXY extends Chart<StylerXY, SeriesXY> {
 
         this(chartBuilder.width, chartBuilder.height, chartBuilder.chartTheme);
         setTitle(chartBuilder.title);
-        setXAxisTitle(chartBuilder.xAxisTitle);
-        setYAxisTitle(chartBuilder.yAxisTitle);
+        setXAxisTitle(chartBuilder.getxAxisTitle());
+        setYAxisTitle(chartBuilder.getyAxisTitle());
     }
 
     /**
@@ -153,7 +153,7 @@ public class ChartXY extends Chart<StylerXY, SeriesXY> {
 
             // Sanity check
             if (xData.size() != yData.size()) {
-                throw new IllegalArgumentException("X and Y-Axis sizes are not the same!!!");
+                throw new IllegalArgumentException("X and Y-Axis sizes are not the same");
             }
 
             // inspect the series to see what kind of data it contains (Number, Date)
@@ -165,32 +165,25 @@ public class ChartXY extends Chart<StylerXY, SeriesXY> {
 
         seriesMap.put(seriesName, series);
 
-        // getXAxis().setAxisType(series.getxAxisDataType());
-        // getYAxis().setAxisType(AxisDataType.Number);
-
         return series;
     }
-
-    ///////////////////////////////////////////////////
-    // Internal Members and Methods ///////////////////
-    ///////////////////////////////////////////////////
 
     private void sanityCheck(String seriesName, List<?> xData, List<? extends Number> yData, List<? extends Number> errorBars) {
 
         if (seriesMap.keySet().contains(seriesName)) {
-            throw new IllegalArgumentException("Series name >" + seriesName + "< has already been used. Use unique names for each series!!!");
+            throw new IllegalArgumentException("Series name >" + seriesName + "< has already been used. Use unique names for each series");
         }
         if (yData == null) {
-            throw new IllegalArgumentException("Y-Axis data cannot be null!!!");
+            throw new IllegalArgumentException("Y-Axis data cannot be null");
         }
         if (yData.size() == 0) {
-            throw new IllegalArgumentException("Y-Axis data cannot be empty!!!");
+            throw new IllegalArgumentException("Y-Axis data cannot be empty");
         }
         if (xData != null && xData.size() == 0) {
-            throw new IllegalArgumentException("X-Axis data cannot be empty!!!");
+            throw new IllegalArgumentException("X-Axis data cannot be empty");
         }
         if (errorBars != null && errorBars.size() != yData.size()) {
-            throw new IllegalArgumentException("Error bars and Y-Axis sizes are not the same!!!");
+            throw new IllegalArgumentException("Error bars and Y-Axis sizes are not the same");
         }
     }
 
@@ -205,22 +198,15 @@ public class ChartXY extends Chart<StylerXY, SeriesXY> {
     @Override
     public void paint(Graphics2D g) {
 
-        // Sanity checks
-        // if (getSeriesMap().isEmpty()) {
-        // throw new RuntimeException("No series defined for Chart!!!");
-        // }
-
-        // set the series render styles if they are not set. Legend and Plot need it.
         for (SeriesXY seriesXY : getSeriesMap().values()) {
-            SeriesXY.ChartXYSeriesRenderStyle chartXYSeriesRenderStyle = seriesXY.getChartXYSeriesRenderStyle(); // would be directly set
-            if (chartXYSeriesRenderStyle == null) { // wasn't overridden, use default from Style Manager
+            SeriesXY.ChartXYSeriesRenderStyle chartXYSeriesRenderStyle = seriesXY.getChartXYSeriesRenderStyle();
+            if (chartXYSeriesRenderStyle == null) {
                 seriesXY.setChartXYSeriesRenderStyle(getStyler().getDefaultSeriesRenderStyle());
             }
         }
         setSeriesStyles();
 
-        // paint chart main background
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // global rendering hint
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(styler.getChartBackgroundColor());
         Shape rect = new Rectangle2D.Double(0, 0, getWidth(), getHeight());
         g.fill(rect);

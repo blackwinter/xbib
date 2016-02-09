@@ -35,18 +35,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.metric.MeterMetric;
 import org.xbib.tools.convert.Converter;
-import org.xbib.time.DurationFormatUtil;
 import org.xbib.tools.output.ElasticsearchOutput;
 import org.xbib.tools.output.IndexDefinition;
-import org.xbib.util.FormatUtil;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
 
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -84,6 +80,7 @@ public class Feeder extends Converter {
     protected void prepareElasticsearch(Settings elasticsearchSettings) throws IOException {
         ingest = elasticsearchOutput.createIngest(elasticsearchSettings);
         if (ingest != null) {
+            metrics.sceduleIngestMetrics(settings, ingest);
             indexDefinitionMap = elasticsearchOutput.makeIndexDefinitions(ingest, elasticsearchSettings.getGroups("index"));
             logger.info("creation of {}", indexDefinitionMap.keySet());
             for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
@@ -119,37 +116,6 @@ public class Feeder extends Converter {
             logger.info("performing retention policy for index {}", def.getIndex());
             elasticsearchOutput.retention(ingest, def);
         }
-    }
-
-    @Override
-    protected void writeMetrics(MeterMetric metric) throws Exception {
-        if (metric == null) {
-            return;
-        }
-        long docs = metric.count();
-        double mean = metric.meanRate();
-        double oneminute = metric.oneMinuteRate();
-        double fiveminute = metric.fiveMinuteRate();
-        double fifteenminute = metric.fifteenMinuteRate();
-        long bytes = ingest != null && ingest.getMetric() != null ?
-                ingest.getMetric().getTotalIngestSizeInBytes().count() : 0;
-        //long bytes = 0;
-        long elapsed = metric.elapsed() / 1000000;
-        String elapsedhuman = DurationFormatUtil.formatDurationWords(elapsed, true, true);
-        double avg = bytes / (docs + 1.0); // avoid div by zero
-        double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
-        NumberFormat formatter = NumberFormat.getNumberInstance();
-        logger.info("indexing metrics: elapsed {}, {} docs, {} bytes, {} avgsize, {} MB/s, {} ({} {} {})",
-                elapsedhuman,
-                docs,
-                FormatUtil.convertFileSize(bytes),
-                FormatUtil.convertFileSize(avg),
-                formatter.format(mbps),
-                mean,
-                oneminute,
-                fiveminute,
-                fifteenminute
-        );
     }
 
     @Override

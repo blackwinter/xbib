@@ -4,7 +4,7 @@ import org.xbib.graphics.chart.BitmapEncoder.BitmapFormat;
 import org.xbib.graphics.chart.VectorGraphicsEncoder.VectorGraphicsFormat;
 import org.xbib.graphics.chart.internal.Series;
 import org.xbib.graphics.chart.internal.SeriesAxesChart;
-import org.xbib.graphics.chart.internal.chartpart.Chart;
+import org.xbib.graphics.chart.internal.component.Chart;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -16,13 +16,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * A Swing JPanel that contains a Chart
- * Right-click + Save As... or ctrl+S pops up a Save As dialog box for saving the chart as a JPeg or PNG file.
  */
 public class XChartPanel<T extends Chart> extends JPanel {
 
@@ -30,11 +31,6 @@ public class XChartPanel<T extends Chart> extends JPanel {
     private final Dimension preferredSize;
     private String saveAsString = "Save As...";
 
-    /**
-     * Constructor
-     *
-     * @param chart
-     */
     public XChartPanel(final T chart) {
 
         this.chart = chart;
@@ -89,9 +85,8 @@ public class XChartPanel<T extends Chart> extends JPanel {
         fileChooser.addChoosableFileFilter(new SuffixSaveFilter("bmp"));
         fileChooser.addChoosableFileFilter(new SuffixSaveFilter("gif"));
 
-        // VectorGraphics2D is optional, so if it's on the classpath, allow saving charts as vector graphic
         try {
-            Class.forName("de.erichseifert.vectorgraphics2d.VectorGraphics2D");
+            Class.forName("org.xbib.graphics.vector.VectorGraphics2D");
             // it exists on the classpath
             fileChooser.addChoosableFileFilter(new SuffixSaveFilter("svg"));
             fileChooser.addChoosableFileFilter(new SuffixSaveFilter("eps"));
@@ -109,22 +104,23 @@ public class XChartPanel<T extends Chart> extends JPanel {
             if (fileChooser.getSelectedFile() != null) {
                 File theFileToSave = fileChooser.getSelectedFile();
                 try {
+                    OutputStream outputStream = Files.newOutputStream(theFileToSave.toPath());
                     if (fileChooser.getFileFilter() == null) {
-                        BitmapEncoder.saveBitmap(chart, theFileToSave.getCanonicalPath().toString(), BitmapFormat.PNG);
+                        BitmapEncoder.saveBitmap(chart, outputStream, BitmapFormat.PNG);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.jpg,*.JPG")) {
-                        BitmapEncoder.saveJPGWithQuality(chart, BitmapEncoder.addFileExtension(theFileToSave.getCanonicalPath().toString(), BitmapFormat.JPG), 1.0f);
+                        BitmapEncoder.saveJPGWithQuality(chart, outputStream, 1.0f);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.png,*.PNG")) {
-                        BitmapEncoder.saveBitmap(chart, theFileToSave.getCanonicalPath().toString(), BitmapFormat.PNG);
+                        BitmapEncoder.saveBitmap(chart, outputStream, BitmapFormat.PNG);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.bmp,*.BMP")) {
-                        BitmapEncoder.saveBitmap(chart, theFileToSave.getCanonicalPath().toString(), BitmapFormat.BMP);
+                        BitmapEncoder.saveBitmap(chart, outputStream, BitmapFormat.BMP);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.gif,*.GIF")) {
-                        BitmapEncoder.saveBitmap(chart, theFileToSave.getCanonicalPath().toString(), BitmapFormat.GIF);
+                        BitmapEncoder.saveBitmap(chart, outputStream, BitmapFormat.GIF);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.svg,*.SVG")) {
-                        VectorGraphicsEncoder.saveVectorGraphic(chart, theFileToSave.getCanonicalPath().toString(), VectorGraphicsFormat.SVG);
+                        VectorGraphicsEncoder.write(chart,outputStream, VectorGraphicsFormat.SVG);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.eps,*.EPS")) {
-                        VectorGraphicsEncoder.saveVectorGraphic(chart, theFileToSave.getCanonicalPath().toString(), VectorGraphicsFormat.EPS);
+                        VectorGraphicsEncoder.write(chart, outputStream, VectorGraphicsFormat.EPS);
                     } else if (fileChooser.getFileFilter().getDescription().equals("*.pdf,*.PDF")) {
-                        VectorGraphicsEncoder.saveVectorGraphic(chart, theFileToSave.getCanonicalPath().toString(), VectorGraphicsFormat.PDF);
+                        VectorGraphicsEncoder.write(chart, outputStream, VectorGraphicsFormat.PDF);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -149,7 +145,7 @@ public class XChartPanel<T extends Chart> extends JPanel {
         Map<String, SeriesAxesChart> seriesMap = chart.getSeriesMap();
         SeriesAxesChart series = seriesMap.get(seriesName);
         if (series == null) {
-            throw new IllegalArgumentException("Series name >" + seriesName + "< not found!!!");
+            throw new IllegalArgumentException("Series name >" + seriesName + "< not found");
         }
         if (newXData == null) {
             // generate X-Data

@@ -35,11 +35,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.tools.input.FileInput;
+import org.xbib.tools.metrics.Metrics;
 import org.xbib.tools.output.FileOutput;
-import org.xbib.metric.MeterMetric;
 import org.xbib.tools.Processor;
-import org.xbib.time.DurationFormatUtil;
-import org.xbib.util.FormatUtil;
 import org.xbib.util.concurrent.AbstractWorker;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -50,7 +48,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.text.NumberFormat;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -71,6 +68,8 @@ public class Converter
 
     protected FileOutput fileOutput = new FileOutput();
 
+    protected final static Metrics metrics = new Metrics();
+
     private final static AtomicInteger threadCounter = new AtomicInteger();
 
     private int number;
@@ -86,9 +85,7 @@ public class Converter
 
     public int run(Settings settings) throws Exception {
         this.settings = settings;
-        logger.info("starting run");
-        logger.info("java.ext.dirs = {}", System.getProperty("java.ext.dirs"));
-        logger.info("settings = {}", settings.getAsMap());
+        logger.info("starting, settings = {}", settings.getAsMap());
         int concurrency = settings.getAsInt("concurrency", Runtime.getRuntime().availableProcessors());
         logger.info("configuring fork/join pipeline with concurrency {}", concurrency);
         ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline();
@@ -102,6 +99,7 @@ public class Converter
                     .prepare()
                     .execute();
             prepareInput();
+            scheduleMetrics();
             pipeline.waitFor(new URIWorkerRequest());
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
@@ -111,11 +109,7 @@ public class Converter
             disposeOutput();
             if (getPipeline() != null) {
                 getPipeline().shutdown();
-                if (getPipeline().getWorkers() != null) {
-                    for (Converter worker : getPipeline().getWorkers()) {
-                        writeMetrics(worker.getMetric());
-                    }
-                }
+                metrics.disposeMetrics();
                 if (!getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
                     logger.error("found {} worker exceptions", getPipeline().getWorkerErrors().getThrowables().size());
                     for (Map.Entry<Converter, Throwable> entry : getPipeline().getWorkerErrors().getThrowables().entrySet()) {
@@ -134,13 +128,16 @@ public class Converter
     public void close() throws IOException {
         logger.info("worker close (no op)");
     }
-
     @Override
     public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker,
                                URIWorkerRequest request) throws Exception {
         URI uri = request.get();
         logger.info("processing URI {}", uri);
         process(uri);
+    }
+
+    protected void scheduleMetrics() {
+        metrics.scheduleWorkerMetrics(settings, (ForkJoinPipeline<Converter, URIWorkerRequest>) getPipeline());
     }
 
     protected void prepareOutput() throws IOException {
@@ -155,6 +152,7 @@ public class Converter
     }
 
     protected void disposeInput() throws IOException {
+        // no need to close fileInput
     }
 
     protected void disposeOutput() throws IOException {
@@ -173,33 +171,11 @@ public class Converter
         this.fileInput = fileInput;
     }
 
-    protected void writeMetrics(MeterMetric metric) throws Exception {
-        if (metric == null) {
-            return;
-        }
-        long docs = metric.count();
-        long bytes = 0L;
-        long elapsed = metric.elapsed() / 1000000;
-        double dps = docs * 1000.0 / elapsed;
-        double avg = bytes / (docs + 1.0); // avoid div by zero
-        double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
-        NumberFormat formatter = NumberFormat.getNumberInstance();
-        logger.info("Worker complete. {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {} dps, {} MB/s",
-                docs,
-                DurationFormatUtil.formatDurationWords(elapsed, true, true),
-                elapsed,
-                bytes,
-                FormatUtil.convertFileSize(bytes),
-                FormatUtil.convertFileSize(avg),
-                formatter.format(avg),
-                formatter.format(dps),
-                formatter.format(mbps));
-    }
-
     protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
         return new ConverterPipeline();
     }
 
+    // this must be overriden
     protected WorkerProvider<Converter> provider() {
         return null;
     }
@@ -207,6 +183,7 @@ public class Converter
     @Override
     public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
+        metrics.prepareMetrics(settings);
         if (pipeline instanceof ConverterPipeline) {
             ConverterPipeline converterPipeline = (ConverterPipeline)pipeline;
             setSettings(converterPipeline.getSettings());

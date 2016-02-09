@@ -1,11 +1,11 @@
 package org.xbib.graphics.chart.internal;
 
-import org.xbib.graphics.chart.internal.chartpart.Axis.AxisDataType;
+import org.xbib.graphics.chart.internal.component.Axis.AxisDataType;
 import org.xbib.graphics.chart.internal.style.markers.Marker;
 
 import java.awt.*;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public abstract class SeriesAxesChart extends Series {
 
-    private List<?> xData; // can be Number or Date or String
+    private List<?> xData; // can be Number, Instant, or String
     private AxisDataType xAxisType;
     private List<? extends Number> yData;
     private AxisDataType yAxisType;
@@ -79,10 +79,10 @@ public abstract class SeriesAxesChart extends Series {
 
         // Sanity check
         if (newErrorBars != null && newErrorBars.size() != newYData.size()) {
-            throw new IllegalArgumentException("error bars and Y-Axis sizes are not the same!!!");
+            throw new IllegalArgumentException("error bars and Y-Axis sizes are not the same");
         }
         if (newXData.size() != newYData.size()) {
-            throw new IllegalArgumentException("X and Y-Axis sizes are not the same!!!");
+            throw new IllegalArgumentException("X and Y-Axis sizes are not the same");
         }
 
         xData = newXData;
@@ -132,9 +132,9 @@ public abstract class SeriesAxesChart extends Series {
 
             if (axisType == AxisDataType.Number) {
                 value = ((Number) dataPoint).doubleValue();
-            } else if (axisType == AxisDataType.Date) {
-                Date date = (Date) dataPoint;
-                value = date.getTime();
+            } else if (axisType == AxisDataType.Instant) {
+                Instant instant = (Instant) dataPoint;
+                value = instant.toEpochMilli();
             } else if (axisType == AxisDataType.String) {
                 return new double[]{Double.NaN, Double.NaN};
             }

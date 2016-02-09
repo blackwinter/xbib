@@ -54,7 +54,6 @@ import org.xbib.tools.merge.serials.support.BlackListedISIL;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.tools.merge.serials.support.ConsortiaLookup;
 import org.xbib.tools.merge.serials.support.MappedISIL;
-import org.xbib.time.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.ForkJoinPipeline;
@@ -64,6 +63,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -144,14 +144,14 @@ public class SerialsMerger extends Merger {
         } finally {
             getPipeline().shutdown();
             logger.info("query: started {}, ended {}, took {}, count = {}",
-                    DateUtil.formatDateISO(queryMetric.startedAt()),
-                    DateUtil.formatDateISO(queryMetric.stoppedAt()),
-                    TimeValue.timeValueMillis(queryMetric.elapsed() / 1000000).format(),
+                    DateTimeFormatter.ISO_INSTANT.format(queryMetric.started()),
+                    DateTimeFormatter.ISO_INSTANT.format(queryMetric.stopped()),
+                    TimeValue.timeValueMillis(queryMetric.elapsed()).format(),
                     queryMetric.count());
             logger.info("index: started {}, ended {}, took {}, count = {}",
-                    DateUtil.formatDateISO(indexMetric.startedAt()),
-                    DateUtil.formatDateISO(indexMetric.stoppedAt()),
-                    TimeValue.timeValueMillis(indexMetric.elapsed() / 1000000).format(),
+                    DateTimeFormatter.ISO_INSTANT.format(indexMetric.started()),
+                    DateTimeFormatter.ISO_INSTANT.format(indexMetric.stopped()),
+                    TimeValue.timeValueMillis(indexMetric.elapsed()).format(),
                     indexMetric.count());
 
             logger.info("ingest shutdown in progress");

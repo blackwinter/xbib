@@ -19,7 +19,4 @@ import org.xbib.graphics.vector.util.UtilTests;
         SVGTests.class
 })
 public class AllTests {
-    static {
-        System.setProperty("java.awt.headless", "true");
-    }
 }

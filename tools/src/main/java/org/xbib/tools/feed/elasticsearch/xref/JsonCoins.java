@@ -54,7 +54,7 @@ import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.util.Entities;
+import org.xbib.util.CharacterEntities;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -337,7 +337,7 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.atitle": {
-                        v = Entities.HTML40.unescape(v);
+                        v = CharacterEntities.HTML40.unescape(v);
                         v = v.replaceAll("\\<[^>]*>","");
                         if (v.endsWith(".")) {
                             v = v.substring(0, v.length()-1);
@@ -347,7 +347,7 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.jtitle": {
-                        v = Entities.HTML40.unescape(v);
+                        v = CharacterEntities.HTML40.unescape(v);
                         String cleanTitle = v.replaceAll("\\p{C}","")
                                 .replaceAll("\\p{Space}","")
                                 .replaceAll("\\p{Punct}","");
@@ -385,7 +385,7 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.aulast": {
-                        v = Entities.HTML40.unescape(v);
+                        v = CharacterEntities.HTML40.unescape(v);
                         if (author != null) {
                             if (author.lastName != null) {
                                 authors.add(author);
@@ -411,7 +411,7 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.aufirst": {
-                        v = Entities.HTML40.unescape(v);
+                        v = CharacterEntities.HTML40.unescape(v);
                         if (author != null) {
                             if (author.foreName != null) {
                                 authors.add(author);
@@ -435,7 +435,7 @@ public class JsonCoins extends Feeder {
                         if ("&NA;".equals(v)) {
                             v = null;
                         } else {
-                            v = Entities.HTML40.unescape(v);
+                            v = CharacterEntities.HTML40.unescape(v);
                         }
                         // dubious author names contain question marks e.g. 10.1007/s101820500188
                         if (v != null && v.indexOf('?') >= 0) {

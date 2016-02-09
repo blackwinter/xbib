@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -59,9 +60,9 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
 
     private String metadataPrefix;
 
-    private Date from;
+    private Instant from;
 
-    private Date until;
+    private Instant until;
 
     private boolean retry;
 
@@ -89,6 +90,7 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
         return (R) this;
     }
 
+    @Override
     public R setSet(String set) {
         this.set = set;
         addParameter(OAIConstants.SET_PARAMETER, set);
@@ -99,6 +101,7 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
         return set;
     }
 
+    @Override
     public R setMetadataPrefix(String prefix) {
         this.metadataPrefix = prefix;
         addParameter(OAIConstants.METADATA_PREFIX_PARAMETER, prefix);
@@ -109,29 +112,31 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
         return metadataPrefix;
     }
 
-    public R setFrom(Date from, OAIDateResolution resolution) {
+    @Override
+    public R setFrom(Instant from) {
         this.from = from;
-        addParameter(OAIConstants.FROM_PARAMETER, DateUtil.formatDate(from,
-                resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                        DateUtil.ISO_FORMAT_SECONDS
-        ));
+        addParameter(OAIConstants.FROM_PARAMETER, from.toString());
+                //DateUtil.formatDate(from,
+                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
+                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R) this;
     }
 
-    public Date getFrom() {
+    public Instant getFrom() {
         return from;
     }
 
-    public R setUntil(Date until, OAIDateResolution resolution) {
+    @Override
+    public R setUntil(Instant until) {
         this.until = until;
-        addParameter(OAIConstants.UNTIL_PARAMETER, DateUtil.formatDate(until,
-                resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                        DateUtil.ISO_FORMAT_SECONDS
-        ));
+        addParameter(OAIConstants.UNTIL_PARAMETER, until.toString());
+                //DateUtil.formatDate(until,
+                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
+                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R) this;
     }
 
-    public Date getUntil() {
+    public Instant getUntil() {
         return until;
     }
 

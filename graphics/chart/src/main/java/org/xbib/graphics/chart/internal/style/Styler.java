@@ -13,21 +13,21 @@ public abstract class Styler {
      * the default Theme
      */
     protected Theme theme = new ThemeXChart();
-    // Chart Style ///////////////////////////////
+    // Chart Style
     private Color chartBackgroundColor;
     private Color chartFontColor;
     private int chartPadding;
     private Color[] seriesColors;
     private BasicStroke[] seriesLines;
     private Marker[] seriesMarkers;
-    // Chart Title ///////////////////////////////
+    // Chart Title
     private Font chartTitleFont;
     private boolean isChartTitleVisible;
     private boolean isChartTitleBoxVisible;
     private Color chartTitleBoxBackgroundColor;
     private Color chartTitleBoxBorderColor;
     private int chartTitlePadding;
-    // Chart Legend ///////////////////////////////
+    // Chart Legend
     private boolean isLegendVisible;
     private Color legendBackgroundColor;
     private Color legendBorderColor;
@@ -35,7 +35,7 @@ public abstract class Styler {
     private int legendPadding;
     private int legendSeriesLineLength;
     private LegendPosition legendPosition;
-    // Chart Plot Area ///////////////////////////////
+    // Chart Plot Area
     private Color plotBackgroundColor;
     private Color plotBorderColor;
     private boolean isPlotBorderVisible;
@@ -43,7 +43,7 @@ public abstract class Styler {
 
     protected void setAllStyles() {
 
-        // Chart Style ///////////////////////////////
+        // Chart Style
         chartBackgroundColor = theme.getChartBackgroundColor();
         chartFontColor = theme.getChartFontColor();
         chartPadding = theme.getChartPadding();
@@ -51,7 +51,7 @@ public abstract class Styler {
         seriesLines = theme.getSeriesLines();
         seriesMarkers = theme.getSeriesMarkers();
 
-        // Chart Title ///////////////////////////////
+        // Chart Title
         chartTitleFont = theme.getChartTitleFont();
         isChartTitleVisible = theme.isChartTitleVisible();
         isChartTitleBoxVisible = theme.isChartTitleBoxVisible();
@@ -68,7 +68,7 @@ public abstract class Styler {
         legendSeriesLineLength = theme.getLegendSeriesLineLength();
         legendPosition = theme.getLegendPosition();
 
-        // Chart Plot Area ///////////////////////////////
+        // Chart Plot Area
         plotBackgroundColor = theme.getPlotBackgroundColor();
         plotBorderColor = theme.getPlotBorderColor();
         isPlotBorderVisible = theme.isPlotBorderVisible();
@@ -76,7 +76,6 @@ public abstract class Styler {
     }
 
     public Color getChartBackgroundColor() {
-
         return chartBackgroundColor;
     }
 
@@ -86,16 +85,14 @@ public abstract class Styler {
      * @param color
      */
     public void setChartBackgroundColor(Color color) {
-
         this.chartBackgroundColor = color;
     }
 
     public Color getChartFontColor() {
-
         return chartFontColor;
     }
 
-    // Chart Style ///////////////////////////////
+    // Chart Style
 
     /**
      * Set the chart font color. includes: Chart title, axes label, legend
@@ -103,12 +100,10 @@ public abstract class Styler {
      * @param color
      */
     public void setChartFontColor(Color color) {
-
         this.chartFontColor = color;
     }
 
     public int getChartPadding() {
-
         return chartPadding;
     }
 
@@ -118,7 +113,6 @@ public abstract class Styler {
      * @param chartPadding
      */
     public void setChartPadding(int chartPadding) {
-
         this.chartPadding = chartPadding;
     }
 
@@ -137,7 +131,7 @@ public abstract class Styler {
         return seriesLines;
     }
 
-    // Chart Title ///////////////////////////////
+    // Chart Title
 
     public void setSeriesLines(BasicStroke[] seriesLines) {
 
@@ -162,7 +156,7 @@ public abstract class Styler {
     /**
      * Set the chart title font
      *
-     * @param font
+     * @param chartTitleFont font
      */
     public void setChartTitleFont(Font chartTitleFont) {
 
@@ -415,7 +409,7 @@ public abstract class Styler {
     public void setPlotContentSize(double plotContentSize) {
 
         if (plotContentSize < 0 || plotContentSize > 1) {
-            throw new IllegalArgumentException("Plot content size must be tween 0 and 1!!!");
+            throw new IllegalArgumentException("Plot content size must be tween 0 and 1");
         }
 
         this.plotContentSize = plotContentSize;

@@ -38,7 +38,6 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeReader;
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
@@ -64,7 +63,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -106,10 +104,10 @@ public class MarcBibOAI extends OAIFeeder {
         String verb = oaiparams.get("verb");
         String metadataPrefix = oaiparams.get("metadataPrefix");
         String set = oaiparams.get("set");
-        Date from = Date.from(Instant.parse(oaiparams.get("from")));
-        Date until = Date.from(Instant.parse(oaiparams.get("until")));
+        Instant from = Instant.parse(oaiparams.get("from"));
+        Instant until = Instant.parse(oaiparams.get("until"));
         // compute interval
-        long interval = ChronoUnit.DAYS.between(from.toInstant(), until.toInstant());
+        long interval = ChronoUnit.DAYS.between(from, until);
         long count = settings.getAsLong("count", 1L);
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
             logger.error("only verb {} is valid, not {}", OAIConstants.LIST_RECORDS);
@@ -124,8 +122,8 @@ public class MarcBibOAI extends OAIFeeder {
             ListRecordsRequest request = client.newListRecordsRequest()
                     .setMetadataPrefix(metadataPrefix)
                     .setSet(set)
-                    .setFrom(from, OAIDateResolution.DAY)
-                    .setUntil(until, OAIDateResolution.DAY);
+                    .setFrom(from)
+                    .setUntil(until);
             do {
                 try {
                     final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
@@ -148,10 +146,10 @@ public class MarcBibOAI extends OAIFeeder {
             } while (request != null);
             client.close();
             // switch to next request
-            LocalDateTime ldt = LocalDateTime.ofInstant(from.toInstant(), ZoneOffset.UTC).plusDays(-interval);
-            from = Date.from(ldt.toInstant(ZoneOffset.UTC));
-            ldt = LocalDateTime.ofInstant(until.toInstant(), ZoneOffset.UTC).plusDays(-interval);
-            until = Date.from(ldt.toInstant(ZoneOffset.UTC));
+            LocalDateTime ldt = LocalDateTime.ofInstant(from, ZoneOffset.UTC).plusDays(-interval);
+            from = ldt.toInstant(ZoneOffset.UTC);
+            ldt = LocalDateTime.ofInstant(until, ZoneOffset.UTC).plusDays(-interval);
+            until = ldt.toInstant(ZoneOffset.UTC);
         } while (count-- > 0L);
         queue.close();
         if (settings.getAsBoolean("detect-unknown", false)) {

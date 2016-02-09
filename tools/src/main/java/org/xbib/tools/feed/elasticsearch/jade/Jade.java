@@ -47,7 +47,7 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.ArticleVocabulary;
-import org.xbib.util.Entities;
+import org.xbib.util.CharacterEntities;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -374,7 +374,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
     }
 
     private String clean(String v) {
-        v = Entities.HTML40.unescape(v); // HTML entities
+        v = CharacterEntities.HTML40.unescape(v); // HTML entities
         v = v.replaceAll("\\<[^>]*>",""); // XML tags
         v = v.replaceAll("amp;", "").replaceAll("lt;", "").replaceAll("gt;", "");
         v = v.replaceAll("\\[non\\-\\s*Roman script word\\]", "");

@@ -1,7 +1,8 @@
 
 package org.xbib.metric;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -24,9 +25,7 @@ public class MeterMetric implements Metric {
 
     private final LongAdder count;
 
-    private final long startDate;
-
-    private final long startTime;
+    private final Instant startTime;
 
     private final TimeUnit rateUnit;
 
@@ -34,15 +33,12 @@ public class MeterMetric implements Metric {
 
     private final ScheduledFuture<?> future;
 
-    private long stopDate;
-
-    private long stopTime;
+    private Instant stopTime;
 
     public MeterMetric(long intervalSeconds, TimeUnit rateUnit) {
         this.rateUnit = rateUnit;
         this.count = new LongAdder();
-        this.startDate = System.currentTimeMillis();
-        this.startTime = System.nanoTime();
+        this.startTime = Instant.now();
         this.future = service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -87,24 +83,16 @@ public class MeterMetric implements Metric {
         return count.sum();
     }
 
-    public long started() {
+    public Instant started() {
         return startTime;
     }
 
-    public Date startedAt() {
-        return new Date(startDate);
-    }
-
-    public long stopped() {
+    public Instant stopped() {
         return stopTime;
     }
 
-    public Date stoppedAt() {
-        return new Date(stopDate);
-    }
-
     public long elapsed() {
-        return System.nanoTime() - startTime;
+        return ChronoUnit.SECONDS.between(startTime, Instant.now());
     }
 
     public double fifteenMinuteRate() {
@@ -120,8 +108,7 @@ public class MeterMetric implements Metric {
         if (count == 0) {
             return 0.0;
         } else {
-            final long elapsed = System.nanoTime() - startTime;
-            return convertNsRate(count / (double) elapsed);
+            return convertNsRate(count / (double) elapsed());
         }
     }
 
@@ -130,8 +117,7 @@ public class MeterMetric implements Metric {
     }
 
     public void stop() {
-        this.stopTime = System.nanoTime();
-        this.stopDate = System.currentTimeMillis();
+        this.stopTime = Instant.now();
         future.cancel(false);
     }
 

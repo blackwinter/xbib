@@ -101,8 +101,8 @@ public class ListRecordsResponse extends ClientOAIResponse {
                 if ("noRecordsMatch".equals(error)) {
                     throw new NoRecordsMatchException("metadataPrefix=" + request.getMetadataPrefix()
                             + ",set=" + request.getSet()
-                            + ",from=" + DateUtil.formatDateISO(request.getFrom())
-                            + ",until=" + DateUtil.formatDateISO(request.getUntil()));
+                            + ",from=" + request.getFrom()
+                            + ",until=" + request.getUntil());
                 } else if ("badResumptionToken".equals(error)) {
                     throw new BadResumptionTokenException(request.getResumptionToken());
                 } else if ("badArgument".equals(error)) {

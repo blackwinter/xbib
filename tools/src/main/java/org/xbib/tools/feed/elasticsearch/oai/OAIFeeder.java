@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.unit.TimeValue;
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
@@ -51,7 +50,6 @@ import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.time.DateUtil;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xml.sax.Attributes;
@@ -61,7 +59,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -86,9 +85,9 @@ public abstract class OAIFeeder extends Feeder {
             Span untilSpan = Chronic.parse(untilStr);
             TimeValue delta = oaiSettings.getAsTime("interval", TimeValue.timeValueHours(24));
             if (fromSpan != null) {
-                logger.info("from={}", DateUtil.formatDateISO(fromSpan.getBeginCalendar().getTime()));
+                logger.info("from={}", DateTimeFormatter.ISO_INSTANT.format(fromSpan.getBeginCalendar().toInstant()));
                 if (untilSpan != null) {
-                    logger.info("until={}", DateUtil.formatDateISO(untilSpan.getBeginCalendar().getTime()));
+                    logger.info("until={}", DateTimeFormatter.ISO_INSTANT.format(untilSpan.getBeginCalendar().toInstant()));
                     long millis = untilSpan.getBeginCalendar().getTime().getTime() -
                             fromSpan.getBeginCalendar().getTime().getTime();
                     delta = oaiSettings.getAsTime("interval",
@@ -103,11 +102,11 @@ public abstract class OAIFeeder extends Feeder {
                     for (int i = 0; i < counter; i++) {
                         URI uriBase = URI.create(oaiSettings.get("base"));
                         uriBase = URIUtil.addParameter(uriBase, "from",
-                                DateUtil.formatDateISO(fromSpan.getBeginCalendar().getTime()));
+                                fromSpan.getBeginCalendar().toInstant().toString());
                         fromSpan = fromSpan.add(-delta.seconds());
                         if (untilSpan != null) {
                             uriBase = URIUtil.addParameter(uriBase, "until",
-                                    DateUtil.formatDateISO(untilSpan.getBeginCalendar().getTime()));
+                                    untilSpan.getBeginCalendar().toInstant().toString());
                             untilSpan = untilSpan.add(-delta.seconds());
                         }
                         String s = uriBase.toString();
@@ -135,8 +134,8 @@ public abstract class OAIFeeder extends Feeder {
         String verb = params.get("verb");
         String metadataPrefix = params.get("metadataPrefix");
         String set = params.get("set");
-        Date from = DateUtil.parseDateISO(params.get("from"));
-        Date until = DateUtil.parseDateISO(params.get("until"));
+        Instant from = Instant.parse(params.get("from"));
+        Instant until = Instant.parse(params.get("until"));
         final OAIClient client = OAIClientFactory.newClient(server);
         client.setTimeout(settings.getAsInt("timeout", 60000));
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
@@ -146,8 +145,8 @@ public abstract class OAIFeeder extends Feeder {
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(metadataPrefix)
                 .setSet(set)
-                .setFrom(from, OAIDateResolution.DAY)
-                .setUntil(until, OAIDateResolution.DAY);
+                .setFrom(from)
+                .setUntil(until);
         do {
             try {
                 request.addHandler(newMetadataHandler());

@@ -36,7 +36,7 @@ public class PDFProcessorTest {
     public void envelopeForEmptyDocument() throws IOException {
         String result = process();
         Template actual = new Template(result.split(EOL));
-        Template expected = new Template(
+        Template expected = new Template(new Object[]{
                 HEADER,
                 "1 0 obj",
                 "<<",
@@ -105,7 +105,7 @@ public class PDFProcessorTest {
                 "startxref",
                 Pattern.compile("[1-9]\\d*"),
                 FOOTER
-        );
+        });
 
         assertTemplateEquals(expected, actual);
     }

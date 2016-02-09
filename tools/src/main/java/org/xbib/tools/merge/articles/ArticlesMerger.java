@@ -48,7 +48,6 @@ import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.serials.entities.TitleRecord;
-import org.xbib.time.DateUtil;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
@@ -57,6 +56,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -134,9 +134,9 @@ public class ArticlesMerger extends Merger {
                 logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
                         worker,
                         worker.getMetric().count(),
-                        DateUtil.formatDateISO(worker.getMetric().startedAt()),
-                        DateUtil.formatDateISO(worker.getMetric().stoppedAt()),
-                        TimeValue.timeValueMillis(worker.getMetric().elapsed() / 1000000).format());
+                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
+                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                        TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
                 total += worker.getMetric().count();
             }
             logger.info("total={}", total);

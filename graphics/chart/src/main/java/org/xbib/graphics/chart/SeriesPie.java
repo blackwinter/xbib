@@ -1,8 +1,8 @@
 package org.xbib.graphics.chart;
 
 import org.xbib.graphics.chart.internal.Series;
-import org.xbib.graphics.chart.internal.chartpart.RenderableSeries;
-import org.xbib.graphics.chart.internal.chartpart.RenderableSeries.LegendRenderType;
+import org.xbib.graphics.chart.internal.component.RenderableSeries;
+import org.xbib.graphics.chart.internal.component.RenderableSeries.LegendRenderType;
 
 /**
  * A Series containing Pie data to be plotted on a Chart

@@ -4,33 +4,32 @@ import org.xbib.graphics.chart.internal.ChartBuilder;
 
 public class ChartBuilderXY extends ChartBuilder<ChartBuilderXY, ChartXY> {
 
-    String xAxisTitle = "";
-    String yAxisTitle = "";
+    private String xAxisTitle = "";
+    private String yAxisTitle = "";
 
     public ChartBuilderXY() {
-
     }
 
     public ChartBuilderXY xAxisTitle(String xAxisTitle) {
-
         this.xAxisTitle = xAxisTitle;
         return this;
     }
 
     public ChartBuilderXY yAxisTitle(String yAxisTitle) {
-
         this.yAxisTitle = yAxisTitle;
         return this;
     }
 
-    /**
-     * return fully built ChartXY
-     *
-     * @return a ChartXY
-     */
+    public String getxAxisTitle() {
+        return xAxisTitle;
+    }
+
+    public String getyAxisTitle() {
+        return yAxisTitle;
+    }
+
     @Override
     public ChartXY build() {
-
         return new ChartXY(this);
     }
 }

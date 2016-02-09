@@ -33,7 +33,6 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
@@ -45,7 +44,6 @@ import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.time.DateUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -54,7 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.Date;
+import java.time.Instant;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -75,14 +73,14 @@ public class RdfXml extends Feeder {
         String server = settings.get("server");
         String prefix = settings.get("metadataPrefix");
         String set = settings.get("set");
-        Date from = DateUtil.parseDateISO(settings.get("from"));
-        Date until = DateUtil.parseDateISO(settings.get("until"));
+        Instant from = Instant.parse(settings.get("from"));
+        Instant until = Instant.parse(settings.get("until"));
         final OAIClient client = OAIClientFactory.newClient(server);
         ListRecordsRequest request = client.newListRecordsRequest()
                 .setMetadataPrefix(prefix)
                 .setSet(set)
-                .setFrom(from, OAIDateResolution.DAY)
-                .setUntil(until, OAIDateResolution.DAY);
+                .setFrom(from)
+                .setUntil(until);
 
         IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
         namespaceContext.addNamespace("dc", "http://purl.org/dc/elements/1.1/");

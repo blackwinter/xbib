@@ -1,6 +1,6 @@
 package org.xbib.graphics.chart;
 
-import org.xbib.graphics.chart.internal.chartpart.Chart;
+import org.xbib.graphics.chart.internal.component.Chart;
 import org.xbib.graphics.chart.internal.style.markers.SeriesMarkers;
 
 import java.util.List;

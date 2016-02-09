@@ -34,15 +34,14 @@ package org.xbib.oai.client;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.ConnectException;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
-import org.xbib.util.DateUtil;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 
 public class DNBOAITest {
@@ -56,8 +55,8 @@ public class DNBOAITest {
             ListRecordsRequest request = client.newListRecordsRequest()
                     .setMetadataPrefix("RDFxml")
                     .setSet("authorities")
-                    .setFrom(DateUtil.parseDateISO("2012-01-23T00:00:00Z"), OAIDateResolution.SECOND)
-                    .setUntil(DateUtil.parseDateISO("2012-01-23T01:00:00Z"), OAIDateResolution.SECOND);
+                    .setFrom(Instant.parse("2012-01-23T00:00:00Z"))
+                    .setUntil(Instant.parse("2012-01-23T01:00:00Z"));
             do {
                 StringWriter sw = new StringWriter();
                 ListRecordsListener listener = new ListRecordsListener(request);

@@ -108,7 +108,7 @@ public abstract class StylerAxesChart extends Styler {
         yAxisDecimalPattern = null;
     }
 
-    // Chart Axes ///////////////////////////////
+    // Chart Axes
 
     public boolean isXAxisTitleVisible() {
 
@@ -118,7 +118,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the x-axis title visibility
      *
-     * @param isVisible
+     * @param xAxisTitleVisible
      */
     public void setXAxisTitleVisible(boolean xAxisTitleVisible) {
 
@@ -133,7 +133,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the y-axis title visibility
      *
-     * @param isVisible
+     * @param yAxisTitleVisible
      */
     public void setYAxisTitleVisible(boolean yAxisTitleVisible) {
 
@@ -174,7 +174,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the x-axis tick marks and labels visibility
      *
-     * @param isVisible
+     * @param xAxisTicksVisible
      */
     public void setXAxisTicksVisible(boolean xAxisTicksVisible) {
 
@@ -189,7 +189,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the y-axis tick marks and labels visibility
      *
-     * @param isVisible
+     * @param yAxisTicksVisible
      */
     public void setYAxisTicksVisible(boolean yAxisTicksVisible) {
 
@@ -380,7 +380,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * set the spacing between tick marks for the Y-Axis
      *
-     * @param xAxisTickMarkSpacingHint
+     * @param yAxisTickMarkSpacingHint
      */
     public void setYAxisTickMarkSpacingHint(int yAxisTickMarkSpacingHint) {
 
@@ -395,7 +395,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * sets the X-Axis to be rendered with a logarithmic scale or not
      *
-     * @param isxAxisLogarithmic
+     * @param isXAxisLogarithmic
      */
     public void setXAxisLogarithmic(boolean isXAxisLogarithmic) {
 
@@ -410,7 +410,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * sets the Y-Axis to be rendered with a logarithmic scale or not
      *
-     * @param isyAxisLogarithmic
+     * @param isYAxisLogarithmic
      */
     public void setYAxisLogarithmic(boolean isYAxisLogarithmic) {
 
@@ -513,7 +513,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * sets the visibility of the horizontal gridlines on the plot area
      *
-     * @param isPlotGridLinesVisible
+     * @param isPlotGridHorizontalLinesVisible
      */
     public void setPlotGridHorizontalLinesVisible(boolean isPlotGridHorizontalLinesVisible) {
 
@@ -528,7 +528,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * sets the visibility of the vertical gridlines on the plot area
      *
-     * @param isPlotGridLinesVisible
+     * @param isPlotGridVerticalLinesVisible
      */
     public void setPlotGridVerticalLinesVisible(boolean isPlotGridVerticalLinesVisible) {
 
@@ -657,7 +657,6 @@ public abstract class StylerAxesChart extends Styler {
      * @param timezone the timezone to use when formatting date data
      */
     public void setTimezone(TimeZone timezone) {
-
         this.timezone = timezone;
     }
 
@@ -669,7 +668,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the String formatter for Data x-axis
      *
-     * @param pattern - the pattern describing the date and time format
+     * @param datePattern - the pattern describing the date and time format
      */
     public void setDatePattern(String datePattern) {
 
@@ -684,7 +683,7 @@ public abstract class StylerAxesChart extends Styler {
     /**
      * Set the decimal formatter for all tick labels
      *
-     * @param pattern - the pattern describing the decimal format
+     * @param decimalPattern - the pattern describing the decimal format
      */
     public void setDecimalPattern(String decimalPattern) {
 

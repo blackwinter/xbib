@@ -33,11 +33,10 @@ package org.xbib.oai;
 
 import org.xbib.oai.util.ResumptionToken;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  *  OAI request API
- *
  */
 public interface OAIRequest<R extends OAIRequest> extends OAIConstants {
 
@@ -45,9 +44,9 @@ public interface OAIRequest<R extends OAIRequest> extends OAIConstants {
 
     R setMetadataPrefix(String prefix);
 
-    R setFrom(Date from, OAIDateResolution resolution);
+    R setFrom(Instant from);
 
-    R setUntil(Date until, OAIDateResolution resolution);
+    R setUntil(Instant until);
 
     R setResumptionToken(ResumptionToken token);
 

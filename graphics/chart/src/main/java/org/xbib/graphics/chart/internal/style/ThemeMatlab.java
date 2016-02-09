@@ -51,7 +51,7 @@ public class ThemeMatlab implements Theme {
 
     }
 
-    // Chart Title ///////////////////////////////
+    // Chart Title
 
     @Override
     public Font getChartTitleFont() {
@@ -89,7 +89,7 @@ public class ThemeMatlab implements Theme {
         return 5;
     }
 
-    // Chart Legend ///////////////////////////////
+    // Chart Legend
 
     @Override
     public Font getLegendFont() {
@@ -134,7 +134,7 @@ public class ThemeMatlab implements Theme {
         return LegendPosition.OutsideE;
     }
 
-    // Chart Axes ///////////////////////////////
+    // Chart Axes
 
     @Override
     public boolean isXAxisTitleVisible() {
@@ -238,7 +238,7 @@ public class ThemeMatlab implements Theme {
         return 44;
     }
 
-    // Chart Plot Area ///////////////////////////////
+    // Chart Plot Area
 
     @Override
     public boolean isPlotGridLinesVisible() {
@@ -301,7 +301,7 @@ public class ThemeMatlab implements Theme {
         return .92;
     }
 
-    // Bar Charts ///////////////////////////////
+    // Bar Charts
 
     @Override
     public double getBarWidthPercentage() {
@@ -315,7 +315,7 @@ public class ThemeMatlab implements Theme {
         return false;
     }
 
-    // Pie Charts ///////////////////////////////
+    // Pie Charts
 
     @Override
     public boolean isCircular() {
@@ -337,35 +337,30 @@ public class ThemeMatlab implements Theme {
 
     @Override
     public double getAnnotationDistance() {
-
         return .67;
     }
 
     @Override
     public AnnotationType getAnnotationType() {
-
         return AnnotationType.Label;
     }
 
-    // Line, Scatter, Area Charts ///////////////////////////////
+    // Line, Scatter, Area Charts
 
     @Override
     public int getMarkerSize() {
-
         return 8;
     }
 
-    // Error Bars ///////////////////////////////
+    // Error Bars
 
     @Override
     public Color getErrorBarsColor() {
-
         return ChartColor.getAWTColor(ChartColor.BLACK);
     }
 
     @Override
     public boolean isErrorBarsColorSeriesColor() {
-
         return false;
     }
 

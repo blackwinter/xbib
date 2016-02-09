@@ -34,11 +34,9 @@ package org.xbib.oai.client;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.util.DateUtil;
 import org.xbib.iri.IRI;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfSimpleMetadataHandler;
@@ -48,6 +46,7 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -79,8 +78,8 @@ public class DOAJArticleClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("http://doaj.org/oai.article");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom( DateUtil.parseDateISO("2015-04-16T00:00:00Z"), OAIDateResolution.DAY)
-                    .setUntil(DateUtil.parseDateISO("2015-04-17T00:00:00Z"), OAIDateResolution.DAY)
+                    .setFrom(Instant.parse("2016-01-16T00:00:00Z"))
+                    .setUntil(Instant.parse("2016-01-17T00:00:00Z"))
                     .setMetadataPrefix("oai_dc"); // doajArticle format no longer there!
 
             do {

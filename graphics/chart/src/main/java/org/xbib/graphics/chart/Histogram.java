@@ -2,7 +2,6 @@ package org.xbib.graphics.chart;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -69,19 +68,15 @@ public class Histogram {
         final double binSize = (max - min) / numBins;
 
         // y axis data
-        Iterator<? extends Number> itr = originalData.iterator();
-        while (itr.hasNext()) {
-
-            double doubleValue = ((Number) itr.next()).doubleValue();
+        for (Number anOriginalData : originalData) {
+            double doubleValue = (anOriginalData).doubleValue();
             int bin = (int) ((doubleValue - min) / binSize); // changed this from numBins
-            if (bin < 0) { /* this data is smaller than min */
-                // System.out.println("less than");
-            } else if (doubleValue == max) { // the value falls exactly on the max value
-                tempYAxisData[bin - 1] += 1;
-            } else if (bin > numBins || bin == numBins) { /* this data point is bigger than max */
-                // System.out.println("greater than");
-            } else {
-                tempYAxisData[bin] += 1;
+            if (bin >= 0) {
+                if (doubleValue == max) { // the value falls exactly on the max value
+                    tempYAxisData[bin - 1] += 1;
+                } else if (bin <= numBins && bin != numBins) {
+                    tempYAxisData[bin] += 1;
+                }
             }
         }
         yAxisData = new ArrayList<Double>(numBins);

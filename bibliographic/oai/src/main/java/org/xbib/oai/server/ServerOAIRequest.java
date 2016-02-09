@@ -32,12 +32,10 @@
 package org.xbib.oai.server;
 
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.OAIRequest;
 import org.xbib.oai.util.ResumptionToken;
-import org.xbib.util.DateUtil;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,14 +51,14 @@ public abstract class ServerOAIRequest<R extends ServerOAIRequest> implements OA
 
     private String metadataPrefix;
 
-    private Date from;
+    private Instant from;
 
-    private Date until;
+    private Instant until;
 
     private boolean retry;
 
     protected ServerOAIRequest() {
-        this.parameters = new HashMap();
+        this.parameters = new HashMap<>();
     }
 
     public R setSet(String set) {
@@ -83,29 +81,29 @@ public abstract class ServerOAIRequest<R extends ServerOAIRequest> implements OA
         return metadataPrefix;
     }
 
-    public R setFrom(Date from, OAIDateResolution resolution) {
+    public R setFrom(Instant from) {
         this.from = from;
-        parameters.put(OAIConstants.FROM_PARAMETER, DateUtil.formatDate(from,
-                resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                        DateUtil.ISO_FORMAT_SECONDS
-        ));
+        parameters.put(OAIConstants.FROM_PARAMETER, from.toString());
+                //DateUtil.formatDate(from,
+                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
+                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R)this;
     }
 
-    public Date getFrom() {
+    public Instant getFrom() {
         return from;
     }
 
-    public R setUntil(Date until, OAIDateResolution resolution) {
+    public R setUntil(Instant until) {
         this.until = until;
-        parameters.put(OAIConstants.UNTIL_PARAMETER, DateUtil.formatDate(until,
-                resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                        DateUtil.ISO_FORMAT_SECONDS
-        ));
+        parameters.put(OAIConstants.UNTIL_PARAMETER, until.toString());
+                //DateUtil.formatDate(until,
+                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
+                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R)this;
     }
 
-    public Date getUntil() {
+    public Instant getUntil() {
         return until;
     }
 

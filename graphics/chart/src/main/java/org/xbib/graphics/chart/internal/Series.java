@@ -1,6 +1,6 @@
 package org.xbib.graphics.chart.internal;
 
-import org.xbib.graphics.chart.internal.chartpart.RenderableSeries.LegendRenderType;
+import org.xbib.graphics.chart.internal.component.RenderableSeries.LegendRenderType;
 
 import java.awt.*;
 
@@ -21,7 +21,7 @@ public abstract class Series {
     public Series(String name) {
 
         if (name == null || name.length() < 1) {
-            throw new IllegalArgumentException("Series name cannot be null or zero-length!!!");
+            throw new IllegalArgumentException("Series name cannot be null or zero-length");
         }
         this.name = name;
     }

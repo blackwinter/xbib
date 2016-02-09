@@ -35,10 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.io.StringPacket;
 import org.xbib.io.archive.tar.TarConnection;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.exceptions.OAIException;
-import org.xbib.util.DateUtil;
 import org.xbib.io.Session;
 import org.xbib.io.archive.tar.TarSession;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
@@ -52,6 +50,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -69,8 +68,8 @@ public class NatLizClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("http://dl380-47.gbv.de/oai/natliz/");
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom(DateUtil.parseDateISO("2000-01-01T00:00:00Z"), OAIDateResolution.SECOND)
-                    .setUntil(DateUtil.parseDateISO("2014-01-01T00:00:00Z"), OAIDateResolution.SECOND)
+                    .setFrom(Instant.parse("2000-01-01T00:00:00Z"))
+                    .setUntil(Instant.parse("2014-01-01T00:00:00Z"))
                     .setMetadataPrefix("extpp2"); // extpp, extpp2, oai_dc, mods, marcxml, telap, mab, mab_opc
 
             Path path = Paths.get("natliz-extpp2.tar.gz");
