@@ -62,6 +62,8 @@ public class Converter
 
     protected final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
+    private final static AtomicInteger threadCounter = new AtomicInteger();
+
     protected Settings settings;
 
     protected FileInput fileInput;
@@ -70,21 +72,9 @@ public class Converter
 
     protected Metrics metrics;
 
-    private AtomicInteger threadCounter;
-
     private int number;
 
-    public Converter setNumber(int number) {
-        this.number = number;
-        return this;
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
     public int run(Settings settings) throws Exception {
-        this.threadCounter = new AtomicInteger();
         this.fileInput = new FileInput();
         this.fileOutput = new FileOutput();
         this.metrics = new Metrics();
@@ -165,6 +155,15 @@ public class Converter
         fileOutput.closeFileMap();
     }
 
+    protected Converter setNumber(int number) {
+        this.number = number;
+        return this;
+    }
+
+    protected int getNumber() {
+        return number;
+    }
+
     protected void setSettings(Settings settings) {
         this.settings = settings;
     }
@@ -175,6 +174,10 @@ public class Converter
 
     protected void setFileInput(FileInput fileInput) {
         this.fileInput = fileInput;
+    }
+
+    protected void setMetrics(Metrics metrics) {
+        this.metrics = metrics;
     }
 
     protected ForkJoinPipeline<Converter, URIWorkerRequest> newPipeline() {
@@ -192,9 +195,10 @@ public class Converter
         metrics.prepareMetrics(settings);
         if (pipeline instanceof ConverterPipeline) {
             ConverterPipeline converterPipeline = (ConverterPipeline)pipeline;
+            setNumber(threadCounter.getAndIncrement());
             setSettings(converterPipeline.getSettings());
             setFileInput(converterPipeline.getFileInput());
-            setNumber(threadCounter.getAndIncrement());
+            setMetrics(converterPipeline.getMetrics());
         }
         return this;
     }
@@ -207,6 +211,10 @@ public class Converter
 
         public FileInput getFileInput() {
             return fileInput;
+        }
+
+        public Metrics getMetrics() {
+            return metrics;
         }
     }
 
