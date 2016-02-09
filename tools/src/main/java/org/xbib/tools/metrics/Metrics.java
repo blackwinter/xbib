@@ -127,13 +127,15 @@ public class Metrics {
             }
         }
 
-        logger.info("meter: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {} dps, {} MB/s, {} ({} {} {})",
+        logger.info("meter: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {} = {} dps, {} MB/s, {} ({} {} {})",
                 docs,
                 FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
                 bytes,
                 FormatUtil.formatSize(bytes),
+                avg,
                 FormatUtil.formatSize(avg),
+                dps,
                 FormatUtil.formatSpeed(dps),
                 FormatUtil.formatSpeed(mbps),
                 mean,
@@ -148,7 +150,7 @@ public class Metrics {
             return;
         }
         long docs = metric.getSucceeded().count();
-        long elapsed = metric.elapsed();
+        long elapsed = metric.elapsed() / 1000000; // nano to secs
         double dps = docs * 1000.0 / elapsed;
         long bytes = metric.getTotalIngestSizeInBytes().count();
         double avg = bytes / (docs + 1.0); // avoid div by zero
@@ -174,12 +176,13 @@ public class Metrics {
             }
         }
 
-        logger.info("ingest: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {}, {}",
+        logger.info("ingest: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg, {}, {}",
                 docs,
                 FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
                 bytes,
                 FormatUtil.formatSize(bytes),
+                avg,
                 FormatUtil.formatSize(avg),
                 FormatUtil.formatSpeed(dps),
                 FormatUtil.formatSpeed(mbps)
