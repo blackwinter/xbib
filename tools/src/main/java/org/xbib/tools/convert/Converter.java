@@ -119,6 +119,8 @@ public class Converter
                 }
                 returnCode = 1;
             }
+            // clear interrupt status, so Runner can continue
+            Thread.interrupted();
         }
         return returnCode;
     }
