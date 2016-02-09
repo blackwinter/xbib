@@ -192,13 +192,13 @@ public class Converter
     @Override
     public Converter setPipeline(Pipeline<Converter,URIWorkerRequest> pipeline) {
         super.setPipeline(pipeline);
-        metrics.prepareMetrics(settings);
         if (pipeline instanceof ConverterPipeline) {
             ConverterPipeline converterPipeline = (ConverterPipeline)pipeline;
             setNumber(threadCounter.getAndIncrement());
             setSettings(converterPipeline.getSettings());
             setFileInput(converterPipeline.getFileInput());
             setMetrics(converterPipeline.getMetrics());
+            metrics.prepareMetrics(settings);
         }
         return this;
     }
