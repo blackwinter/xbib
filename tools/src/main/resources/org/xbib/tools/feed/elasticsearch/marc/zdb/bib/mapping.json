@@ -345,8 +345,7 @@
           "type": "string"
         },
         "value": {
-          "type": "standardnumber",
-          "number_types" : [ "issn" ]
+          "type": "standardnumber"
         }
       }
     },
