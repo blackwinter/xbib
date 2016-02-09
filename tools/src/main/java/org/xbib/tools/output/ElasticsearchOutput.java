@@ -216,6 +216,13 @@ public class ElasticsearchOutput {
             } catch (Exception e) {
                 logger.warn("setting replica failed: " + e.getMessage(), e);
             }
+            // replica (translog copy) is slow by default
+            try {
+                logger.info("wait for recovery...");
+                ingest.waitForRecovery(indexDefinition.getConcreteIndex());
+            } catch (IOException e) {
+                logger.warn("waiting for recovery failed: " + e.getMessage(), e);
+            }
         }
     }
 

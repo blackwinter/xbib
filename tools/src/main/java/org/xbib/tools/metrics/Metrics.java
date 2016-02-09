@@ -97,8 +97,8 @@ public class Metrics {
             return;
         }
         long docs = metric.count();
-        long elapsed = metric.elapsed() / 1000000; // nanos to secs
-        double dps = docs / elapsed;
+        long elapsed = metric.elapsed() / 1000000; // nanos to millis
+        double dps = docs * 1000.0 / elapsed;
         long mean = Math.round(metric.meanRate());
         long oneminute = Math.round(metric.oneMinuteRate());
         long fiveminute = Math.round(metric.fiveMinuteRate());
@@ -142,7 +142,7 @@ public class Metrics {
             return;
         }
         long docs = metric.getSucceeded().count();
-        long elapsed = metric.elapsed() / 1000000; // nano to secs
+        long elapsed = metric.elapsed() / 1000000; // nano to millis
         double dps = docs * 1000.0 / elapsed;
         long bytes = metric.getTotalIngestSizeInBytes().count();
         double avg = bytes / (docs + 1.0); // avoid div by zero
