@@ -95,6 +95,7 @@ public class Feeder extends Converter {
     protected void disposeOutput() throws IOException {
         logger.info("close down of {}", indexDefinitionMap.keySet());
         elasticsearchOutput.close(ingest, indexDefinitionMap);
+
         if (getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
             // post processing only in case of success
             performIndexSwitch();

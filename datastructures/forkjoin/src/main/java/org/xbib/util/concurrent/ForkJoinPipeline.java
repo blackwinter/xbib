@@ -70,11 +70,15 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
 
     private CountDownLatch latch;
 
-    private WorkerErrors<W> workerErrors;
+    private final WorkerErrors<W> workerErrors;
 
     private int workerCount;
 
     private volatile boolean closed;
+
+    public ForkJoinPipeline() {
+        this.workerErrors = new WorkerErrors<>();
+    }
 
     @Override
     public ForkJoinPipeline<W, R> setConcurrency(int concurrency) {
@@ -122,9 +126,6 @@ public class ForkJoinPipeline<W extends Worker<Pipeline<W,R>, R>, R extends Work
         }
         if (thread == null) {
             thread = Thread.currentThread();
-        }
-        if (workerErrors == null) {
-            workerErrors = new WorkerErrors<>();
         }
         if (executorService == null) {
             if (workerCount < 1) {

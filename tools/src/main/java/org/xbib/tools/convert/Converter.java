@@ -107,18 +107,17 @@ public class Converter
         } finally {
             disposeInput();
             disposeOutput();
-            if (getPipeline() != null) {
-                getPipeline().shutdown();
-                metrics.disposeMetrics();
-                if (!getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
-                    logger.error("found {} worker exceptions", getPipeline().getWorkerErrors().getThrowables().size());
-                    for (Map.Entry<Converter, Throwable> entry : getPipeline().getWorkerErrors().getThrowables().entrySet()) {
-                        Converter w = entry.getKey();
-                        Throwable t = entry.getValue();
-                        logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
-                    }
-                    returnCode = 1;
+            metrics.disposeMetrics();
+            pipeline.shutdown();
+            Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
+            if (!throwables.isEmpty()) {
+                logger.error("found {} worker exceptions", throwables.size());
+                for (Map.Entry<Converter, Throwable> entry : throwables.entrySet()) {
+                    Converter w = entry.getKey();
+                    Throwable t = entry.getValue();
+                    logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
                 }
+                returnCode = 1;
             }
         }
         return returnCode;

@@ -36,7 +36,11 @@ import java.util.Map;
 
 public class WorkerErrors<W extends Worker>  {
 
-    Map<W,Throwable> map = new LinkedHashMap<>();
+    private final Map<W,Throwable> map;
+
+    WorkerErrors() {
+        this.map =  new LinkedHashMap<>();
+    }
 
     public synchronized void add(W worker, Throwable throwable) {
         map.put(worker, throwable);
