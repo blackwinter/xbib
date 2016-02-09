@@ -155,7 +155,7 @@ public class ArticlesMerger extends Merger {
 
     protected void prepareOutput() throws Exception {
         this.ingest = createIngest();
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
+        ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
         String indexSettings = settings.get("target-index-settings",
                 "classpath:org/xbib/tools/merge/articles/settings.json");
         InputStream indexSettingsInput = new URL(indexSettings).openStream();

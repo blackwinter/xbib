@@ -2,7 +2,6 @@ package org.xbib.tools.output;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.ClientBuilder;
@@ -29,17 +28,12 @@ public class ElasticsearchOutput {
         if (!settings.containsSetting("cluster")) {
             return null;
         }
-        Settings.Builder clientSettings = Settings.settingsBuilder()
+        org.elasticsearch.common.settings.Settings elasticsearchSettings = org.elasticsearch.common.settings.Settings.builder()
+                .put(settings.getAsMap())
                 .put("cluster.name", settings.get("cluster", "elasticsearch"))
                 .put("sniff", settings.getAsBoolean("sniff", false))
-                .put("autodiscover", settings.getAsBoolean("autodiscover", false));
-        if (settings.getAsArray("host") != null) {
-            clientSettings.putArray("host", settings.getAsArray("host"));
-        } else {
-            clientSettings.put("host", settings.get("host", "localhost"));
-        }
-        org.elasticsearch.common.settings.Settings elasticsearchSettings = org.elasticsearch.common.settings.Settings.builder()
-                .put(clientSettings.build().getAsMap())
+                .put("autodiscover", settings.getAsBoolean("autodiscover", false))
+                .putArray("host", settings.getAsArray("host", new String[]{"localhost"}))
                 .build();
         ClientBuilder clientBuilder = ClientBuilder.builder()
                 .put(elasticsearchSettings)
@@ -91,7 +85,7 @@ public class ElasticsearchOutput {
         if (ingest == null || ingest.client() == null) {
             return;
         }
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
+        ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
         String indexSettings = indexDefinition.getSettingDef();
         if (indexSettings == null) {
             throw new IllegalArgumentException("no settings defined for index " + indexDefinition.getIndex());
@@ -215,13 +209,6 @@ public class ElasticsearchOutput {
                 ingest.updateReplicaLevel(indexDefinition.getConcreteIndex(), indexDefinition.getReplicaLevel());
             } catch (Exception e) {
                 logger.warn("setting replica failed: " + e.getMessage(), e);
-            }
-            // replica (translog copy) is slow by default
-            try {
-                logger.info("wait for recovery...");
-                ingest.waitForRecovery(indexDefinition.getConcreteIndex());
-            } catch (IOException e) {
-                logger.warn("waiting for recovery failed: " + e.getMessage(), e);
             }
         }
     }

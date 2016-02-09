@@ -105,6 +105,7 @@ public class Feeder extends Converter {
             }
         }
         elasticsearchOutput.shutdown(ingest);
+        ingest = null;
         super.disposeOutput();
     }
 

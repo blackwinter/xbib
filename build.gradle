@@ -19,7 +19,7 @@ ext {
     'log4j': '2.5',
     'gradle-plugin-jflex': '1.0.0',
     'gradle-plugin-jacc': '1.0.3',
-    'xbib-elasticsearch-helper' : '2.1.1.4'
+    'xbib-elasticsearch-helper' : '2.1.1.5'
   ]
 }
 

@@ -129,7 +129,7 @@ public class Metrics {
                 elapsed,
                 FormatUtil.formatDurationWords(elapsed, true, true),
                 dps,
-                FormatUtil.formatSpeed(dps),
+                FormatUtil.formatDocumentSpeed(dps),
                 mean,
                 oneminute,
                 fiveminute,
@@ -177,7 +177,7 @@ public class Metrics {
                 avg,
                 FormatUtil.formatSize(avg),
                 dps,
-                FormatUtil.formatSpeed(dps),
+                FormatUtil.formatDocumentSpeed(dps),
                 bps,
                 FormatUtil.formatSpeed(bps)
         );

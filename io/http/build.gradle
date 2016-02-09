@@ -1,7 +1,7 @@
 
 import org.gradle.internal.os.OperatingSystem;
 
-println OperatingSystem.current().getFamilyName()
+println "Operating system = " + OperatingSystem.current().getFamilyName()
 
 dependencies {
     compile project(':io:stream')

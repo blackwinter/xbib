@@ -33,7 +33,6 @@ package org.xbib.tools.merge.serials;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -380,7 +379,7 @@ public class SerialsMerger extends Merger {
                 }
             }
         }
-        ingest.waitForCluster(ClusterHealthStatus.YELLOW, TimeValue.timeValueSeconds(30));
+        ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
         ingest.startBulk(index, -1, 1);
 
         queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
