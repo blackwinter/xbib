@@ -98,7 +98,7 @@ public class ElasticsearchOutput {
         }
         String indexMappings = indexDefinition.getMappingDef();
         if (indexMappings == null) {
-            throw new IllegalArgumentException("no mappings deinfed for index " + indexDefinition.getIndex());
+            throw new IllegalArgumentException("no mappings defined for index " + indexDefinition.getIndex());
         }
         try (InputStream indexSettingsInput = new URL(indexSettings).openStream();
              InputStream indexMappingsInput = new URL(indexMappings).openStream()) {
@@ -107,7 +107,8 @@ public class ElasticsearchOutput {
             if (!indexDefinition.ignoreErrors()) {
                 throw new IOException(e);
             } else {
-                logger.warn("index creation error, but configured to ignore");
+                logger.warn("error while creating index '" + indexDefinition.getConcreteIndex()
+                        + "', but configured to ignore: " + e.getMessage(), e);
             }
         }
     }
@@ -213,7 +214,7 @@ public class ElasticsearchOutput {
             try {
                 ingest.updateReplicaLevel(indexDefinition.getConcreteIndex(), indexDefinition.getReplicaLevel());
             } catch (Exception e) {
-                logger.warn("settigng replica failed: " + e.getMessage(), e);
+                logger.warn("setting replica failed: " + e.getMessage(), e);
             }
         }
     }
