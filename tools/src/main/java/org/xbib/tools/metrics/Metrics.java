@@ -32,7 +32,7 @@ public class Metrics {
 
     private final static Logger logger = LogManager.getLogger(Metrics.class);
 
-    private final Map<Thread,Map<String,MetricWriter>> metrics;
+    private final Map<Integer,Map<String,MetricWriter>> metrics;
 
     private final ScheduledExecutorService service;
 
@@ -41,7 +41,11 @@ public class Metrics {
         this.service = Executors.newScheduledThreadPool(2);
     }
 
-    public void prepareMetrics(Settings settings) {
+    public ScheduledExecutorService getService() {
+        return service;
+    }
+
+    public void prepareMetrics(int number, Settings settings) {
         if (settings == null) {
             return;
         }
@@ -67,13 +71,13 @@ public class Metrics {
                 logger.error(e.getMessage(), e);
             }
         }
-        metrics.put(Thread.currentThread(), thisMetrics);
+        metrics.put(number, thisMetrics);
         if (!thisMetrics.isEmpty()) {
-            logger.info("metrics prepared for thread {}: {} entries", Thread.currentThread(), thisMetrics.size());
+            logger.info("metrics prepared for {}: {} entries", number, thisMetrics.size());
         }
     }
 
-    public void scheduleWorkerMetrics(Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
+    public void scheduleWorkerMetrics(int number, Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
         if (settings == null) {
             return;
         }
@@ -81,12 +85,12 @@ public class Metrics {
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
         if (pipeline.getWorkers() != null) {
             for (Worker worker : pipeline.getWorkers()) {
-                service.scheduleAtFixedRate(new MeterMetricThread(worker.getMetric()), 0L, value, TimeUnit.SECONDS);
+                service.scheduleAtFixedRate(new MeterMetricThread(number, worker.getMetric()), 0L, value, TimeUnit.SECONDS);
             }
         }
     }
 
-    public void sceduleIngestMetrics(Settings settings, Ingest ingest) {
+    public void scheduleIngestMetrics(int number, Settings settings, Ingest ingest) {
         if (settings == null) {
             return;
         }
@@ -95,10 +99,10 @@ public class Metrics {
         }
         // run every 10 seconds by default
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
-        service.scheduleAtFixedRate(new IngestMetricThread(ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
+        service.scheduleAtFixedRate(new IngestMetricThread(number, ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
     }
 
-    public void append(MeterMetric metric) {
+    public synchronized void append(int number, MeterMetric metric) {
         if (metric == null) {
             return;
         }
@@ -110,7 +114,7 @@ public class Metrics {
         long fiveminute = Math.round(metric.fiveMinuteRate());
         long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
-        Map<String,MetricWriter> thisMetrics = metrics.get(Thread.currentThread());
+        Map<String,MetricWriter> thisMetrics = metrics.get(number);
         if (thisMetrics != null) {
             for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
                 if (!"meter".equals(entry.getKey())) {
@@ -120,8 +124,8 @@ public class Metrics {
                     MetricWriter writer = entry.getValue();
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "%s\t%d\t%l");
-                    String message = String.format(locale, format,  Thread.currentThread(), elapsed, docs);
+                    String format = settings.get("format", "meter\t%d\t%l\t%l");
+                    String message = String.format(locale, format, number, elapsed, docs);
                     writer.writer.write(message);
                     writer.writer.newLine();
                 } catch (IOException e) {
@@ -143,7 +147,7 @@ public class Metrics {
         );
     }
 
-    public void append(IngestMetric metric) {
+    public synchronized void append(int number, IngestMetric metric) {
         if (metric == null) {
             return;
         }
@@ -154,7 +158,7 @@ public class Metrics {
         double avg = bytes / (docs + 1.0); // avoid div by zero
         double bps = bytes * 1000.0 / elapsed;
 
-        Map<String,MetricWriter> thisMetrics = metrics.get(Thread.currentThread());
+        Map<String,MetricWriter> thisMetrics = metrics.get(number);
         if (thisMetrics != null) {
             for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
                 if (!"ingest".equals(entry.getKey())) {
@@ -164,8 +168,8 @@ public class Metrics {
                     MetricWriter writer = entry.getValue();
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "%s\t%d\t%l\t%l");
-                    String message = String.format(locale, format,  Thread.currentThread(), elapsed, bytes, docs);
+                    String format = settings.get("format", "ingest\t%d\t%l\t%l\t%l");
+                    String message = String.format(locale, format, number, elapsed, bytes, docs);
                     writer.writer.write(message);
                     writer.writer.newLine();
                 } catch (IOException e) {
@@ -189,20 +193,22 @@ public class Metrics {
         );
     }
 
-    public void disposeMetrics() throws IOException {
-        for (Map.Entry<Thread,Map<String,MetricWriter>> allMetricsEntry : metrics.entrySet()) {
-            allMetricsEntry.getKey().interrupt();
-            Map<String, MetricWriter> thisMetrics = allMetricsEntry.getValue();
-            for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
-                try {
+    public synchronized void disposeMetrics(int number) throws IOException {
+        Map<String, MetricWriter> thisMetrics = metrics.get(number);
+        if (thisMetrics == null) {
+            return;
+        }
+        for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
+            try {
+                if (entry.getValue().writer != null) {
                     entry.getValue().writer.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    entry.getValue().writer = null;
+                    logger.info("{}: {} closed", number, entry.getKey());
                 }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
             }
         }
-        service.shutdownNow();
-        logger.info("metrics disposed");
     }
 
     static class MetricWriter {
@@ -213,29 +219,37 @@ public class Metrics {
 
     class MeterMetricThread extends Thread {
 
+        private final int number;
+
         private final MeterMetric metric;
 
-        public MeterMetricThread(MeterMetric meterMetric) {
+        public MeterMetricThread(int number, MeterMetric meterMetric) {
+            this.number = number;
             this.metric = meterMetric;
+            setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(metric);
+            append(number, metric);
         }
     }
 
     class IngestMetricThread extends Thread {
 
+        private final int number;
+
         private final IngestMetric metric;
 
-        public IngestMetricThread(IngestMetric metric) {
+        public IngestMetricThread(int number, IngestMetric metric) {
+            this.number = number;
             this.metric = metric;
+            setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(metric);
+            append(number, metric);
         }
     }
 

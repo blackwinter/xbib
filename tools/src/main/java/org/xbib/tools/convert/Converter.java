@@ -101,7 +101,7 @@ public class Converter
         } finally {
             disposeInput();
             disposeOutput();
-            metrics.disposeMetrics();
+            metrics.getService().shutdownNow();
             pipeline.shutdown();
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {
@@ -122,7 +122,8 @@ public class Converter
     @Override
     public void close() throws IOException {
         if (metrics != null) {
-            metrics.append(getMetric());
+            metrics.append(getNumber(), getMetric());
+            metrics.disposeMetrics(getNumber());
         }
         logger.info("worker closed");
     }
@@ -136,7 +137,7 @@ public class Converter
     }
 
     protected void scheduleMetrics() {
-        metrics.scheduleWorkerMetrics(settings, (ForkJoinPipeline<Converter, URIWorkerRequest>) getPipeline());
+        metrics.scheduleWorkerMetrics(getNumber(), settings, (ForkJoinPipeline<Converter, URIWorkerRequest>) getPipeline());
     }
 
     protected void prepareOutput() throws IOException {
@@ -202,7 +203,7 @@ public class Converter
             setSettings(converterPipeline.getSettings());
             setFileInput(converterPipeline.getFileInput());
             setMetrics(converterPipeline.getMetrics());
-            metrics.prepareMetrics(settings);
+            metrics.prepareMetrics(getNumber(), getSettings());
         }
         return this;
     }

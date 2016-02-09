@@ -80,7 +80,7 @@ public class Feeder extends Converter {
     protected void prepareElasticsearch(Settings elasticsearchSettings) throws IOException {
         ingest = elasticsearchOutput.createIngest(elasticsearchSettings);
         if (ingest != null) {
-            metrics.sceduleIngestMetrics(settings, ingest);
+            metrics.scheduleIngestMetrics(getNumber(), settings, ingest);
             indexDefinitionMap = elasticsearchOutput.makeIndexDefinitions(ingest, elasticsearchSettings.getGroups("index"));
             logger.info("creation of {}", indexDefinitionMap.keySet());
             for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
@@ -123,7 +123,7 @@ public class Feeder extends Converter {
     @Override
     public void close() throws IOException {
         if (metrics != null && ingest != null) {
-            metrics.append(ingest.getMetric());
+            metrics.append(getNumber(), ingest.getMetric());
         }
         super.close();
     }
