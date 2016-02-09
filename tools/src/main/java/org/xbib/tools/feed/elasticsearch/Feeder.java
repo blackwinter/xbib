@@ -121,6 +121,14 @@ public class Feeder extends Converter {
     }
 
     @Override
+    public void close() throws IOException {
+        if (metrics != null && ingest != null) {
+            metrics.append(ingest.getMetric());
+        }
+        super.close();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     protected ForkJoinPipeline newPipeline() {
         return new FeederPipeline();

@@ -121,8 +121,12 @@ public class Converter
 
     @Override
     public void close() throws IOException {
-        logger.info("worker close (no op)");
+        if (metrics != null) {
+            metrics.append(getMetric());
+        }
+        logger.info("worker closed");
     }
+
     @Override
     public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker,
                                URIWorkerRequest request) throws Exception {
