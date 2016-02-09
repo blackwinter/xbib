@@ -346,14 +346,7 @@
         },
         "value": {
           "type": "standardnumber",
-          "fields": {
-            "standardnumber": {
-              "type": "string"
-            },
-            "value": {
-              "type": "string"
-            }
-          }
+          "number_types" : [ "issn" ]
         }
       }
     },

@@ -97,15 +97,12 @@ public class Metrics {
             return;
         }
         long docs = metric.count();
-        long elapsed = metric.elapsed();
-        double dps = docs * 1000.0 / elapsed;
-        long bytes = 0L; // we don't measure bytes in meter metric
-        double avg = bytes / (docs + 1.0); // avoid div by zero
-        double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
-        double mean = metric.meanRate();
-        double oneminute = metric.oneMinuteRate();
-        double fiveminute = metric.fiveMinuteRate();
-        double fifteenminute = metric.fifteenMinuteRate();
+        long elapsed = metric.elapsed() / 1000000; // nanos to secs
+        double dps = docs / elapsed;
+        long mean = Math.round(metric.meanRate());
+        long oneminute = Math.round(metric.oneMinuteRate());
+        long fiveminute = Math.round(metric.fiveMinuteRate());
+        long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
         Map<String,MetricWriter> thisMetrics = metrics.get(Thread.currentThread());
         if (thisMetrics != null) {
@@ -117,8 +114,8 @@ public class Metrics {
                     MetricWriter writer = entry.getValue();
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "%s\t%d\t%l\t%l");
-                    String message = String.format(locale, format,  Thread.currentThread(), elapsed, bytes, docs);
+                    String format = settings.get("format", "%s\t%d\t%l");
+                    String message = String.format(locale, format,  Thread.currentThread(), elapsed, docs);
                     writer.writer.write(message);
                     writer.writer.newLine();
                 } catch (IOException e) {
@@ -127,17 +124,12 @@ public class Metrics {
             }
         }
 
-        logger.info("meter: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg size, {} = {} dps, {} MB/s, {} ({} {} {})",
+        logger.info("meter: {} docs, {} = {} ms, {} = {} dps, {} ({} {} {})",
                 docs,
                 FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
-                bytes,
-                FormatUtil.formatSize(bytes),
-                avg,
-                FormatUtil.formatSize(avg),
                 dps,
                 FormatUtil.formatSpeed(dps),
-                FormatUtil.formatSpeed(mbps),
                 mean,
                 oneminute,
                 fiveminute,
@@ -154,7 +146,7 @@ public class Metrics {
         double dps = docs * 1000.0 / elapsed;
         long bytes = metric.getTotalIngestSizeInBytes().count();
         double avg = bytes / (docs + 1.0); // avoid div by zero
-        double mbps = (bytes * 1000.0 / elapsed) / (1024.0 * 1024.0);
+        double bps = bytes / elapsed;
 
         Map<String,MetricWriter> thisMetrics = metrics.get(Thread.currentThread());
         if (thisMetrics != null) {
@@ -176,7 +168,7 @@ public class Metrics {
             }
         }
 
-        logger.info("ingest: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg, {}, {}",
+        logger.info("ingest: {} docs, {} = {} ms, {} = {} bytes, {} = {} avg, {} = {}, {} = {}",
                 docs,
                 FormatUtil.formatDurationWords(elapsed, true, true),
                 elapsed,
@@ -184,8 +176,10 @@ public class Metrics {
                 FormatUtil.formatSize(bytes),
                 avg,
                 FormatUtil.formatSize(avg),
+                dps,
                 FormatUtil.formatSpeed(dps),
-                FormatUtil.formatSpeed(mbps)
+                bps,
+                FormatUtil.formatSpeed(bps)
         );
     }
 

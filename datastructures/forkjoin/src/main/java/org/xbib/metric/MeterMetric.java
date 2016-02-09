@@ -91,8 +91,12 @@ public class MeterMetric implements Metric {
         return stopTime;
     }
 
+    /**
+     * Return nanoseconds of elapsed time since start
+     * @return nanoseconds elapsed since start time
+     */
     public long elapsed() {
-        return ChronoUnit.SECONDS.between(startTime, Instant.now());
+        return ChronoUnit.NANOS.between(startTime, Instant.now());
     }
 
     public double fifteenMinuteRate() {
