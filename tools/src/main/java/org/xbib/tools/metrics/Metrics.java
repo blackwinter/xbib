@@ -5,6 +5,10 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.IngestMetric;
+import org.xbib.graphics.chart.ChartBuilderXY;
+import org.xbib.graphics.chart.ChartXY;
+import org.xbib.graphics.chart.VectorGraphicsEncoder;
+import org.xbib.graphics.chart.internal.style.Styler;
 import org.xbib.metric.MeterMetric;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.FormatUtil;
@@ -21,12 +25,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class Metrics {
 
@@ -67,8 +76,11 @@ public class Metrics {
                 Writer writer = new OutputStreamWriter(out, Charset.forName("UTF-8"));
                 MetricWriter metricWriter = new MetricWriter();
                 metricWriter.type = type;
+                metricWriter.path = path;
                 metricWriter.writer = writer;
                 metricWriter.settings = entry.getValue();
+                metricWriter.chart = Paths.get(metricWriter.settings.get("chart", name + ".svg"));
+                metricWriter.title = metricWriter.settings.get("title", type);
                 metricWriter.locale = metricWriter.settings.containsSetting("locale") ?
                         new Locale(metricWriter.settings.get("locale")) : Locale.getDefault();
                 if (!writers.containsKey(name)) {
@@ -145,8 +157,8 @@ public class Metrics {
                 if ("meter".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "meter\t%d\t%d\n");
-                    String message = String.format(locale, format, elapsed, docs);
+                    String format = settings.get("format", "%s\t%d\t%d\n");
+                    String message = String.format(locale, format, writer.title, elapsed, docs);
                     writer.writer.write(message);
                     writer.writer.flush();
                 }
@@ -187,13 +199,76 @@ public class Metrics {
                 if ("ingest".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "ingest\t%d\t%d\t%d\n");
-                    String message = String.format(locale, format, elapsed, bytes, docs);
+                    String format = settings.get("format", "%s\t%d\t%d\t%d\n");
+                    String message = String.format(locale, format, writer.title, elapsed, bytes, docs);
                     writer.writer.write(message);
                     writer.writer.flush();
                 }
             } catch (Throwable t) {
                 logger.error(t.getMessage(), t);
+            }
+        }
+    }
+
+
+    public void toChart() throws IOException {
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            MetricWriter writer = entry.getValue();
+            if ("meter".equals(writer.type) && writer.chart != null) {
+                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                        .theme(Styler.ChartTheme.Matlab)
+                        .title(writer.title)
+                        .xAxisTitle("t")
+                        .yAxisTitle("dps")
+                        .build();
+                chart.getStyler().setPlotGridLinesVisible(false);
+                chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                chart.getStyler().setDatePattern("HH:mm:ss");
+                final List<Instant> xData = new ArrayList<>();
+                final List<Double> yData = new ArrayList<>();
+                try (Stream<String> stream = Files.lines(writer.path)) {
+                    stream.map(line -> Arrays.asList(line.split("\t")))
+                            .map(list -> {
+                                long elapsed = Long.parseLong(list.get(1));
+                                double docs = Double.parseDouble(list.get(2));
+                                xData.add(Instant.ofEpochMilli(elapsed));
+                                yData.add(docs * 1000.0 / elapsed);
+                                return list;
+                            });
+                }
+                chart.addSeries("Bulk index input rate", xData, yData);
+                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG );
+            }
+            if ("ingest".equals(writer.type) && writer.chart != null) {
+                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                        .theme(Styler.ChartTheme.Matlab)
+                        .title(writer.title)
+                        .xAxisTitle("t")
+                        .yAxisTitle("rate")
+                        .build();
+                chart.getStyler().setPlotGridLinesVisible(false);
+                chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                chart.getStyler().setDatePattern("HH:mm:ss");
+                final List<Instant> xData = new ArrayList<>();
+                final List<Double> yData = new ArrayList<>();
+                final List<Double> y2Data = new ArrayList<>();
+                try (Stream<String> stream = Files.lines(writer.path)) {
+                    stream.map(line -> Arrays.asList(line.split("\t")))
+                            .map(list -> {
+                                long elapsed = Long.parseLong(list.get(1));
+                                double bytes = Double.parseDouble(list.get(2)) / 1024.0;
+                                double docs = Double.parseDouble(list.get(3));
+                                xData.add(Instant.ofEpochMilli(elapsed));
+                                yData.add(docs * 1000.0 / elapsed);
+                                y2Data.add(bytes * 1000.0 / elapsed);
+                                return list;
+                            });
+                }
+                chart.addSeries("Bulk index output (docs per sec)", xData, yData);
+                chart.addSeries("Bulk index volume (KBytes per sec)", xData, y2Data);
+                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG );
             }
         }
 
@@ -216,6 +291,9 @@ public class Metrics {
 
     static class MetricWriter {
         String type;
+        String title;
+        Path path;
+        Path chart;
         Writer writer;
         Settings settings;
         Locale locale;
