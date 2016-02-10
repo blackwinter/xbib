@@ -101,7 +101,7 @@ public class Converter
         } finally {
             disposeInput();
             disposeOutput();
-            metrics.getService().shutdownNow();
+            metrics.disposeMetrics();
             pipeline.shutdown();
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {
@@ -123,7 +123,6 @@ public class Converter
     public void close() throws IOException {
         if (metrics != null) {
             metrics.append(getMetric());
-            metrics.disposeMetrics();
         }
         logger.info("worker closed");
     }

@@ -59,12 +59,14 @@ public class Metrics {
             if (!"meter".equals(entry.getKey()) && !"ingest".equals(entry.getKey())) {
                 continue;
             }
+            String type = entry.getKey();
             String name = entry.getValue().get("name", entry.getKey());
             Path path = Paths.get(name);
             try {
                 OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                 Writer writer = new OutputStreamWriter(out, Charset.forName("UTF-8"));
                 MetricWriter metricWriter = new MetricWriter();
+                metricWriter.type = type;
                 metricWriter.writer = writer;
                 metricWriter.settings = entry.getValue();
                 metricWriter.locale = metricWriter.settings.containsSetting("locale") ?
@@ -119,12 +121,9 @@ public class Metrics {
         long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            if (!"meter".equals(entry.getKey())) {
-                continue;
-            }
             try {
                 MetricWriter writer = entry.getValue();
-                if (writer.writer != null) {
+                if ("meter".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
                     String format = settings.get("format", "meter\t%l\t%l\n");
@@ -163,12 +162,9 @@ public class Metrics {
         double bps = bytes * 1000.0 / elapsed;
 
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            if (!"ingest".equals(entry.getKey())) {
-                continue;
-            }
             try {
                 MetricWriter writer = entry.getValue();
-                if (writer.writer != null) {
+                if ("ingest".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
                     String format = settings.get("format", "ingest\t%l\t%l\t%l\n");
@@ -197,6 +193,7 @@ public class Metrics {
     }
 
     public synchronized void disposeMetrics() throws IOException {
+        service.shutdownNow();
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
             try {
                 if (entry.getValue().writer != null) {
@@ -211,6 +208,7 @@ public class Metrics {
     }
 
     static class MetricWriter {
+        String type;
         Writer writer;
         Settings settings;
         Locale locale;
