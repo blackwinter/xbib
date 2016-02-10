@@ -53,7 +53,7 @@ public class AxisTickCalculatorCategory extends AxisTickCalculator {
             if (styler.getDatePattern() != null) {
                 dateTimeFormatter = DateTimeFormatter.ofPattern(styler.getDatePattern())
                         .withLocale(styler.getLocale())
-                        .withZone(styler.getTimezone().toZoneId());
+                        .withZone(styler.getZoneId());
             }
         }
         int counter = 0;

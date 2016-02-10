@@ -251,21 +251,13 @@ public class Axis<ST extends StylerAxesChart, S extends Series> implements Chart
         // Axis tick labels
         double axisTickLabelsHeight = 0.0;
         if (chart.getStyler().isYAxisTicksVisible()) {
-
-            // get some real tick labels
-            // System.out.println("XAxisHeightHint");
-            // System.out.println("workingSpace: " + workingSpace);
             this.axisTickCalculator = getAxisTickCalculator(workingSpace);
-
             String sampleLabel = "";
-            // find the longest String in all the labels
             for (int i = 0; i < axisTickCalculator.getTickLabels().size(); i++) {
                 if (axisTickCalculator.getTickLabels().get(i) != null && axisTickCalculator.getTickLabels().get(i).length() > sampleLabel.length()) {
                     sampleLabel = axisTickCalculator.getTickLabels().get(i);
                 }
             }
-
-            // get the height of the label including rotation
             TextLayout textLayout = new TextLayout(sampleLabel.length() == 0 ? " " : sampleLabel, chart.getStyler().getAxisTickLabelsFont(), new FontRenderContext(null, true, false));
             Rectangle2D rectangle = textLayout.getBounds();
 

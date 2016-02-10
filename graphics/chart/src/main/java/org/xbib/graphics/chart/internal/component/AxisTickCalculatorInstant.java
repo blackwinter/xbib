@@ -160,7 +160,7 @@ public class AxisTickCalculatorInstant extends AxisTickCalculator {
             }
 
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(datePattern)
-                    .withZone(styler.getTimezone().toZoneId());
+                    .withZone(styler.getZoneId());
 
             // generate all tickLabels and tickLocations from the first to last position
             for (double value = firstPosition; value <= maxValue + 2 * gridStep; value = value + gridStep) {

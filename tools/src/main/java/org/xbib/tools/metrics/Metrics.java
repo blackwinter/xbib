@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -251,6 +252,7 @@ public class Metrics {
                     chart.getStyler().setPlotGridLinesVisible(false);
                     chart.getStyler().setXAxisTickMarkSpacingHint(100);
                     chart.getStyler().setDatePattern("HH:mm:ss");
+                    chart.getStyler().setZoneId(ZoneId.of("UTC"));
                     chart.addSeries("Bulk index input rate", xData, yData);
                     VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
                             VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
@@ -285,7 +287,7 @@ public class Metrics {
                     chart.getStyler().setXAxisTickMarkSpacingHint(100);
                     chart.getStyler().setDatePattern("HH:mm:ss");
                     chart.addSeries("Bulk index output rate", xData, yData);
-                    chart.addSeries("Bulk index volume rate (KBytes per sec)", xData, y2Data);
+                    chart.addSeries("Bulk index volume rate", xData, y2Data);
                     VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
                             VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
                 }
