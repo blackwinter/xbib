@@ -210,6 +210,21 @@ public class Metrics {
         }
     }
 
+    public synchronized void disposeMetrics() throws IOException {
+        service.shutdownNow();
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            try {
+                if (entry.getValue().writer != null) {
+                    entry.getValue().writer.close();
+                    entry.getValue().writer = null;
+                    logger.info("{} closed", entry.getKey());
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        toChart();
+    }
 
     public void toChart() throws IOException {
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
@@ -265,26 +280,10 @@ public class Metrics {
                                 return list;
                             });
                 }
-                chart.addSeries("Bulk index output (docs per sec)", xData, yData);
-                chart.addSeries("Bulk index volume (KBytes per sec)", xData, y2Data);
+                chart.addSeries("Bulk index output rate", xData, yData);
+                chart.addSeries("Bulk index volume rate (KBytes per sec)", xData, y2Data);
                 VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
                         VectorGraphicsEncoder.VectorGraphicsFormat.SVG );
-            }
-        }
-
-    }
-
-    public synchronized void disposeMetrics() throws IOException {
-        service.shutdownNow();
-        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            try {
-                if (entry.getValue().writer != null) {
-                    entry.getValue().writer.close();
-                    entry.getValue().writer = null;
-                    logger.info("{} closed", entry.getKey());
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
             }
         }
     }
