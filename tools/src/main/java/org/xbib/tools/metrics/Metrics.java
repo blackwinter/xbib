@@ -55,11 +55,11 @@ public class Metrics {
         }
         Map<String,Settings> metricSettings = settings.getGroups("metrics");
         for (Map.Entry<String,Settings> entry : metricSettings.entrySet()) {
+            String type = entry.getKey();
             // ignore everything execpt "meter" and "ingest"
-            if (!"meter".equals(entry.getKey()) && !"ingest".equals(entry.getKey())) {
+            if (!"meter".equals(type) && !"ingest".equals(type)) {
                 continue;
             }
-            String type = entry.getKey();
             String name = entry.getValue().get("name", entry.getKey());
             Path path = Paths.get(name);
             try {
@@ -79,33 +79,40 @@ public class Metrics {
             }
         }
         if (!writers.isEmpty()) {
-            logger.info("metrics prepared: {} entries", writers.keySet());
+            logger.info("metrics prepared: {}", writers.keySet());
         }
     }
 
     public void scheduleWorkerMetrics(Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
         if (settings == null) {
+            logger.warn("no settings");
             return;
         }
         // run every 10 seconds by default
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
-        if (pipeline.getWorkers() != null) {
-            for (Worker worker : pipeline.getWorkers()) {
-                service.scheduleAtFixedRate(new MeterMetricThread(worker.getMetric()), 0L, value, TimeUnit.SECONDS);
-            }
+        if (pipeline.getWorkers() == null || pipeline.getWorkers().isEmpty()) {
+            logger.warn("no workers");
+            return;
+        }
+        for (Worker worker : pipeline.getWorkers()) {
+            service.scheduleAtFixedRate(new MeterMetricThread(worker.getMetric()), 0L, value, TimeUnit.SECONDS);
+            logger.info("scheduled worker metrics at {} seconds", value);
         }
     }
 
     public void scheduleIngestMetrics(Settings settings, Ingest ingest) {
         if (settings == null) {
+            logger.warn("no settings");
             return;
         }
         if (ingest == null) {
+            logger.warn("no ingest");
             return;
         }
         // run every 10 seconds by default
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
         service.scheduleAtFixedRate(new IngestMetricThread(ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
+        logger.info("scheduled ingest metrics at {} seconds", value);
     }
 
     public synchronized void append(MeterMetric metric) {
@@ -120,23 +127,6 @@ public class Metrics {
         long fiveminute = Math.round(metric.fiveMinuteRate());
         long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
-        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            try {
-                MetricWriter writer = entry.getValue();
-                if ("meter".equals(writer.type) && writer.writer != null) {
-                    Settings settings = writer.settings;
-                    Locale locale = writer.locale;
-                    String format = settings.get("format", "meter\t%l\t%l\n");
-                    String message = String.format(locale, format, elapsed, docs);
-                    writer.writer.write(message);
-                    writer.writer.flush();
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-
         logger.info("meter: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
                 docs,
                 elapsed,
@@ -148,6 +138,22 @@ public class Metrics {
                 fiveminute,
                 fifteenminute
         );
+
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            try {
+                MetricWriter writer = entry.getValue();
+                if ("meter".equals(writer.type) && writer.writer != null) {
+                    Settings settings = writer.settings;
+                    Locale locale = writer.locale;
+                    String format = settings.get("format", "meter\t%l\t%l\n");
+                    String message = String.format(locale, format, elapsed, docs);
+                    writer.writer.write(message);
+                    writer.writer.flush();
+                }
+            } catch (Throwable t) {
+                logger.error(t.getMessage(), t);
+            }
+        }
     }
 
     public synchronized void append(IngestMetric metric) {
@@ -160,22 +166,6 @@ public class Metrics {
         long bytes = metric.getTotalIngestSizeInBytes().count();
         double avg = bytes / (docs + 1.0); // avoid div by zero
         double bps = bytes * 1000.0 / elapsed;
-
-        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            try {
-                MetricWriter writer = entry.getValue();
-                if ("ingest".equals(writer.type) && writer.writer != null) {
-                    Settings settings = writer.settings;
-                    Locale locale = writer.locale;
-                    String format = settings.get("format", "ingest\t%l\t%l\t%l\n");
-                    String message = String.format(locale, format, elapsed, bytes, docs);
-                    writer.writer.write(message);
-                    writer.writer.flush();
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
 
         logger.info("ingest: {} docs, {} ms = {}, {} = {}, {} = {} avg, {} = {}, {} = {}",
                 docs,
@@ -190,6 +180,23 @@ public class Metrics {
                 bps,
                 FormatUtil.formatSpeed(bps)
         );
+
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            try {
+                MetricWriter writer = entry.getValue();
+                if ("ingest".equals(writer.type) && writer.writer != null) {
+                    Settings settings = writer.settings;
+                    Locale locale = writer.locale;
+                    String format = settings.get("format", "ingest\t%l\t%l\t%l\n");
+                    String message = String.format(locale, format, elapsed, bytes, docs);
+                    writer.writer.write(message);
+                    writer.writer.flush();
+                }
+            } catch (Throwable t) {
+                logger.error(t.getMessage(), t);
+            }
+        }
+
     }
 
     public synchronized void disposeMetrics() throws IOException {

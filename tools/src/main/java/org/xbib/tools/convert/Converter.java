@@ -101,7 +101,7 @@ public class Converter
         } finally {
             disposeInput();
             disposeOutput();
-            metrics.disposeMetrics();
+            disposeMetrics();
             pipeline.shutdown();
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {
@@ -157,6 +157,10 @@ public class Converter
 
     protected void disposeOutput() throws IOException {
         fileOutput.closeFileMap();
+    }
+
+    protected void disposeMetrics() throws IOException {
+        metrics.disposeMetrics();
     }
 
     protected Converter setNumber(int number) {
