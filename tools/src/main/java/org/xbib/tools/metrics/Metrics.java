@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Metrics {
@@ -48,10 +49,6 @@ public class Metrics {
     public Metrics() {
         this.writers = new HashMap<>();
         this.service = Executors.newScheduledThreadPool(2);
-    }
-
-    public Map<String,MetricWriter> getWriters() {
-        return writers;
     }
 
     public ScheduledExecutorService getService() {
@@ -230,15 +227,6 @@ public class Metrics {
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
             MetricWriter writer = entry.getValue();
             if ("meter".equals(writer.type) && writer.chart != null) {
-                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
-                        .theme(Styler.ChartTheme.Matlab)
-                        .title(writer.title)
-                        .xAxisTitle("t")
-                        .yAxisTitle("dps")
-                        .build();
-                chart.getStyler().setPlotGridLinesVisible(false);
-                chart.getStyler().setXAxisTickMarkSpacingHint(100);
-                chart.getStyler().setDatePattern("HH:mm:ss");
                 final List<Instant> xData = new ArrayList<>();
                 final List<Double> yData = new ArrayList<>();
                 try (Stream<String> stream = Files.lines(writer.path)) {
@@ -249,22 +237,26 @@ public class Metrics {
                                 xData.add(Instant.ofEpochMilli(elapsed));
                                 yData.add(docs * 1000.0 / elapsed);
                                 return list;
-                            });
+                            }).collect(Collectors.toList());
                 }
-                chart.addSeries("Bulk index input rate", xData, yData);
-                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
-                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG );
+                logger.info("{}: x={}, y={}",
+                        writer.type, xData.size(), yData.size());
+                if (!xData.isEmpty() && !yData.isEmpty()) {
+                    ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                            .theme(Styler.ChartTheme.Matlab)
+                            .title(writer.title)
+                            .xAxisTitle("t")
+                            .yAxisTitle("dps")
+                            .build();
+                    chart.getStyler().setPlotGridLinesVisible(false);
+                    chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                    chart.getStyler().setDatePattern("HH:mm:ss");
+                    chart.addSeries("Bulk index input rate", xData, yData);
+                    VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                            VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
+                }
             }
             if ("ingest".equals(writer.type) && writer.chart != null) {
-                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
-                        .theme(Styler.ChartTheme.Matlab)
-                        .title(writer.title)
-                        .xAxisTitle("t")
-                        .yAxisTitle("rate")
-                        .build();
-                chart.getStyler().setPlotGridLinesVisible(false);
-                chart.getStyler().setXAxisTickMarkSpacingHint(100);
-                chart.getStyler().setDatePattern("HH:mm:ss");
                 final List<Instant> xData = new ArrayList<>();
                 final List<Double> yData = new ArrayList<>();
                 final List<Double> y2Data = new ArrayList<>();
@@ -278,12 +270,25 @@ public class Metrics {
                                 yData.add(docs * 1000.0 / elapsed);
                                 y2Data.add(bytes * 1000.0 / elapsed);
                                 return list;
-                            });
+                            }).collect(Collectors.toList());
                 }
-                chart.addSeries("Bulk index output rate", xData, yData);
-                chart.addSeries("Bulk index volume rate (KBytes per sec)", xData, y2Data);
-                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
-                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG );
+                logger.info("{}: x={}, y1={}, y2={}",
+                        writer.type, xData.size(), yData.size(), y2Data.size());
+                if (!xData.isEmpty() && !yData.isEmpty() && !y2Data.isEmpty()) {
+                    ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                            .theme(Styler.ChartTheme.Matlab)
+                            .title(writer.title)
+                            .xAxisTitle("t")
+                            .yAxisTitle("rate")
+                            .build();
+                    chart.getStyler().setPlotGridLinesVisible(false);
+                    chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                    chart.getStyler().setDatePattern("HH:mm:ss");
+                    chart.addSeries("Bulk index output rate", xData, yData);
+                    chart.addSeries("Bulk index volume rate (KBytes per sec)", xData, y2Data);
+                    VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                            VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
+                }
             }
         }
     }
