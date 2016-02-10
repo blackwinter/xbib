@@ -145,7 +145,7 @@ public class Metrics {
                 if ("meter".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "meter\t%l\t%l\n");
+                    String format = settings.get("format", "meter\t%d\t%d\n");
                     String message = String.format(locale, format, elapsed, docs);
                     writer.writer.write(message);
                     writer.writer.flush();
@@ -187,7 +187,7 @@ public class Metrics {
                 if ("ingest".equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "ingest\t%l\t%l\t%l\n");
+                    String format = settings.get("format", "ingest\t%d\t%d\t%d\n");
                     String message = String.format(locale, format, elapsed, bytes, docs);
                     writer.writer.write(message);
                     writer.writer.flush();
