@@ -12,10 +12,10 @@ import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.Worker;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,25 +32,28 @@ public class Metrics {
 
     private final static Logger logger = LogManager.getLogger(Metrics.class);
 
-    private final Map<Integer,Map<String,MetricWriter>> metrics;
+    private final Map<String,MetricWriter> writers;
 
     private final ScheduledExecutorService service;
 
     public Metrics() {
-        this.metrics = new HashMap<>();
+        this.writers = new HashMap<>();
         this.service = Executors.newScheduledThreadPool(2);
+    }
+
+    public Map<String,MetricWriter> getWriters() {
+        return writers;
     }
 
     public ScheduledExecutorService getService() {
         return service;
     }
 
-    public void prepareMetrics(int number, Settings settings) {
+    public void prepareMetrics(Settings settings) {
         if (settings == null) {
             return;
         }
         Map<String,Settings> metricSettings = settings.getGroups("metrics");
-        Map<String,MetricWriter> thisMetrics = new HashMap<>();
         for (Map.Entry<String,Settings> entry : metricSettings.entrySet()) {
             // ignore everything execpt "meter" and "ingest"
             if (!"meter".equals(entry.getKey()) && !"ingest".equals(entry.getKey())) {
@@ -60,24 +63,25 @@ public class Metrics {
             Path path = Paths.get(name);
             try {
                 OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, Charset.forName("UTF-8")));
-                MetricWriter writer = new MetricWriter();
-                writer.writer = bufferedWriter;
-                writer.settings = entry.getValue();
-                writer.locale = writer.settings.containsSetting("locale") ?
-                        new Locale(writer.settings.get("locale")) : Locale.getDefault();
-                thisMetrics.put(name, writer);
+                Writer writer = new OutputStreamWriter(out, Charset.forName("UTF-8"));
+                MetricWriter metricWriter = new MetricWriter();
+                metricWriter.writer = writer;
+                metricWriter.settings = entry.getValue();
+                metricWriter.locale = metricWriter.settings.containsSetting("locale") ?
+                        new Locale(metricWriter.settings.get("locale")) : Locale.getDefault();
+                if (!writers.containsKey(name)) {
+                    writers.put(name, metricWriter);
+                }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }
         }
-        metrics.put(number, thisMetrics);
-        if (!thisMetrics.isEmpty()) {
-            logger.info("metrics prepared for {}: {} entries", number, thisMetrics.size());
+        if (!writers.isEmpty()) {
+            logger.info("metrics prepared: {} entries", writers.keySet());
         }
     }
 
-    public void scheduleWorkerMetrics(int number, Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
+    public void scheduleWorkerMetrics(Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
         if (settings == null) {
             return;
         }
@@ -85,12 +89,12 @@ public class Metrics {
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
         if (pipeline.getWorkers() != null) {
             for (Worker worker : pipeline.getWorkers()) {
-                service.scheduleAtFixedRate(new MeterMetricThread(number, worker.getMetric()), 0L, value, TimeUnit.SECONDS);
+                service.scheduleAtFixedRate(new MeterMetricThread(worker.getMetric()), 0L, value, TimeUnit.SECONDS);
             }
         }
     }
 
-    public void scheduleIngestMetrics(int number, Settings settings, Ingest ingest) {
+    public void scheduleIngestMetrics(Settings settings, Ingest ingest) {
         if (settings == null) {
             return;
         }
@@ -99,10 +103,10 @@ public class Metrics {
         }
         // run every 10 seconds by default
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
-        service.scheduleAtFixedRate(new IngestMetricThread(number, ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
+        service.scheduleAtFixedRate(new IngestMetricThread(ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
     }
 
-    public synchronized void append(int number, MeterMetric metric) {
+    public synchronized void append(MeterMetric metric) {
         if (metric == null) {
             return;
         }
@@ -114,25 +118,25 @@ public class Metrics {
         long fiveminute = Math.round(metric.fiveMinuteRate());
         long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
-        Map<String,MetricWriter> thisMetrics = metrics.get(number);
-        if (thisMetrics != null) {
-            for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
-                if (!"meter".equals(entry.getKey())) {
-                    continue;
-                }
-                try {
-                    MetricWriter writer = entry.getValue();
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            if (!"meter".equals(entry.getKey())) {
+                continue;
+            }
+            try {
+                MetricWriter writer = entry.getValue();
+                if (writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "meter\t%d\t%l\t%l");
-                    String message = String.format(locale, format, number, elapsed, docs);
+                    String format = settings.get("format", "meter\t%l\t%l\n");
+                    String message = String.format(locale, format, elapsed, docs);
                     writer.writer.write(message);
-                    writer.writer.newLine();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    writer.writer.flush();
                 }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
             }
         }
+
 
         logger.info("meter: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
                 docs,
@@ -147,7 +151,7 @@ public class Metrics {
         );
     }
 
-    public synchronized void append(int number, IngestMetric metric) {
+    public synchronized void append(IngestMetric metric) {
         if (metric == null) {
             return;
         }
@@ -158,23 +162,22 @@ public class Metrics {
         double avg = bytes / (docs + 1.0); // avoid div by zero
         double bps = bytes * 1000.0 / elapsed;
 
-        Map<String,MetricWriter> thisMetrics = metrics.get(number);
-        if (thisMetrics != null) {
-            for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
-                if (!"ingest".equals(entry.getKey())) {
-                    continue;
-                }
-                try {
-                    MetricWriter writer = entry.getValue();
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
+            if (!"ingest".equals(entry.getKey())) {
+                continue;
+            }
+            try {
+                MetricWriter writer = entry.getValue();
+                if (writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
-                    String format = settings.get("format", "ingest\t%d\t%l\t%l\t%l");
-                    String message = String.format(locale, format, number, elapsed, bytes, docs);
+                    String format = settings.get("format", "ingest\t%l\t%l\t%l\n");
+                    String message = String.format(locale, format, elapsed, bytes, docs);
                     writer.writer.write(message);
-                    writer.writer.newLine();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    writer.writer.flush();
                 }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
             }
         }
 
@@ -193,17 +196,13 @@ public class Metrics {
         );
     }
 
-    public synchronized void disposeMetrics(int number) throws IOException {
-        Map<String, MetricWriter> thisMetrics = metrics.get(number);
-        if (thisMetrics == null) {
-            return;
-        }
-        for (Map.Entry<String, MetricWriter> entry : thisMetrics.entrySet()) {
+    public synchronized void disposeMetrics() throws IOException {
+        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
             try {
                 if (entry.getValue().writer != null) {
                     entry.getValue().writer.close();
                     entry.getValue().writer = null;
-                    logger.info("{}: {} closed", number, entry.getKey());
+                    logger.info("{} closed", entry.getKey());
                 }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
@@ -212,44 +211,37 @@ public class Metrics {
     }
 
     static class MetricWriter {
-        BufferedWriter writer;
+        Writer writer;
         Settings settings;
         Locale locale;
     }
 
     class MeterMetricThread extends Thread {
 
-        private final int number;
-
         private final MeterMetric metric;
 
-        public MeterMetricThread(int number, MeterMetric meterMetric) {
-            this.number = number;
+        public MeterMetricThread(MeterMetric meterMetric) {
             this.metric = meterMetric;
             setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(number, metric);
+            append(metric);
         }
     }
 
     class IngestMetricThread extends Thread {
-
-        private final int number;
-
         private final IngestMetric metric;
 
-        public IngestMetricThread(int number, IngestMetric metric) {
-            this.number = number;
+        public IngestMetricThread(IngestMetric metric) {
             this.metric = metric;
             setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(number, metric);
+            append(metric);
         }
     }
 
