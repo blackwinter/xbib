@@ -179,6 +179,10 @@ public class Converter
         this.fileInput = fileInput;
     }
 
+    protected void setFileOutput(FileOutput fileOutput) {
+        this.fileOutput = fileOutput;
+    }
+
     protected void setMetrics(Metrics metrics) {
         this.metrics = metrics;
     }
@@ -200,6 +204,7 @@ public class Converter
             setNumber(threadCounter.getAndIncrement());
             setSettings(converterPipeline.getSettings());
             setFileInput(converterPipeline.getFileInput());
+            setFileOutput(converterPipeline.getFileOutput());
             setMetrics(converterPipeline.getMetrics());
             metrics.prepareMetrics(getSettings());
         }
@@ -214,6 +219,10 @@ public class Converter
 
         public FileInput getFileInput() {
             return fileInput;
+        }
+
+        public FileOutput getFileOutput() {
+            return fileOutput;
         }
 
         public Metrics getMetrics() {
