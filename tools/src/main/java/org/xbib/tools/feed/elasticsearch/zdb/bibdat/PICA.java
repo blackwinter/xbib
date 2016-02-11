@@ -29,100 +29,87 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.convert.zdb;
+package org.xbib.tools.feed.elasticsearch.zdb.bibdat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.etl.marc.MARCEntityQueue;
+import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
+import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
-import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Cnnverting Zeitschriftendatenbank (ZDB) MARC ISO2709 files
- */
-public final class MARC extends Converter {
+public final class PICA extends Converter {
 
-    private final static Logger logger = LogManager.getLogger(MARC.class.getName());
+    private final static Logger logger = LogManager.getLogger(PICA.class.getName());
 
-    @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new MARC().setPipeline(p);
+        return p -> new PICA().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            Reader r = new InputStreamReader(in, ISO88591);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            final MARCEntityQueue queue = new MARCEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+            MyQueue queue = new MyQueue("/org/xbib/analyze/pica/zdb/bibdat.json", settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {
-                if ((settings.getAsBoolean("detect-unknown", false))) {
+                if ((settings.getAsBoolean("detect", false))) {
                     logger.warn("unmapped field {}", key);
                     unmapped.add("\"" + key + "\"");
                 }
             });
+            logger.info("queue is up, {} elements", queue.map().size());
             queue.execute();
-
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+            MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))
                     .addListener(queue)
-                    .addListener(new LoggingAdapter());
-
-            final Iso2709Reader reader = new Iso2709Reader(r)
-                    .setMarcXchangeListener(kv);
-            // setting the properties is just informational and not used for any purpose.
-            reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
-            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
-            if ("marc/hol".equals(settings.get("elements")) || "marc/zdb/hol".equals(settings.get("elements"))) {
-                reader.setProperty(Iso2709Reader.TYPE, "Holdings");
-            }
-            reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
+                    .addListener(new KeyValueStreamAdapter<FieldList, String>() {
+                        @Override
+                        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
+                            if (logger.isTraceEnabled()) {
+                                logger.trace("startStream");
+                                for (Field f : key) {
+                                    logger.trace("tag={} ind={} subf={} data={}",
+                                            f.tag(), f.indicator(), f.subfieldId(), f.data());
+                                }
+                                logger.trace("end");
+                            }
+                            return this;
+                        }
+                    });
+            DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
+            reader.setMarcXchangeListener(kv);
             reader.parse();
-            r.close();
+            in.close();
             queue.close();
-            if (settings.getAsBoolean("detect", false)) {
-                logger.info("unknown keys={}", unmapped);
+            if (settings.getAsBoolean("detect-unknown", false)) {
+                logger.info("detected unknown elements = {}", unmapped);
             }
         }
     }
 
-    static class LoggingAdapter extends KeyValueStreamAdapter<FieldList, String> {
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> begin() {
-            logger.debug("start");
-            return this;
+    static class MyQueue extends PicaEntityQueue {
+
+        public MyQueue(String path, int workers) {
+            super(path, workers);
         }
 
         @Override
-        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-            if (logger.isDebugEnabled()) {
-                for (Field f : key) {
-                    logger.debug("tag={} ind={} subf={} data={}",
-                            f.tag(), f.indicator(), f.subfieldId(), f.data());
-                }
-            }
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> end() {
-            logger.debug("end");
-            return this;
+        public void afterCompletion(PicaEntityBuilderState state) throws IOException {
         }
     }
 

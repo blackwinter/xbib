@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public class NatLizMarc extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             // set identifier prefix (ISIL)
             Map<String, Object> params = new HashMap<>();
             params.put("identifier", settings.get("identifier", "NLZ"));
@@ -55,9 +56,11 @@ public class NatLizMarc extends Feeder {
             });
             queue.execute();
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .setStringTransformer(value ->
+                            Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                                    Normalizer.Form.NFKC))
                     .addListener(queue);
-            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Iso2709Reader reader = new Iso2709Reader(r)
                     .setMarcXchangeListener(kv);
             reader.setProperty(Iso2709Reader.FORMAT, "MARC21");

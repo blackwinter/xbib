@@ -29,14 +29,45 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.convert.oai;
+package org.xbib.tools.feed.elasticsearch.openlibrary;
 
+import org.xbib.tools.convert.Converter;
+import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
-public class MacsOAI extends OAIHarvester {
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
-    protected WorkerProvider provider() {
-        return p -> new MacsOAI().setPipeline(p);
+/**
+ * OpenLibrary feeder from couchdb JSON.
+ *
+ * http://openlibrary.org/data/ol_cdump_latest.txt.gz
+ */
+public class OpenLibrary extends Feeder {
+
+    @Override
+    protected WorkerProvider<Converter> provider() {
+        return p -> new OpenLibrary().setPipeline(p);
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public void process(URI uri) throws Exception {
+        try (InputStream in = FileInput.getInputStream(uri)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            try (Stream<String> stream = reader.lines()) {
+                stream.forEach(line -> {
+                    // type, unique key, revision, last modified, JSON
+                    String[] l = line.split("\t");
+                        ingest.index("openlibrary", "openlibrary", l[1], l[4]);
+                });
+            }
+        }
+    }
 }
+

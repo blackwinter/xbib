@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -74,7 +73,6 @@ public class ISSNsOfZDB extends Analyzer {
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
                     .setSize(1000) // per shard
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMillis(1000));
 
             QueryBuilder queryBuilder =

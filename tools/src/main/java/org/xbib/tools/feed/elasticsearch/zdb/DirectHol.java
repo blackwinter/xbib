@@ -51,6 +51,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -74,7 +75,7 @@ public class DirectHol extends Feeder {
     @Override
     public void process(URI uri) throws IOException {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            Reader r = new InputStreamReader(in, ISO88591);
+            Reader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
             final MARCDirectQueue queue = new MyEntityQueue();
             queue.setUnmappedKeyListener((id, key) -> {
@@ -86,7 +87,8 @@ public class DirectHol extends Feeder {
             queue.execute();
 
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .setStringTransformer(value ->                             Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                            Normalizer.Form.NFKC))
                     .addListener(queue);
             try {
                 final Iso2709Reader reader = new Iso2709Reader(r)

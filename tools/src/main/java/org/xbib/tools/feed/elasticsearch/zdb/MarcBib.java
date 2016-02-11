@@ -43,6 +43,7 @@ import org.xml.sax.SAXNotSupportedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 
 /**
@@ -58,9 +59,11 @@ public class MarcBib extends BibliographicFeeder {
     @Override
     protected void process(InputStream in, MARCEntityQueue queue) throws IOException {
         final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                .setStringTransformer(value ->
+                        Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                                Normalizer.Form.NFKC))
                 .addListener(queue);
-        InputStreamReader r = new InputStreamReader(in, ISO88591);
+        InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
         try {
             final Iso2709Reader reader = new Iso2709Reader(r)
                     .setMarcXchangeListener(kv);

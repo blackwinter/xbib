@@ -62,6 +62,7 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -128,7 +129,7 @@ public class Web extends Feeder {
                 logger.error("can not open URL {}", url);
                 continue;
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF8));
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
             br.readLine(); // ZDB-Id: ...
             br.readLine(); // Treffer: ...
             br.readLine(); // empty line

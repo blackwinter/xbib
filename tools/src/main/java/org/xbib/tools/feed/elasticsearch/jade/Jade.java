@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -130,7 +131,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
             }});
             LinkedList<String> lines = new LinkedList<>();
             Resource resource = new MemoryResource();
-            Reader r = new InputStreamReader(in, ISO88591);
+            Reader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             BufferedReader reader = new BufferedReader(r);
             String line = reader.readLine();
             while (line != null) {

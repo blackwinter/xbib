@@ -47,7 +47,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,10 +56,6 @@ public class Converter
         implements Processor {
 
     private final static Logger logger = LogManager.getLogger(Converter.class);
-
-    protected final static Charset UTF8 = Charset.forName("UTF-8");
-
-    protected final static Charset ISO88591 = Charset.forName("ISO-8859-1");
 
     private final static AtomicInteger threadCounter = new AtomicInteger();
 

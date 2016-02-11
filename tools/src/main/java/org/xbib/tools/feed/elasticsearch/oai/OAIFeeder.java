@@ -128,7 +128,6 @@ public abstract class OAIFeeder extends Feeder {
 
     @Override
     protected void process(URI uri) throws Exception {
-        logger.info("processing URI {} for OAI", uri);
         Map<String, String> params = URIUtil.parseQueryString(uri);
         String server = uri.toString();
         String verb = params.get("verb");
@@ -151,7 +150,7 @@ public abstract class OAIFeeder extends Feeder {
             try {
                 request.addHandler(newMetadataHandler());
                 ListRecordsListener listener = new ListRecordsListener(request);
-                logger.info("OAI request: {}", request.getURL());
+                logger.info("OAI request: {}", request);
                 request.prepare().execute(listener).waitFor();
                 if (listener.getResponse() != null) {
                     logger.debug("got OAI response");

@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.feed.elasticsearch.b3kat;
+package org.xbib.tools.feed.elasticsearch.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -57,7 +58,7 @@ import java.util.TreeSet;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
- * Indexing B3KAT MARCXML files
+ * Indexing MARCXML files (B3KAT)
  */
 public final class MarcXML extends Feeder {
 
@@ -71,7 +72,7 @@ public final class MarcXML extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
                     new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
@@ -84,7 +85,9 @@ public final class MarcXML extends Feeder {
             });
             queue.execute();
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                    .setStringTransformer(value ->
+                            Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                                    Normalizer.Form.NFKC))
                     .addListener(queue);
             MarcXchangeReader reader = new MarcXchangeReader(r)
                     .setMarcXchangeListener(kv);

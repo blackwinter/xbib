@@ -33,20 +33,15 @@ package org.xbib.oai.client;
 
 import org.xbib.io.http.HttpRequest;
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAIDateResolution;
 import org.xbib.oai.OAIRequest;
 import org.xbib.oai.OAISession;
-import org.xbib.util.DateUtil;
 import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
 import org.xbib.util.URIUtil;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import java.util.Date;
 
 /**
  * Client OAI request
@@ -116,9 +111,6 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     public R setFrom(Instant from) {
         this.from = from;
         addParameter(OAIConstants.FROM_PARAMETER, from.toString());
-                //DateUtil.formatDate(from,
-                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R) this;
     }
 
@@ -130,9 +122,6 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     public R setUntil(Instant until) {
         this.until = until;
         addParameter(OAIConstants.UNTIL_PARAMETER, until.toString());
-                //DateUtil.formatDate(until,
-                //resolution == OAIDateResolution.DAY ? DateUtil.ISO_FORMAT_DAYS :
-                //        DateUtil.ISO_FORMAT_SECONDS));
         return (R) this;
     }
 

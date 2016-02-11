@@ -35,23 +35,26 @@ import org.xbib.tools.Processor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 abstract class Analyzer implements Processor {
 
-    protected final static Charset UTF8 = Charset.forName("UTF-8");
-
-    protected BufferedReader getFileReader(String name) throws FileNotFoundException {
-        return new BufferedReader(new InputStreamReader(new FileInputStream(name), UTF8));
+    protected BufferedReader getFileReader(String name) throws IOException {
+        Path path = Paths.get(name);
+        return new BufferedReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8));
     }
 
-    protected BufferedWriter getFileWriter(String name) throws FileNotFoundException {
-        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name), UTF8));
+    protected BufferedWriter getFileWriter(String name) throws IOException {
+        Path path = Paths.get(name);
+        return new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path, StandardOpenOption.CREATE),
+                StandardCharsets.UTF_8));
     }
 
 }

@@ -22,16 +22,19 @@ import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -373,8 +376,8 @@ public class NatLizCrawler extends Feeder {
 
     private void downloadMetadataArchive(String cookie, String url, String target) throws Exception {
         // already exists?
-        File file = new File(target);
-        if (file.exists()) {
+        Path path = Paths.get(target);
+        if (path.toFile().exists()) {
             logger.info("already exists. skipping: {}", target);
             return;
         }
@@ -385,7 +388,7 @@ public class NatLizCrawler extends Feeder {
         String puid = params.get("puid");
         String mid = params.get("mid");
         final NettyHttpSession session = new NettyHttpSession();
-        try (FileOutputStream out = new FileOutputStream(target)) {
+        try (OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
             // 3 hour max download time before timeout (file size may be up to some GB)
             session.open(Session.Mode.READ, settings.getAsInt("timeout", 3 * 3600 * 1000));
             HttpRequest request = session.newRequest()
@@ -426,9 +429,8 @@ public class NatLizCrawler extends Feeder {
             request.prepare().setOutputStream(out).execute(listener).waitFor();
         } finally {
             session.close();
-
-            file = new File(target);
-            logger.info("done: download of {}, file length = {}", url, file.length());
+            path = Paths.get(target);
+            logger.info("done: download of {}, file length = {}", url, path.toFile().length());
         }
     }
 
@@ -436,8 +438,9 @@ public class NatLizCrawler extends Feeder {
     private void writeLicenses(Map<String,Object> licenses) throws IOException {
         // Java object
         if (settings.get("mapfile") != null) {
-            File file = new File("nlz-licenses.map");
-            try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8))) {
+            Path path = Paths.get("nlz-licenses.map");
+            try (Writer fileWriter = new OutputStreamWriter(Files.newOutputStream(path, StandardOpenOption.CREATE),
+                    StandardCharsets.UTF_8)) {
                 fileWriter.write(licenses.toString());
             }
         }
@@ -445,8 +448,9 @@ public class NatLizCrawler extends Feeder {
         if (settings.get("jsonfile") != null) {
             XContentBuilder builder = jsonBuilder();
             builder.map(licenses);
-            File file = new File("nlz-licenses.json");
-            try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8))) {
+            Path path = Paths.get("nlz-licenses.json");
+            try (Writer fileWriter = new OutputStreamWriter(Files.newOutputStream(path, StandardOpenOption.CREATE),
+                    StandardCharsets.UTF_8)) {
                 fileWriter.write(builder.string());
             }
         }
@@ -467,8 +471,8 @@ public class NatLizCrawler extends Feeder {
     }
 
     private void writeTriples(Set<Triple> triples) throws IOException {
-        File file = new File("nlz-triples.nt");
-        OutputStream out = new FileOutputStream(file);
+        Path path = Paths.get("nlz-triples.nt");
+        OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE);
         RdfContentBuilder builder = ntripleBuilder(out);
         for (Triple triple : triples) {
             builder.receive(triple);

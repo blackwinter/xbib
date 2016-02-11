@@ -71,6 +71,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -164,7 +165,7 @@ public class JsonCoins extends Feeder {
         try (InputStream in = FileInput.getInputStream(uri)) {
             RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF8));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
             JsonParser parser = jsonFactory.createParser(reader);
             JsonToken token = parser.nextToken();
             Resource resource = null;
@@ -313,13 +314,13 @@ public class JsonCoins extends Feeder {
                 switch (k) {
                     case "rft_id": {
                         // lowercase important, DOI is case-insensitive
-                        String s = URIUtil.decode(v, UTF8).toLowerCase();
+                        String s = URIUtil.decode(v, StandardCharsets.UTF_8).toLowerCase();
                         // remove URL/URI prefixes
                         for (Pattern pattern : doipatterns) {
                             s = pattern.matcher(s).replaceAll("");
                         }
                         try {
-                            doiURI = URIUtil.encode(s, UTF8);
+                            doiURI = URIUtil.encode(s, StandardCharsets.UTF_8);
                             // encode as URI, but info URI RFC wants slash as unencoded character
                             // anyway we use xbib.info/doi/
                             doiURI = doiURI.replaceAll("%2F", "/");
@@ -554,7 +555,7 @@ public class JsonCoins extends Feeder {
 
         };
         try {
-            URIUtil.parseQueryString(coins.toURI(), UTF8, listener);
+            URIUtil.parseQueryString(coins.toURI(), StandardCharsets.UTF_8, listener);
         } catch (InvalidCharacterException | URISyntaxException e) {
             logger.warn("can't parse query string: " + coins, e);
         }

@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -79,9 +80,10 @@ public class Unimarc extends Feeder {
 
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                     .addListener(queue);
-            InputStreamReader r = new InputStreamReader(in, ISO88591);
+            InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Iso2709Reader reader = new Iso2709Reader(r)
-                    .setStringTransformer(value -> XMLUtil.sanitizeXml10(new String(value.getBytes(ISO88591), UTF8)))
+                    .setStringTransformer(value ->
+                            XMLUtil.sanitizeXml10(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)))
                     .setMarcXchangeListener(kv);
             reader.setFormat("UNIMARC").setType("Bibliographic");
             reader.parse();
