@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.serials;
+package org.xbib.tools.merge.holdingslicenses;
 
 import org.xbib.tools.merge.serials.entities.TitleRecord;
 import org.xbib.util.concurrent.WorkerRequest;

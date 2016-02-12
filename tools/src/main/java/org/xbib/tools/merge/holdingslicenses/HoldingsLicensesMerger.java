@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.serials;
+package org.xbib.tools.merge.holdingslicenses;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,15 +71,15 @@ import java.util.concurrent.TimeUnit;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
- * Merge ZDB and EZB
+ * Merge holdings and licenses
  */
-public class SerialsMerger extends Merger {
+public class HoldingsLicensesMerger extends Merger {
 
-    private final static Logger logger = LogManager.getLogger(SerialsMerger.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class.getSimpleName());
 
-    private ForkJoinPipeline<SerialsMergerWorker, TitelRecordRequest> pipeline;
+    private ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline;
 
-    private SerialsMerger serialsMerger;
+    private HoldingsLicensesMerger holdingsLicensesMerger;
 
     private SearchTransportClient search;
 
@@ -116,22 +116,22 @@ public class SerialsMerger extends Merger {
     private StatusCodeMapper statusCodeMapper;
 
     @Override
-    protected ForkJoinPipeline<SerialsMergerWorker, TitelRecordRequest> newPipeline() {
+    protected ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> newPipeline() {
         this.pipeline = new ForkJoinPipeline<>();
         return this.pipeline;
     }
 
-    protected void setPipeline(ForkJoinPipeline<SerialsMergerWorker, TitelRecordRequest> pipeline) {
+    protected void setPipeline(ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline) {
         this.pipeline = pipeline;
     }
 
-    protected ForkJoinPipeline<SerialsMergerWorker, TitelRecordRequest> getPipeline() {
+    protected ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> getPipeline() {
         return pipeline;
     }
 
     @Override
     public int run(Settings settings) throws Exception {
-        this.serialsMerger = this;
+        this.holdingsLicensesMerger = this;
         this.settings = settings;
         try {
             super.run(settings);
@@ -166,12 +166,12 @@ public class SerialsMerger extends Merger {
 
     @Override
     protected WorkerProvider provider() {
-        return new WorkerProvider<SerialsMergerWorker>() {
+        return new WorkerProvider<HoldingsLicensesWorker>() {
             int i = 0;
 
             @Override
-            public SerialsMergerWorker get(Pipeline pipeline) {
-                return new SerialsMergerWorker(serialsMerger, i++);
+            public HoldingsLicensesWorker get(Pipeline pipeline) {
+                return new HoldingsLicensesWorker(holdingsLicensesMerger, i++);
             }
         };
     }
@@ -246,9 +246,9 @@ public class SerialsMerger extends Merger {
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         total = searchResponse.getHits().getTotalHits();
         count = 0L;
-        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        ScheduleThread scheduleThread = new ScheduleThread();
-        scheduledExecutorService.scheduleAtFixedRate(scheduleThread, 0, 10, TimeUnit.SECONDS);
+        //ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        //ScheduleThread scheduleThread = new ScheduleThread();
+        //scheduledExecutorService.scheduleAtFixedRate(scheduleThread, 0, 10, TimeUnit.SECONDS);
         //logger.debug("hits={}", searchResponse.getHits().getTotalHits());
         while (!failure && searchResponse.getScrollId() != null) {
             searchResponse = search.client().prepareSearchScroll(searchResponse.getScrollId())
@@ -260,7 +260,7 @@ public class SerialsMerger extends Merger {
             }
             for (SearchHit hit : hits) {
                 try {
-                    if (getPipeline().getWorkers().size() == 0) {
+                    if (getPipeline().getWorkers().isEmpty()) {
                         logger.error("no more workers left to receive, aborting feed");
                         return;
                     }
@@ -336,7 +336,7 @@ public class SerialsMerger extends Merger {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }*/
-        scheduledExecutorService.shutdownNow();
+        //scheduledExecutorService.shutdownNow();
     }
 
     @Override
@@ -476,7 +476,7 @@ public class SerialsMerger extends Merger {
         return indexMetric;
     }
 
-    class ScheduleThread implements Runnable {
+    /*class ScheduleThread implements Runnable {
 
         public void run() {
             long percent = count * 100 / total;
@@ -496,6 +496,6 @@ public class SerialsMerger extends Merger {
                     indexMetric.fiveMinuteRate(),
                     indexMetric.fifteenMinuteRate());
         }
-    }
+    }*/
 
 }

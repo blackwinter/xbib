@@ -44,7 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-abstract class Analyzer implements Processor {
+public abstract class Analyzer implements Processor {
 
     protected BufferedReader getFileReader(String name) throws IOException {
         Path path = Paths.get(name);
