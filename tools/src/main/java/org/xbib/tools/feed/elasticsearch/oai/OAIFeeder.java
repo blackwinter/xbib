@@ -54,9 +54,11 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
+import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.URIUtil;
 import org.xbib.util.concurrent.URIWorkerRequest;
+import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -89,8 +91,9 @@ public class OAIFeeder extends Feeder {
 
     private Session<StringPacket> session;
 
-    protected Session<StringPacket> getSession() {
-        return session;
+    @Override
+    protected WorkerProvider<Converter> provider() {
+        return p -> new OAIFeeder().setPipeline(p);
     }
 
     @Override
