@@ -33,6 +33,7 @@ package org.xbib.tools.feed.elasticsearch.dnb.gnd;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.rdf.RdfContentFactory;
 import org.xbib.tools.convert.Converter;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -46,8 +47,12 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.zip.Deflater;
+import java.util.zip.GZIPOutputStream;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
@@ -91,8 +96,20 @@ public class RdfXml extends Feeder {
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             GNDRdfXmlContentParser reader = new GNDRdfXmlContentParser(in);
-            reader.parse();
-            reader.flush();
+            if (fileOutput.getMap().containsKey("turtle")) {
+                final Writer writer = new OutputStreamWriter(new GZIPOutputStream(fileOutput.getMap().get("turtle").getOut()) {
+                    {
+                        def.setLevel(Deflater.BEST_COMPRESSION);
+                    }
+                }, "UTF-8");
+                reader.setRdfContentBuilderProvider(RdfContentFactory::turtleBuilder);
+                reader.setRdfContentBuilderHandler(builder -> writer.write(builder.string()));
+                reader.parse();
+                writer.close();
+            } else {
+                reader.parse();
+                reader.flush();
+            }
         }
     }
 

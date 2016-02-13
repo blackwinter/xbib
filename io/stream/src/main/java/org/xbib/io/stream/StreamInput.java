@@ -36,8 +36,8 @@ import org.xbib.io.BytesReference;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -298,7 +298,7 @@ public abstract class StreamInput extends InputStream {
             case 11:
                 return readByte();
             case 12:
-                return new Date(readLong());
+                return Instant.ofEpochMilli(readLong());
             case 14:
                 return readBytesReference();
             default:

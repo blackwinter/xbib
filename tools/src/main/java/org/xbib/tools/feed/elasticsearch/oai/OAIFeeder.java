@@ -35,14 +35,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.unit.TimeValue;
+import org.xbib.io.Session;
+import org.xbib.io.StringPacket;
+import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfResourceHandler;
+import org.xbib.oai.rdf.RdfSimpleMetadataHandler;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.oai.xml.XmlSimpleMetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -59,20 +64,34 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
+import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
  * Harvest from OAI and feed to Elasticsearch
  */
-public abstract class OAIFeeder extends Feeder {
+public class OAIFeeder extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(OAIFeeder.class);
+
+    private TarConnection connection;
+
+    private Session<StringPacket> session;
+
+    protected Session<StringPacket> getSession() {
+        return session;
+    }
 
     @Override
     protected void prepareInput() throws IOException, InterruptedException {
@@ -127,6 +146,16 @@ public abstract class OAIFeeder extends Feeder {
     }
 
     @Override
+    public void prepareOutput() throws IOException {
+        super.prepareOutput();
+        Path path = fileOutput.getMap().get("tar").getPath();
+        connection = new TarConnection();
+        connection.setPath(path, StandardOpenOption.CREATE);
+        session = connection.createSession();
+        session.open(Session.Mode.WRITE);
+    }
+
+    @Override
     protected void process(URI uri) throws Exception {
         Map<String, String> params = URIUtil.parseQueryString(uri);
         String server = uri.toString();
@@ -157,6 +186,7 @@ public abstract class OAIFeeder extends Feeder {
                     StringWriter w = new StringWriter();
                     listener.getResponse().to(w);
                     logger.debug("{}", w);
+                    append(w.toString());
                     request = client.resume(request, listener.getResumptionToken());
                 } else {
                     logger.debug("no valid OAI response");
@@ -169,17 +199,90 @@ public abstract class OAIFeeder extends Feeder {
         client.close();
     }
 
+    protected void append(String s) {
+        fileOutput.getMap().entrySet().stream().forEach(entry -> {
+            if (entry.getKey().startsWith("file")) {
+                try {
+                    entry.getValue().getOut().write(s.getBytes(StandardCharsets.UTF_8));
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void disposeOutput() throws IOException {
+        if (session != null) {
+            session.close();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+        super.disposeOutput();
+    }
+
+    protected SimpleMetadataHandler newMetadataHandler() throws IOException {
+        if (settings.containsSetting("handler")) {
+            switch (settings.get("handler")) {
+                case "xml":
+                    return xmlMetadataHandler();
+                case "turtle":
+                    return turtleMetadataHandler();
+                case "ntriples":
+                    return ntripleMetadataHandler();
+            }
+        }
+        return new OAISimpleMetadataHandler();
+    }
+
+    protected SimpleMetadataHandler xmlMetadataHandler() {
+        return new XmlPacketHandlerSimple().setWriter(new StringWriter());
+    }
+
+    protected SimpleMetadataHandler turtleMetadataHandler() throws IOException {
+        final RdfSimpleMetadataHandler metadataHandler = new RdfSimpleMetadataHandler();
+        final RdfResourceHandler resourceHandler = rdfResourceHandler();
+        metadataHandler.setHandler(resourceHandler)
+                .setBuilder(turtleBuilder());
+        return metadataHandler;
+    }
+
+    protected SimpleMetadataHandler ntripleMetadataHandler() throws IOException {
+        final RdfSimpleMetadataHandler metadataHandler = new RdfSimpleMetadataHandler();
+        final RdfResourceHandler resourceHandler = rdfResourceHandler();
+        metadataHandler.setHandler(resourceHandler)
+                .setBuilder(ntripleBuilder());
+        return metadataHandler;
+    }
+
     protected RdfResourceHandler rdfResourceHandler() {
         RdfContentParams params = NTripleContentParams.DEFAULT_PARAMS;
         return new RdfResourceHandler(params);
     }
 
-    protected SimpleMetadataHandler newMetadataHandler() {
-        return new OAISimpleMetadataHandler();
-    }
-
     protected String map(String id, String content) throws IOException {
         return content;
+    }
+
+    class XmlPacketHandlerSimple extends XmlSimpleMetadataHandler {
+
+        public void endDocument() throws SAXException {
+            super.endDocument();
+            logger.debug("got XML document {}", getIdentifier());
+            try {
+                StringPacket p = session.newPacket();
+                p.name(getIdentifier());
+                String s = getWriter().toString();
+                // for Unicode in non-canonical form, normalize it here
+                s = Normalizer.normalize(s, Normalizer.Form.NFC);
+                p.packet(s);
+                session.write(p);
+            } catch (IOException e) {
+                throw new SAXException(e);
+            }
+            setWriter(new StringWriter());
+        }
     }
 
     public class OAISimpleMetadataHandler extends SimpleMetadataHandler {

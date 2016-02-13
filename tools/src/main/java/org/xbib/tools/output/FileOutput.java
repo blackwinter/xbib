@@ -19,9 +19,9 @@ public class FileOutput {
 
     private final static Logger logger = LogManager.getLogger(FileOutput.class);
 
-    private final Map<String,BufferedOutputStream> fileMap = new HashMap<>();
+    private final Map<String,Entry> fileMap = new HashMap<>();
 
-    public Map<String,BufferedOutputStream> getFileMap() {
+    public Map<String,Entry> getMap() {
         return fileMap;
     }
 
@@ -50,15 +50,38 @@ public class FileOutput {
             }
             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
             logger.info("opening {} for write", entry.getKey());
-            fileMap.put(entry.getKey(), bufferedOutputStream);
+            fileMap.put(entry.getKey(), new Entry(entry.getKey(), path, bufferedOutputStream));
         }
     }
 
     public void closeFileMap() throws IOException {
-        for (Map.Entry<String,BufferedOutputStream> entry : fileMap.entrySet()) {
-            entry.getValue().close();
+        for (Map.Entry<String,Entry> entry : fileMap.entrySet()) {
+            entry.getValue().getOut().close();
             logger.info("closing writes to {}", entry.getKey());
         }
     }
 
+    public class Entry {
+        private final String name;
+        private final Path path;
+        private final BufferedOutputStream out;
+
+        Entry(String name, Path path, BufferedOutputStream out) {
+            this.name = name;
+            this.path = path;
+            this.out = out;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public BufferedOutputStream getOut() {
+            return out;
+        }
+    }
 }

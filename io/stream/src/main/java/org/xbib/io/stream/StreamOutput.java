@@ -35,7 +35,7 @@ import org.xbib.io.BytesReference;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -298,9 +298,9 @@ public abstract class StreamOutput extends OutputStream {
         } else if (type == Byte.class) {
             writeByte((byte) 11);
             writeByte((Byte) value);
-        } else if (type == Date.class) {
+        } else if (type == Instant.class) {
             writeByte((byte) 12);
-            writeLong(((Date) value).getTime());
+            writeLong(((Instant)value).toEpochMilli());
         } else if (value instanceof BytesReference) {
             writeByte((byte) 14);
             writeBytesReference((BytesReference) value);
