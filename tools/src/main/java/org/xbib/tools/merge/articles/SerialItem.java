@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.merge.articles;
 
-import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 
 import java.util.Collection;
 import java.util.HashSet;

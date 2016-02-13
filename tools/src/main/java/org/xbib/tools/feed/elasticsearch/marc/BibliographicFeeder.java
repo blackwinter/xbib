@@ -10,7 +10,7 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
-import org.xbib.tools.output.IndexDefinition;
+import org.xbib.util.IndexDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;

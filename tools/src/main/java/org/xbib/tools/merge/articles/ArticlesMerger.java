@@ -46,9 +46,8 @@ import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.merge.Merger;
-import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
-import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -79,8 +78,6 @@ public class ArticlesMerger extends Merger {
 
     private final static Set<String> docs = Collections.synchronizedSet(new HashSet<>());
 
-    private Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline;
-
     private ArticlesMerger merger;
 
     private Settings settings;
@@ -106,53 +103,36 @@ public class ArticlesMerger extends Merger {
         };
     }
 
-    @Override
-    protected Pipeline<ArticlesMergerWorker, SerialItemRequest> newPipeline() {
-        this.pipeline = new ForkJoinPipeline<>();
-        return this.pipeline;
-    }
-
     protected void setPipeline(Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline) {
         this.pipeline = pipeline;
     }
 
-    protected Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
+    public Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
         return pipeline;
     }
 
     @Override
     public int run(Settings settings) throws Exception {
         this.merger = this;
-        this.settings = settings;
-        try {
-            super.run(settings);
-            // poison element
-            getPipeline().waitFor(new SerialItemRequest());
-            long total = 0L;
-            for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
-                logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
-                        worker,
-                        worker.getMetric().count(),
-                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
-                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
-                        TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
-                total += worker.getMetric().count();
-            }
-            logger.info("total={}", total);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
-        } finally {
-            getPipeline().shutdown();
-            search.shutdown();
-            ingest.flushIngest();
-            ingest.waitForResponses(TimeValue.timeValueSeconds(60));
-            ingest.shutdown();
-        }
-        return 0;
+        return super.run(settings);
     }
 
-    protected void prepareOutput() throws Exception {
+    protected void waitFor() throws IOException {
+        getPipeline().waitFor(new SerialItemRequest());
+        long total = 0L;
+        for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
+            logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
+                    worker,
+                    worker.getMetric().count(),
+                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
+                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                    TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
+            total += worker.getMetric().count();
+        }
+        logger.info("total={}", total);
+    }
+
+    protected void prepareResources() throws Exception {
         this.ingest = createIngest();
         ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
         String indexSettings = settings.get("target-index-settings",
@@ -190,7 +170,7 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    protected void prepareInput() throws Exception {
+    protected void prepareRequests() throws Exception {
         this.search = new SearchTransportClient().init(Settings.settingsBuilder()
                 .put("cluster.name", settings.get("source.cluster"))
                 .put("host", settings.get("source.host"))
@@ -344,11 +324,11 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    protected void disposeInput() throws IOException {
+    protected void disposeRequests() throws IOException {
     }
 
     @Override
-    protected void disposeOutput() throws IOException {
+    protected void disposeResources() throws IOException {
     }
 
     public SearchTransportClient search() {

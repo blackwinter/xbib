@@ -44,7 +44,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.iri.IRI;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;

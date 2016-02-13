@@ -37,7 +37,7 @@ import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.output.ElasticsearchOutput;
-import org.xbib.tools.output.IndexDefinition;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
@@ -80,7 +80,7 @@ public class Feeder extends Converter {
     protected void prepareElasticsearch(Settings elasticsearchSettings) throws IOException {
         ingest = elasticsearchOutput.createIngest(elasticsearchSettings);
         if (ingest != null) {
-            metrics.scheduleIngestMetrics(settings, ingest);
+            metrics.scheduleIngestMetrics(settings, ingest.getMetric());
             indexDefinitionMap = elasticsearchOutput.makeIndexDefinitions(ingest, elasticsearchSettings.getGroups("index"));
             logger.info("creation of {}", indexDefinitionMap.keySet());
             for (Map.Entry<String,IndexDefinition> entry : indexDefinitionMap.entrySet()) {
@@ -123,7 +123,7 @@ public class Feeder extends Converter {
     @Override
     public void close() throws IOException {
         if (metrics != null && ingest != null) {
-            metrics.append(ingest.getMetric());
+            metrics.append("ingest", ingest.getMetric());
         }
         super.close();
     }

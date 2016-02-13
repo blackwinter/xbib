@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.merge.holdingslicenses;
 
-import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.concurrent.WorkerRequest;
 
 public class TitelRecordRequest implements WorkerRequest<TitleRecord> {

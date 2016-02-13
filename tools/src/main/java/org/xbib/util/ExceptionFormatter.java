@@ -74,8 +74,7 @@ public final class ExceptionFormatter {
         if (t != null) {
             try {
                 Method method = t.getClass().getMethod("getCause");
-                Throwable cause = (Throwable) method.invoke(t,
-                        (Object) null);
+                Throwable cause = (Throwable) method.invoke(t, (Object) null);
                 if (cause != null) {
                     append(buf, cause, level + 1, details);
                 }

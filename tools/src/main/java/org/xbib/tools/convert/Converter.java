@@ -117,7 +117,7 @@ public class Converter
     @Override
     public void close() throws IOException {
         if (metrics != null) {
-            metrics.append(getMetric());
+            metrics.append("append", getMetric());
         }
         logger.info("worker closed");
     }
@@ -131,7 +131,13 @@ public class Converter
     }
 
     protected void scheduleMetrics() {
-        metrics.scheduleWorkerMetrics(settings, (ForkJoinPipeline<Converter, URIWorkerRequest>) getPipeline());
+        if (getPipeline().getWorkers() == null || getPipeline().getWorkers().isEmpty()) {
+            logger.warn("no workers for metrics");
+            return;
+        }
+        for (Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker : getPipeline().getWorkers()) {
+            metrics.scheduleMetrics(settings, "meter", worker.getMetric());
+        }
     }
 
     protected void prepareOutput() throws IOException {

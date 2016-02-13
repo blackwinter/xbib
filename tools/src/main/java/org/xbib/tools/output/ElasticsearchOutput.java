@@ -4,21 +4,28 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.unit.TimeValue;
 import org.xbib.common.settings.Settings;
+import org.xbib.common.xcontent.XContentHelper;
 import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.IndexAliasAdder;
 import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.MockTransportClient;
+import org.xbib.util.IndexDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class ElasticsearchOutput {
 
@@ -96,7 +103,20 @@ public class ElasticsearchOutput {
         }
         try (InputStream indexSettingsInput = new URL(indexSettings).openStream();
              InputStream indexMappingsInput = new URL(indexMappings).openStream()) {
-            ingest.newIndex(indexDefinition.getConcreteIndex(), indexDefinition.getType(), indexSettingsInput, indexMappingsInput);
+            // multiple type?
+            if (indexDefinition.getType() == null) {
+                Map<String,String> mapping = new HashMap<>();
+                // get type names from input stream
+                Map<String, Object> map = XContentHelper.convertFromJsonToMap(new InputStreamReader(indexMappingsInput, StandardCharsets.UTF_8));
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    mapping.put(entry.getKey(),  jsonBuilder().map((Map)entry.getValue()).string());
+                }
+                org.elasticsearch.common.settings.Settings settings =
+                        org.elasticsearch.common.settings.Settings.settingsBuilder().loadFromStream("",indexSettingsInput).build();
+                ingest.newIndex(indexDefinition.getConcreteIndex(), settings, mapping);
+            } else {
+                ingest.newIndex(indexDefinition.getConcreteIndex(), indexDefinition.getType(), indexSettingsInput, indexMappingsInput);
+            }
         } catch (Exception e) {
             if (!indexDefinition.ignoreErrors()) {
                 throw new IOException(e);

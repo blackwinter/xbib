@@ -3,18 +3,13 @@ package org.xbib.tools.metrics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.IngestMetric;
 import org.xbib.graphics.chart.ChartBuilderXY;
 import org.xbib.graphics.chart.ChartXY;
 import org.xbib.graphics.chart.VectorGraphicsEncoder;
 import org.xbib.graphics.chart.internal.style.Styler;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.convert.Converter;
 import org.xbib.util.FormatUtil;
-import org.xbib.util.concurrent.ForkJoinPipeline;
-import org.xbib.util.concurrent.URIWorkerRequest;
-import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -63,10 +58,6 @@ public class Metrics {
         Map<String,Settings> metricSettings = settings.getGroups("metrics");
         for (Map.Entry<String,Settings> entry : metricSettings.entrySet()) {
             String type = entry.getKey();
-            // ignore everything execpt "meter" and "ingest"
-            if (!"meter".equals(type) && !"ingest".equals(type)) {
-                continue;
-            }
             String name = entry.getValue().get("name", entry.getKey());
             Path path = Paths.get(name);
             try {
@@ -93,39 +84,37 @@ public class Metrics {
         }
     }
 
-    public void scheduleWorkerMetrics(Settings settings, ForkJoinPipeline<Converter, URIWorkerRequest> pipeline) {
+    public void scheduleMetrics(Settings settings, String type, MeterMetric metric) {
         if (settings == null) {
             logger.warn("no settings");
             return;
         }
-        // run every 10 seconds by default
-        long value = settings.getAsLong("schedule.metrics.seconds", 10L);
-        if (pipeline.getWorkers() == null || pipeline.getWorkers().isEmpty()) {
-            logger.warn("no workers");
+        if (type == null || !type.startsWith("meter")) {
+            logger.warn("not a metric type that starts with meter*");
             return;
         }
-        for (Worker worker : pipeline.getWorkers()) {
-            service.scheduleAtFixedRate(new MeterMetricThread(worker.getMetric()), 0L, value, TimeUnit.SECONDS);
-            logger.info("scheduled worker metrics at {} seconds", value);
-        }
+        // run every 10 seconds by default
+        long value = settings.getAsLong("schedule.metrics.seconds", 10L);
+        service.scheduleAtFixedRate(new MeterMetricThread(type, metric), 0L, value, TimeUnit.SECONDS);
+        logger.info("scheduled meter metrics at {} seconds", value);
     }
 
-    public void scheduleIngestMetrics(Settings settings, Ingest ingest) {
+    public void scheduleIngestMetrics(Settings settings, IngestMetric ingestMetric) {
         if (settings == null) {
             logger.warn("no settings");
             return;
         }
-        if (ingest == null) {
-            logger.warn("no ingest");
+        if (ingestMetric == null) {
+            logger.warn("no ingest metric");
             return;
         }
         // run every 10 seconds by default
         long value = settings.getAsLong("schedule.metrics.seconds", 10L);
-        service.scheduleAtFixedRate(new IngestMetricThread(ingest.getMetric()), 0L, value, TimeUnit.SECONDS);
+        service.scheduleAtFixedRate(new IngestMetricThread("ingest", ingestMetric), 0L, value, TimeUnit.SECONDS);
         logger.info("scheduled ingest metrics at {} seconds", value);
     }
 
-    public synchronized void append(MeterMetric metric) {
+    public synchronized void append(String type, MeterMetric metric) {
         if (metric == null) {
             return;
         }
@@ -137,7 +126,8 @@ public class Metrics {
         long fiveminute = Math.round(metric.fiveMinuteRate());
         long fifteenminute = Math.round(metric.fifteenMinuteRate());
 
-        logger.info("meter: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
+        logger.info("{}: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
+                type,
                 docs,
                 elapsed,
                 FormatUtil.formatDurationWords(elapsed, true, true),
@@ -152,7 +142,7 @@ public class Metrics {
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
             try {
                 MetricWriter writer = entry.getValue();
-                if ("meter".equals(writer.type) && writer.writer != null) {
+                if (type.equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
                     String format = settings.get("format", "%s\t%d\t%d\n");
@@ -166,7 +156,7 @@ public class Metrics {
         }
     }
 
-    public synchronized void append(IngestMetric metric) {
+    public synchronized void append(String type, IngestMetric metric) {
         if (metric == null) {
             return;
         }
@@ -177,7 +167,8 @@ public class Metrics {
         double avg = bytes / (docs + 1.0); // avoid div by zero
         double bps = bytes * 1000.0 / elapsed;
 
-        logger.info("ingest: {} docs, {} ms = {}, {} = {}, {} = {} avg, {} = {}, {} = {}",
+        logger.info("{}: {} docs, {} ms = {}, {} = {}, {} = {} avg, {} = {}, {} = {}",
+                type,
                 docs,
                 elapsed,
                 FormatUtil.formatDurationWords(elapsed, true, true),
@@ -194,7 +185,7 @@ public class Metrics {
         for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
             try {
                 MetricWriter writer = entry.getValue();
-                if ("ingest".equals(writer.type) && writer.writer != null) {
+                if (type.equals(writer.type) && writer.writer != null) {
                     Settings settings = writer.settings;
                     Locale locale = writer.locale;
                     String format = settings.get("format", "%s\t%d\t%d\t%d\n");
@@ -220,77 +211,74 @@ public class Metrics {
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }
+            toChart(entry);
         }
-        toChart();
     }
 
-    public void toChart() throws IOException {
-        for (Map.Entry<String, MetricWriter> entry : writers.entrySet()) {
-            MetricWriter writer = entry.getValue();
-            if ("meter".equals(writer.type) && writer.chart != null) {
-                final List<Instant> xData = new ArrayList<>();
-                final List<Double> yData = new ArrayList<>();
-                try (Stream<String> stream = Files.lines(writer.path)) {
-                    stream.map(line -> Arrays.asList(line.split("\t")))
-                            .map(list -> {
-                                long elapsed = Long.parseLong(list.get(1));
-                                double docs = Double.parseDouble(list.get(2));
-                                xData.add(Instant.ofEpochMilli(elapsed));
-                                yData.add(docs * 1000.0 / elapsed);
-                                return list;
-                            }).collect(Collectors.toList());
-                }
-                logger.info("{}: x={}, y={}",
-                        writer.type, xData.size(), yData.size());
-                if (!xData.isEmpty() && !yData.isEmpty()) {
-                    ChartXY chart = new ChartBuilderXY().width(1024).height(800)
-                            .theme(Styler.ChartTheme.Matlab)
-                            .title(writer.title)
-                            .xAxisTitle("t")
-                            .yAxisTitle("dps")
-                            .build();
-                    chart.getStyler().setPlotGridLinesVisible(false);
-                    chart.getStyler().setXAxisTickMarkSpacingHint(100);
-                    chart.getStyler().setDatePattern("HH:mm:ss");
-                    chart.getStyler().setZoneId(ZoneId.of("UTC"));
-                    chart.addSeries("Bulk index input rate", xData, yData);
-                    VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
-                            VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
-                }
+    public void toChart(Map.Entry<String, MetricWriter> entry) throws IOException {
+        MetricWriter writer = entry.getValue();
+        if (writer.type.startsWith("meter") && writer.chart != null) {
+            final List<Instant> xData = new ArrayList<>();
+            final List<Double> yData = new ArrayList<>();
+            try (Stream<String> stream = Files.lines(writer.path)) {
+                stream.map(line -> Arrays.asList(line.split("\t")))
+                        .map(list -> {
+                            long elapsed = Long.parseLong(list.get(1));
+                            double docs = Double.parseDouble(list.get(2));
+                            xData.add(Instant.ofEpochMilli(elapsed));
+                            yData.add(docs * 1000.0 / elapsed);
+                            return list;
+                        }).collect(Collectors.toList());
             }
-            if ("ingest".equals(writer.type) && writer.chart != null) {
-                final List<Instant> xData = new ArrayList<>();
-                final List<Double> yData = new ArrayList<>();
-                final List<Double> y2Data = new ArrayList<>();
-                try (Stream<String> stream = Files.lines(writer.path)) {
-                    stream.map(line -> Arrays.asList(line.split("\t")))
-                            .map(list -> {
-                                long elapsed = Long.parseLong(list.get(1));
-                                double bytes = Double.parseDouble(list.get(2)) / 1024.0;
-                                double docs = Double.parseDouble(list.get(3));
-                                xData.add(Instant.ofEpochMilli(elapsed));
-                                yData.add(docs * 1000.0 / elapsed);
-                                y2Data.add(bytes * 1000.0 / elapsed);
-                                return list;
-                            }).collect(Collectors.toList());
-                }
-                logger.info("{}: x={}, y1={}, y2={}",
-                        writer.type, xData.size(), yData.size(), y2Data.size());
-                if (!xData.isEmpty() && !yData.isEmpty() && !y2Data.isEmpty()) {
-                    ChartXY chart = new ChartBuilderXY().width(1024).height(800)
-                            .theme(Styler.ChartTheme.Matlab)
-                            .title(writer.title)
-                            .xAxisTitle("t")
-                            .yAxisTitle("rate")
-                            .build();
-                    chart.getStyler().setPlotGridLinesVisible(false);
-                    chart.getStyler().setXAxisTickMarkSpacingHint(100);
-                    chart.getStyler().setDatePattern("HH:mm:ss");
-                    chart.addSeries("Bulk index output rate", xData, yData);
-                    chart.addSeries("Bulk index volume rate", xData, y2Data);
-                    VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
-                            VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
-                }
+            logger.info("{}: x={}, y={}",
+                    writer.type, xData.size(), yData.size());
+            if (!xData.isEmpty() && !yData.isEmpty()) {
+                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                        .theme(Styler.ChartTheme.Matlab)
+                        .title(writer.title)
+                        .xAxisTitle("t")
+                        .yAxisTitle("dps")
+                        .build();
+                chart.getStyler().setPlotGridLinesVisible(false);
+                chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                chart.getStyler().setDatePattern("HH:mm:ss");
+                chart.getStyler().setZoneId(ZoneId.of("UTC"));
+                chart.addSeries("Bulk index input rate", xData, yData);
+                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
+            }
+        } else if (writer.type.startsWith("ingest") && writer.chart != null) {
+            final List<Instant> xData = new ArrayList<>();
+            final List<Double> yData = new ArrayList<>();
+            final List<Double> y2Data = new ArrayList<>();
+            try (Stream<String> stream = Files.lines(writer.path)) {
+                stream.map(line -> Arrays.asList(line.split("\t")))
+                        .map(list -> {
+                            long elapsed = Long.parseLong(list.get(1));
+                            double bytes = Double.parseDouble(list.get(2)) / 1024.0;
+                            double docs = Double.parseDouble(list.get(3));
+                            xData.add(Instant.ofEpochMilli(elapsed));
+                            yData.add(docs * 1000.0 / elapsed);
+                            y2Data.add(bytes * 1000.0 / elapsed);
+                            return list;
+                        }).collect(Collectors.toList());
+            }
+            logger.info("{}: x={}, y1={}, y2={}",
+                    writer.type, xData.size(), yData.size(), y2Data.size());
+            if (!xData.isEmpty() && !yData.isEmpty() && !y2Data.isEmpty()) {
+                ChartXY chart = new ChartBuilderXY().width(1024).height(800)
+                        .theme(Styler.ChartTheme.Matlab)
+                        .title(writer.title)
+                        .xAxisTitle("t")
+                        .yAxisTitle("rate")
+                        .build();
+                chart.getStyler().setPlotGridLinesVisible(false);
+                chart.getStyler().setXAxisTickMarkSpacingHint(100);
+                chart.getStyler().setDatePattern("HH:mm:ss");
+                chart.addSeries("Bulk index output rate", xData, yData);
+                chart.addSeries("Bulk index volume rate", xData, y2Data);
+                VectorGraphicsEncoder.write(chart, Files.newOutputStream(writer.chart),
+                        VectorGraphicsEncoder.VectorGraphicsFormat.SVG);
             }
         }
     }
@@ -307,30 +295,37 @@ public class Metrics {
 
     class MeterMetricThread extends Thread {
 
+        private final String type;
+
         private final MeterMetric metric;
 
-        public MeterMetricThread(MeterMetric meterMetric) {
+        public MeterMetricThread(String type, MeterMetric meterMetric) {
+            this.type = type;
             this.metric = meterMetric;
             setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(metric);
+            append(type, metric);
         }
     }
 
     class IngestMetricThread extends Thread {
+
+        private final String type;
+
         private final IngestMetric metric;
 
-        public IngestMetricThread(IngestMetric metric) {
+        public IngestMetricThread(String type, IngestMetric metric) {
+            this.type = type;
             this.metric = metric;
             setDaemon(true);
         }
 
         @Override
         public void run() {
-            append(metric);
+            append(type, metric);
         }
     }
 

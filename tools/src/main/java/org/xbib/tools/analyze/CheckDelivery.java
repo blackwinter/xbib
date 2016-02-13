@@ -39,7 +39,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.tools.merge.serials.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

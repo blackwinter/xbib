@@ -65,7 +65,7 @@ public interface Pipeline<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRe
     Pipeline<W,R> setQueue(BlockingQueue<R> queue);
 
     /**
-     * Get teh request queue.
+     * Get the request queue.
      * @return the requests queue
      */
     BlockingQueue<R> getQueue();

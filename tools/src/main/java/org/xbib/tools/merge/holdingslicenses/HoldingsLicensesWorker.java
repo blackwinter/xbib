@@ -35,24 +35,24 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.xbib.common.settings.Settings;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.metric.MeterMetric;
-import org.xbib.tools.merge.serials.support.StatCounter;
-import org.xbib.tools.merge.serials.entities.Holding;
-import org.xbib.tools.merge.serials.entities.Indicator;
-import org.xbib.tools.merge.serials.entities.License;
-import org.xbib.tools.merge.serials.entities.TitleRecord;
-import org.xbib.tools.merge.serials.entities.MonographVolume;
-import org.xbib.tools.merge.serials.entities.MonographVolumeHolding;
+import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
+import org.xbib.tools.merge.holdingslicenses.entities.Holding;
+import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
+import org.xbib.tools.merge.holdingslicenses.entities.License;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
+import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
+import org.xbib.util.ExceptionFormatter;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
-import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
@@ -69,6 +69,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -83,105 +84,63 @@ public class HoldingsLicensesWorker
         COLLECTING_CANDIDATES, PROCESSING, INDEXING
     }
 
+    private Pipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline;
+    private MeterMetric metric;
     private final int number;
     private final HoldingsLicensesMerger holdingsLicensesMerger;
     private final Logger logger;
     private final Queue<ClusterBuildContinuation> buildQueue;
 
-    private final String sourceTitleIndex;
-    private final String sourceTitleType;
-    private final String sourceHoldingsIndex;
-    private final String sourceHoldingsType;
-    private final String sourceLicenseIndex;
-    private final String sourceLicenseType;
-    private final String sourceIndicatorIndex;
-    private final String sourceIndicatorType;
-    private final String sourceMonographicIndex;
-    private final String sourceMonographicHoldingsIndex;
+    private String sourceTitleIndex;
+    private String sourceHoldingsIndex;
+    private String sourceLicenseIndex;
+    private String sourceIndicatorIndex;
+    private String sourceMonographicIndex;
+    private String sourceMonographicHoldingsIndex;
+    private String sourceOpenAccessIndex;
 
-    private final String manifestationsIndex;
-    private final String manifestationsIndexType;
-    private final String holdingsIndex;
-    private final String holdingsIndexType;
-    private final String volumesIndex;
-    private final String volumesIndexType;
-    private final String serviceIndex;
-    private final String serviceIndexType;
+    private String manifestationsIndex;
+    private String manifestationsIndexType;
+    private String holdingsIndex;
+    private String holdingsIndexType;
+    private String volumesIndex;
+    private String volumesIndexType;
+    private String servicesIndex;
+    private String servicesIndexType;
 
     private State state;
 
     private Set<TitleRecord> candidates;
 
+    @SuppressWarnings("unchecked")
     public HoldingsLicensesWorker(HoldingsLicensesMerger holdingsLicensesMerger, int number) {
         this.number = number;
         this.holdingsLicensesMerger = holdingsLicensesMerger;
         this.buildQueue = new ConcurrentLinkedQueue<>();
         this.logger = LogManager.getLogger(toString());
-
-        Settings settings = holdingsLicensesMerger.settings();
-        this.sourceTitleIndex = settings.get("bib-index");
-        this.sourceTitleType = settings.get("bib-type");
-        this.sourceHoldingsIndex = settings.get("hol-index");
-        this.sourceHoldingsType = settings.get("hol-type");
-        this.sourceLicenseIndex = settings.get("xml-license-index");
-        this.sourceLicenseType = settings.get("xml-license-type");
-        this.sourceIndicatorIndex = settings.get("web-license-index");
-        this.sourceIndicatorType = settings.get("web-license-type");
-        this.sourceMonographicIndex = settings.get("monographic-index");
-        this.sourceMonographicHoldingsIndex = settings.get("monographic-hol-index");
-
-        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
-            throw new IllegalArgumentException("no bib-index parameter given");
-        }
-        if (Strings.isNullOrEmpty(sourceHoldingsIndex)) {
-            throw new IllegalArgumentException("no hol-index parameter given");
-        }
-        if (Strings.isNullOrEmpty(sourceLicenseIndex)) {
-            throw new IllegalArgumentException("no xml-license-index parameter given");
-        }
-        if (Strings.isNullOrEmpty(sourceIndicatorIndex)) {
-            throw new IllegalArgumentException("no web-license-index parameter given");
-        }
-        if (Strings.isNullOrEmpty(sourceMonographicIndex)) {
-            throw new IllegalArgumentException("no monographic-index parameter given");
-        }
-        if (Strings.isNullOrEmpty(sourceMonographicHoldingsIndex)) {
-            throw new IllegalArgumentException("no monographic-hol-index parameter given");
-        }
-
-        String index = settings.get("index");
-        if (index == null) {
-            throw new IllegalArgumentException("no index given");
-        }
-        this.manifestationsIndex = settings.get("manifestations-index", index);
-        this.manifestationsIndexType = settings.get("manifestations-type", "Manifestations");
-        this.holdingsIndex = settings.get("holdings-index", index);
-        this.holdingsIndexType = settings.get("holdings-type", "Holdings");
-        this.volumesIndex = settings.get("volumes-index", index);
-        this.volumesIndexType = settings.get("volumes-type", "Volumes");
-        this.serviceIndex = settings.get("service-index", index);
-        this.serviceIndexType = settings.get("service-type", "Services");
+        this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
     }
 
     @Override
     public Worker<Pipeline<HoldingsLicensesWorker, TitelRecordRequest>, TitelRecordRequest> setPipeline(Pipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline) {
-        // unused
+        this.pipeline = pipeline;
         return this;
     }
 
-    public ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> getPipeline() {
-        return holdingsLicensesMerger.getPipeline();
+    @Override
+    public Pipeline<HoldingsLicensesWorker, TitelRecordRequest> getPipeline() {
+        return pipeline;
     }
 
     @Override
     public HoldingsLicensesWorker setMetric(MeterMetric metric) {
-        // ignore
+        this.metric = metric;
         return this;
     }
 
     @Override
     public MeterMetric getMetric() {
-        return null; // no metric
+        return metric;
     }
 
     public Queue<ClusterBuildContinuation> getBuildQueue() {
@@ -193,25 +152,67 @@ public class HoldingsLicensesWorker
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public TitelRecordRequest call() throws Exception {
-        logger.info("worker starting");
+        logger.info("worker {} starting", this);
         TitelRecordRequest element = null;
         TitleRecord titleRecord = null;
         try {
+            Map<String,IndexDefinition> indexDefinitionMap = holdingsLicensesMerger.getInputIndexDefinitionMap();
+            this.sourceTitleIndex = indexDefinitionMap.get("zdb").getIndex();
+            if (Strings.isNullOrEmpty(sourceTitleIndex)) {
+                throw new IllegalArgumentException("no zdb index given");
+            }
+            this.sourceHoldingsIndex = indexDefinitionMap.get("zdbholdings").getIndex();
+            if (Strings.isNullOrEmpty(sourceHoldingsIndex)) {
+                throw new IllegalArgumentException("no zdbholdings index given");
+            }
+            this.sourceLicenseIndex = indexDefinitionMap.get("ezbxml").getIndex();
+            if (Strings.isNullOrEmpty(sourceLicenseIndex)) {
+                throw new IllegalArgumentException("no ezbxml index given");
+            }
+            this.sourceIndicatorIndex = indexDefinitionMap.get("ezbweb").getIndex();
+            if (Strings.isNullOrEmpty(sourceIndicatorIndex)) {
+                throw new IllegalArgumentException("no ezbweb index given");
+            }
+            this.sourceMonographicIndex = indexDefinitionMap.get("hbz").getIndex();
+            if (Strings.isNullOrEmpty(sourceMonographicIndex)) {
+                throw new IllegalArgumentException("no hbz index given");
+            }
+            this.sourceMonographicHoldingsIndex = indexDefinitionMap.get("hbzholdings").getIndex();
+            if (Strings.isNullOrEmpty(sourceMonographicHoldingsIndex)) {
+                throw new IllegalArgumentException("no hbzholdings index given");
+            }
+            this.sourceOpenAccessIndex = indexDefinitionMap.get("doaj").getIndex();
+            if (Strings.isNullOrEmpty(sourceOpenAccessIndex)) {
+                throw new IllegalArgumentException("no doaj index given");
+            }
+            indexDefinitionMap = holdingsLicensesMerger.getOutputIndexDefinitionMap();
+            String indexName = indexDefinitionMap.get("holdingslicenses").getConcreteIndex();
+            this.manifestationsIndex = indexName;
+            this.manifestationsIndexType = "manifestations";
+            this.holdingsIndex = indexName;
+            this.holdingsIndexType = "holdings";
+            this.volumesIndex = indexName;
+            this.volumesIndexType = "volumes";
+            this.servicesIndex = indexName;
+            this.servicesIndexType = "services";
             element = getPipeline().getQueue().take();
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
+                logger.info("processing title record");
                 process(titleRecord);
                 element = getPipeline().getQueue().take();
                 titleRecord = element != null ? element.get() : null;
             }
             getPipeline().quit(this);
         } catch (Throwable e) {
-            //logger.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             //logger.error(ExceptionFormatter.format(e));
-            //logger.error("exiting, exception while processing {}", titleRecord);
+            logger.error("exiting, exception while processing {}", titleRecord);
             getPipeline().quit(this, e);
         } finally {
+            metric.stop();
             logger.info("worker terminating");
         }
         return element;
@@ -219,13 +220,13 @@ public class HoldingsLicensesWorker
 
     @Override
     public void close() throws IOException {
-        if (!getPipeline().getQueue().isEmpty()) {
+        /*if (!getPipeline().getQueue().isEmpty()) {
             logger.error("queue not empty?");
         }
         if (!buildQueue.isEmpty()) {
             logger.error("complete queue not empty?");
         }
-        logger.info("closing");
+        logger.info("closing");*/
     }
 
     @Override
@@ -242,6 +243,7 @@ public class HoldingsLicensesWorker
         searchNeighbors(titleRecord, candidates, 0);
         // process build queue to get candidates
         ClusterBuildContinuation cont;
+        logger.debug("build queue size = {}", buildQueue.size());
         while ((cont = buildQueue.poll()) != null) {
             for (TitleRecord tr : cont.cluster) {
                 candidates.add(tr);
@@ -307,19 +309,20 @@ public class HoldingsLicensesWorker
             return;
         }
         QueryBuilder queryBuilder = termsQuery("IdentifierDNB.identifierDNB", neighbors.toArray());
-        SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+        SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                .prepareSearch()
+                .setIndices(sourceTitleIndex)
                 .setQuery(queryBuilder)
                 .setSize(holdingsLicensesMerger.size()) // size is per shard!
-                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()));
-        searchRequest.setIndices(sourceTitleIndex);
-        if (sourceTitleType != null) {
-            searchRequest.setTypes(sourceTitleType);
-        }
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
-        searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
                 .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                .execute().actionGet();
-        holdingsLicensesMerger.queryMetric().mark();
+                .addSort(SortBuilders.fieldSort("_doc"));
+        logger.debug("searchRequest {}", searchRequest);
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        /*searchResponse = holdingsLicensesMerger.search().client()
+                .prepareSearchScroll(searchResponse.getScrollId())
+                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                .execute().actionGet();*/
+        getMetric().mark();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
             return;
@@ -334,11 +337,9 @@ public class HoldingsLicensesWorker
     private void continueClusterBuild(Set<TitleRecord> titleRecords, ClusterBuildContinuation c, int level)
             throws IOException {
         SearchResponse searchResponse = c.searchResponse;
-        SearchHits hits;
         do {
-            hits = searchResponse.getHits();
-            for (int i = c.pos; i < hits.getHits().length; i++) {
-                SearchHit hit = hits.getAt(i);
+            for (int i = c.pos; i < searchResponse.getHits().getHits().length; i++) {
+                SearchHit hit = searchResponse.getHits().getAt(i);
                 TitleRecord m = new TitleRecord(hit.getSource());
                 if (m.id().equals(c.titleRecord.id())) {
                     continue;
@@ -369,12 +370,13 @@ public class HoldingsLicensesWorker
                     searchNeighbors(m, titleRecords, level + 1);
                 }
             }
-            searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
+            logger.debug("scroll");
+            searchResponse = holdingsLicensesMerger.search().client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
                     .execute().actionGet();
-            holdingsLicensesMerger.queryMetric().mark();
-            hits = searchResponse.getHits();
-        } while (hits.getHits().length > 0);
+            getMetric().mark();
+        } while (searchResponse.getHits().getHits().length > 0);
     }
 
     private boolean detectCollisionAndTransfer(TitleRecord titleRecord, ClusterBuildContinuation c, int pos) {
@@ -393,11 +395,10 @@ public class HoldingsLicensesWorker
                 c.pos = pos;
                 // remove from our candidates, because we pass them over to other thread
                 candidates.remove(titleRecord);
-
                 for (TitleRecord tr : c.cluster) {
                     candidates.remove(tr);
                 }
-                pipeline.getBuildQueue().offer(c);
+                getBuildQueue().offer(c);
                 return true;
             }
         }
@@ -421,6 +422,7 @@ public class HoldingsLicensesWorker
         searchHoldings(map, holdings);
     }
 
+    @SuppressWarnings("unchecked")
     private void searchHoldings(Map<String, TitleRecord> titleRecordMap, Set<Holding> holdings)
             throws IOException {
         if (sourceHoldingsIndex == null) {
@@ -436,31 +438,22 @@ public class HoldingsLicensesWorker
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("identifierForTheParentRecord", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                    .prepareSearch()
                     .setQuery(queryBuilder)
                     .setSize(holdingsLicensesMerger.size())
-                    .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()));
+                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .addSort(SortBuilders.fieldSort("_doc"));
             searchRequest.setIndices(sourceHoldingsIndex);
-            if (sourceHoldingsType != null) {
-                searchRequest.setTypes(sourceHoldingsType);
-            }
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             /*logger.debug("searchHoldings search request = {}/{} {} hits={}",
                     sourceHoldingsIndex,
                     sourceHoldingsType,
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());*/
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                        .execute().actionGet();
-                holdingsLicensesMerger.queryMetric().mark();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+            do {
+                getMetric().mark();
+                for (SearchHit hit : searchResponse.getHits()) {
                     Holding holding = new Holding(hit.getSource());
                     if (holding.isDeleted()) {
                         continue;
@@ -500,7 +493,11 @@ public class HoldingsLicensesWorker
                         holdings.add(holding);
                     }
                 }
-            }
+                searchResponse = holdingsLicensesMerger.search().client()
+                        .prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
         }
     }
 
@@ -538,29 +535,20 @@ public class HoldingsLicensesWorker
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("ezb:zdbid", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                    .prepareSearch()
+                    .setIndices(sourceLicenseIndex)
                     .setQuery(queryBuilder)
                     .setSize(holdingsLicensesMerger.size())
-                    .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()));
-            searchRequest.setIndices(sourceLicenseIndex);
-            if (sourceLicenseType != null) {
-                searchRequest.setTypes(sourceLicenseType);
-            }
+                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            /*logger.debug("searchLicenses search request = {} hits={}",
+            logger.debug("searchLicenses search request = {} hits={}",
                     searchRequest.toString(),
-                    searchResponse.getHits().getTotalHits());*/
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                        .execute().actionGet();
-                holdingsLicensesMerger.queryMetric().mark();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+                    searchResponse.getHits().getTotalHits());
+            do {
+                getMetric().mark();
+                for (SearchHit hit :  searchResponse.getHits()) {
                     License license = new License(hit.getSource());
                     if (license.isDeleted()) {
                         continue;
@@ -590,7 +578,11 @@ public class HoldingsLicensesWorker
                     }
                     licenses.add(license);
                 }
-            }
+                searchResponse = holdingsLicensesMerger.search().client()
+                       .prepareSearchScroll(searchResponse.getScrollId())
+                       .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                       .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
         }
     }
 
@@ -608,25 +600,19 @@ public class HoldingsLicensesWorker
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("xbib:identifier", subarray);
             // getSize is per shard
-            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                    .prepareSearch()
+                    .setIndices(sourceIndicatorIndex)
                     .setQuery(queryBuilder)
                     .setSize(holdingsLicensesMerger.size())
-                    .setSearchType(SearchType.SCAN)
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()));
-            searchRequest.setIndices(sourceIndicatorIndex);
-            if (sourceLicenseType != null) {
-                searchRequest.setTypes(sourceIndicatorType);
-            }
+                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                        .execute().actionGet();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+            logger.debug("searchIndicators search request = {} hits={}",
+                    searchRequest.toString(),
+                    searchResponse.getHits().getTotalHits());
+            do {
+                for (SearchHit hit :  searchResponse.getHits()) {
                     Indicator indicator = new Indicator(hit.getSource());
                     String isil = indicator.getISIL();
                     if (isil == null) {
@@ -654,38 +640,39 @@ public class HoldingsLicensesWorker
                     }
                     indicators.add(indicator);
                 }
-            }
+                searchResponse = holdingsLicensesMerger.search().client()
+                        .prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
         }
     }
 
     private void searchMonographs(Collection<TitleRecord> titleRecords) throws IOException {
         for (TitleRecord titleRecord : titleRecords) {
-            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+            SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                    .prepareSearch()
                     .setIndices(sourceMonographicIndex)
                     .setSize(holdingsLicensesMerger.size())
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                    .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+                    .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()))
+                    .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            holdingsLicensesMerger.queryMetric().mark();
-            /*logger.debug("searchMonographs search request = {} hits={}",
-                    searchRequest.toString(), searchResponse.getHits().getTotalHits());*/
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                        .execute().actionGet();
-                holdingsLicensesMerger.queryMetric().mark();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+            logger.debug("searchMonographs search request = {} hits={}",
+                    searchRequest.toString(), searchResponse.getHits().getTotalHits());
+            do {
+                getMetric().mark();
+                for (SearchHit hit : searchResponse.getHits()) {
                     Map<String, Object> m = hit.getSource();
                     MonographVolume volume = new MonographVolume(m, titleRecord);
                     searchExtraHoldings(volume);
                     searchSeriesVolumeHoldings(volume);
                 }
-            }
+                searchResponse = holdingsLicensesMerger.search().client()
+                        .prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
         }
     }
 
@@ -697,26 +684,19 @@ public class HoldingsLicensesWorker
     private void searchExtraHoldings(MonographVolume volume) {
         TitleRecord titleRecord = volume.getTitleRecord();
         String key = volume.id();
-        SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+        SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
+                .prepareSearch()
                 .setIndices(sourceMonographicHoldingsIndex)
                 .setSize(holdingsLicensesMerger.size())
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                .setQuery(termQuery("xbib.uid", key));
+                .setQuery(termQuery("xbib.uid", key))
+                .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
-        holdingsLicensesMerger.queryMetric().mark();
-        //logger.debug("searchExtraHoldings search request = {} hits={}",
-        //        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
-        while (holdingSearchResponse.getScrollId() != null) {
-            holdingSearchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(holdingSearchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                    .execute().actionGet();
-            holdingsLicensesMerger.queryMetric().mark();
-            SearchHits holdingHits = holdingSearchResponse.getHits();
-            if (holdingHits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit holdingHit : holdingHits) {
+        logger.debug("searchExtraHoldings search request = {} hits={}",
+                holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
+        do {
+            getMetric().mark();
+            for (SearchHit holdingHit :  holdingSearchResponse.getHits()) {
                 Object o = holdingHit.getSource().get("Item");
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -739,7 +719,11 @@ public class HoldingsLicensesWorker
                     }
                 }
             }
-        }
+            holdingSearchResponse = holdingsLicensesMerger.search().client()
+                    .prepareSearchScroll(holdingSearchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .execute().actionGet();
+        } while (holdingSearchResponse.getHits().getHits().length > 0);
     }
 
     /**
@@ -747,49 +731,45 @@ public class HoldingsLicensesWorker
      * @param parent the parent volume
      * @throws IOException
      */
+    @SuppressWarnings("unchecked")
     private void searchSeriesVolumeHoldings(MonographVolume parent)
             throws IOException {
         TitleRecord titleRecord = parent.getTitleRecord();
         // search children volumes of the series (conference, processing, abstract, ...)
-        SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+        SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
+                .prepareSearch()
                 .setIndices(sourceMonographicIndex)
                 .setSize(holdingsLicensesMerger.size())
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
                 .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
-                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())));
+                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())))
+                .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        holdingsLicensesMerger.queryMetric().mark();
-        //logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
-        //        searchRequest.toString(), searchResponse.getHits().getTotalHits());
-        while (searchResponse.getScrollId() != null) {
-            searchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                    .execute().actionGet();
-            holdingsLicensesMerger.queryMetric().mark();
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit hit : hits) {
+        logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
+                searchRequest.toString(), searchResponse.getHits().getTotalHits());
+        do {
+            getMetric().mark();
+            for (SearchHit hit : searchResponse.getHits()) {
                 MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
                 volume.addParent(titleRecord.externalID());
                 // for each conference/congress, search holdings
-                SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client().prepareSearch()
+                SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
+                        .prepareSearch()
                         .setIndices(sourceMonographicHoldingsIndex)
                         .setSize(holdingsLicensesMerger.size())
-                        .setSearchType(SearchType.SCAN)
                         .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                        .setQuery(termQuery("xbib.uid", volume.id()));
+                        .setQuery(termQuery("xbib.uid", volume.id()))
+                        .addSort(SortBuilders.fieldSort("_doc"));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
-                holdingsLicensesMerger.queryMetric().mark();
+                getMetric().mark();
                 //logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
                 //        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
                 while (holdingSearchResponse.getScrollId() != null) {
-                    holdingSearchResponse = holdingsLicensesMerger.search().client().prepareSearchScroll(holdingSearchResponse.getScrollId())
+                    holdingSearchResponse = holdingsLicensesMerger.search().client()
+                            .prepareSearchScroll(holdingSearchResponse.getScrollId())
                             .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
                             .execute().actionGet();
-                    holdingsLicensesMerger.queryMetric().mark();
+                    getMetric().mark();
                     SearchHits holdingHits = holdingSearchResponse.getHits();
                     if (holdingHits.getHits().length == 0) {
                         break;
@@ -823,12 +803,16 @@ public class HoldingsLicensesWorker
                 // this also copies holdings from the found volume to the title record
                 titleRecord.addVolume(volume);
             }
-        }
+            searchResponse = holdingsLicensesMerger.search().client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .execute().actionGet();
+        } while (searchResponse.getHits().getHits().length > 0);
     }
 
     @SuppressWarnings("unchecked")
     private Set<String> findTheRelationsBetween(TitleRecord titleRecord, String id) {
-        Set<String> relationNames = new HashSet<String>();
+        Set<String> relationNames = new HashSet<>();
         for (String entry : TitleRecord.relationEntries()) {
             Object o = titleRecord.map().get(entry);
             if (o != null) {
@@ -859,6 +843,7 @@ public class HoldingsLicensesWorker
         return relationNames;
     }
 
+    @SuppressWarnings("unchecked")
     private void setAllRelationsBetween(TitleRecord titleRecord, Collection<TitleRecord> cluster) {
         for (String relation : TitleRecord.relationEntries()) {
             Object o = titleRecord.map().get(relation);
@@ -926,7 +911,7 @@ public class HoldingsLicensesWorker
         if (issns != null) {
             boolean found = false;
             for (String issn : issns) {
-                found = found || holdingsLicensesMerger.findOpenAccess(issn);
+                found = found || holdingsLicensesMerger.findOpenAccess(sourceOpenAccessIndex, issn);
             }
             m.setOpenAccess(found);
             if (found) {
@@ -942,7 +927,6 @@ public class HoldingsLicensesWorker
                 volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
                 String vid = volume.externalID();
                 holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid, builder.string());
-                holdingsLicensesMerger.indexMetric().mark(1);
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
                 for (String key : mm.keySet()) {
                     for (Holding volumeHolding : mm.get(key)){
@@ -951,7 +935,6 @@ public class HoldingsLicensesWorker
                         // to holding index
                         String hid = volume.externalID();
                         holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType, hid, builder.string());
-                        holdingsLicensesMerger.indexMetric().mark(1);
                         if (statCounter != null) {
                             statCounter.increase("stat", "holdings", 1);
                         }
@@ -959,7 +942,6 @@ public class HoldingsLicensesWorker
                         String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
                         holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
-                        holdingsLicensesMerger.indexMetric().mark(1);
                         if (statCounter != null) {
                             statCounter.increase("stat", "volumes", 1);
                         }
@@ -967,7 +949,6 @@ public class HoldingsLicensesWorker
                 }
             }
             int n = m.getMonographVolumes().size();
-            holdingsLicensesMerger.indexMetric().mark(n);
             if (statCounter != null) {
                 statCounter.increase("stat", "manifestations", n);
             }
@@ -998,9 +979,8 @@ public class HoldingsLicensesWorker
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
-                        holdingsLicensesMerger.ingest().index(serviceIndex, serviceIndexType,
+                        holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
-                        holdingsLicensesMerger.indexMetric().mark(1);
                         builder.startObject();
                         builder.field("identifierForTheService", serviceId);
                         builder.field("dates", holding.dates());
@@ -1019,7 +999,6 @@ public class HoldingsLicensesWorker
             // one holding per manifestation
             holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
                     m.externalID(), builder.string());
-            holdingsLicensesMerger.indexMetric().mark(1);
             if (statCounter != null) {
                 statCounter.increase("stat", "holdings", 1);
             }
@@ -1032,7 +1011,6 @@ public class HoldingsLicensesWorker
                 buildVolume(builder, m, m.externalID(), date, holdings);
                 holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType,
                             volumeId, builder.string());
-                holdingsLicensesMerger.indexMetric().mark(1);
             }
             if (statCounter != null) {
                 statCounter.increase("stat", "volumes", map.size());
@@ -1044,7 +1022,6 @@ public class HoldingsLicensesWorker
         XContentBuilder builder = jsonBuilder();
         m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
         holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string());
-        holdingsLicensesMerger.indexMetric().mark(1);
     }
 
     private void buildVolume(XContentBuilder builder,
@@ -1061,7 +1038,6 @@ public class HoldingsLicensesWorker
         if (titleRecord.hasLinks()) {
             builder.field("links", titleRecord.getLinks());
         }
-        // TODO we need better organization of holdings per ISIL per year
         Map<String, Set<Holding>> institutions = new HashMap<>();
         for (Holding holding : holdings) {
             // create holdings in order
@@ -1094,7 +1070,7 @@ public class HoldingsLicensesWorker
         final TitleRecord titleRecord;
         final SearchResponse searchResponse;
         final Collection<TitleRecord> cluster;
-        Set<String> relations;
+        final Set<String> relations;
         int pos;
 
         ClusterBuildContinuation(TitleRecord titleRecord,

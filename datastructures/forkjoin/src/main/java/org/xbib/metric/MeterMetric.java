@@ -39,12 +39,8 @@ public class MeterMetric implements Metric {
         this.rateUnit = rateUnit;
         this.count = new LongAdder();
         this.startTime = Instant.now();
-        this.future = service.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                tick();
-            }
-        }, intervalSeconds, intervalSeconds, TimeUnit.SECONDS);
+        this.future = service.scheduleAtFixedRate((Runnable) this::tick,
+                intervalSeconds, intervalSeconds, TimeUnit.SECONDS);
     }
 
     public TimeUnit rateUnit() {
@@ -88,7 +84,8 @@ public class MeterMetric implements Metric {
     }
 
     public Instant stopped() {
-        return stopTime;
+        // never return null for easy formatting
+        return stopTime != null ? stopTime : startTime;
     }
 
     /**

@@ -38,34 +38,28 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.ClientBuilder;
 import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metric.MeterMetric;
 import org.xbib.tools.merge.Merger;
-import org.xbib.tools.merge.serials.support.BibdatLookup;
-import org.xbib.tools.merge.serials.support.BlackListedISIL;
-import org.xbib.tools.merge.serials.entities.TitleRecord;
-import org.xbib.tools.merge.serials.support.ConsortiaLookup;
-import org.xbib.tools.merge.serials.support.MappedISIL;
+import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
+import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
+import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
 import org.xbib.util.ExceptionFormatter;
-import org.xbib.util.Strings;
-import org.xbib.util.concurrent.ForkJoinPipeline;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -77,33 +71,13 @@ public class HoldingsLicensesMerger extends Merger {
 
     private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class.getSimpleName());
 
-    private ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline;
-
     private HoldingsLicensesMerger holdingsLicensesMerger;
-
-    private SearchTransportClient search;
-
-    private Ingest ingest;
-
-    private String sourceTitleIndex;
-
-    private String sourceTitleType;
 
     private int size;
 
     private long millis;
 
-    private long total;
-
-    private long count;
-
     private String identifier;
-
-    private static MeterMetric queryMetric;
-
-    private static MeterMetric indexMetric;
-
-    private Settings settings;
 
     private BibdatLookup bibdatLookup;
 
@@ -115,53 +89,38 @@ public class HoldingsLicensesMerger extends Merger {
 
     private StatusCodeMapper statusCodeMapper;
 
-    @Override
-    protected ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> newPipeline() {
-        this.pipeline = new ForkJoinPipeline<>();
-        return this.pipeline;
-    }
-
-    protected void setPipeline(ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline) {
-        this.pipeline = pipeline;
-    }
-
-    protected ForkJoinPipeline<HoldingsLicensesWorker, TitelRecordRequest> getPipeline() {
-        return pipeline;
-    }
+    private MeterMetric queryMetric;
 
     @Override
+    @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
-        this.settings = settings;
-        try {
-            super.run(settings);
-            // send poison elements and wait for completion
-            getPipeline().waitFor(new TitelRecordRequest());
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return 1;
-        } finally {
-            getPipeline().shutdown();
-            logger.info("query: started {}, ended {}, took {}, count = {}",
-                    DateTimeFormatter.ISO_INSTANT.format(queryMetric.started()),
-                    DateTimeFormatter.ISO_INSTANT.format(queryMetric.stopped()),
-                    TimeValue.timeValueMillis(queryMetric.elapsed()).format(),
-                    queryMetric.count());
-            logger.info("index: started {}, ended {}, took {}, count = {}",
-                    DateTimeFormatter.ISO_INSTANT.format(indexMetric.started()),
-                    DateTimeFormatter.ISO_INSTANT.format(indexMetric.stopped()),
-                    TimeValue.timeValueMillis(indexMetric.elapsed()).format(),
-                    indexMetric.count());
+        this.queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+        return super.run(settings);
+    }
 
-            logger.info("ingest shutdown in progress");
-            ingest.flushIngest();
-            ingest.waitForResponses(TimeValue.timeValueSeconds(60));
-            ingest.shutdown();
-            logger.info("search shutdown in progress");
-            search.shutdown();
-            logger.info("run complete");
+    protected void waitFor() throws IOException {
+        metrics.scheduleMetrics(settings, "meterquery", queryMetric);
+        // send poison elements and wait for completion
+        getPipeline().waitFor(new TitelRecordRequest());
+        getPipeline().shutdown();
+        long total = 0L;
+        for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+            logger.info("worker {}, count {}, started {}, ended {}, took {}",
+                    worker,
+                    worker.getMetric().count(),
+                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
+                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                    TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
+            total += worker.getMetric().count();
         }
-        return 0;
+        logger.info("worker metric count total={}", total);
+        metrics.append("meterquery", queryMetric);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Pipeline<HoldingsLicensesWorker, TitelRecordRequest> getPipeline() {
+        return pipeline;
     }
 
     @Override
@@ -171,24 +130,21 @@ public class HoldingsLicensesMerger extends Merger {
 
             @Override
             public HoldingsLicensesWorker get(Pipeline pipeline) {
-                return new HoldingsLicensesWorker(holdingsLicensesMerger, i++);
+                return (HoldingsLicensesWorker) new HoldingsLicensesWorker(holdingsLicensesMerger, i++)
+                        .setPipeline(pipeline);
             }
         };
     }
 
     @Override
-    protected void prepareInput() throws Exception {
-        this.search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster"))
-                .put("host", settings.get("elasticsearch.host"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build().getAsMap());
+    @SuppressWarnings("unchecked")
+    protected void prepareRequests() throws Exception {
+        super.prepareRequests();
+        Map<String,IndexDefinition> indexDefinition = getInputIndexDefinitionMap();
         logger.info("preparing bibdat lookup...");
         bibdatLookup = new BibdatLookup();
         try {
-            bibdatLookup.buildLookup(search.client(), settings.get("index-bibdat", "bibdat"));
+            bibdatLookup.buildLookup(search.client(), indexDefinition.get("bibdat").getIndex());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -197,6 +153,14 @@ public class HoldingsLicensesMerger extends Merger {
                 bibdatLookup.lookupOrganization().size(),
                 bibdatLookup.lookupRegion().size(),
                 bibdatLookup.lookupOther().size());
+
+        // prepare "national license" / consortia ISIL expansion
+        consortiaLookup = new ConsortiaLookup();
+        try {
+            consortiaLookup.buildLookup(search.client(), indexDefinition.get("nlzisil").getIndex());
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
 
         logger.info("preparing ISIL blacklist...");
         isilbl = new BlackListedISIL();
@@ -221,60 +185,46 @@ public class HoldingsLicensesMerger extends Merger {
         Map<String,Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
         statusCodeMapper = new StatusCodeMapper();
         statusCodeMapper.add(statuscodes);
-        logger.info("status code mapper prepared");
+        logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
 
-        // prepare "national license" / consortia ISIL expansion
-        consortiaLookup = new ConsortiaLookup();
-        try {
-            consortiaLookup.buildLookup(search.client(), settings.get("index-consortia", "nlzisil"));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
         // all prepared. Enter loop over all title records
         boolean failure = false;
         SearchRequestBuilder searchRequest = search.client().prepareSearch()
                 .setSize(size)
-                .setScroll(TimeValue.timeValueMillis(millis));
-        searchRequest.setIndices(sourceTitleIndex);
-        if (sourceTitleType != null) {
-            searchRequest.setTypes(sourceTitleType);
-        }
+                .setScroll(TimeValue.timeValueMillis(millis))
+                .addSort(SortBuilders.fieldSort("_doc"));
+        searchRequest.setIndices(indexDefinition.get("zdb").getIndex());
         // single identifier?
         if (identifier != null) {
             searchRequest.setQuery(termQuery("IdentifierZDB.identifierZDB", identifier));
         }
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        total = searchResponse.getHits().getTotalHits();
-        count = 0L;
-        //ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        //ScheduleThread scheduleThread = new ScheduleThread();
-        //scheduledExecutorService.scheduleAtFixedRate(scheduleThread, 0, 10, TimeUnit.SECONDS);
-        //logger.debug("hits={}", searchResponse.getHits().getTotalHits());
-        while (!failure && searchResponse.getScrollId() != null) {
-            searchResponse = search.client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(millis))
-                    .execute().actionGet();
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit hit : hits) {
+        logger.info("merging holdings/licenses for {} title records",
+                searchResponse.getHits().getTotalHits());
+        do {
+            queryMetric.mark();
+            for (SearchHit hit :  searchResponse.getHits()) {
                 try {
                     if (getPipeline().getWorkers().isEmpty()) {
                         logger.error("no more workers left to receive, aborting feed");
                         return;
                     }
-                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
-                    getPipeline().getQueue().put(new TitelRecordRequest().set(titleRecord));
-                    count++;
+                    TitelRecordRequest titelRecordRequest = new TitelRecordRequest().set(new TitleRecord(hit.getSource()));
+                    logger.info("titelRecordRequest {}", titelRecordRequest);
+                    getPipeline().putQueue(titelRecordRequest);
                 } catch (Throwable e) {
-                    logger.error("error passing data to merge workers, exiting", e);
+                    logger.error("error passing data to workers, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
                     failure = true;
                     break;
                 }
             }
-        }
+            searchResponse = search.client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(millis))
+                    .execute().actionGet();
+        } while (!failure && searchResponse.getHits().getHits().length > 0);
+        logger.info("all title records processed");
         /*skipped.removeAll(indexed);
         logger.info("skipped: {}", skipped.size());
 
@@ -340,16 +290,17 @@ public class HoldingsLicensesMerger extends Merger {
     }
 
     @Override
-    protected void prepareOutput() throws Exception {
-        this.sourceTitleIndex = settings.get("bib-index");
+    protected void prepareResources() throws Exception {
+        super.prepareResources();
+        this.size = settings.getAsInt("scrollsize", 10);
+        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(3600)).millis();
+        this.identifier = settings.get("identifier");
+
+        /*this.sourceTitleIndex = settings.get("bib-index");
         if (Strings.isNullOrEmpty(sourceTitleIndex)) {
             throw new IllegalArgumentException("no bib-index parameter given");
         }
-        this.sourceTitleType = settings.get("bib-type");
-        this.size = settings.getAsInt("scrollsize", 10);
-        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
-        this.identifier = settings.get("identifier");
-        this.ingest = createIngest();
+
         String index = settings.get("index");
         String packageName = getClass().getPackage().getName().replace('.','/');
         String indexSettingsLocation = settings.get("index-settings",
@@ -380,51 +331,26 @@ public class HoldingsLicensesMerger extends Merger {
             }
         }
         ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
-        ingest.startBulk(index, -1, 1);
-
-        queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
-        indexMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+        ingest.startBulk(index, -1, 1);*/
     }
 
-    protected void disposeInput() throws IOException {
-
+    protected void disposeRequests() throws IOException {
+        super.disposeRequests();
     }
 
-    protected void disposeOutput() throws IOException {
-
+    protected void disposeResources() throws IOException {
+        super.disposeResources();
     }
 
-
-    protected Ingest createIngest() throws IOException {
-        org.elasticsearch.common.settings.Settings clientSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
-                .put("host", settings.get("elasticsearch.host", "localhost"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build();
-        ClientBuilder clientBuilder = ClientBuilder.builder()
-                .put(clientSettings)
-                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
-                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
-                        Runtime.getRuntime().availableProcessors()))
-                .setMetric(new LongAdderIngestMetric());
-        if (settings.getAsBoolean("mock", false)) {
-            return clientBuilder.toMockTransportClient();
-        }
-        if ("ingest".equals(settings.get("client"))) {
-            return clientBuilder.toIngestTransportClient();
-        }
-        return clientBuilder.toBulkTransportClient();
-    }
-
-    public boolean findOpenAccess(String issn) {
+    public boolean findOpenAccess(String index, String issn) {
         SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(search.client(), SearchAction.INSTANCE);
         searchRequestBuilder
                 .setSize(0)
-                .setIndices(settings.get("doaj-index", "doaj"))
+                .setIndices(index)
                 .setQuery(termQuery("dc:identifier", issn));
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+        logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
+        queryMetric.mark();
         return searchResponse.getHits().getTotalHits() > 0;
     }
 
@@ -467,35 +393,5 @@ public class HoldingsLicensesMerger extends Merger {
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
     }
-
-    public MeterMetric queryMetric() {
-        return queryMetric;
-    }
-
-    public MeterMetric indexMetric() {
-        return indexMetric;
-    }
-
-    /*class ScheduleThread implements Runnable {
-
-        public void run() {
-            long percent = count * 100 / total;
-            logger.info("=====> {}/{} = {}%, workers={}",
-                    count,
-                    total,
-                    percent,
-                    getPipeline().getWorkers().size());
-            logger.info("=====> query metric={} ({} {} {})",
-                    queryMetric.meanRate(),
-                    queryMetric.oneMinuteRate(),
-                    queryMetric.fiveMinuteRate(),
-                    queryMetric.fifteenMinuteRate());
-            logger.info("=====> index metric={} ({} {} {})",
-                    indexMetric.meanRate(),
-                    indexMetric.oneMinuteRate(),
-                    indexMetric.fiveMinuteRate(),
-                    indexMetric.fifteenMinuteRate());
-        }
-    }*/
 
 }
