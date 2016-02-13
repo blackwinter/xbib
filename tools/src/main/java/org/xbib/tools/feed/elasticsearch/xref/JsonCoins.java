@@ -141,22 +141,18 @@ public class JsonCoins extends Feeder {
     public void prepareOutput() throws IOException {
         super.prepareOutput();
         TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
-        OutputStream out = fileOutput.getFileMap().get("turtle");
-        if (out != null) {
-            setRdfContentBuilder(turtleBuilder(out, params));
+        if (fileOutput.getMap().containsKey("turtle")) {
+            setRdfContentBuilder(turtleBuilder(fileOutput.getMap().get("turtle").getOut(), params));
         }
-        out = fileOutput.getFileMap().get("errors");
-        if (out != null) {
-            setErrorRdfContentBuilder(turtleBuilder(out, params));
+        if (fileOutput.getMap().containsKey("errors")) {
+            setErrorRdfContentBuilder(turtleBuilder(fileOutput.getMap().get("errors").getOut(), params));
         }
-        out = fileOutput.getFileMap().get("noserial");
-        if (out != null) {
-            setMissingRdfContentBuilder(turtleBuilder(out, params));
+        if (fileOutput.getMap().containsKey("noserial")) {
+            setMissingRdfContentBuilder(turtleBuilder(fileOutput.getMap().get("noserial").getOut(), params));
         }
         // extra text file for missing serials
-        out = fileOutput.getFileMap().get("missingserials");
-        if (out != null) {
-            setMissingSerialsWriter(new OutputStreamWriter(out, "UTF-8"));
+        if (fileOutput.getMap().containsKey("missingserials")) {
+            setMissingSerialsWriter(new OutputStreamWriter(fileOutput.getMap().get("missingserials").getOut(), "UTF-8"));
         }
     }
 

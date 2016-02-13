@@ -100,8 +100,8 @@ public class Web extends Feeder {
                 indexDefinitionMap.get("bib").getConcreteIndex(),
                 indexDefinitionMap.get("bib").getType());
         RdfContentBuilder turtleBuilder = null;
-        BufferedOutputStream out = fileOutput.getFileMap().get("turtle");
-        if (out != null) {
+        if (fileOutput.getMap().containsKey("turtle")) {
+            BufferedOutputStream out = fileOutput.getMap().get("turtle").getOut();
             TurtleContentParams turtleParams = new TurtleContentParams(namespaceContext, true);
             turtleBuilder = turtleBuilder(out, turtleParams);
         }
