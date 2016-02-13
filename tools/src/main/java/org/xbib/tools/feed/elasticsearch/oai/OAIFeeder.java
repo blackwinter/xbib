@@ -148,11 +148,13 @@ public class OAIFeeder extends Feeder {
     @Override
     public void prepareOutput() throws IOException {
         super.prepareOutput();
-        Path path = fileOutput.getMap().get("tar").getPath();
-        connection = new TarConnection();
-        connection.setPath(path, StandardOpenOption.CREATE);
-        session = connection.createSession();
-        session.open(Session.Mode.WRITE);
+        if (fileOutput.getMap().containsKey("tar")) {
+            Path path = fileOutput.getMap().get("tar").getPath();
+            connection = new TarConnection();
+            connection.setPath(path, StandardOpenOption.CREATE);
+            session = connection.createSession();
+            session.open(Session.Mode.WRITE);
+        }
     }
 
     @Override
@@ -201,12 +203,14 @@ public class OAIFeeder extends Feeder {
 
     protected void append(String s) {
         fileOutput.getMap().entrySet().stream().forEach(entry -> {
-            if (entry.getKey().startsWith("file")) {
-                try {
+            try {
+                if (entry.getKey().startsWith("file")) {
                     entry.getValue().getOut().write(s.getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                } else if (entry.getKey().equals("tar") && session != null) {
+                    session.write(new StringPacket().packet(s));
                 }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
             }
         });
     }
