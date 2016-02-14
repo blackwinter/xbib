@@ -62,7 +62,7 @@ public class DOAJArticleClientTest {
 
     private final static String DOAJ_NS_URI = "http://www.doaj.org/schemas/";
 
-    @Test
+
     public void testListRecordsDOAJArticles() {
 
         IRINamespaceContext namespaceContext = RdfSimpleMetadataHandler.getDefaultContext();

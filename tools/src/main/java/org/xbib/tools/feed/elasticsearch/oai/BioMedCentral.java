@@ -56,14 +56,9 @@ public class BioMedCentral extends OAIFeeder {
 
     private final static Logger logger = LogManager.getLogger(BioMedCentral.class);
 
-    @Override
-    protected WorkerProvider<Converter> provider() {
-        return p -> new BioMedCentral().setPipeline(p);
-    }
+    private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
-    @Override
-    protected String map(String id, String content) throws IOException {
-        IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+    static {
         namespaceContext.add(new HashMap<String, String>() {{
             put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
             put("dc", "http://purl.org/dc/elements/1.1/");
@@ -73,14 +68,22 @@ public class BioMedCentral extends OAIFeeder {
             put("fabio", "http://purl.org/spar/fabio/");
             put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
         }});
+    }
 
+    @Override
+    protected WorkerProvider<Converter> provider() {
+        return p -> new BioMedCentral().setPipeline(p);
+    }
+
+    @Override
+    protected String map(String id, String content) throws IOException {
+        RdfXContentParams params = new RdfXContentParams(namespaceContext);
         if (settings.getAsBoolean("mock", false)) {
             logger.info("input={}", content);
         }
-        Map<String,Object> map = XContentHelper.convertToMap(content);
+        Map<String, Object> map = XContentHelper.convertToMap(content);
         BioMedCentralMapper mapper = new BioMedCentralMapper();
         Resource resource = mapper.map(map);
-        RdfXContentParams params = new RdfXContentParams(namespaceContext);
         RdfContentBuilder builder = rdfXContentBuilder(params);
         builder.receive(IRI.create(id));
         builder.receive(resource);

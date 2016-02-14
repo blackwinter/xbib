@@ -63,7 +63,7 @@ public class LOMClientTest {
 
     private final static Logger logger = LogManager.getLogger(LOMClientTest.class.getName());
 
-    @Test
+
     public void testListRecordsLOM() throws InterruptedException, IOException, TimeoutException {
         try {
             OAIClient client = OAIClientFactory.newClient("http://www.melt.fwu.de/oai2.php");

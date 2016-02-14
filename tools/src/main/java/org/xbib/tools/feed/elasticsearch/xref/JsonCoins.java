@@ -55,7 +55,8 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.CharacterEntities;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
+import org.xbib.util.URIFormatter;
 import org.xbib.util.concurrent.ForkJoinPipeline;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.URIWorkerRequest;
@@ -66,7 +67,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
@@ -256,7 +256,7 @@ public class JsonCoins extends Feeder {
         }
     }
 
-    protected interface URIListener extends URIUtil.ParameterListener {
+    protected interface URIListener extends URIBuilder.ParameterListener {
 
         void close();
 
@@ -310,13 +310,13 @@ public class JsonCoins extends Feeder {
                 switch (k) {
                     case "rft_id": {
                         // lowercase important, DOI is case-insensitive
-                        String s = URIUtil.decode(v, StandardCharsets.UTF_8).toLowerCase();
+                        String s = URIBuilder.decode(v, StandardCharsets.UTF_8).toLowerCase();
                         // remove URL/URI prefixes
                         for (Pattern pattern : doipatterns) {
                             s = pattern.matcher(s).replaceAll("");
                         }
                         try {
-                            doiURI = URIUtil.encode(s, StandardCharsets.UTF_8);
+                            doiURI = URIFormatter.encode(s, StandardCharsets.UTF_8);
                             // encode as URI, but info URI RFC wants slash as unencoded character
                             // anyway we use xbib.info/doi/
                             doiURI = doiURI.replaceAll("%2F", "/");
@@ -551,7 +551,7 @@ public class JsonCoins extends Feeder {
 
         };
         try {
-            URIUtil.parseQueryString(coins.toURI(), StandardCharsets.UTF_8, listener);
+            URIBuilder.parseQueryString(coins.toURI(), StandardCharsets.UTF_8, listener);
         } catch (InvalidCharacterException | URISyntaxException e) {
             logger.warn("can't parse query string: " + coins, e);
         }

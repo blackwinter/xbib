@@ -41,6 +41,8 @@ import org.xbib.io.archive.tar.TarConnection;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
+import org.xbib.oai.client.identify.IdentifyRequest;
+import org.xbib.oai.client.identify.IdentifyResponseListener;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.rdf.RdfResourceHandler;
@@ -56,7 +58,7 @@ import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.URIWorkerRequest;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
@@ -65,12 +67,12 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.Normalizer;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,6 +103,7 @@ public class OAIFeeder extends Feeder {
         Map<String,Settings> inputSettingsMap = settings.getGroups("input");
         Settings oaiSettings = inputSettingsMap.get("oai");
         if (oaiSettings != null) {
+            String granularity = oaiSettings.containsSetting("granularity") ? oaiSettings.get("granularity") : null;
             String fromStr = oaiSettings.get("from");
             Span fromSpan = Chronic.parse(fromStr);
             String untilStr = oaiSettings.get("until");
@@ -120,25 +123,19 @@ public class OAIFeeder extends Feeder {
                 int counter = oaiSettings.getAsInt("counter", 1);
                 logger.info("counter={}", counter);
                 List<URIWorkerRequest> list = new LinkedList<>();
-                try {
-                    for (int i = 0; i < counter; i++) {
-                        URI uriBase = URI.create(oaiSettings.get("base"));
-                        uriBase = URIUtil.addParameter(uriBase, "from",
-                                fromSpan.getBeginCalendar().toInstant().toString());
-                        fromSpan = fromSpan.add(-delta.seconds());
-                        if (untilSpan != null) {
-                            uriBase = URIUtil.addParameter(uriBase, "until",
-                                    untilSpan.getBeginCalendar().toInstant().toString());
-                            untilSpan = untilSpan.add(-delta.seconds());
-                        }
-                        String s = uriBase.toString();
-                        URIWorkerRequest uriWorkerRequest = new URIWorkerRequest();
-                        uriWorkerRequest.set(URI.create(s));
-                        // add to front
-                        list.add(0, uriWorkerRequest);
+                for (int i = 0; i < counter; i++) {
+                    URIBuilder builder = new URIBuilder(oaiSettings.get("base"))
+                        .addParameter("granularity", granularity)
+                        .addParameter("from", fromSpan.getBeginCalendar().toInstant().toString());
+                    fromSpan = fromSpan.add(-delta.seconds());
+                    if (untilSpan != null) {
+                        builder.addParameter("until", untilSpan.getBeginCalendar().toInstant().toString());
+                        untilSpan = untilSpan.add(-delta.seconds());
                     }
-                } catch (URISyntaxException e) {
-                    throw new IOException(e);
+                    URIWorkerRequest uriWorkerRequest = new URIWorkerRequest();
+                    uriWorkerRequest.set(builder.build());
+                    // add to front
+                    list.add(0, uriWorkerRequest);
                 }
                 for (URIWorkerRequest uriWorkerRequest : list) {
                     getPipeline().getQueue().put(uriWorkerRequest);
@@ -162,20 +159,47 @@ public class OAIFeeder extends Feeder {
 
     @Override
     protected void process(URI uri) throws Exception {
-        Map<String, String> params = URIUtil.parseQueryString(uri);
+        Map<String, String> params = URIBuilder.parseQueryString(uri);
         String server = uri.toString();
         String verb = params.get("verb");
         String metadataPrefix = params.get("metadataPrefix");
         String set = params.get("set");
+        String granularity = params.get("granularity");
         Instant from = Instant.parse(params.get("from"));
         Instant until = Instant.parse(params.get("until"));
         final OAIClient client = OAIClientFactory.newClient(server);
         client.setTimeout(settings.getAsInt("timeout", 60000));
+
+        if (granularity == null) {
+            // fetch from Identify
+            IdentifyRequest identifyRequest = client.newIdentifyRequest();
+            IdentifyResponseListener identifyResponseListener = new IdentifyResponseListener(identifyRequest);
+            identifyRequest.prepare().execute(identifyResponseListener).waitFor();
+            granularity = identifyResponseListener.getResponse().getGranularity();
+        }
+        if (granularity == null) {
+            granularity = "YYYY-MM-DD";
+        }
+        DateTimeFormatter dateTimeFormatter;
+        switch (granularity) {
+            case "yyyy-MM-dd'T'HH:mm:ss'Z'":
+            case "yyyy-MM-ddTHH:mm:ssZ" :
+                dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("GMT"));
+                break;
+            case "YYYY-MM-DD" :
+                dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT"));
+                break;
+            default:
+                dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT"));
+                break;
+        }
+
         if (!verb.equals(OAIConstants.LIST_RECORDS)) {
             logger.warn("no verb {}, returning", OAIConstants.LIST_RECORDS);
             return;
         }
         ListRecordsRequest request = client.newListRecordsRequest()
+                .setDateTimeFormatter(dateTimeFormatter)
                 .setMetadataPrefix(metadataPrefix)
                 .setSet(set)
                 .setFrom(from)
@@ -190,7 +214,6 @@ public class OAIFeeder extends Feeder {
                     logger.debug("got OAI response");
                     StringWriter w = new StringWriter();
                     listener.getResponse().to(w);
-                    logger.debug("{}", w);
                     append(w.toString());
                     request = client.resume(request, listener.getResumptionToken());
                 } else {
@@ -205,6 +228,7 @@ public class OAIFeeder extends Feeder {
     }
 
     protected void append(String s) {
+        logger.debug("{}", s);
         fileOutput.getMap().entrySet().stream().forEach(entry -> {
             try {
                 if (entry.getKey().startsWith("file")) {

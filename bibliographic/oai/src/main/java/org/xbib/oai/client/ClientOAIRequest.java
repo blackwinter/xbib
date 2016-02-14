@@ -37,17 +37,20 @@ import org.xbib.oai.OAIRequest;
 import org.xbib.oai.OAISession;
 import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIFormatter;
 
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Client OAI request
  */
 public class ClientOAIRequest<R extends ClientOAIRequest>
         extends NettyHttpRequest implements HttpRequest, OAIRequest<R> {
+
+    private DateTimeFormatter dateTimeFormatter = null;
 
     private ResumptionToken token;
 
@@ -107,10 +110,16 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
         return metadataPrefix;
     }
 
+    public R setDateTimeFormatter(DateTimeFormatter dateTimeFormatter) {
+        this.dateTimeFormatter = dateTimeFormatter;
+        return (R)this;
+    }
+
     @Override
     public R setFrom(Instant from) {
         this.from = from;
-        addParameter(OAIConstants.FROM_PARAMETER, from.toString());
+        String fromStr = dateTimeFormatter == null ? from.toString() : dateTimeFormatter.format(from);
+        addParameter(OAIConstants.FROM_PARAMETER, fromStr);
         return (R) this;
     }
 
@@ -121,7 +130,8 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
     @Override
     public R setUntil(Instant until) {
         this.until = until;
-        addParameter(OAIConstants.UNTIL_PARAMETER, until.toString());
+        String untilStr = dateTimeFormatter == null ? until.toString() : dateTimeFormatter.format(until);
+        addParameter(OAIConstants.UNTIL_PARAMETER, untilStr);
         return (R) this;
     }
 
@@ -133,7 +143,8 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
         this.token = token;
         if (token != null && token.toString() != null) {
             // resumption token may have characters that are illegal in URIs like '|'
-            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, URIUtil.encode(token.toString(), Charset.forName("UTF-8")));
+            String tokenStr = URIFormatter.encode(token.toString(), StandardCharsets.UTF_8);
+            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, tokenStr);
         }
         return (R) this;
     }

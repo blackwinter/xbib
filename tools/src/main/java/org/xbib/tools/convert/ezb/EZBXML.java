@@ -42,7 +42,7 @@ import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.input.FileInput;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
 
@@ -51,7 +51,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
@@ -135,7 +135,7 @@ public class EZBXML extends Converter {
                 case "reference_url":
                     // fall-through
                 case "readme_url":
-                    return URIUtil.decode(content, Charset.forName("UTF-8"));
+                    return URIBuilder.decode(content, StandardCharsets.UTF_8);
                 case "zdbid": {
                     return content.replaceAll("\\-", "").toLowerCase();
                 }

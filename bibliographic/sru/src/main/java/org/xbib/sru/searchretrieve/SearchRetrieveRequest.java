@@ -34,7 +34,7 @@ package org.xbib.sru.searchretrieve;
 import org.xbib.sru.DefaultSRURequest;
 import org.xbib.sru.SRUConstants;
 import org.xbib.sru.SRURequest;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -89,7 +89,7 @@ public class SearchRetrieveRequest extends DefaultSRURequest implements SRUReque
         super.setURL(url);
         if (url != null) {
             try {
-                final Map<String, String> params = URIUtil.parseQueryString(url.toURI());
+                final Map<String, String> params = URIBuilder.parseQueryString(url.toURI());
                 if (params.containsKey(VERSION_PARAMETER)) {
                     setVersion(params.get(VERSION_PARAMETER));
                 }

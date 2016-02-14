@@ -42,13 +42,15 @@ import java.util.List;
 
 public class IdentifyResponse extends ClientOAIResponse {
 
+    private final IdentifyRequest request;
+
     private String repositoryName;
 
     private URL baseURL;
 
     private String protocolVersion;
 
-    private List<String> adminEmails = new ArrayList();
+    private List<String> adminEmails = new ArrayList<>();
 
     private Date earliestDatestamp;
 
@@ -57,6 +59,10 @@ public class IdentifyResponse extends ClientOAIResponse {
     private String granularity;
 
     private String compression;
+
+    IdentifyResponse(IdentifyRequest request) {
+        this.request = request;
+    }
 
     @Override
     public IdentifyResponse to(Writer writer) throws IOException {

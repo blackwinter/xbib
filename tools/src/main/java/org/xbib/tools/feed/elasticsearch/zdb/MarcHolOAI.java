@@ -48,7 +48,7 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -99,7 +99,7 @@ public class MarcHolOAI extends OAIFeeder {
             }
         });
         queue.execute();
-        Map<String, String> oaiparams = URIUtil.parseQueryString(uri);
+        Map<String, String> oaiparams = URIBuilder.parseQueryString(uri);
         String server = uri.toString();
         String verb = oaiparams.get("verb");
         String metadataPrefix = oaiparams.get("metadataPrefix");

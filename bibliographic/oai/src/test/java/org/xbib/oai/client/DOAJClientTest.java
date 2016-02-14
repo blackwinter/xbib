@@ -59,7 +59,7 @@ public class DOAJClientTest {
 
     private final static Logger logger = LogManager.getLogger(DOAJClientTest.class);
 
-    @Test
+
     public void testListRecordsDOAJ() throws InterruptedException, IOException, TimeoutException {
         RdfContentParams params = IRINamespaceContext::newInstance;
         final RdfSimpleMetadataHandler metadataHandler = new RdfSimpleMetadataHandler(params);

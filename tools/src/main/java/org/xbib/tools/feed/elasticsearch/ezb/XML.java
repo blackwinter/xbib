@@ -48,7 +48,7 @@ import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.input.FileInput;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXException;
 
@@ -56,7 +56,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -171,7 +171,7 @@ public final class XML extends Feeder {
                 case "reference_url":
                     // fall-through
                 case "readme_url":
-                    return URIUtil.decode(content, Charset.forName("UTF-8"));
+                    return URIBuilder.decode(content, StandardCharsets.UTF_8);
                 case "zdbid": {
                     return content.replaceAll("\\-", "").toLowerCase();
                 }

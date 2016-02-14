@@ -48,7 +48,7 @@ public class DNBOAITest {
 
     private final static Logger logger = LogManager.getLogger(DNBOAITest.class.getName());
 
-    @Test
+
     public void testDNBOAI() throws InterruptedException, IOException, TimeoutException {
         try {
             OAIClient client = OAIClientFactory.newClient("DNB");

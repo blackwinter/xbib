@@ -31,53 +31,50 @@
  */
 package org.xbib.oai.client;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.time.Instant;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.identify.IdentifyRequest;
 import org.xbib.oai.client.identify.IdentifyResponseListener;
+import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.xml.SimpleMetadataHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-public class DNBClientTest {
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
-    private final static Logger logger = LogManager.getLogger(DNBClientTest.class.getName());
+public class ArxivClientTest {
+
+    private final static Logger logger = LogManager.getLogger(ArxivClientTest.class.getName());
 
     @Test
-    public void testIdentify() throws InterruptedException, IOException, TimeoutException {
+    public void testListRecordsArxiv() throws InterruptedException, TimeoutException, IOException {
         try {
-            OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
-            IdentifyRequest request = client.newIdentifyRequest();
-            request.prepare().execute(new IdentifyResponseListener(request) {
-            }).waitFor();
-        } catch (ConnectException | ExecutionException e) {
-            logger.warn("skipped, can not connect");
-        } catch (TimeoutException | InterruptedException | IOException e) {
-            throw e;
-        }
-    }
-
-
-    public void testListRecordsDNB() throws InterruptedException, TimeoutException, IOException {
-        try {
-            OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
+            OAIClient client = OAIClientFactory.newClient("http://export.arxiv.org/oai2");
+            IdentifyRequest identifyRequest = client.newIdentifyRequest();
+            IdentifyResponseListener identifyResponseListener = new IdentifyResponseListener(identifyRequest);
+            identifyRequest.prepare().execute(identifyResponseListener).waitFor();
+            String granularity = identifyResponseListener.getResponse().getGranularity();
+            logger.info("granularity = {}", granularity);
+            DateTimeFormatter dateTimeFormatter = "YYYY-MM-DD".equals(granularity) ?
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT")) : null;
+            // ArXiv wants us to wait 20 secs between *every* HTTP request, so we muste wait here
+            Thread.sleep(20 * 1000L);
             ListRecordsRequest request = client.newListRecordsRequest()
-                    .setFrom(Instant.parse("2013-01-01T00:00:00Z"))
-                    .setUntil(Instant.parse("2013-01-10T00:00:00Z"))
-                    .setSet("bib")
-                    .setMetadataPrefix("PicaPlus-xml");
+                    .setDateTimeFormatter(dateTimeFormatter)
+                    .setFrom(Instant.parse("2013-02-01T00:00:00Z"))
+                    .setUntil(Instant.parse("2013-02-02T00:00:00Z"))
+                    .setMetadataPrefix("arXiv");
             final AtomicLong count = new AtomicLong(0L);
             SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
                 @Override
@@ -112,7 +109,7 @@ public class DNBClientTest {
                 }
 
             };
-            File file = File.createTempFile("dnb-bib-pica.", ".xml");
+            File file = File.createTempFile("arxiv.", ".xml");
             FileWriter sw = new FileWriter(file);
             do {
                 try {

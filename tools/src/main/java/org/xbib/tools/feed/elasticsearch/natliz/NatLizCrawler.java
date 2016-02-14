@@ -19,7 +19,7 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
-import org.xbib.util.URIUtil;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -29,7 +29,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -383,7 +382,7 @@ public class NatLizCrawler extends Feeder {
         }
         // parse URL
         final URI uri = URI.create(url);
-        Map<String,String> params = URIUtil.parseQueryString(uri, Charset.forName("UTF-8"));
+        Map<String,String> params = URIBuilder.parseQueryString(uri,StandardCharsets.UTF_8);
         String lname = params.get("lname");
         String puid = params.get("puid");
         String mid = params.get("mid");
