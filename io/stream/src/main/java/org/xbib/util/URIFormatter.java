@@ -5,6 +5,14 @@ import java.util.Map;
 
 public class URIFormatter {
 
+    public static String renderQueryString(Map<String, String> m) {
+        return renderQueryString(m, null, false);
+    }
+
+    public static String renderQueryString(Map<String, String> m, Charset encoding) {
+        return renderQueryString(m, encoding, true);
+    }
+
     /**
      * This method takes a Map of key/value elements and converts it
      * into a URL encoded querystring format.
@@ -13,13 +21,13 @@ public class URIFormatter {
      * @param encoding the charset
      * @return a string with the URL encoded data
      */
-    public static String renderQueryString(Map<String, String> m, Charset encoding) {
+    public static String renderQueryString(Map<String, String> m, Charset encoding, boolean encode) {
         String key;
         String value;
         StringBuilder out = new StringBuilder();
         for (Map.Entry<String, String> me : m.entrySet()) {
             key = me.getKey();
-            value = encode(me.getValue(), encoding);
+            value = encode ? encode(me.getValue(), encoding) : me.getValue();
             if (key != null) {
                 if (out.length() > 0) {
                     out.append("&");

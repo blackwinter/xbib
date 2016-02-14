@@ -134,7 +134,7 @@ public class URIBuilder {
      * @return a Map of parameters
      */
     public static Map<String, String> parseQueryString(URI uri, Charset encoding, ParameterListener listener) {
-        Map<String, String> m = new HashMap<String, String>();
+        Map<String, String> m = new HashMap<>();
         if (uri == null) {
             throw new IllegalArgumentException();
         }
