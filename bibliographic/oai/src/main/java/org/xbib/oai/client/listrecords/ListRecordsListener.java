@@ -33,7 +33,9 @@ package org.xbib.oai.client.listrecords;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Date;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +44,6 @@ import org.xbib.io.Request;
 import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.oai.OAIResponseListener;
 import org.xbib.oai.util.ResumptionToken;
-import org.xbib.util.DateUtil;
 import org.xbib.io.http.HttpResponse;
 
 import org.xbib.xml.XMLUtil;
@@ -64,14 +65,22 @@ public class ListRecordsListener extends NettyHttpResponseListener
 
     private boolean scrubCharacters;
 
+    private long retryAfterMillis;
+
     public ListRecordsListener(ListRecordsRequest request) {
         this.request = request;
         this.response = new ListRecordsResponse(request);
         this.body = new StringBuilder();
+        this.retryAfterMillis = 20 * 1000L; // 20 seconds
     }
 
     public ListRecordsListener setScrubCharacters(boolean scrub) {
         this.scrubCharacters = scrub;
+        return this;
+    }
+
+    public ListRecordsListener setRetryAfter(long millis) {
+        this.retryAfterMillis = millis;
         return this;
     }
 
@@ -90,7 +99,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
         super.receivedResponse(result);
         int status = result.getStatusCode();
         if (status == 503) {
-            logger.warn("got 503 status: headers={} body={}", result.getHeaderMap(), body);
+            logger.warn("retry-after, body={}", body);
             doRetryAfter(result);
             return;
         }
@@ -116,6 +125,8 @@ public class ListRecordsListener extends NettyHttpResponseListener
 
     private void doRetryAfter(HttpResponse httpResponse) {
         if (httpResponse.getHeaderMap() == null) {
+            response.setExpire(retryAfterMillis);
+            request.setRetry(true);
             return;
         }
         for (String retryAfterHeader : RETRY_AFTER) {
@@ -132,11 +143,11 @@ public class ListRecordsListener extends NettyHttpResponseListener
                 response.setExpire(Long.parseLong(retryAfter));
                 request.setRetry(true);
             } else {
-                Date d = DateUtil.parseDateRFC(retryAfter);
-                if (d != null) {
-                    response.setExpire(d.getTime() - new Date().getTime());
-                    request.setRetry(true);
-                }
+                // parse RFC date, e.g. Fri, 31 Dec 1999 23:59:59 GMT
+                Instant instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(retryAfter));
+                long expire = ChronoUnit.MILLIS.between(instant, Instant.now());
+                response.setExpire(expire);
+                request.setRetry(true);
             }
         }
     }
@@ -149,7 +160,6 @@ public class ListRecordsListener extends NettyHttpResponseListener
         }
         return true;
     }
-
 
     @Override
     public void onConnect(Request request) throws IOException {

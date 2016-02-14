@@ -34,7 +34,6 @@ package org.xbib.oai.client.listrecords;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.oai.client.ClientOAIResponse;
-import org.xbib.util.DateUtil;
 import org.xbib.oai.exceptions.BadArgumentException;
 import org.xbib.oai.exceptions.BadResumptionTokenException;
 import org.xbib.oai.exceptions.NoRecordsMatchException;
@@ -45,7 +44,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Date;
+import java.time.Instant;
 
 public class ListRecordsResponse extends ClientOAIResponse {
 
@@ -55,7 +54,7 @@ public class ListRecordsResponse extends ClientOAIResponse {
 
     private String error;
 
-    private Date date;
+    private Instant date;
 
     private long expire;
 
@@ -73,11 +72,11 @@ public class ListRecordsResponse extends ClientOAIResponse {
         return error;
     }
 
-    public void setDate(Date date) {
+    public void setDate(Instant date) {
         this.date = date;
     }
 
-    public Date getDate() {
+    public Instant getDate() {
         return date;
     }
 

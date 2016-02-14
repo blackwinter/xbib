@@ -31,13 +31,13 @@
  */
 package org.xbib.oai.util;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class RecordHeader {
 
     private String identifier;
     
-    private Date datestamp;
+    private Instant date;
     
     private String set;
     
@@ -50,13 +50,13 @@ public class RecordHeader {
         return identifier;
     }
     
-    public RecordHeader setDatestamp(Date datestamp) {
-        this.datestamp = datestamp;
+    public RecordHeader setDate(Instant date) {
+        this.date = date;
         return this;
     }
     
-    public Date getDatestamp() {
-        return datestamp;
+    public Instant getDate() {
+        return date;
     }
     
     public RecordHeader setSetspec(String setSpec) {

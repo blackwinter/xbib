@@ -6,10 +6,14 @@ import org.xbib.oai.OAIConstants;
 import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.util.ResumptionToken;
 import org.xbib.oai.xml.MetadataHandler;
-import org.xbib.util.DateUtil;
 import org.xbib.xml.XMLFilterReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class ListRecordsFilterReader extends XMLFilterReader {
 
@@ -117,7 +121,7 @@ public class ListRecordsFilterReader extends XMLFilterReader {
                     inMetadata = false;
                     break;
                 case "responseDate":
-                    response.setDate(DateUtil.parseDateISO(content.toString()));
+                    response.setDate(Instant.parse(content.toString().trim()));
                     break;
                 case "resumptionToken":
                     if (token != null && content != null && content.length() > 0) {
@@ -139,7 +143,18 @@ public class ListRecordsFilterReader extends XMLFilterReader {
                     break;
                 case "datestamp":
                     if (header != null && content != null && content.length() > 0) {
-                        header.setDatestamp(DateUtil.parseDateISO(content.toString().trim()));
+                        try {
+                            header.setDate(Instant.parse(content.toString().trim()));
+                        } catch (DateTimeParseException e) {
+                            // not "seconds ISO"
+                        }
+                        try {
+                            LocalDateTime ldt = LocalDateTime.parse(content.toString().trim(),
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                            header.setDate(Instant.from(ldt));
+                        } catch (DateTimeParseException e) {
+                            // not "day ISO"
+                        }
                     }
                     break;
                 case "setSpec":
