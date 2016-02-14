@@ -118,6 +118,7 @@ public class ArxivClientTest {
                     request.prepare().execute(listener).waitFor();
                     if (listener.getResponse() != null) {
                         listener.getResponse().to(sw);
+                        logger.info("delay={}", listener.getResponse().getDelaySeconds());
                     } else {
                         logger.warn("no response in listener");
                     }

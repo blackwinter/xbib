@@ -56,7 +56,7 @@ public class ListRecordsResponse extends ClientOAIResponse {
 
     private Instant date;
 
-    private long expire;
+    private long delaySeconds;
 
     private StylesheetTransformer transformer;
 
@@ -80,8 +80,12 @@ public class ListRecordsResponse extends ClientOAIResponse {
         return date;
     }
 
-    public void setExpire(long expire) {
-        this.expire = expire;
+    public void setDelaySeconds(long delaySeconds) {
+        this.delaySeconds = delaySeconds;
+    }
+
+    public long getDelaySeconds() {
+        return delaySeconds;
     }
 
     public void setTransformer(StylesheetTransformer transformer) {
@@ -114,10 +118,10 @@ public class ListRecordsResponse extends ClientOAIResponse {
             throw new IOException(e);
         } finally {
             try {
-                if (this.expire > 0L) {
-                    logger.info("waiting for {} seconds (retry-after)", expire);
-                    Thread.sleep(1000 * expire);
-                    this.expire = 0L;
+                if (delaySeconds > 0L) {
+                    logger.info("waiting for {} seconds (retry-after)", delaySeconds);
+                    Thread.sleep(1000 * delaySeconds);
+                    this.delaySeconds = 0L;
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

@@ -36,18 +36,13 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.io.Request;
 import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.io.http.HttpResponse;
-import org.xbib.oai.client.ClientOAIResponse;
 
 import java.io.IOException;
 
-public class DefaultOAIResponseListener<Response extends OAIResponse>
+public abstract class DefaultOAIResponseListener<Response extends OAIResponse>
         extends NettyHttpResponseListener implements OAIResponseListener {
 
     private final Logger logger = LogManager.getLogger(DefaultOAIResponseListener.class.getName());
-
-    private OAIRequest request;
-
-    private Response response;
 
     private StringBuilder sb;
 
@@ -58,7 +53,6 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
     }
 
     protected DefaultOAIResponseListener(OAIRequest request) {
-        this.request = request;
         this.sb = new StringBuilder();
         this.failure = false;
     }
@@ -67,27 +61,16 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
         return failure;
     }
 
-    public Response getResponse() {
-        return response;
-    }
+    public abstract Response getResponse();
 
     @Override
     @SuppressWarnings("unchecked")
     public void receivedResponse(HttpResponse result) throws IOException {
         super.receivedResponse(result);
-        this.response = (Response)new ClientOAIResponse();
         if (!result.ok()) {
-            String msg = "HTTP error " + result.getStatusCode();
-            /*if (result.getThrowable() == null) {
-                Throwable t = new IOException(msg);
-                result.setThrowable(t);
-                throw new IOException(t);
-            }*/
+            logger.error("HTTP error " + result.getStatusCode());
             return;
         }
-        /*if (result.getThrowable() != null) {
-            throw new IOException(result.getThrowable());
-        }*/
         logger.debug("got response: status = {}, headers = {}, body = {}",
                 result.getStatusCode(),
                 result.getHeaderMap(),
@@ -96,7 +79,6 @@ public class DefaultOAIResponseListener<Response extends OAIResponse>
         if (!result.getContentType().startsWith("text/xml")) {
             logger.warn("got non-XML body {}", result);
         }
-        //response.setReader(getBodyReader());
     }
 
     @Override

@@ -55,6 +55,10 @@ public class ListRecordsListener extends NettyHttpResponseListener
 
     private final static Logger logger = LogManager.getLogger(ListRecordsListener.class.getName());
 
+    private final static String[] RETRY_AFTER_HEADERS = new String[] {
+            "retry-after", "Retry-after", "Retry-After"
+    };
+
     private final ListRecordsRequest request;
 
     private final ListRecordsResponse response;
@@ -71,7 +75,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
         this.request = request;
         this.response = new ListRecordsResponse(request);
         this.body = new StringBuilder();
-        this.retryAfterMillis = 20 * 1000L; // 20 seconds
+        this.retryAfterMillis = 20 * 1000; // 20 seconds
     }
 
     public ListRecordsListener setScrubCharacters(boolean scrub) {
@@ -119,37 +123,30 @@ public class ListRecordsListener extends NettyHttpResponseListener
         }
     }
 
-    private final static String[] RETRY_AFTER = new String[] {
-      "retry-after", "Retry-after", "Retry-After"
-    };
-
     private void doRetryAfter(HttpResponse httpResponse) {
-        if (httpResponse.getHeaderMap() == null) {
-            response.setExpire(retryAfterMillis);
-            request.setRetry(true);
-            return;
-        }
-        for (String retryAfterHeader : RETRY_AFTER) {
-            List<String> retryAfterValues = httpResponse.getHeaderMap().get(retryAfterHeader);
-            if (retryAfterValues == null) {
-                continue;
-            }
-            if (retryAfterValues.size() < 1) {
-                continue;
-            }
-            String retryAfter = retryAfterValues.get(0);
-            if (isDigits(retryAfter)) {
-                // retry-after is given in seconds
-                response.setExpire(Long.parseLong(retryAfter));
-                request.setRetry(true);
-            } else {
-                // parse RFC date, e.g. Fri, 31 Dec 1999 23:59:59 GMT
-                Instant instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(retryAfter));
-                long expire = ChronoUnit.MILLIS.between(instant, Instant.now());
-                response.setExpire(expire);
-                request.setRetry(true);
+        long secs = retryAfterMillis / 1000;
+        if (httpResponse.getHeaderMap() != null) {
+            for (String retryAfterHeader : RETRY_AFTER_HEADERS) {
+                List<String> retryAfterValues = httpResponse.getHeaderMap().get(retryAfterHeader);
+                if (retryAfterValues == null) {
+                    continue;
+                }
+                if (retryAfterValues.size() < 1) {
+                    continue;
+                }
+                String retryAfter = retryAfterValues.get(0);
+                secs = Long.parseLong(retryAfter);
+                if (!isDigits(retryAfter)) {
+                    // parse RFC date, e.g. Fri, 31 Dec 1999 23:59:59 GMT
+                    Instant instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(retryAfter));
+                    secs = ChronoUnit.SECONDS.between(instant, Instant.now());
+                    logger.debug("parsed delay seconds is {}", secs);
+                }
+                logger.debug("setting delay seconds to {}", secs);
             }
         }
+        response.setDelaySeconds(secs);
+        request.setRetry(true);
     }
 
     private boolean isDigits(String str) {

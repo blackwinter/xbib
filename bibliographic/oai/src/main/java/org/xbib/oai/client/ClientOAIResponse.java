@@ -34,62 +34,31 @@ package org.xbib.oai.client;
 import org.xbib.oai.OAIResponse;
 import org.xbib.xml.transform.StylesheetTransformer;
 
-import javax.xml.stream.util.XMLEventConsumer;
 import java.io.IOException;
 import java.io.Writer;
 
 /**
  * Default OAI response
  */
-public class ClientOAIResponse implements OAIResponse {
-
-    private StylesheetTransformer transformer;
-
-    private String[] stylesheets;
-
-    private String format;
-
-    private XMLEventConsumer consumer;
+public abstract class ClientOAIResponse implements OAIResponse {
 
     @Override
     public ClientOAIResponse setStylesheetTransformer(StylesheetTransformer transformer) {
-        this.transformer = transformer;
         return this;
-    }
-
-    protected StylesheetTransformer getTransformer() {
-        return transformer;
     }
 
     @Override
     public ClientOAIResponse setStylesheets(String... stylesheets) {
-        this.stylesheets = stylesheets;
         return this;
     }
 
     @Override
     public ClientOAIResponse setOutputFormat(String format) {
-        this.format = format;
         return this;
-    }
-
-    public String getOutputFormat() {
-        return format;
     }
 
     @Override
     public ClientOAIResponse to(Writer writer) throws IOException {
         return this;
     }
-
-
-    public ClientOAIResponse setConsumer(XMLEventConsumer consumer) {
-        this.consumer = consumer;
-        return this;
-    }
-
-    public XMLEventConsumer getConsumer() {
-        return consumer;
-    }
-
 }
