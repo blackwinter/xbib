@@ -87,7 +87,11 @@ public class URIBuilder {
     }
 
     public URI build() {
-        return build(StandardCharsets.UTF_8);
+        try {
+            return new URI(scheme, authority, path, URIFormatter.renderQueryString(params), fragment);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     public URI build(Charset encoding) {
