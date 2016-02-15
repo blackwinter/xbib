@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -67,8 +68,14 @@ public class ElasticsearchOutput {
             String concreteIndexName = indexName;
             String timeWindow = settings.get("timewindow");
             if (timeWindow != null) {
-                String timeWindowStr = DateTimeFormatter.ofPattern(timeWindow).format(LocalDate.now());
-                concreteIndexName = ingest.resolveAlias(indexName + timeWindowStr);
+                String timeWindowStr = DateTimeFormatter.ofPattern(timeWindow)
+                        .withZone(ZoneId.systemDefault()) // not GMT
+                        .format(LocalDate.now());
+                concreteIndexName = indexName + timeWindowStr;
+                logger.info("concrete index name = {}", concreteIndexName);
+            } else {
+                // reuse existing index
+                concreteIndexName = ingest.resolveMostRecentIndex(indexName);
                 logger.info("index name {} resolved to concrete index name = {}", indexName, concreteIndexName);
             }
             defs.put(entry.getKey(), new IndexDefinition(indexName, concreteIndexName,
