@@ -33,6 +33,7 @@ package org.xbib.tools.merge.holdingslicenses;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
@@ -49,7 +50,6 @@ import org.xbib.tools.merge.holdingslicenses.entities.License;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
-import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
@@ -122,7 +122,8 @@ public class HoldingsLicensesWorker
     }
 
     @Override
-    public Worker<Pipeline<HoldingsLicensesWorker, TitelRecordRequest>, TitelRecordRequest> setPipeline(Pipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline) {
+    public Worker<Pipeline<HoldingsLicensesWorker, TitelRecordRequest>, TitelRecordRequest>
+            setPipeline(Pipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline) {
         this.pipeline = pipeline;
         return this;
     }
@@ -309,10 +310,6 @@ public class HoldingsLicensesWorker
                 .addSort(SortBuilders.fieldSort("_doc"));
         logger.debug("searchRequest {}", searchRequest);
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        /*searchResponse = holdingsLicensesMerger.search().client()
-                .prepareSearchScroll(searchResponse.getScrollId())
-                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
-                .execute().actionGet();*/
         getMetric().mark();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
@@ -361,7 +358,6 @@ public class HoldingsLicensesWorker
                     searchNeighbors(m, titleRecords, level + 1);
                 }
             }
-            logger.debug("scroll");
             searchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
@@ -375,14 +371,9 @@ public class HoldingsLicensesWorker
             if (this == worker) {
                 continue;
             }
-            HoldingsLicensesWorker pipeline = (HoldingsLicensesWorker)worker;
-            Set<TitleRecord> set = pipeline.getCandidates();
+            Set<TitleRecord> set = worker.getCandidates();
             if (set != null && set.contains(titleRecord)) {
-                logger.warn("collision detected for {} with {} state={}",
-                        titleRecord,
-                        pipeline,
-                        pipeline.state.name()
-                );
+                logger.warn("collision detected for {} with {} state={}", titleRecord, worker, worker.state.name());
                 c.pos = pos;
                 // remove from our candidates, because we pass over to other thread
                 candidates.remove(titleRecord);
@@ -469,17 +460,23 @@ public class HoldingsLicensesWorker
                             // new Holding for each ISIL
                             holding = new Holding(holding.map());
                             holding.setISIL(expandedisil);
-                            holding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
-                            holding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
-                            holding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
+                            holding.setName(holdingsLicensesMerger.bibdatLookup()
+                                    .lookupName().get(expandedisil));
+                            holding.setRegion(holdingsLicensesMerger.bibdatLookup()
+                                    .lookupRegion().get(expandedisil));
+                            holding.setOrganization(holdingsLicensesMerger.bibdatLookup()
+                                    .lookupOrganization().get(expandedisil));
                             TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
                             parentTitleRecord.addRelatedHolding(expandedisil, holding);
                             holdings.add(holding);
                         }
                     } else {
-                        holding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
-                        holding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
-                        holding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                        holding.setName(holdingsLicensesMerger.bibdatLookup()
+                                .lookupName().get(isil));
+                        holding.setRegion(holdingsLicensesMerger.bibdatLookup()
+                                .lookupRegion().get(isil));
+                        holding.setOrganization(holdingsLicensesMerger.bibdatLookup()
+                                .lookupOrganization().get(isil));
                         TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
                         parentTitleRecord.addRelatedHolding(isil, holding);
                         holdings.add(holding);
@@ -493,7 +490,8 @@ public class HoldingsLicensesWorker
         }
     }
 
-    private void searchLicensesAndIndicators(Collection<TitleRecord> titleRecords, Set<License> licenses) throws IOException {
+    private void searchLicensesAndIndicators(Collection<TitleRecord> titleRecords, Set<License> licenses)
+            throws IOException {
         // create a map of all title records that can have assigned a license.
         Map<String, TitleRecord> map = new HashMap<>();
         boolean isOnline = false;
@@ -701,10 +699,14 @@ public class HoldingsLicensesWorker
                         volumeHolding.setCarrierType(titleRecord.carrierType());
                         volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                         String isil = volumeHolding.getISIL();
-                        volumeHolding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
-                        volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
-                        volumeHolding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                        volumeHolding.setServiceMode(holdingsLicensesMerger.statusCodeMapper().lookup(volumeHolding.getStatus()));
+                        volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
+                                .lookupName().get(isil));
+                        volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
+                                .lookupRegion().get(isil));
+                        volumeHolding.setOrganization(holdingsLicensesMerger.bibdatLookup()
+                                .lookupOrganization().get(isil));
+                        volumeHolding.setServiceMode(holdingsLicensesMerger.statusCodeMapper()
+                                .lookup(volumeHolding.getStatus()));
                         if ("interlibrary".equals(volumeHolding.getServiceType()) && isil != null) {
                             volume.addRelatedHolding(isil, volumeHolding);
                         }
@@ -754,8 +756,8 @@ public class HoldingsLicensesWorker
                         .addSort(SortBuilders.fieldSort("_doc"));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
                 getMetric().mark();
-                //logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
-                //        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
+                logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
+                        holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
                 while (holdingSearchResponse.getScrollId() != null) {
                     holdingSearchResponse = holdingsLicensesMerger.search().client()
                             .prepareSearchScroll(holdingSearchResponse.getScrollId())
@@ -781,10 +783,14 @@ public class HoldingsLicensesWorker
                                 volumeHolding.setCarrierType(titleRecord.carrierType());
                                 volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                                 String isil = volumeHolding.getISIL();
-                                volumeHolding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
-                                volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
-                                volumeHolding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                                volumeHolding.setServiceMode(holdingsLicensesMerger.statusCodeMapper().lookup(volumeHolding.getStatus()));
+                                volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
+                                        .lookupName().get(isil));
+                                volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
+                                        .lookupRegion().get(isil));
+                                volumeHolding.setOrganization(holdingsLicensesMerger.bibdatLookup()
+                                        .lookupOrganization().get(isil));
+                                volumeHolding.setServiceMode(holdingsLicensesMerger.statusCodeMapper()
+                                        .lookup(volumeHolding.getStatus()));
                                 if ("interlibrary".equals(volumeHolding.getServiceType()) && isil != null) {
                                     volume.addRelatedHolding(isil, volumeHolding);
                                 }
@@ -880,7 +886,8 @@ public class HoldingsLicensesWorker
                                 m.addRelated(inverse, titleRecord);
                             } else {
                                 if (logger.isTraceEnabled()) {
-                                    logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key, titleRecord.externalID());
+                                    logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key,
+                                            titleRecord.externalID());
                                 }
                                 m.addRelated("isRelatedTo", titleRecord);
                             }
@@ -899,11 +906,12 @@ public class HoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void indexTitleRecord(TitleRecord m, StatCounter statCounter) throws IOException {
         // find open access
-        Collection<String> issns = m.hasIdentifiers() ? (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
+        Collection<String> issns = m.hasIdentifiers() ?
+                (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
         if (issns != null) {
             boolean found = false;
             for (String issn : issns) {
-                found = found || holdingsLicensesMerger.findOpenAccess(sourceOpenAccessIndex, issn);
+                found = found || findOpenAccess(sourceOpenAccessIndex, issn);
             }
             m.setOpenAccess(found);
             if (found) {
@@ -918,7 +926,8 @@ public class HoldingsLicensesWorker
                 XContentBuilder builder = jsonBuilder();
                 volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
                 String vid = volume.externalID();
-                holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid, builder.string());
+                holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid,
+                        builder.string());
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
                 for (String key : mm.keySet()) {
                     for (Holding volumeHolding : mm.get(key)){
@@ -1013,7 +1022,8 @@ public class HoldingsLicensesWorker
         }
         XContentBuilder builder = jsonBuilder();
         m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
-        holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string());
+        holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(),
+                builder.string());
     }
 
     private void buildVolume(XContentBuilder builder,
@@ -1033,7 +1043,8 @@ public class HoldingsLicensesWorker
         Map<String, Set<Holding>> institutions = new HashMap<>();
         for (Holding holding : holdings) {
             // create holdings in order
-            Set<Holding> set = institutions.containsKey(holding.getISIL()) ? institutions.get(holding.getISIL()) : new TreeSet<>();
+            Set<Holding> set = institutions.containsKey(holding.getISIL()) ?
+                    institutions.get(holding.getISIL()) : new TreeSet<>();
             set.add(holding);
             institutions.put(holding.getISIL(), set);
         }
@@ -1056,6 +1067,18 @@ public class HoldingsLicensesWorker
             builder.endObject();
         }
         builder.endArray().endObject();
+    }
+
+    private boolean findOpenAccess(String index, String issn) {
+        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(holdingsLicensesMerger.search().client(),
+                SearchAction.INSTANCE);
+        searchRequestBuilder
+                .setSize(0)
+                .setIndices(index)
+                .setQuery(termQuery("dc:identifier", issn));
+        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+        logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
+        return searchResponse.getHits().getTotalHits() > 0;
     }
 
     private static class ClusterBuildContinuation {

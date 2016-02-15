@@ -51,6 +51,7 @@ import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
+import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.Pipeline;
@@ -89,33 +90,38 @@ public class HoldingsLicensesMerger extends Merger {
 
     private StatusCodeMapper statusCodeMapper;
 
+    private Metrics metrics;
+
     private MeterMetric queryMetric;
 
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
+        this.metrics = new Metrics();
         this.queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+        metrics.scheduleMetrics(settings, "meterquery", queryMetric);
         return super.run(settings);
     }
 
     protected void waitFor() throws IOException {
-        metrics.scheduleMetrics(settings, "meterquery", queryMetric);
-        // send poison elements and wait for completion
-        getPipeline().waitFor(new TitelRecordRequest());
-        getPipeline().shutdown();
-        long total = 0L;
-        for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
-            logger.info("worker {}, count {}, started {}, ended {}, took {}",
-                    worker,
-                    worker.getMetric().count(),
-                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
-                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
-                    TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
-            total += worker.getMetric().count();
+        try {
+            // send poison elements and wait for completion
+            getPipeline().waitFor(new TitelRecordRequest());
+        } finally {
+            long total = 0L;
+            for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+                logger.info("worker {}, count {}, started {}, ended {}, took {}",
+                        worker,
+                        worker.getMetric().count(),
+                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
+                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                        TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
+                total += worker.getMetric().count();
+            }
+            logger.info("worker metric count total = {}", total);
+            metrics.append("meterquery", queryMetric);
         }
-        logger.info("worker metric count total={}", total);
-        metrics.append("meterquery", queryMetric);
     }
 
     @SuppressWarnings("unchecked")
@@ -224,113 +230,14 @@ public class HoldingsLicensesMerger extends Merger {
                     .execute().actionGet();
         } while (!failure && searchResponse.getHits().getHits().length > 0);
         logger.info("all title records processed");
-        /*skipped.removeAll(indexed);
-        logger.info("skipped: {}", skipped.size());
-
-        // log skipped IDs file for analysis
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        String filename = String.format("notindexed-%04d%02d%02d-1.txt", year, month + 1, day);
-        try {
-            FileWriter w = new FileWriter(filename);
-            for (String s : skipped) {
-                w.append(s).append("\n");
-            }
-            w.close();
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }*/
-        // post process, try to index the skipped IDs
-        /*for (String skippedIdentifier : skipped) {
-            searchRequest = client.prepareSearch()
-                    .setIndices(sourceTitleIndex)
-                    .setQuery(termQuery("IdentifierZDB.identifierZDB", skippedIdentifier));
-            if (sourceTitleType != null) {
-                searchRequest.setTypes(sourceTitleType);
-            }
-            searchResponse = searchRequest.execute().actionGet();
-            logger.debug("hits={}", searchResponse.getHits().getTotalHits());
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                continue;
-            }
-            for (SearchHit hit : hits) {
-                try {
-                    if (canReceive() == 0L) {
-                        logger.error("no more pipelines left to receive, aborting");
-                        return this;
-                    }
-                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
-                    getQueue().offer(new TitelRecordPipelineElement().set(titleRecord).setCheck(false));
-                } catch (Throwable e) {
-                    logger.error("error passing data to merge pipelines, exiting", e);
-                    logger.error(ExceptionFormatter.format(e));
-                    break;
-                }
-            }
-        }*/
-
-        //skipped.removeAll(indexed);
-        /*logger.info("after indexing skipped: skipped = {}", skipped.size());
-        filename = String.format("notindexed-%04d%02d%02d-2.txt", year, month + 1, day);
-        try {
-            FileWriter w = new FileWriter(filename);
-            for (String s : skipped) {
-                w.append(s).append("\n");
-            }
-            w.close();
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }*/
-        //scheduledExecutorService.shutdownNow();
     }
 
     @Override
     protected void prepareResources() throws Exception {
         super.prepareResources();
         this.size = settings.getAsInt("scrollsize", 10);
-        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(3600)).millis();
+        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         this.identifier = settings.get("identifier");
-
-        /*this.sourceTitleIndex = settings.get("bib-index");
-        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
-            throw new IllegalArgumentException("no bib-index parameter given");
-        }
-
-        String index = settings.get("index");
-        String packageName = getClass().getPackage().getName().replace('.','/');
-        String indexSettingsLocation = settings.get("index-settings",
-                "classpath:" + packageName + "/settings.json");
-        logger.info("using index settings from {}", indexSettingsLocation);
-        URL indexSettingsUrl = new URL(indexSettingsLocation);
-        logger.info("creating index {}", index);
-        ingest.newIndex(index, org.elasticsearch.common.settings.Settings.settingsBuilder()
-                .loadFromStream(indexSettingsUrl.toString(), indexSettingsUrl.openStream()).build(), null);
-
-        // add mappings
-        String indexMappingsLocation = settings.get("index-mapping",
-                "classpath:" + packageName + "/mapping.json");
-        logger.info("using index mappings from {}", indexMappingsLocation);
-        URL indexMappingsUrl = new URL(indexMappingsLocation);
-        Map<String,Object> indexMappings = Settings.settingsBuilder()
-                .loadFromUrl(indexMappingsUrl).build().getAsStructuredMap();
-        if (indexMappings != null) {
-            for (Map.Entry<String,Object> me : indexMappings.entrySet()) {
-                String type = me.getKey();
-                Map<String, Object> mapping = (Map<String, Object>) me.getValue();
-                logger.info("creating mapping for type {}: {}", type, mapping);
-                if (mapping != null) {
-                    ingest.newMapping(index, me.getKey(), mapping);
-                } else {
-                    logger.warn("no mapping found for {}", type);
-                }
-            }
-        }
-        ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
-        ingest.startBulk(index, -1, 1);*/
     }
 
     protected void disposeRequests() throws IOException {
@@ -339,18 +246,6 @@ public class HoldingsLicensesMerger extends Merger {
 
     protected void disposeResources() throws IOException {
         super.disposeResources();
-    }
-
-    public boolean findOpenAccess(String index, String issn) {
-        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(search.client(), SearchAction.INSTANCE);
-        searchRequestBuilder
-                .setSize(0)
-                .setIndices(index)
-                .setQuery(termQuery("dc:identifier", issn));
-        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
-        logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
-        queryMetric.mark();
-        return searchResponse.getHits().getTotalHits() > 0;
     }
 
     public SearchTransportClient search() {
