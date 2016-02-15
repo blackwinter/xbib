@@ -200,7 +200,6 @@ public class HoldingsLicensesWorker
             element = getPipeline().getQueue().take();
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
-                logger.info("processing title record");
                 process(titleRecord);
                 element = getPipeline().getQueue().take();
                 titleRecord = element != null ? element.get() : null;
@@ -213,20 +212,13 @@ public class HoldingsLicensesWorker
             getPipeline().quit(this, e);
         } finally {
             metric.stop();
-            logger.info("worker terminating");
         }
         return element;
     }
 
     @Override
     public void close() throws IOException {
-        /*if (!getPipeline().getQueue().isEmpty()) {
-            logger.error("queue not empty?");
-        }
-        if (!buildQueue.isEmpty()) {
-            logger.error("complete queue not empty?");
-        }
-        logger.info("closing");*/
+        logger.info("worker closing");
     }
 
     @Override
@@ -243,7 +235,6 @@ public class HoldingsLicensesWorker
         searchNeighbors(titleRecord, candidates, 0);
         // process build queue to get candidates
         ClusterBuildContinuation cont;
-        logger.debug("build queue size = {}", buildQueue.size());
         while ((cont = buildQueue.poll()) != null) {
             for (TitleRecord tr : cont.cluster) {
                 candidates.add(tr);
@@ -380,7 +371,7 @@ public class HoldingsLicensesWorker
     }
 
     private boolean detectCollisionAndTransfer(TitleRecord titleRecord, ClusterBuildContinuation c, int pos) {
-        for (Worker worker : getPipeline().getWorkers()) {
+        for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
             if (this == worker) {
                 continue;
             }
@@ -393,12 +384,13 @@ public class HoldingsLicensesWorker
                         pipeline.state.name()
                 );
                 c.pos = pos;
-                // remove from our candidates, because we pass them over to other thread
+                // remove from our candidates, because we pass over to other thread
                 candidates.remove(titleRecord);
                 for (TitleRecord tr : c.cluster) {
                     candidates.remove(tr);
                 }
-                getBuildQueue().offer(c);
+                // pass it over
+                worker.getBuildQueue().offer(c);
                 return true;
             }
         }
