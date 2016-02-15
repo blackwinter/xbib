@@ -1,3 +1,9 @@
 {
-  "date_detection": false
+  "date_detection": false,
+  "properties" : {
+      "dc:identifier" : {
+          "type" : "string",
+          "analyzer" : "keyword"
+      }
+  }
 }

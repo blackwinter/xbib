@@ -210,7 +210,6 @@ public class HoldingsLicensesMerger extends Merger {
                         return;
                     }
                     TitelRecordRequest titelRecordRequest = new TitelRecordRequest().set(new TitleRecord(hit.getSource()));
-                    logger.info("titelRecordRequest {}", titelRecordRequest);
                     getPipeline().putQueue(titelRecordRequest);
                 } catch (Throwable e) {
                     logger.error("error passing data to workers, exiting", e);
