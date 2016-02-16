@@ -90,6 +90,8 @@ public class HoldingsLicensesWorker
     private final HoldingsLicensesMerger holdingsLicensesMerger;
     private final Logger logger;
     private final Queue<ClusterBuildContinuation> buildQueue;
+    private final int scrollSize;
+    private final long scrollMillis;
 
     private String sourceTitleIndex;
     private String sourceHoldingsIndex;
@@ -113,12 +115,15 @@ public class HoldingsLicensesWorker
     private Set<TitleRecord> candidates;
 
     @SuppressWarnings("unchecked")
-    public HoldingsLicensesWorker(HoldingsLicensesMerger holdingsLicensesMerger, int number) {
+    public HoldingsLicensesWorker(HoldingsLicensesMerger holdingsLicensesMerger,
+                                  int scrollSize, long scrollMillis, int number) {
         this.number = number;
         this.holdingsLicensesMerger = holdingsLicensesMerger;
         this.buildQueue = new ConcurrentLinkedQueue<>();
         this.logger = LogManager.getLogger(toString());
         this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        this.scrollSize = scrollSize;
+        this.scrollMillis = scrollMillis;
     }
 
     @Override
@@ -305,8 +310,8 @@ public class HoldingsLicensesWorker
                 .prepareSearch()
                 .setIndices(sourceTitleIndex)
                 .setQuery(queryBuilder)
-                .setSize(holdingsLicensesMerger.size()) // size is per shard!
-                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                .setSize(scrollSize) // size is per shard!
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         logger.debug("searchRequest {}", searchRequest);
         SearchResponse searchResponse = searchRequest.execute().actionGet();
@@ -360,7 +365,7 @@ public class HoldingsLicensesWorker
             }
             searchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
             getMetric().mark();
         } while (searchResponse.getHits().getHits().length > 0);
@@ -424,8 +429,8 @@ public class HoldingsLicensesWorker
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
                     .setQuery(queryBuilder)
-                    .setSize(holdingsLicensesMerger.size())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setSize(scrollSize)
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
             searchRequest.setIndices(sourceHoldingsIndex);
             SearchResponse searchResponse = searchRequest.execute().actionGet();
@@ -484,7 +489,7 @@ public class HoldingsLicensesWorker
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
         }
@@ -529,8 +534,8 @@ public class HoldingsLicensesWorker
                     .prepareSearch()
                     .setIndices(sourceLicenseIndex)
                     .setQuery(queryBuilder)
-                    .setSize(holdingsLicensesMerger.size())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setSize(scrollSize)
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             logger.debug("searchLicenses search request = {} hits={}",
@@ -570,7 +575,7 @@ public class HoldingsLicensesWorker
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                        .prepareSearchScroll(searchResponse.getScrollId())
-                       .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                       .setScroll(TimeValue.timeValueMillis(scrollMillis))
                        .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
         }
@@ -589,13 +594,12 @@ public class HoldingsLicensesWorker
             int end = begin + 1024 > array.length ? array.length : begin + 1024;
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
             QueryBuilder queryBuilder = termsQuery("xbib:identifier", subarray);
-            // getSize is per shard
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
                     .setIndices(sourceIndicatorIndex)
                     .setQuery(queryBuilder)
-                    .setSize(holdingsLicensesMerger.size())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setSize(scrollSize)
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             logger.debug("searchIndicators search request = {} hits={}",
@@ -632,7 +636,7 @@ public class HoldingsLicensesWorker
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
         }
@@ -643,8 +647,8 @@ public class HoldingsLicensesWorker
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
                     .setIndices(sourceMonographicIndex)
-                    .setSize(holdingsLicensesMerger.size())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setSize(scrollSize)
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()))
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
@@ -660,7 +664,7 @@ public class HoldingsLicensesWorker
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
         }
@@ -677,8 +681,8 @@ public class HoldingsLicensesWorker
         SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(sourceMonographicHoldingsIndex)
-                .setSize(holdingsLicensesMerger.size())
-                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                .setSize(scrollSize)
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(termQuery("xbib.uid", key))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
@@ -715,7 +719,7 @@ public class HoldingsLicensesWorker
             }
             holdingSearchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(holdingSearchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (holdingSearchResponse.getHits().getHits().length > 0);
     }
@@ -733,8 +737,8 @@ public class HoldingsLicensesWorker
         SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(sourceMonographicIndex)
-                .setSize(holdingsLicensesMerger.size())
-                .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                .setSize(scrollSize)
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
                         .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())))
                 .addSort(SortBuilders.fieldSort("_doc"));
@@ -750,8 +754,8 @@ public class HoldingsLicensesWorker
                 SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
                         .prepareSearch()
                         .setIndices(sourceMonographicHoldingsIndex)
-                        .setSize(holdingsLicensesMerger.size())
-                        .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                        .setSize(scrollSize)
+                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .setQuery(termQuery("xbib.uid", volume.id()))
                         .addSort(SortBuilders.fieldSort("_doc"));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
@@ -761,7 +765,7 @@ public class HoldingsLicensesWorker
                 while (holdingSearchResponse.getScrollId() != null) {
                     holdingSearchResponse = holdingsLicensesMerger.search().client()
                             .prepareSearchScroll(holdingSearchResponse.getScrollId())
-                            .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                            .setScroll(TimeValue.timeValueMillis(scrollMillis))
                             .execute().actionGet();
                     getMetric().mark();
                     SearchHits holdingHits = holdingSearchResponse.getHits();
@@ -803,7 +807,7 @@ public class HoldingsLicensesWorker
             }
             searchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(holdingsLicensesMerger.millis()))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (searchResponse.getHits().getHits().length > 0);
     }

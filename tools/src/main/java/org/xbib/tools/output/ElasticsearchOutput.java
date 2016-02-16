@@ -45,6 +45,8 @@ public class ElasticsearchOutput {
                 .build();
         ClientBuilder clientBuilder = ClientBuilder.builder()
                 .put(elasticsearchSettings)
+                .put("client.transport.nodes_sampler_interval", settings.get("timeout","30s"))
+                .put("client.transport.ping_timeout", settings.get("timeout","30s"))
                 .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
                 .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
                         Runtime.getRuntime().availableProcessors()))

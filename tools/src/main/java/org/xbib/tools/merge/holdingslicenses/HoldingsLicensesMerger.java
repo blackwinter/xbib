@@ -33,7 +33,6 @@ package org.xbib.tools.merge.holdingslicenses;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
@@ -73,12 +72,6 @@ public class HoldingsLicensesMerger extends Merger {
     private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class.getSimpleName());
 
     private HoldingsLicensesMerger holdingsLicensesMerger;
-
-    private int size;
-
-    private long millis;
-
-    private String identifier;
 
     private BibdatLookup bibdatLookup;
 
@@ -136,7 +129,10 @@ public class HoldingsLicensesMerger extends Merger {
 
             @Override
             public HoldingsLicensesWorker get(Pipeline pipeline) {
-                return (HoldingsLicensesWorker) new HoldingsLicensesWorker(holdingsLicensesMerger, i++)
+                return (HoldingsLicensesWorker) new HoldingsLicensesWorker(holdingsLicensesMerger,
+                        settings.getAsInt("worker.scrollsize", 30), // per shard!
+                        settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(30)).millis(),
+                        i++)
                         .setPipeline(pipeline);
             }
         };
@@ -194,13 +190,16 @@ public class HoldingsLicensesMerger extends Merger {
         logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
 
         // all prepared. Enter loop over all title records
+        int scrollSize = settings.getAsInt("scrollsize", 10);
+        long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         boolean failure = false;
         SearchRequestBuilder searchRequest = search.client().prepareSearch()
-                .setSize(size)
-                .setScroll(TimeValue.timeValueMillis(millis))
+                .setSize(scrollSize)
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         searchRequest.setIndices(indexDefinition.get("zdb").getIndex());
         // single identifier?
+        String identifier = settings.get("identifier");
         if (identifier != null) {
             searchRequest.setQuery(termQuery("IdentifierZDB.identifierZDB", identifier));
         }
@@ -209,7 +208,7 @@ public class HoldingsLicensesMerger extends Merger {
                 searchResponse.getHits().getTotalHits());
         do {
             queryMetric.mark();
-            for (SearchHit hit :  searchResponse.getHits()) {
+            for (SearchHit hit : searchResponse.getHits()) {
                 try {
                     if (getPipeline().getWorkers().isEmpty()) {
                         logger.error("no more workers left to receive, aborting feed");
@@ -226,18 +225,10 @@ public class HoldingsLicensesMerger extends Merger {
             }
             searchResponse = search.client()
                     .prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(millis))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (!failure && searchResponse.getHits().getHits().length > 0);
         logger.info("all title records processed");
-    }
-
-    @Override
-    protected void prepareResources() throws Exception {
-        super.prepareResources();
-        this.size = settings.getAsInt("scrollsize", 10);
-        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
-        this.identifier = settings.get("identifier");
     }
 
     protected void disposeRequests() throws IOException {
@@ -258,14 +249,6 @@ public class HoldingsLicensesMerger extends Merger {
 
     public Settings settings() {
         return settings;
-    }
-
-    public int size() {
-        return size;
-    }
-
-    public long millis() {
-        return millis;
     }
 
     public BibdatLookup bibdatLookup() {
