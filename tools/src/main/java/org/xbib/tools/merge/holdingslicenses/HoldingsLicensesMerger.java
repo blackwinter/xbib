@@ -136,8 +136,8 @@ public class HoldingsLicensesMerger extends Merger {
             @Override
             public HoldingsLicensesWorker get(Pipeline pipeline) {
                 return (HoldingsLicensesWorker) new HoldingsLicensesWorker(settings, holdingsLicensesMerger,
-                        settings.getAsInt("worker.scrollsize", 30), // per shard!
-                        settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(30)).millis(),
+                        settings.getAsInt("worker.scrollsize", 10), // per shard!
+                        settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis(),
                         i++)
                         .setPipeline(pipeline);
             }

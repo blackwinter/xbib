@@ -1093,7 +1093,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             }
         }*/
         // holdings
-        if (!relatedHoldings.isEmpty()) {
+        /*if (!relatedHoldings.isEmpty()) {
             builder.field("servicecount", relatedHoldings.size());
             builder.startArray("service");
             for (String key : relatedHoldings.keySet()) {
@@ -1106,7 +1106,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 }
             }
             builder.endArray();
-        }
+        }*/
         builder.endObject();
         if (statCounter != null) {
             for (String country : country()) {

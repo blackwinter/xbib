@@ -966,8 +966,10 @@ public class HoldingsLicensesWorker
                 XContentBuilder builder = jsonBuilder();
                 volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
                 String vid = volume.externalID();
-                holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid,
-                        builder.string());
+                if (checkSize(manifestationsIndex, manifestationsIndexType, vid, builder.string())) {
+                    holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid,
+                            builder.string());
+                }
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
                 for (String key : mm.keySet()) {
                     for (Holding volumeHolding : mm.get(key)){
@@ -975,15 +977,18 @@ public class HoldingsLicensesWorker
                         volumeHolding.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
                         // to holding index
                         String hid = volume.externalID();
-                        holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType, hid, builder.string());
+                        if (checkSize(holdingsIndex, holdingsIndexType, hid, builder.string())) {
+                            holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType, hid, builder.string());
+                        }
                         if (statCounter != null) {
                             statCounter.increase("stat", "holdings", 1);
                         }
                         // extra entry by date
                         String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
-                        checkSize(volumesIndex, volumesIndexType, vhid, builder.string());
-                        holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
+                        if (checkSize(volumesIndex, volumesIndexType, vhid, builder.string())) {
+                            holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
+                        }
                         if (statCounter != null) {
                             statCounter.increase("stat", "volumes", 1);
                         }
@@ -1021,9 +1026,10 @@ public class HoldingsLicensesWorker
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
-                        checkSize(servicesIndex, servicesIndexType, serviceId, serviceBuilder.string());
-                        holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
+                        if (checkSize(servicesIndex, servicesIndexType, serviceId, serviceBuilder.string())) {
+                            holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
+                        }
                         builder.startObject();
                         builder.field("identifierForTheService", serviceId);
                         builder.field("dates", holding.dates());
@@ -1040,9 +1046,10 @@ public class HoldingsLicensesWorker
             }
             builder.endArray().field("institutioncount", instcount).endObject();
             // one holding per manifestation
-            checkSize(holdingsIndex, holdingsIndexType, m.externalID(), builder.string());
-            holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
-                    m.externalID(), builder.string());
+            if (checkSize(holdingsIndex, holdingsIndexType, m.externalID(), builder.string())) {
+                holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
+                        m.externalID(), builder.string());
+            }
             if (statCounter != null) {
                 statCounter.increase("stat", "holdings", 1);
             }
@@ -1053,9 +1060,10 @@ public class HoldingsLicensesWorker
                 String volumeId = m.externalID() + (date != -1 ? "." + date : "");
                 builder = jsonBuilder();
                 buildVolume(builder, m, m.externalID(), date, holdings);
-                checkSize(volumesIndex, volumesIndexType, volumeId, builder.string());
-                holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType,
+                if (checkSize(volumesIndex, volumesIndexType, volumeId, builder.string())) {
+                    holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType,
                             volumeId, builder.string());
+                }
             }
             if (statCounter != null) {
                 statCounter.increase("stat", "volumes", map.size());
@@ -1066,9 +1074,10 @@ public class HoldingsLicensesWorker
         }
         XContentBuilder builder = jsonBuilder();
         m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
-        checkSize(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string());
-        holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(),
-                builder.string());
+        if (checkSize(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string())) {
+            holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(),
+                    builder.string());
+        }
     }
 
     private void buildVolume(XContentBuilder builder,
@@ -1126,10 +1135,12 @@ public class HoldingsLicensesWorker
         return searchResponse.getHits().getTotalHits() > 0;
     }
 
-    private void checkSize(String index, String type, String id, String string) {
+    private boolean checkSize(String index, String type, String id, String string) {
         if (string.length() > 1024 * 1024) {
             logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, string.length());
+            return false;
         }
+        return true;
     }
 
     private static class ClusterBuildContinuation {
