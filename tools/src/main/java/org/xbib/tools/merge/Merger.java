@@ -96,7 +96,7 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
             waitFor();
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
-            return 1;
+            returncode = 1;
         } finally {
             disposeRequests();
             disposeResources();

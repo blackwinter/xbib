@@ -47,4 +47,7 @@ public class TitelRecordRequest implements WorkerRequest<TitleRecord> {
         return titleRecord;
     }
 
+    public String toString() {
+        return titleRecord.toString();
+    }
 }

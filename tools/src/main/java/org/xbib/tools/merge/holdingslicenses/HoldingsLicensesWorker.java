@@ -41,6 +41,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
+import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.metric.MeterMetric;
 import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
@@ -115,15 +116,18 @@ public class HoldingsLicensesWorker
     private Set<TitleRecord> candidates;
 
     @SuppressWarnings("unchecked")
-    public HoldingsLicensesWorker(HoldingsLicensesMerger holdingsLicensesMerger,
+    public HoldingsLicensesWorker(Settings settings,
+                                  HoldingsLicensesMerger holdingsLicensesMerger,
                                   int scrollSize, long scrollMillis, int number) {
         this.number = number;
         this.holdingsLicensesMerger = holdingsLicensesMerger;
         this.buildQueue = new ConcurrentLinkedQueue<>();
         this.logger = LogManager.getLogger(toString());
         this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        holdingsLicensesMerger.getMetrics().scheduleMetrics(settings, "meter" + number, metric);
         this.scrollSize = scrollSize;
         this.scrollMillis = scrollMillis;
+        logger.info("scrollSize= {} scrollMillis={}", scrollSize, scrollMillis);
     }
 
     @Override
@@ -206,7 +210,14 @@ public class HoldingsLicensesWorker
             element = getPipeline().getQueue().take();
             titleRecord = element != null ? element.get() : null;
             while (titleRecord != null) {
+                long t0 = System.nanoTime();
                 process(titleRecord);
+                long t1 = System.nanoTime();
+                long delta = t1 -t0 / 1000000;
+                if (delta > 10000) {
+                    logger.warn("long processing of {} = {} ms", titleRecord.externalID(), delta);
+                }
+                metric.mark();
                 element = getPipeline().getQueue().take();
                 titleRecord = element != null ? element.get() : null;
             }
