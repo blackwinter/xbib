@@ -213,7 +213,7 @@ public class HoldingsLicensesWorker
                 long t0 = System.nanoTime();
                 process(titleRecord);
                 long t1 = System.nanoTime();
-                long delta = t1 -t0 / 1000000;
+                long delta = (t1 -t0) / 1000000;
                 if (delta > 10000) {
                     logger.warn("long processing of {} = {} ms", titleRecord.externalID(), delta);
                 }
