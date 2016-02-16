@@ -971,6 +971,7 @@ public class HoldingsLicensesWorker
                         // extra entry by date
                         String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
+                        checkSize(volumesIndex, volumesIndexType, vhid, builder.string());
                         holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
                         if (statCounter != null) {
                             statCounter.increase("stat", "volumes", 1);
@@ -1009,6 +1010,7 @@ public class HoldingsLicensesWorker
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
+                        checkSize(servicesIndex, servicesIndexType, serviceId, serviceBuilder.string());
                         holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
                         builder.startObject();
@@ -1027,6 +1029,7 @@ public class HoldingsLicensesWorker
             }
             builder.endArray().field("institutioncount", instcount).endObject();
             // one holding per manifestation
+            checkSize(holdingsIndex, holdingsIndexType, m.externalID(), builder.string());
             holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
                     m.externalID(), builder.string());
             if (statCounter != null) {
@@ -1039,6 +1042,7 @@ public class HoldingsLicensesWorker
                 String volumeId = m.externalID() + (date != -1 ? "." + date : "");
                 builder = jsonBuilder();
                 buildVolume(builder, m, m.externalID(), date, holdings);
+                checkSize(volumesIndex, volumesIndexType, volumeId, builder.string());
                 holdingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType,
                             volumeId, builder.string());
             }
@@ -1051,6 +1055,7 @@ public class HoldingsLicensesWorker
         }
         XContentBuilder builder = jsonBuilder();
         m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
+        checkSize(manifestationsIndex, manifestationsIndexType, m.externalID(), builder.string());
         holdingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(),
                 builder.string());
     }
@@ -1108,6 +1113,12 @@ public class HoldingsLicensesWorker
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
         return searchResponse.getHits().getTotalHits() > 0;
+    }
+
+    private void checkSize(String index, String type, String id, String string) {
+        if (string.length() > 1024 * 1024) {
+            logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, string.length());
+        }
     }
 
     private static class ClusterBuildContinuation {
