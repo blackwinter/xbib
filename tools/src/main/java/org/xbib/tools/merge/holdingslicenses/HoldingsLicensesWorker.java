@@ -369,6 +369,9 @@ public class HoldingsLicensesWorker
                     .execute().actionGet();
             getMetric().mark();
         } while (searchResponse.getHits().getHits().length > 0);
+        holdingsLicensesMerger.search().client()
+                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
     }
 
     private boolean detectCollisionAndTransfer(TitleRecord titleRecord, ClusterBuildContinuation c, int pos) {
@@ -492,6 +495,9 @@ public class HoldingsLicensesWorker
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
+            holdingsLicensesMerger.search().client()
+                    .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                    .execute().actionGet();
         }
     }
 
@@ -578,6 +584,9 @@ public class HoldingsLicensesWorker
                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
                        .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
+            holdingsLicensesMerger.search().client()
+                    .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                    .execute().actionGet();
         }
     }
 
@@ -639,6 +648,9 @@ public class HoldingsLicensesWorker
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
+            holdingsLicensesMerger.search().client()
+                    .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                    .execute().actionGet();
         }
     }
 
@@ -667,6 +679,9 @@ public class HoldingsLicensesWorker
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
+            holdingsLicensesMerger.search().client()
+                    .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                    .execute().actionGet();
         }
     }
 
@@ -722,6 +737,9 @@ public class HoldingsLicensesWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (holdingSearchResponse.getHits().getHits().length > 0);
+        holdingsLicensesMerger.search().client()
+                .prepareClearScroll().addScrollId(holdingSearchResponse.getScrollId())
+                .execute().actionGet();
     }
 
     /**
@@ -810,6 +828,9 @@ public class HoldingsLicensesWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (searchResponse.getHits().getHits().length > 0);
+        holdingsLicensesMerger.search().client()
+                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
     }
 
     @SuppressWarnings("unchecked")
@@ -909,6 +930,10 @@ public class HoldingsLicensesWorker
 
     @SuppressWarnings("unchecked")
     private void indexTitleRecord(TitleRecord m, StatCounter statCounter) throws IOException {
+        if (holdingsLicensesMerger.getTitleIds().contains(m.externalID())) {
+            return;
+        }
+        holdingsLicensesMerger.getTitleIds().add(m.externalID());
         // find open access
         Collection<String> issns = m.hasIdentifiers() ?
                 (Collection<String>) m.getIdentifiers().get("formattedissn") : null;

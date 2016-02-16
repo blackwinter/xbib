@@ -59,7 +59,10 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -87,10 +90,13 @@ public class HoldingsLicensesMerger extends Merger {
 
     private MeterMetric queryMetric;
 
+    private Set<String> titleIds;
+
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
+        this.titleIds = Collections.synchronizedSet(new HashSet<>());
         this.metrics = new Metrics();
         this.queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         metrics.scheduleMetrics(settings, "meterquery", queryMetric);
@@ -214,7 +220,8 @@ public class HoldingsLicensesMerger extends Merger {
                         logger.error("no more workers left to receive, aborting feed");
                         return;
                     }
-                    TitelRecordRequest titelRecordRequest = new TitelRecordRequest().set(new TitleRecord(hit.getSource()));
+                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
+                    TitelRecordRequest titelRecordRequest = new TitelRecordRequest().set(titleRecord);
                     getPipeline().putQueue(titelRecordRequest);
                 } catch (Throwable e) {
                     logger.error("error passing data to workers, exiting", e);
@@ -228,6 +235,9 @@ public class HoldingsLicensesMerger extends Merger {
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (!failure && searchResponse.getHits().getHits().length > 0);
+        holdingsLicensesMerger.search().client()
+                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
         logger.info("all title records processed");
     }
 
@@ -269,6 +279,10 @@ public class HoldingsLicensesMerger extends Merger {
 
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
+    }
+
+    public Set<String> getTitleIds() {
+        return titleIds;
     }
 
 }
