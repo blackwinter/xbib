@@ -1207,12 +1207,12 @@ public class HoldingsLicensesWorker
     }
 
     private boolean checkSize(String index, String type, String id, XContentBuilder builder) throws IOException {
+        if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
+            logger.debug(builder.string());
+        }
         long len = builder.string().length();
         if (len > 1024 * 1024) {
             logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, len);
-            if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
-                logger.debug(builder.string());
-            }
             return false;
         }
         return true;
