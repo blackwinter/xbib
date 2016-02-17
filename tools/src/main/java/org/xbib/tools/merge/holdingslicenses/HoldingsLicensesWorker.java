@@ -1138,6 +1138,9 @@ public class HoldingsLicensesWorker
     private boolean checkSize(String index, String type, String id, String string) {
         if (string.length() > 1024 * 1024) {
             logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, string.length());
+            if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
+                logger.debug(string);
+            }
             return false;
         }
         return true;
