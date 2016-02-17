@@ -37,10 +37,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class BlackListedISIL {
 
-    private Set<String> lookup = new HashSet<>();
+    private Set<Pattern> patterns = new HashSet<>();
 
     public void buildLookup(InputStream in) throws IOException {
         if (in == null) {
@@ -49,12 +50,21 @@ public class BlackListedISIL {
         BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String line;
         while ((line = r.readLine()) != null) {
-            lookup.add(line);
+            patterns.add(Pattern.compile(line));
         }
         r.close();
     }
 
-    public Set<String> lookup() {
-        return lookup;
+    public  Set<Pattern> lookup() {
+        return patterns;
+    }
+
+    public boolean lookup(String isil) {
+        for (Pattern pattern : patterns) {
+            if (pattern.matcher(isil).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

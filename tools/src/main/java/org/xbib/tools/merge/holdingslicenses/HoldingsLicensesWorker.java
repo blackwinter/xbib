@@ -266,7 +266,7 @@ public class HoldingsLicensesWorker
                 setAllRelationsBetween(m, candidates);
             }
             // Now, this is expensive. Find holdings, licenses, indicators of candidates
-            Set<Holding> holdings = new HashSet<>();
+            Set<Holding> holdings = new TreeSet<>();
             searchHoldings(candidates, holdings);
             Set<License> licenses = new HashSet<>();
             searchLicensesAndIndicators(candidates, licenses);
@@ -464,10 +464,6 @@ public class HoldingsLicensesWorker
                     if (isil == null) {
                         continue;
                     }
-                    // blacklisted ISIL?
-                    if (holdingsLicensesMerger.blackListedISIL().lookup().contains(isil)) {
-                        continue;
-                    }
                     // mapped ISIL?
                     if (holdingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
                         isil = (String) holdingsLicensesMerger.mappedISIL().lookup().get(isil);
@@ -476,9 +472,14 @@ public class HoldingsLicensesWorker
                     if (holdingsLicensesMerger.consortiaLookup().lookupISILs().containsKey(isil)) {
                         List<String> list = holdingsLicensesMerger.consortiaLookup().lookupISILs().get(isil);
                         for (String expandedisil : list) {
+                            // blacklisted expanded ISIL?
+                            if (holdingsLicensesMerger.blackListedISIL().lookup(expandedisil)) {
+                                continue;
+                            }
                             // new Holding for each ISIL
                             holding = new Holding(holding.map());
-                            holding.setISIL(expandedisil);
+                            holding.setISIL(isil);
+                            holding.setServiceISIL(expandedisil);
                             holding.setName(holdingsLicensesMerger.bibdatLookup()
                                     .lookupName().get(expandedisil));
                             holding.setRegion(holdingsLicensesMerger.bibdatLookup()
@@ -490,12 +491,13 @@ public class HoldingsLicensesWorker
                             holdings.add(holding);
                         }
                     } else {
-                        holding.setName(holdingsLicensesMerger.bibdatLookup()
-                                .lookupName().get(isil));
-                        holding.setRegion(holdingsLicensesMerger.bibdatLookup()
-                                .lookupRegion().get(isil));
-                        holding.setOrganization(holdingsLicensesMerger.bibdatLookup()
-                                .lookupOrganization().get(isil));
+                        // blacklisted ISIL?
+                        if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                            continue;
+                        }
+                        holding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
+                        holding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
+                        holding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
                         TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
                         parentTitleRecord.addRelatedHolding(isil, holding);
                         holdings.add(holding);
@@ -569,7 +571,7 @@ public class HoldingsLicensesWorker
                     if (isil == null) {
                         continue;
                     }
-                    if (holdingsLicensesMerger.blackListedISIL().lookup().contains(isil)) {
+                    if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
                         continue;
                     }
                     // mapped ISIL?
@@ -633,7 +635,7 @@ public class HoldingsLicensesWorker
                         continue;
                     }
                     // blacklisted ISIL?
-                    if (holdingsLicensesMerger.blackListedISIL().lookup().contains(isil)) {
+                    if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
                         continue;
                     }
                     // mapped ISIL?
