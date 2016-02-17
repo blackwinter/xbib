@@ -76,7 +76,6 @@ import java.util.stream.Collectors;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
-import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class HoldingsLicensesWorker
         implements Worker<Pipeline<HoldingsLicensesWorker, TitelRecordRequest>, TitelRecordRequest> {
@@ -1195,11 +1194,20 @@ public class HoldingsLicensesWorker
         return searchResponse.getHits().getTotalHits() > 0;
     }
 
+    private XContentBuilder jsonBuilder() throws IOException {
+        if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
+            return org.xbib.common.xcontent.XContentService.jsonBuilder().prettyPrint();
+        } else {
+            return org.xbib.common.xcontent.XContentService.jsonBuilder();
+        }
+    }
+
     private boolean checkSize(String index, String type, String id, XContentBuilder builder) throws IOException {
-        if (builder.string().length() > 1024 * 1024) {
-            logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, builder.string().length());
+        long len = builder.string().length();
+        if (len > 1024 * 1024) {
+            logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, len);
             if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
-                logger.debug(builder.prettyPrint().string());
+                logger.debug(builder.string());
             }
             return false;
         }
