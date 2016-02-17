@@ -41,10 +41,10 @@ import org.xbib.util.TreeMultiMap;
 import org.xbib.util.concurrent.PartiallyBlockingCopyOnWriteArrayListMultiMap;
 
 import java.io.IOException;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -59,7 +59,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings("unchecked")
 public class TitleRecord implements Comparable<TitleRecord> {
 
-    private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+    private final static Integer currentYear = Year.now().getValue();
 
     protected final Map<String, Object> map;
 
@@ -138,9 +138,10 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
-    // we add holdings to other title records which may be accessed by other threads too
-    private final MultiMap<String, Holding> relatedHoldings =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
-    private final MultiMap<Integer, Holding> holdingsByDate =  new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
+    private final MultiMap<String, Holding> relatedHoldings = new TreeMultiMap<>();
+       //new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new TreeMultiMap<>();
+      //new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
 
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 

@@ -1061,7 +1061,6 @@ public class HoldingsLicensesWorker
         }
         // write holdings and services
         if (!m.getRelatedHoldings().isEmpty()) {
-            final MultiMap<String, Holding> holdingsMap = m.getRelatedHoldings();
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
                     .field("parent", m.externalID());
@@ -1070,12 +1069,12 @@ public class HoldingsLicensesWorker
             }
             builder.startArray("institution");
             int instcount = 0;
+            final MultiMap<String, Holding> holdingsMap = m.getRelatedHoldings();
             for (String isil : holdingsMap.keySet()) {
                 Collection<Holding> holdings = holdingsMap.get(isil);
                 if (holdings != null && !holdings.isEmpty()) {
                     instcount++;
-                    builder.startObject()
-                            .field("isil", isil);
+                    builder.startObject().field("isil", isil);
                     builder.startArray("services");
                     int count = 0;
                     for (Holding holding : holdings) {
@@ -1089,10 +1088,10 @@ public class HoldingsLicensesWorker
                             holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
                         }
-                        builder.startObject();
+                        /*builder.startObject();
                         builder.field("identifierForTheService", serviceId);
                         builder.field("dates", holding.dates());
-                        builder.endObject();
+                        builder.endObject();*/
                         count++;
                     }
                     builder.endArray()
@@ -1103,7 +1102,10 @@ public class HoldingsLicensesWorker
                     }
                 }
             }
-            builder.endArray().field("institutioncount", instcount).endObject();
+            builder.endArray();
+            builder.field("institutioncount", instcount);
+
+            builder.endObject();
             // one holding per manifestation
             if (checkSize(holdingsIndex, holdingsIndexType, m.externalID(), builder)) {
                 holdingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
@@ -1162,7 +1164,7 @@ public class HoldingsLicensesWorker
             institutions.put(holding.getISIL(), set);
         }
         builder.field("institutioncount", institutions.size());
-        builder.startArray("institution");
+        /*builder.startArray("institution");
         for (Map.Entry<String,Set<Holding>> entry : institutions.entrySet()) {
             String isil = entry.getKey();
             Collection<Holding> set = entry.getValue();
@@ -1179,7 +1181,9 @@ public class HoldingsLicensesWorker
             builder.endArray();
             builder.endObject();
         }
-        builder.endArray().endObject();
+        builder.endArray();
+        */
+        builder.endObject();
     }
 
     private boolean findOpenAccess(String index, String issn) {
