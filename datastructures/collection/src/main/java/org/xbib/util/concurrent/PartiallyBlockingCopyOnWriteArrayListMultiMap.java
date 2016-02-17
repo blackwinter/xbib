@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class PartiallyBlockingCopyOnWriteArrayListMultiMap <K, V> implements MultiMap<K,V> {
 
-    private final ConcurrentMap<K, List<V>> map = new ConcurrentHashMap<>();
+    private final Map<K, List<V>> map = new ConcurrentHashMap<>();
 
     @Override
     public void clear() {

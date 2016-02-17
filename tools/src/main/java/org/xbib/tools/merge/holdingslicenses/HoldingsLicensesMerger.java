@@ -59,10 +59,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;

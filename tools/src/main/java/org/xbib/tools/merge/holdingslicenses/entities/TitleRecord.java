@@ -38,7 +38,7 @@ import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.TreeMultiMap;
-import org.xbib.util.concurrent.PartiallyBlockingCopyOnWriteArrayListMultiMap;
+import org.xbib.util.concurrent.ConcurrentHashMapHashSetMultiMap;
 
 import java.io.IOException;
 import java.time.Year;
@@ -138,10 +138,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
-    private final MultiMap<String, Holding> relatedHoldings = new TreeMultiMap<>();
-       //new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
-    private final MultiMap<Integer, Holding> holdingsByDate =  new TreeMultiMap<>();
-      //new PartiallyBlockingCopyOnWriteArrayListMultiMap<>();
+    private final MultiMap<String, Holding> relatedHoldings = new ConcurrentHashMapHashSetMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new ConcurrentHashMapHashSetMultiMap<>();
 
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 

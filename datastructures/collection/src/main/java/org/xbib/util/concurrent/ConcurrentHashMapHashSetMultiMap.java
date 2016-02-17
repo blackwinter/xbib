@@ -2,28 +2,13 @@ package org.xbib.util.concurrent;
 
 import org.xbib.util.MultiMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Advantages
-
- Strongly consistent.
- Uses concurrent hash map so we can have non-blocking read.
-
- Disadvantages
-
- The synchronisation lock blocks on the entire cache.
- The blocking calls are entirely blocking so all paths through them will block.
- Concurrent hash map is blocking itself although at a fine grained level using stripes.
-
- * @param <K>
- * @param <V>
- */
-public class ConcurrentHashMapArrayListMultiMap<K, V> implements MultiMap<K, V> {
+public class ConcurrentHashMapHashSetMultiMap<K, V> implements MultiMap<K, V> {
 
     private final Map<K, Collection<V>> map = new ConcurrentHashMap<>();
 
@@ -66,12 +51,12 @@ public class ConcurrentHashMapArrayListMultiMap<K, V> implements MultiMap<K, V> 
     public synchronized boolean put(K k, V v) {
         Collection<V> list = map.get(k);
         if (list == null || list.isEmpty()) {
-            list = new ArrayList<>();
+            list = new LinkedHashSet<>();
             list.add(v);
             map.put(k, list);
             return true;
         } else {
-            list = new ArrayList<>(list);
+            list = new LinkedHashSet<>(list);
             list.add(v);
             map.put(k, list);
             return true;
@@ -82,11 +67,11 @@ public class ConcurrentHashMapArrayListMultiMap<K, V> implements MultiMap<K, V> 
     public synchronized void putAll(K key, Collection<V> values) {
         Collection<V> list = map.get(key);
         if (list == null || list.isEmpty()) {
-            list = new ArrayList<>();
+            list = new LinkedHashSet<>();
             list.addAll(values);
             map.put(key, list);
         } else {
-            list = new ArrayList<>(list);
+            list = new LinkedHashSet<>(list);
             list.addAll(values);
             map.put(key, list);
         }
@@ -107,7 +92,7 @@ public class ConcurrentHashMapArrayListMultiMap<K, V> implements MultiMap<K, V> 
             if (list.isEmpty()) {
                 map.remove(k);
             } else {
-                list = new ArrayList<V>(list);
+                list = new LinkedHashSet<>(list);
                 map.put(k, list);
             }
         }
