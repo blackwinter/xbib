@@ -442,17 +442,15 @@ public class HoldingsLicensesWorker
             // getSize is per shard
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
+                    .setIndices(sourceHoldingsIndex)
                     .setQuery(queryBuilder)
                     .setSize(scrollSize)
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
-            searchRequest.setIndices(sourceHoldingsIndex);
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            /*logger.debug("searchHoldings search request = {}/{} {} hits={}",
-                    sourceHoldingsIndex,
-                    sourceHoldingsType,
+            logger.debug("searchHoldings search request = {} hits = {}",
                     searchRequest.toString(),
-                    searchResponse.getHits().getTotalHits());*/
+                    searchResponse.getHits().getTotalHits());
             do {
                 getMetric().mark();
                 for (SearchHit hit : searchResponse.getHits()) {
@@ -516,12 +514,12 @@ public class HoldingsLicensesWorker
 
     private void searchLicensesAndIndicators(Collection<TitleRecord> titleRecords, Set<License> licenses)
             throws IOException {
-        // create a map of all title records that can have assigned a license.
+        // create a map of all title records that can have assigned a license
         Map<String, TitleRecord> map = new HashMap<>();
         boolean isOnline = false;
         for (TitleRecord m : titleRecords) {
             map.put(m.externalID(), m);
-            // we really just rely on the carrier type. There may be licenses or indicators.
+            // we really just rely on the carrier type. There may be licenses or indicators
             isOnline = isOnline || "online resource".equals(m.carrierType());
             // copy print to the online edition in case it is not there
             String id = m.getOnlineExternalID();
@@ -531,7 +529,9 @@ public class HoldingsLicensesWorker
         }
         if (isOnline) {
             searchLicenses(licenses, map);
+            logger.debug("after license search: licenses={}", licenses.size());
             searchIndicators(licenses, map);
+            logger.debug("after indicator search: licenses={}", licenses.size());
         }
     }
 
@@ -557,7 +557,7 @@ public class HoldingsLicensesWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchLicenses search request = {} hits={}",
+            logger.debug("searchLicenses search request = {} hits = {}",
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());
             do {
@@ -571,26 +571,45 @@ public class HoldingsLicensesWorker
                     if (isil == null) {
                         continue;
                     }
-                    if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
-                        continue;
-                    }
                     // mapped ISIL?
                     if (holdingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
                         isil = (String) holdingsLicensesMerger.mappedISIL().lookup().get(isil);
                     }
-                    license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
-                    license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
-                    license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    for (String parent : license.parents()) {
-                        TitleRecord m = titleRecordMap.get(parent);
-                        m.addRelatedHolding(isil, license);
-                        /*logger.debug("license {} attached to {} print={} online={}",
-                                license.identifier(),
-                                m.externalID(),
-                                m.getPrintExternalID(),
-                                m.getOnlineExternalID());*/
+                    // consortia?
+                    if (holdingsLicensesMerger.consortiaLookup().lookupISILs().containsKey(isil)) {
+                        List<String> list = holdingsLicensesMerger.consortiaLookup().lookupISILs().get(isil);
+                        for (String expandedisil : list) {
+                            // blacklisted expanded ISIL?
+                            if (holdingsLicensesMerger.blackListedISIL().lookup(expandedisil)) {
+                                continue;
+                            }
+                            // new License for each ISIL
+                            license = new License(license.map());
+                            license.setISIL(isil);
+                            license.setServiceISIL(expandedisil);
+                            license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
+                            license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
+                            license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
+                            for (String parent : license.parents()) {
+                                TitleRecord m = titleRecordMap.get(parent);
+                                m.addRelatedHolding(expandedisil, license);
+                            }
+                            licenses.add(license);
+                        }
+                    } else {
+                        // blacklisted ISIL?
+                        if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                            continue;
+                        }
+                        license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
+                        license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
+                        license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                        for (String parent : license.parents()) {
+                            TitleRecord m = titleRecordMap.get(parent);
+                            m.addRelatedHolding(isil, license);
+                        }
+                        licenses.add(license);
                     }
-                    licenses.add(license);
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                        .prepareSearchScroll(searchResponse.getScrollId())
@@ -624,7 +643,7 @@ public class HoldingsLicensesWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchIndicators search request = {} hits={}",
+            logger.debug("searchIndicators search request = {} hits = {}",
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());
             do {
@@ -634,27 +653,44 @@ public class HoldingsLicensesWorker
                     if (isil == null) {
                         continue;
                     }
-                    // blacklisted ISIL?
-                    if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
-                        continue;
-                    }
                     // mapped ISIL?
                     if (holdingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
                         isil = (String) holdingsLicensesMerger.mappedISIL().lookup().get(isil);
                     }
-                    indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
-                    indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
-                    indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    for (String parent : indicator.parents()) {
-                        TitleRecord m = titleRecordMap.get(parent);
-                        m.addRelatedIndicator(isil, indicator);
-                        /*logger.debug("indicator {} attached to {} print={} online={}",
-                                indicator.identifier(),
-                                m.externalID(),
-                                m.getPrintExternalID(),
-                                m.getOnlineExternalID());*/
+                    // consortia?
+                    if (holdingsLicensesMerger.consortiaLookup().lookupISILs().containsKey(isil)) {
+                        List<String> list = holdingsLicensesMerger.consortiaLookup().lookupISILs().get(isil);
+                        for (String expandedisil : list) {
+                            // blacklisted expanded ISIL?
+                            if (holdingsLicensesMerger.blackListedISIL().lookup(expandedisil)) {
+                                continue;
+                            }
+                            indicator = new Indicator(indicator.map());
+                            indicator.setISIL(isil);
+                            indicator.setServiceISIL(expandedisil);
+                            indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
+                            indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
+                            indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
+                            for (String parent : indicator.parents()) {
+                                TitleRecord m = titleRecordMap.get(parent);
+                                m.addRelatedIndicator(expandedisil, indicator);
+                            }
+                            indicators.add(indicator);
+                        }
+                    } else {
+                        // blacklisted ISIL?
+                        if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                            continue;
+                        }
+                        indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
+                        indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
+                        indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                        for (String parent : indicator.parents()) {
+                            TitleRecord m = titleRecordMap.get(parent);
+                            m.addRelatedIndicator(isil, indicator);
+                        }
+                        indicators.add(indicator);
                     }
-                    indicators.add(indicator);
                 }
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
@@ -726,11 +762,22 @@ public class HoldingsLicensesWorker
                 for (Map<String,Object> item : (List<Map<String,Object>>)o) {
                     if (item != null && !item.isEmpty()) {
                         MonographVolumeHolding volumeHolding = new MonographVolumeHolding(item, volume);
+                        String isil = volumeHolding.getISIL();
+                        if (isil == null) {
+                            continue;
+                        }
+                        // mapped ISIL?
+                        if (holdingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
+                            isil = (String) holdingsLicensesMerger.mappedISIL().lookup().get(isil);
+                        }
+                        // blacklisted ISIL?
+                        if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                            continue;
+                        }
                         volumeHolding.addParent(volume.externalID());
                         volumeHolding.setMediaType(titleRecord.mediaType());
                         volumeHolding.setCarrierType(titleRecord.carrierType());
                         volumeHolding.setDate(volume.firstDate(), volume.lastDate());
-                        String isil = volumeHolding.getISIL();
                         volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(isil));
                         volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
@@ -812,12 +859,23 @@ public class HoldingsLicensesWorker
                         for (Map<String,Object> item : (List<Map<String,Object>>)o) {
                             if (item != null && !item.isEmpty()) {
                                 MonographVolumeHolding volumeHolding = new MonographVolumeHolding(item, volume);
+                                String isil = volumeHolding.getISIL();
+                                if (isil == null) {
+                                    continue;
+                                }
+                                // mapped ISIL?
+                                if (holdingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
+                                    isil = (String) holdingsLicensesMerger.mappedISIL().lookup().get(isil);
+                                }
+                                // blacklisted ISIL?
+                                if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                                    continue;
+                                }
                                 volumeHolding.addParent(titleRecord.externalID());
                                 volumeHolding.addParent(volume.externalID());
                                 volumeHolding.setMediaType(titleRecord.mediaType());
                                 volumeHolding.setCarrierType(titleRecord.carrierType());
                                 volumeHolding.setDate(volume.firstDate(), volume.lastDate());
-                                String isil = volumeHolding.getISIL();
                                 volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
                                         .lookupName().get(isil));
                                 volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
