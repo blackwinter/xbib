@@ -1000,10 +1000,6 @@ public class HoldingsLicensesWorker
 
     @SuppressWarnings("unchecked")
     private void indexTitleRecord(TitleRecord m, StatCounter statCounter) throws IOException {
-        if (holdingsLicensesMerger.getTitleIds().contains(m.externalID())) {
-            return;
-        }
-        holdingsLicensesMerger.getTitleIds().add(m.externalID());
         // find open access
         Collection<String> issns = m.hasIdentifiers() ?
                 (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
@@ -1092,10 +1088,7 @@ public class HoldingsLicensesWorker
                             holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
                         }
-                        builder.startObject();
-                        builder.field("identifierForTheService", serviceId);
-                        //builder.field("dates", holding.dates());
-                        builder.endObject();
+                        builder.value(serviceId);
                         count++;
                     }
                     builder.endArray()

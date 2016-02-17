@@ -109,18 +109,11 @@
       "institution" : {
         "properties" : {
           "service" : {
-            "properties" : {
-              "identifierForTheService" : {
-                "norms" : {
-                  "enabled" : false
-                },
-                "analyzer" : "keyword",
-                "type" : "string"
-              },
-              "dates" : {
-                "type" : "long"
-              }
-            }
+            "norms" : {
+              "enabled" : false
+            },
+            "analyzer" : "keyword",
+            "type" : "string"
           },
           "servicecount" : {
               "type" : "long"

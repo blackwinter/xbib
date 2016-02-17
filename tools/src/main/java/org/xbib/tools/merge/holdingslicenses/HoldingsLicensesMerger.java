@@ -90,13 +90,10 @@ public class HoldingsLicensesMerger extends Merger {
 
     private MeterMetric queryMetric;
 
-    private Set<String> titleIds;
-
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
-        this.titleIds = Collections.synchronizedSet(new HashSet<>());
         this.metrics = new Metrics();
         this.queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
         metrics.scheduleMetrics(settings, "meterquery", queryMetric);
@@ -283,10 +280,6 @@ public class HoldingsLicensesMerger extends Merger {
 
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
-    }
-
-    public Set<String> getTitleIds() {
-        return titleIds;
     }
 
 }
