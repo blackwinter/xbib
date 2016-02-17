@@ -1071,11 +1071,15 @@ public class HoldingsLicensesWorker
             int instcount = 0;
             final MultiMap<String, Holding> holdingsMap = m.getRelatedHoldings();
             for (String isil : holdingsMap.keySet()) {
+                // blacklisted ISIL?
+                if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                    continue;
+                }
                 Collection<Holding> holdings = holdingsMap.get(isil);
                 if (holdings != null && !holdings.isEmpty()) {
                     instcount++;
                     builder.startObject().field("isil", isil);
-                    builder.startArray("services");
+                    builder.startArray("service");
                     int count = 0;
                     for (Holding holding : holdings) {
                         if (holding.isDeleted()) {
@@ -1088,10 +1092,10 @@ public class HoldingsLicensesWorker
                             holdingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
                                     serviceId, serviceBuilder.string());
                         }
-                        /*builder.startObject();
+                        builder.startObject();
                         builder.field("identifierForTheService", serviceId);
-                        builder.field("dates", holding.dates());
-                        builder.endObject();*/
+                        //builder.field("dates", holding.dates());
+                        builder.endObject();
                         count++;
                     }
                     builder.endArray()
@@ -1164,7 +1168,7 @@ public class HoldingsLicensesWorker
             institutions.put(holding.getISIL(), set);
         }
         builder.field("institutioncount", institutions.size());
-        /*builder.startArray("institution");
+        builder.startArray("institution");
         for (Map.Entry<String,Set<Holding>> entry : institutions.entrySet()) {
             String isil = entry.getKey();
             Collection<Holding> set = entry.getValue();
@@ -1182,7 +1186,6 @@ public class HoldingsLicensesWorker
             builder.endObject();
         }
         builder.endArray();
-        */
         builder.endObject();
     }
 
@@ -1208,7 +1211,7 @@ public class HoldingsLicensesWorker
 
     private boolean checkSize(String index, String type, String id, XContentBuilder builder) throws IOException {
         if (holdingsLicensesMerger.settings().getAsBoolean("mock", false)) {
-            logger.debug(builder.string());
+            logger.debug("{}/{}/{} {}", index, type, id, builder.string());
         }
         long len = builder.string().length();
         if (len > 1024 * 1024) {

@@ -108,7 +108,7 @@
     "properties" : {
       "institution" : {
         "properties" : {
-          "services" : {
+          "service" : {
             "properties" : {
               "identifierForTheService" : {
                 "norms" : {
@@ -121,6 +121,9 @@
                 "type" : "long"
               }
             }
+          },
+          "servicecount" : {
+              "type" : "long"
           },
           "isil" : {
             "norms" : {
