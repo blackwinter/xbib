@@ -25,10 +25,6 @@ public class Tick {
         return time;
     }
 
-    public float floatValue() {
-        return time;
-    }
-
     @Override
     public String toString() {
         return time + (ambiguous ? "?" : "");

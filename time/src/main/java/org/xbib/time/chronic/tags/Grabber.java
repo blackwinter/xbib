@@ -28,7 +28,7 @@ public class Grabber extends Tag<Grabber.Relative> {
     }
 
     public static Grabber scanForAll(Token token, Options options) {
-        Map<Pattern, Relative> scanner = new HashMap<Pattern, Relative>();
+        Map<Pattern, Relative> scanner = new HashMap<>();
         scanner.put(Grabber.LAST_PATTERN, Relative.LAST);
         scanner.put(Grabber.NEXT_PATTERN, Relative.NEXT);
         scanner.put(Grabber.THIS_PATTERN, Relative.THIS);

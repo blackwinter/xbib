@@ -1,11 +1,11 @@
 package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.Token;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -25,7 +25,7 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
     private static final Pattern DEC_PATTERN = Pattern.compile("^dec\\.?(ember)?$");
 
     private static final int MONTH_SECONDS = 2592000; // 30 * 24 * 60 * 60
-    private Calendar currentMonthBegin;
+    private ZonedDateTime currentMonthBegin;
 
     public RepeaterMonthName(MonthName type) {
         super(type);
@@ -62,24 +62,27 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
     protected Span _nextSpan(PointerType pointer) {
         if (currentMonthBegin == null) {
             int targetMonth = getType().ordinal();
-            int nowMonth = getNow().get(Calendar.MONTH) + 1;
+            int nowMonth = getNow().getMonthValue();
             if (pointer == PointerType.FUTURE) {
                 if (nowMonth < targetMonth) {
-                    currentMonthBegin = Time.y(getNow(), targetMonth);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone());
                 } else if (nowMonth > targetMonth) {
-                    currentMonthBegin = Time.cloneAndAdd(Time.y(getNow(), targetMonth), Calendar.YEAR, 1);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone())
+                            .plus(1, ChronoUnit.YEARS);
                 }
             } else if (pointer == PointerType.NONE) {
                 if (nowMonth <= targetMonth) {
-                    currentMonthBegin = Time.y(getNow(), targetMonth);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone());
                 } else if (nowMonth > targetMonth) {
-                    currentMonthBegin = Time.cloneAndAdd(Time.y(getNow(), targetMonth), Calendar.YEAR, 1);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone())
+                            .plus(1, ChronoUnit.YEARS);
                 }
             } else if (pointer == PointerType.PAST) {
                 if (nowMonth > targetMonth) {
-                    currentMonthBegin = Time.y(getNow(), targetMonth);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone());
                 } else if (nowMonth <= targetMonth) {
-                    currentMonthBegin = Time.cloneAndAdd(Time.y(getNow(), targetMonth), Calendar.YEAR, -1);
+                    currentMonthBegin = ZonedDateTime.of(getNow().getYear(), targetMonth, 1, 0, 0, 0, 0, getNow().getZone())
+                            .minus(1, ChronoUnit.YEARS);
                 }
             } else {
                 throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
@@ -89,15 +92,15 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
             }
         } else {
             if (pointer == PointerType.FUTURE) {
-                currentMonthBegin = Time.cloneAndAdd(currentMonthBegin, Calendar.YEAR, 1);
+                currentMonthBegin = currentMonthBegin.plus(1, ChronoUnit.YEARS);
             } else if (pointer == PointerType.PAST) {
-                currentMonthBegin = Time.cloneAndAdd(currentMonthBegin, Calendar.YEAR, -1);
+                currentMonthBegin = currentMonthBegin.minus(1, ChronoUnit.YEARS);
             } else {
                 throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
             }
         }
 
-        return new Span(currentMonthBegin, Calendar.MONTH, 1);
+        return new Span(currentMonthBegin, ChronoUnit.MONTHS, 1);
     }
 
     @Override
@@ -120,7 +123,6 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
 
     @Override
     public int getWidth() {
-        // WARN: Does not use Calendar
         return RepeaterMonthName.MONTH_SECONDS;
     }
 
@@ -129,7 +131,7 @@ public class RepeaterMonthName extends Repeater<RepeaterMonthName.MonthName> {
         return super.toString() + "-monthname-" + getType();
     }
 
-    public static enum MonthName {
+    public enum MonthName {
         _ZERO_MONTH, JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER
     }
 

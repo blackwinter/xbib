@@ -2,13 +2,12 @@ package org.xbib.time.chronic.handlers;
 
 import org.xbib.time.chronic.Options;
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.Token;
 import org.xbib.time.chronic.tags.ScalarDay;
 import org.xbib.time.chronic.tags.ScalarMonth;
 import org.xbib.time.chronic.tags.ScalarYear;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public class SmSdSyHandler implements IHandler {
@@ -20,7 +19,7 @@ public class SmSdSyHandler implements IHandler {
         Span span;
         try {
             List<Token> timeTokens = tokens.subList(3, tokens.size());
-            Calendar dayStart = Time.construct(year, month, day);
+            ZonedDateTime dayStart = ZonedDateTime.of(year, month, day, 0, 0, 0, 0, options.getZoneId());
             span = Handler.dayOrTime(dayStart, timeTokens, options);
         } catch (IllegalArgumentException e) {
             span = null;

@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 public abstract class RepeaterUnit extends Repeater<Object> {
     private static final Pattern YEAR_PATTERN = Pattern.compile("^years?$");
-    private static final Pattern SEASON_PATTERN = Pattern.compile("^seasons?$");
     private static final Pattern MONTH_PATTERN = Pattern.compile("^months?$");
     private static final Pattern FORTNIGHT_PATTERN = Pattern.compile("^fortnights?$");
     private static final Pattern WEEK_PATTERN = Pattern.compile("^weeks?$");
@@ -26,7 +25,6 @@ public abstract class RepeaterUnit extends Repeater<Object> {
         try {
             Map<Pattern, UnitName> scanner = new HashMap<>();
             scanner.put(RepeaterUnit.YEAR_PATTERN, UnitName.YEAR);
-            scanner.put(RepeaterUnit.SEASON_PATTERN, UnitName.SEASON);
             scanner.put(RepeaterUnit.MONTH_PATTERN, UnitName.MONTH);
             scanner.put(RepeaterUnit.FORTNIGHT_PATTERN, UnitName.FORTNIGHT);
             scanner.put(RepeaterUnit.WEEK_PATTERN, UnitName.WEEK);
@@ -52,6 +50,6 @@ public abstract class RepeaterUnit extends Repeater<Object> {
     }
 
     public enum UnitName {
-        YEAR, SEASON, MONTH, FORTNIGHT, WEEK, WEEKEND, DAY, HOUR, MINUTE, SECOND
+        YEAR, MONTH, FORTNIGHT, WEEK, WEEKEND, DAY, HOUR, MINUTE, SECOND
     }
 }

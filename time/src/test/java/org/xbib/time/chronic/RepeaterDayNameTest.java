@@ -1,20 +1,28 @@
 package org.xbib.time.chronic;
 
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.time.chronic.repeaters.RepeaterDayName;
 import org.xbib.time.chronic.tags.Pointer;
 
-import java.util.Calendar;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
-public class RepeaterDayNameTest extends TestCase {
-    private Calendar _now;
+public class RepeaterDayNameTest extends Assert {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        _now = Time.construct(2006, 8, 16, 14, 0, 0, 0);
+    private ZonedDateTime now = construct(2006, 8, 16, 14, 0, 0);
+
+    private final static ZoneId ZONE_ID = ZoneId.of("GMT");
+
+    public static ZonedDateTime construct(int year, int month, int day) {
+        return ZonedDateTime.of(year, month, day, 0, 0, 0, 0, ZONE_ID);
     }
 
+    public static ZonedDateTime construct(int year, int month, int day, int hour, int minutes, int seconds) {
+        return ZonedDateTime.of(year, month, day, hour, minutes, seconds, 0, ZONE_ID);
+    }
+
+    @Test
     public void testMatch() {
         Token token = new Token("saturday");
         RepeaterDayName repeater = RepeaterDayName.scan(token);
@@ -25,31 +33,33 @@ public class RepeaterDayNameTest extends TestCase {
         assertEquals(RepeaterDayName.DayName.SUNDAY, repeater.getType());
     }
 
+    @Test
     public void testNextFuture() {
         Span span;
 
         RepeaterDayName mondays = new RepeaterDayName(RepeaterDayName.DayName.MONDAY);
-        mondays.setStart(_now);
+        mondays.setNow(now);
         span = mondays.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2006, 8, 21), span.getBeginCalendar());
-        assertEquals(Time.construct(2006, 8, 22), span.getEndCalendar());
+        assertEquals(construct(2006, 8, 21), span.getBeginCalendar());
+        assertEquals(construct(2006, 8, 22), span.getEndCalendar());
 
         span = mondays.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2006, 8, 28), span.getBeginCalendar());
-        assertEquals(Time.construct(2006, 8, 29), span.getEndCalendar());
+        assertEquals(construct(2006, 8, 28), span.getBeginCalendar());
+        assertEquals(construct(2006, 8, 29), span.getEndCalendar());
     }
 
+    @Test
     public void testNextPast() {
         Span span;
 
         RepeaterDayName mondays = new RepeaterDayName(RepeaterDayName.DayName.MONDAY);
-        mondays.setStart(_now);
+        mondays.setNow(now);
         span = mondays.nextSpan(Pointer.PointerType.PAST);
-        assertEquals(Time.construct(2006, 8, 14), span.getBeginCalendar());
-        assertEquals(Time.construct(2006, 8, 15), span.getEndCalendar());
+        assertEquals(construct(2006, 8, 14), span.getBeginCalendar());
+        assertEquals(construct(2006, 8, 15), span.getEndCalendar());
 
         span = mondays.nextSpan(Pointer.PointerType.PAST);
-        assertEquals(Time.construct(2006, 8, 7), span.getBeginCalendar());
-        assertEquals(Time.construct(2006, 8, 8), span.getEndCalendar());
+        assertEquals(construct(2006, 8, 7), span.getBeginCalendar());
+        assertEquals(construct(2006, 8, 8), span.getEndCalendar());
     }
 }

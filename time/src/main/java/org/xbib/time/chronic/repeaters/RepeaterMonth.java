@@ -1,47 +1,50 @@
 package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class RepeaterMonth extends RepeaterUnit {
     private static final int MONTH_SECONDS = 2592000; // 30 * 24 * 60 * 60
 
-    private Calendar currentMonthStart;
+    private ZonedDateTime currentMonthStart;
 
     @Override
     protected Span _nextSpan(PointerType pointer) {
         int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
         if (currentMonthStart == null) {
-            currentMonthStart = Time.cloneAndAdd(Time.ym(getNow()), Calendar.MONTH, direction);
+            currentMonthStart = ZonedDateTime.of(getNow().getYear(), getNow().getMonthValue(), 1, 0, 0, 0, 0, getNow().getZone())
+                    .plus(direction, ChronoUnit.MONTHS);
         } else {
-            currentMonthStart = Time.cloneAndAdd(currentMonthStart, Calendar.MONTH, direction);
+            currentMonthStart = currentMonthStart.plus(direction, ChronoUnit.MONTHS);
         }
 
-        return new Span(currentMonthStart, Calendar.MONTH, 1);
+        return new Span(currentMonthStart, ChronoUnit.MONTHS, 1);
     }
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
         long l = amount * (pointer == PointerType.FUTURE ? 1L : -1L);
-        return new Span(Time.cloneAndAdd(span.getBeginCalendar(), Calendar.MONTH, l), Time.cloneAndAdd(span.getEndCalendar(), Calendar.MONTH, l));
+        return new Span(span.getBeginCalendar().plus(l, ChronoUnit.MONTHS), span.getEndCalendar().plus(l, ChronoUnit.MONTHS));
     }
 
     @Override
     protected Span _thisSpan(PointerType pointer) {
-        Calendar monthStart;
-        Calendar monthEnd;
+        ZonedDateTime monthStart;
+        ZonedDateTime monthEnd;
         if (pointer == PointerType.FUTURE) {
-            monthStart = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, 1);
-            monthEnd = Time.cloneAndAdd(Time.ym(getNow()), Calendar.MONTH, 1);
+            monthStart = ymd(getNow()).plus(1, ChronoUnit.DAYS);
+            monthEnd = ZonedDateTime.of(getNow().getYear(), getNow().getMonthValue(), 1, 0, 0, 0, 0, getNow().getZone())
+                    .plus(1, ChronoUnit.MONTHS);
         } else if (pointer == PointerType.PAST) {
-            monthStart = Time.ym(getNow());
-            monthEnd = Time.ymd(getNow());
+            monthStart = ZonedDateTime.of(getNow().getYear(), getNow().getMonthValue(), 1, 0, 0, 0, 0, getNow().getZone());
+            monthEnd = ymd(getNow());
         } else if (pointer == PointerType.NONE) {
-            monthStart = Time.ym(getNow());
-            monthEnd = Time.cloneAndAdd(Time.ym(getNow()), Calendar.MONTH, 1);
+            monthStart = ZonedDateTime.of(getNow().getYear(), getNow().getMonthValue(), 1, 0, 0, 0, 0, getNow().getZone());
+            monthEnd = ZonedDateTime.of(getNow().getYear(), getNow().getMonthValue(), 1, 0, 0, 0, 0, getNow().getZone())
+                    .plus(1, ChronoUnit.MONTHS);
         } else {
             throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
         }
@@ -50,12 +53,16 @@ public class RepeaterMonth extends RepeaterUnit {
 
     @Override
     public int getWidth() {
-        // WARN: Does not use Calendar
         return RepeaterMonth.MONTH_SECONDS;
     }
 
     @Override
     public String toString() {
         return super.toString() + "-month";
+    }
+
+    private static ZonedDateTime ymd(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                0, 0, 0, 0, zonedDateTime.getZone());
     }
 }

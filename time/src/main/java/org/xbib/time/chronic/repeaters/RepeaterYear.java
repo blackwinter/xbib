@@ -1,45 +1,48 @@
 package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class RepeaterYear extends RepeaterUnit {
-    private Calendar currentYearStart;
+    private ZonedDateTime currentYearStart;
 
     @Override
     protected Span _nextSpan(PointerType pointer) {
         if (currentYearStart == null) {
             if (pointer == PointerType.FUTURE) {
-                currentYearStart = Time.cloneAndAdd(Time.y(getNow()), Calendar.YEAR, 1);
+                currentYearStart = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone())
+                        .plus(1, ChronoUnit.YEARS);
             } else if (pointer == PointerType.PAST) {
-                currentYearStart = Time.cloneAndAdd(Time.y(getNow()), Calendar.YEAR, -1);
+                currentYearStart = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone())
+                        .minus(1, ChronoUnit.YEARS);
             } else {
                 throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
             }
         } else {
             int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
-            currentYearStart.add(Calendar.YEAR, direction);
+            currentYearStart = currentYearStart.plus(direction, ChronoUnit.YEARS);
         }
-
-        return new Span(currentYearStart, Calendar.YEAR, 1);
+        return new Span(currentYearStart, ChronoUnit.YEARS, 1);
     }
 
     @Override
     protected Span _thisSpan(PointerType pointer) {
-        Calendar yearStart;
-        Calendar yearEnd;
+        ZonedDateTime yearStart;
+        ZonedDateTime yearEnd;
         if (pointer == PointerType.FUTURE) {
-            yearStart = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, 1);
-            yearEnd = Time.cloneAndAdd(Time.yJan1(getNow()), Calendar.YEAR, 1);
+            yearStart = ymd(getNow()).plus(1, ChronoUnit.DAYS);
+            yearEnd = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone())
+                    .plus(1, ChronoUnit.YEARS);
         } else if (pointer == PointerType.PAST) {
-            yearStart = Time.yJan1(getNow());
-            yearEnd = Time.ymd(getNow());
+            yearStart = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone());
+            yearEnd = ymd(getNow());
         } else if (pointer == PointerType.NONE) {
-            yearStart = Time.yJan1(getNow());
-            yearEnd = Time.cloneAndAdd(Time.yJan1(getNow()), Calendar.YEAR, 1);
+            yearStart = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone());
+            yearEnd = ZonedDateTime.of(getNow().getYear(), 1, 1, 0, 0, 0, 0, getNow().getZone())
+                    .plus(1, ChronoUnit.YEARS);
         } else {
             throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
         }
@@ -49,19 +52,23 @@ public class RepeaterYear extends RepeaterUnit {
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
         long l = amount * (pointer == PointerType.FUTURE ? 1L : -1L);
-        Calendar newBegin = Time.cloneAndAdd(span.getBeginCalendar(), Calendar.YEAR, l);
-        Calendar newEnd = Time.cloneAndAdd(span.getEndCalendar(), Calendar.YEAR, l);
+        ZonedDateTime newBegin = span.getBeginCalendar().plus(l, ChronoUnit.YEARS);
+        ZonedDateTime newEnd = span.getEndCalendar().plus(l, ChronoUnit.YEARS);
         return new Span(newBegin, newEnd);
     }
 
     @Override
     public int getWidth() {
-        // WARN: Does not use Calendar
         return (365 * 24 * 60 * 60);
     }
 
     @Override
     public String toString() {
         return super.toString() + "-year";
+    }
+
+    private static ZonedDateTime ymd(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                0, 0, 0, 0, zonedDateTime.getZone());
     }
 }

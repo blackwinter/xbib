@@ -48,24 +48,6 @@ import java.util.regex.Pattern;
  *
  */
 public class PeriodFormatterBuilder {
-    /*private static final int PRINT_ZERO_RARELY_FIRST = 1;
-    private static final int PRINT_ZERO_RARELY_LAST = 2;
-    private static final int PRINT_ZERO_IF_SUPPORTED = 3;
-    private static final int PRINT_ZERO_ALWAYS = 4;
-    private static final int PRINT_ZERO_NEVER = 5;
-    
-    private static final int YEARS = 0;
-    private static final int MONTHS = 1;
-    private static final int WEEKS = 2;
-    private static final int DAYS = 3;
-    private static final int HOURS = 4;
-    private static final int MINUTES = 5;
-    private static final int SECONDS = 6;
-    private static final int MILLIS = 7;
-    private static final int SECONDS_MILLIS = 8;
-    private static final int SECONDS_OPTIONAL_MILLIS = 9;
-    private static final int MAX_FIELD = SECONDS_OPTIONAL_MILLIS;
-    */
 
     private static final ConcurrentMap<String, Pattern> PATTERNS = new ConcurrentHashMap<String, Pattern>();
 
@@ -548,17 +530,6 @@ public class PeriodFormatterBuilder {
         return this;
     }
 
-    /**
-     * Instruct the printer to emit an integer millis field, if supported.
-     * <p>
-     * The number of parsed digits can be controlled using {@link #maximumParsedDigits(int)}.
-     *
-     * @return this PeriodFormatterBuilder
-     */
-    /*public PeriodFormatterBuilder appendMillis3Digit() {
-        appendField(7, 3);
-        return this;
-    }*/
 
     private void appendField(ChronoUnit unit) {
         appendField(unit, iMinPrintedDigits);
@@ -1179,7 +1150,7 @@ public class PeriodFormatterBuilder {
                 Pattern pattern = PATTERNS.get(regExes[i]);
                 if (pattern == null) {
                     pattern = Pattern.compile(regExes[i]);
-                    PATTERNS.putIfAbsent(regExes[i], pattern);
+                    Pattern p = PATTERNS.putIfAbsent(regExes[i], pattern);
                 }
                 iPatterns[i] = pattern;
             }
@@ -1488,62 +1459,22 @@ public class PeriodFormatterBuilder {
 
         public int parseInto(PeriodAmount period, String text, int position, Locale locale) {
 
-            boolean mustParse = true; //(iPrintZeroSetting == PRINT_ZERO_ALWAYS);
-
             // Shortcut test.
             if (position >= text.length()) {
-                return mustParse ? ~position : position;
+                return ~position;
             }
 
             if (iPrefix != null) {
                 position = iPrefix.parse(text, position);
-                if (position >= 0) {
-                    // If prefix is found, then the parse must finish.
-                    mustParse = true;
-                } else {
-                    // Prefix not found, so bail.
-                    if (!mustParse) {
-                        // It's okay because parsing of this field is not
-                        // required. Don't return an error. Fields down the
-                        // chain can continue on, trying to parse.
-                        return ~position;
-                    }
+                if (position < 0) {
                     return position;
                 }
             }
 
             int suffixPos = -1;
-            if (iSuffix != null && !mustParse) {
-                // Pre-scan the suffix, to help determine if this field must be
-                // parsed.
-                suffixPos = iSuffix.scan(text, position);
-                if (suffixPos >= 0) {
-                    // If suffix is found, then parse must finish.
-                    mustParse = true;
-                } else {
-                    // Suffix not found, so bail.
-                    if (!mustParse) {
-                        // It's okay because parsing of this field is not
-                        // required. Don't return an error. Fields down the
-                        // chain can continue on, trying to parse.
-                        return ~suffixPos;
-                    }
-                    return suffixPos;
-                }
-            }
-
-            /*if (!mustParse && !isSupported(period.getPeriodType(), iFieldType)) {
-                // If parsing is not required and the field is not supported,
-                // exit gracefully so that another parser can continue on.
-                return position;
-            }*/
 
             int limit;
-            if (suffixPos > 0) {
-                limit = Math.min(iMaxParsedDigits, suffixPos - position);
-            } else {
-                limit = Math.min(iMaxParsedDigits, text.length() - position);
-            }
+            limit = Math.min(iMaxParsedDigits, text.length() - position);
 
             // validate input number
             int length = 0;

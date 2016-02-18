@@ -1,56 +1,66 @@
 package org.xbib.time.chronic;
 
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.time.chronic.repeaters.RepeaterMonthName;
 import org.xbib.time.chronic.tags.Pointer;
 
-import java.util.Calendar;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
-public class RepeaterMonthNameTest extends TestCase {
-    private Calendar _now;
+public class RepeaterMonthNameTest extends Assert {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        _now = Time.construct(2006, 8, 16, 14, 0, 0, 0);
+    private ZonedDateTime now = construct(2006, 8, 16, 14, 0, 0);
+
+    private final static ZoneId ZONE_ID = ZoneId.of("GMT");
+
+    public static ZonedDateTime construct(int year, int month) {
+        return ZonedDateTime.of(year, month, 1, 0, 0, 0, 0, ZONE_ID);
     }
 
+    public static ZonedDateTime construct(int year, int month, int day, int hour, int minutes, int seconds) {
+        return ZonedDateTime.of(year, month, day, hour, minutes, seconds, 0, ZONE_ID);
+    }
+
+    @Test
     public void testNext() {
         RepeaterMonthName mays = new RepeaterMonthName(RepeaterMonthName.MonthName.MAY);
-        mays.setStart(_now);
+        mays.setNow(now);
 
         Span nextMay = mays.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2007, 5), nextMay.getBeginCalendar());
-        assertEquals(Time.construct(2007, 6), nextMay.getEndCalendar());
+        assertEquals(construct(2007, 5), nextMay.getBeginCalendar());
+        assertEquals(construct(2007, 6), nextMay.getEndCalendar());
 
         Span nextNextMay = mays.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2008, 5), nextNextMay.getBeginCalendar());
-        assertEquals(Time.construct(2008, 6), nextNextMay.getEndCalendar());
+        assertEquals(construct(2008, 5), nextNextMay.getBeginCalendar());
+        assertEquals(construct(2008, 6), nextNextMay.getEndCalendar());
 
         RepeaterMonthName decembers = new RepeaterMonthName(RepeaterMonthName.MonthName.DECEMBER);
-        decembers.setStart(_now);
+        decembers.setNow(now);
 
         Span nextDecember = decembers.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2006, 12), nextDecember.getBeginCalendar());
-        assertEquals(Time.construct(2007, 1), nextDecember.getEndCalendar());
+        assertEquals(construct(2006, 12), nextDecember.getBeginCalendar());
+        assertEquals(construct(2007, 1), nextDecember.getEndCalendar());
 
         mays = new RepeaterMonthName(RepeaterMonthName.MonthName.MAY);
-        mays.setStart(_now);
+        mays.setNow(now);
 
-        assertEquals(Time.construct(2006, 5), mays.nextSpan(Pointer.PointerType.PAST).getBeginCalendar());
-        assertEquals(Time.construct(2005, 5), mays.nextSpan(Pointer.PointerType.PAST).getBeginCalendar());
+        assertEquals(construct(2006, 5), mays.nextSpan(Pointer.PointerType.PAST).getBeginCalendar());
+        assertEquals(construct(2005, 5), mays.nextSpan(Pointer.PointerType.PAST).getBeginCalendar());
     }
 
+
+    @Test
     public void testThis() {
         RepeaterMonthName octobers = new RepeaterMonthName(RepeaterMonthName.MonthName.MAY);
-        octobers.setStart(_now);
+        octobers.setNow(now);
 
         Span nextMay = octobers.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2007, 5), nextMay.getBeginCalendar());
-        assertEquals(Time.construct(2007, 6), nextMay.getEndCalendar());
+        assertEquals(construct(2007, 5), nextMay.getBeginCalendar());
+        assertEquals(construct(2007, 6), nextMay.getEndCalendar());
 
         Span nextNextMay = octobers.nextSpan(Pointer.PointerType.FUTURE);
-        assertEquals(Time.construct(2008, 5), nextNextMay.getBeginCalendar());
-        assertEquals(Time.construct(2008, 6), nextNextMay.getEndCalendar());
+        assertEquals(construct(2008, 5), nextNextMay.getBeginCalendar());
+        assertEquals(construct(2008, 6), nextNextMay.getEndCalendar());
     }
 }

@@ -1,7 +1,5 @@
 package org.xbib.time.chronic;
 
-import java.time.Instant;
-
 public class Range {
     private Long begin;
     private Long end;
@@ -21,13 +19,6 @@ public class Range {
 
     public Long getWidth() {
         return getEnd() - getBegin();
-    }
-
-    /**
-     * Returns true if the start and end are the same (i.e. this is a single value).
-     */
-    public boolean isSingularity() {
-        return getEnd().equals(getBegin());
     }
 
     public boolean contains(long value) {

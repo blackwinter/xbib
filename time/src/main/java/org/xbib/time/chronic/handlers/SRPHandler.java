@@ -8,6 +8,7 @@ import org.xbib.time.chronic.repeaters.Repeater;
 import org.xbib.time.chronic.tags.Pointer;
 import org.xbib.time.chronic.tags.Scalar;
 
+import java.text.ParseException;
 import java.util.List;
 
 public class SRPHandler implements IHandler {
@@ -19,8 +20,13 @@ public class SRPHandler implements IHandler {
         return repeater.getOffset(span, distance, pointer);
     }
 
+    @Override
     public Span handle(List<Token> tokens, Options options) {
-        Span span = Chronic.parse("this second", new Options(options.getNow(), false));
-        return handle(tokens, span, options);
+        try {
+            Span span = Chronic.parse("this second", new Options().setNow(options.getNow()).setGuess(false));
+            return handle(tokens, span, options);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }

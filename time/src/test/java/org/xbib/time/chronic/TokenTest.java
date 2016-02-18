@@ -1,11 +1,13 @@
 package org.xbib.time.chronic;
 
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 import org.xbib.time.chronic.tags.Scalar;
 import org.xbib.time.chronic.tags.StringTag;
 
-public class TokenTestCase extends TestCase {
+public class TokenTest extends Assert {
 
+    @Test
     public void testToken() {
         Token token = new Token("foo");
         assertEquals(0, token.getTags().size());

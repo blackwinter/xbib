@@ -2,11 +2,11 @@ package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Range;
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.Token;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -47,44 +47,41 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
 
     @Override
     protected Span _nextSpan(PointerType pointer) {
-        Calendar rangeStart;
-        Calendar rangeEnd;
+        ZonedDateTime rangeStart;
+        ZonedDateTime rangeEnd;
         if (currentSpan == null) {
-            long nowSeconds = (getNow().getTimeInMillis() - Time.ymd(getNow()).getTimeInMillis()) / 1000;
+            long nowSeconds = getNow().toInstant().getEpochSecond() - ymd(getNow()).toInstant().getEpochSecond();
             if (nowSeconds < range.getBegin()) {
                 if (pointer == PointerType.FUTURE) {
-                    rangeStart = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else if (pointer == PointerType.PAST) {
-                    rangeStart = Time.cloneAndAdd(Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, -1), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).minus(1, ChronoUnit.DAYS).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else {
-                    throw new IllegalArgumentException("Unable to handle pointer type " + pointer);
+                    throw new IllegalArgumentException("unable to handle pointer type " + pointer);
                 }
             } else if (nowSeconds > range.getBegin()) {
                 if (pointer == PointerType.FUTURE) {
-                    rangeStart = Time.cloneAndAdd(Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, 1), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).plus(1, ChronoUnit.DAYS).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else if (pointer == PointerType.PAST) {
-                    rangeStart = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else {
-                    throw new IllegalArgumentException("Unable to handle pointer type " + pointer);
+                    throw new IllegalArgumentException("unable to handle pointer type " + pointer);
                 }
             } else {
                 if (pointer == PointerType.FUTURE) {
-                    rangeStart = Time.cloneAndAdd(Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, 1), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).plus(1, ChronoUnit.DAYS).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else if (pointer == PointerType.PAST) {
-                    rangeStart = Time.cloneAndAdd(Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, -1), Calendar.SECOND, range.getBegin());
+                    rangeStart = ymd(getNow()).minus(1, ChronoUnit.DAYS).plus(range.getBegin(), ChronoUnit.SECONDS);
                 } else {
-                    throw new IllegalArgumentException("Unable to handle pointer type " + pointer);
+                    throw new IllegalArgumentException("unable to handle pointer type " + pointer);
                 }
             }
-
-            currentSpan = new Span(rangeStart, Time.cloneAndAdd(rangeStart, Calendar.SECOND, range.getWidth()));
+            currentSpan = new Span(rangeStart, rangeStart.plus(range.getWidth(), ChronoUnit.SECONDS));
         } else {
             if (pointer == PointerType.FUTURE) {
-                // WARN: Does not use Calendar
                 currentSpan = currentSpan.add(RepeaterDayPortion.FULL_DAY_SECONDS);
             } else if (pointer == PointerType.PAST) {
-                // WARN: Does not use Calendar
-                currentSpan = currentSpan.subtract(RepeaterDayPortion.FULL_DAY_SECONDS);
+                currentSpan = currentSpan.add(-RepeaterDayPortion.FULL_DAY_SECONDS);
             } else {
                 throw new IllegalArgumentException("Unable to handle pointer type " + pointer);
             }
@@ -94,16 +91,16 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
 
     @Override
     protected Span _thisSpan(PointerType pointer) {
-        Calendar rangeStart = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.SECOND, range.getBegin());
-        currentSpan = new Span(rangeStart, Time.cloneAndAdd(rangeStart, Calendar.SECOND, range.getWidth()));
+        ZonedDateTime rangeStart = ymd(getNow()).plus(range.getBegin(), ChronoUnit.SECONDS);
+        currentSpan = new Span(rangeStart, rangeStart.plus(range.getWidth(), ChronoUnit.SECONDS));
         return currentSpan;
     }
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
-        setStart(span.getBeginCalendar());
+        setNow(span.getBeginCalendar());
         Span portionSpan = nextSpan(pointer);
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
+        long direction = pointer == PointerType.FUTURE ? 1L : -1L;
         portionSpan = portionSpan.add(direction * (amount - 1) * RepeaterDay.DAY_SECONDS);
         return portionSpan;
     }
@@ -135,4 +132,8 @@ public abstract class RepeaterDayPortion<T> extends Repeater<T> {
         AM, PM, MORNING, AFTERNOON, EVENING, NIGHT
     }
 
+    private static ZonedDateTime ymd(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                0, 0, 0, 0, zonedDateTime.getZone());
+    }
 }

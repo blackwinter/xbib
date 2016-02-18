@@ -2,7 +2,6 @@ package org.xbib.time.chronic.handlers;
 
 import org.xbib.time.chronic.Options;
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.Token;
 import org.xbib.time.chronic.repeaters.EnumRepeaterDayPortion;
 import org.xbib.time.chronic.repeaters.IntegerRepeaterDayPortion;
@@ -28,7 +27,9 @@ import org.xbib.time.chronic.tags.SeparatorSlashOrDash;
 import org.xbib.time.chronic.tags.Tag;
 import org.xbib.time.chronic.tags.TimeZone;
 
-import java.util.Calendar;
+import java.text.ParseException;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -77,21 +78,21 @@ public class Handler {
             definitions.put(HandlerType.DATE, dateHandlers);
 
             // tonight at 7pm
-            List<Handler> anchorHandlers = new LinkedList<Handler>();
+            List<Handler> anchorHandlers = new LinkedList<>();
             anchorHandlers.add(new Handler(new RHandler(), new TagPattern(Grabber.class, true), new TagPattern(Repeater.class), new TagPattern(SeparatorAt.class, true), new TagPattern(Repeater.class, true), new TagPattern(Repeater.class, true)));
             anchorHandlers.add(new Handler(new RHandler(), new TagPattern(Grabber.class, true), new TagPattern(Repeater.class), new TagPattern(Repeater.class), new TagPattern(SeparatorAt.class, true), new TagPattern(Repeater.class, true), new TagPattern(Repeater.class, true)));
             anchorHandlers.add(new Handler(new RGRHandler(), new TagPattern(Repeater.class), new TagPattern(Grabber.class), new TagPattern(Repeater.class)));
             definitions.put(HandlerType.ANCHOR, anchorHandlers);
 
             // 3 weeks from now, in 2 months
-            List<Handler> arrowHandlers = new LinkedList<Handler>();
+            List<Handler> arrowHandlers = new LinkedList<>();
             arrowHandlers.add(new Handler(new SRPHandler(), new TagPattern(Scalar.class), new TagPattern(Repeater.class), new TagPattern(Pointer.class)));
             arrowHandlers.add(new Handler(new PSRHandler(), new TagPattern(Pointer.class), new TagPattern(Scalar.class), new TagPattern(Repeater.class)));
             arrowHandlers.add(new Handler(new SRPAHandler(), new TagPattern(Scalar.class), new TagPattern(Repeater.class), new TagPattern(Pointer.class), new HandlerTypePattern(HandlerType.ANCHOR)));
             definitions.put(HandlerType.ARROW, arrowHandlers);
 
             // 3rd week in march
-            List<Handler> narrowHandlers = new LinkedList<Handler>();
+            List<Handler> narrowHandlers = new LinkedList<>();
             narrowHandlers.add(new Handler(new ORSRHandler(), new TagPattern(Ordinal.class), new TagPattern(Repeater.class), new TagPattern(SeparatorIn.class), new TagPattern(Repeater.class)));
             narrowHandlers.add(new Handler(new ORGRHandler(), new TagPattern(Ordinal.class), new TagPattern(Repeater.class), new TagPattern(Grabber.class), new TagPattern(Repeater.class)));
             definitions.put(HandlerType.NARROW, narrowHandlers);
@@ -100,12 +101,12 @@ public class Handler {
         return definitions;
     }
 
-    public static Span tokensToSpan(List<Token> tokens, Options options) {
+    public static Span tokensToSpan(List<Token> tokens, Options options) throws ParseException {
         // maybe it's a specific date
         Map<HandlerType, List<Handler>> definitions = definitions();
         for (Handler handler : definitions.get(HandlerType.DATE)) {
             if (handler.isCompatible(options) && handler.match(tokens, definitions)) {
-                List<Token> goodTokens = new LinkedList<Token>();
+                List<Token> goodTokens = new LinkedList<>();
                 for (Token token : tokens) {
                     if (token.getTag(Separator.class) == null) {
                         goodTokens.add(token);
@@ -114,11 +115,10 @@ public class Handler {
                 return handler.getHandler().handle(goodTokens, options);
             }
         }
-
         // I guess it's not a specific date, maybe it's just an anchor
         for (Handler handler : definitions.get(HandlerType.ANCHOR)) {
             if (handler.isCompatible(options) && handler.match(tokens, definitions)) {
-                List<Token> goodTokens = new LinkedList<Token>();
+                List<Token> goodTokens = new LinkedList<>();
                 for (Token token : tokens) {
                     if (token.getTag(Separator.class) == null) {
                         goodTokens.add(token);
@@ -127,7 +127,6 @@ public class Handler {
                 return handler.getHandler().handle(goodTokens, options);
             }
         }
-
         // not an anchor, perhaps it's an arrow
         for (Handler handler : definitions.get(HandlerType.ARROW)) {
             if (handler.isCompatible(options) && handler.match(tokens, definitions)) {
@@ -140,18 +139,17 @@ public class Handler {
                 return handler.getHandler().handle(goodTokens, options);
             }
         }
-
         // not an arrow, let's hope it's a narrow
         for (Handler handler : definitions.get(HandlerType.NARROW)) {
             if (handler.isCompatible(options) && handler.match(tokens, definitions)) {
                 return handler.getHandler().handle(tokens, options);
             }
         }
-        return null;
+        throw new ParseException("no span found for " + tokens, 0);
     }
 
     public static List<Repeater<?>> getRepeaters(List<Token> tokens) {
-        List<Repeater<?>> repeaters = new LinkedList<Repeater<?>>();
+        List<Repeater<?>> repeaters = new LinkedList<>();
         for (Token token : tokens) {
             Repeater<?> tag = token.getTag(Repeater.class);
             if (tag != null) {
@@ -178,7 +176,7 @@ public class Handler {
         }
 
         Repeater<?> head = repeaters.remove(0);
-        head.setStart((Calendar) options.getNow().clone());
+        head.setNow(options.getNow());
 
         Span outerSpan;
         Grabber.Relative grabberType = grabber.getType();
@@ -195,11 +193,11 @@ public class Handler {
         } else {
             throw new IllegalArgumentException("Invalid grabber type " + grabberType + ".");
         }
-        return findWithin(repeaters, outerSpan, pointer, options);
+        return findWithin(repeaters, outerSpan, pointer);
     }
 
-    public static Span dayOrTime(Calendar dayStart, List<Token> timeTokens, Options options) {
-        Span outerSpan = new Span(dayStart, Time.cloneAndAdd(dayStart, Calendar.DAY_OF_MONTH, 1));
+    public static Span dayOrTime(ZonedDateTime dayStart, List<Token> timeTokens, Options options) {
+        Span outerSpan = new Span(dayStart, dayStart.plus(1, ChronoUnit.DAYS));
         if (!timeTokens.isEmpty()) {
             options.setNow(outerSpan.getBeginCalendar());
             return getAnchor(dealiasAndDisambiguateTimes(timeTokens, options), options);
@@ -212,17 +210,16 @@ public class Handler {
      * Returns a Span representing the innermost time span
      * or nil if no repeater union could be found
      */
-    public static Span findWithin(List<Repeater<?>> tags, Span span, PointerType pointer, Options options) {
+    public static Span findWithin(List<Repeater<?>> tags, Span span, PointerType pointer) {
         if (tags.isEmpty()) {
             return span;
         }
         Repeater<?> head = tags.get(0);
-        List<Repeater<?>> rest = (tags.size() > 1) ? tags.subList(1, tags.size()) : new LinkedList<Repeater<?>>();
-        head.setStart((pointer == PointerType.FUTURE) ? span.getBeginCalendar() : span.getEndCalendar());
+        List<Repeater<?>> rest = (tags.size() > 1) ? tags.subList(1, tags.size()) : new LinkedList<>();
+        head.setNow((pointer == PointerType.FUTURE) ? span.getBeginCalendar() : span.getEndCalendar());
         Span h = head.thisSpan(PointerType.NONE);
-
         if (span.contains(h.getBegin()) || span.contains(h.getEnd())) {
-            return findWithin(rest, h, pointer, options);
+            return findWithin(rest, h, pointer);
         }
         return null;
     }

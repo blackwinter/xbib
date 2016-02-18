@@ -1,11 +1,12 @@
 package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.Token;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -22,14 +23,14 @@ public class RepeaterDayName extends Repeater<RepeaterDayName.DayName> {
     private static final Pattern FRI_PATTERN = Pattern.compile("^fr[iy](day)?$");
     private static final Pattern SAT_PATTERN = Pattern.compile("^sat(t?[ue]rday)?$");
     private static final Pattern SUN_PATTERN = Pattern.compile("^su[nm](day)?$");
-    private Calendar currentDayStart;
+    private ZonedDateTime currentDayStart;
 
     public RepeaterDayName(DayName type) {
         super(type);
     }
 
     public static RepeaterDayName scan(Token token) {
-        Map<Pattern, DayName> scanner = new HashMap<Pattern, DayName>();
+        Map<Pattern, DayName> scanner = new HashMap<>();
         scanner.put(RepeaterDayName.MON_PATTERN, DayName.MONDAY);
         scanner.put(RepeaterDayName.TUE_PATTERN, DayName.TUESDAY);
         scanner.put(RepeaterDayName.TUE_PATTERN_1, DayName.TUESDAY);
@@ -53,18 +54,16 @@ public class RepeaterDayName extends Repeater<RepeaterDayName.DayName> {
     protected Span _nextSpan(PointerType pointer) {
         int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
         if (currentDayStart == null) {
-            currentDayStart = Time.ymd(getNow());
-            currentDayStart.add(Calendar.DAY_OF_MONTH, direction);
-
+            currentDayStart = ymd(getNow());
+            currentDayStart = currentDayStart.plus(direction, ChronoUnit.DAYS);
             int dayNum = getType().ordinal();
-
-            while ((currentDayStart.get(Calendar.DAY_OF_WEEK) - 1) != dayNum) {
-                currentDayStart.add(Calendar.DAY_OF_MONTH, direction);
+            while ((currentDayStart.get(ChronoField.DAY_OF_WEEK) - 1) != dayNum) {
+                currentDayStart = currentDayStart.plus(direction, ChronoUnit.DAYS);
             }
         } else {
-            currentDayStart.add(Calendar.DAY_OF_MONTH, direction * 7);
+            currentDayStart = currentDayStart.plus(direction * 7, ChronoUnit.DAYS);
         }
-        return new Span(currentDayStart, Calendar.DAY_OF_MONTH, 1);
+        return new Span(currentDayStart, ChronoUnit.DAYS, 1);
     }
 
     @Override
@@ -82,7 +81,6 @@ public class RepeaterDayName extends Repeater<RepeaterDayName.DayName> {
 
     @Override
     public int getWidth() {
-        // WARN: Does not use Calendar
         return RepeaterDayName.DAY_SECONDS;
     }
 
@@ -91,8 +89,12 @@ public class RepeaterDayName extends Repeater<RepeaterDayName.DayName> {
         return super.toString() + "-dayname-" + getType();
     }
 
-    public static enum DayName {
-        SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
+    public enum DayName {
+         MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
     }
 
+    private static ZonedDateTime ymd(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                0, 0, 0, 0, zonedDateTime.getZone());
+    }
 }

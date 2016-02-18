@@ -9,11 +9,11 @@ public class IntegerRepeaterDayPortion extends RepeaterDayPortion<Integer> {
 
     @Override
     protected Range createRange(Integer type) {
-        return new Range(type * 60 * 60, (type + 12) * 60 * 60);
+        return new Range(type * 60L * 60L, (type + 12) * 60L * 60L);
     }
 
     @Override
     protected long _getWidth(Range range) {
-        return 12 * 60 * 60;
+        return 12 * 60L * 60L;
     }
 }

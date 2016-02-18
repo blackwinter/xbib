@@ -71,9 +71,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.Normalizer;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -105,18 +107,23 @@ public class OAIFeeder extends Feeder {
         if (oaiSettings != null) {
             String granularity = oaiSettings.containsSetting("granularity") ? oaiSettings.get("granularity") : null;
             String fromStr = oaiSettings.get("from");
-            Span fromSpan = Chronic.parse(fromStr);
             String untilStr = oaiSettings.get("until");
-            Span untilSpan = Chronic.parse(untilStr);
+            Span fromSpan;
+            Span untilSpan;
+            try {
+                fromSpan = Chronic.parse(fromStr);
+                untilSpan = Chronic.parse(untilStr);
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
             TimeValue delta = oaiSettings.getAsTime("interval", TimeValue.timeValueHours(24));
             if (fromSpan != null) {
-                logger.info("from={}", DateTimeFormatter.ISO_INSTANT.format(fromSpan.getBeginCalendar().toInstant()));
+                logger.info("from={}", DateTimeFormatter.ISO_INSTANT.format(fromSpan.getBeginCalendar()));
                 if (untilSpan != null) {
-                    logger.info("until={}", DateTimeFormatter.ISO_INSTANT.format(untilSpan.getBeginCalendar().toInstant()));
-                    long millis = untilSpan.getBeginCalendar().getTime().getTime() -
-                            fromSpan.getBeginCalendar().getTime().getTime();
+                    logger.info("until={}", DateTimeFormatter.ISO_INSTANT.format(untilSpan.getBeginCalendar()));
+                    long secs = ChronoUnit.SECONDS.between(fromSpan.getBeginCalendar(), untilSpan.getBeginCalendar());
                     delta = oaiSettings.getAsTime("interval",
-                            TimeValue.parseTimeValue("" + millis + "ms", TimeValue.timeValueMillis(0L)));
+                            TimeValue.parseTimeValue("" + secs + "s", TimeValue.timeValueMillis(0L)));
                 }
                 logger.info("delta={}", delta);
                 // now get base URI and replace it with concrete URIs

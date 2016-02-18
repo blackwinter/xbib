@@ -10,6 +10,7 @@ import org.xbib.time.chronic.tags.Scalar;
 import org.xbib.time.chronic.tags.Separator;
 import org.xbib.time.chronic.tags.TimeZone;
 
+import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class Chronic {
     private Chronic() {
     }
 
-    public static Span parse(String text) {
+    public static Span parse(String text) throws ParseException {
         return Chronic.parse(text, new Options());
     }
 
@@ -62,26 +63,18 @@ public class Chronic {
      * be used.
      */
     @SuppressWarnings("unchecked")
-    public static Span parse(String text, Options options) {
-        // store now for later =)
-        //_now = options.getNow();
-
-        // put the text into a normal format to ease scanning
+    public static Span parse(String text, Options options) throws ParseException {
         String normalizedText = Chronic.preNormalize(text);
-
-        // get base tokens for each word
         List<Token> tokens = Chronic.baseTokenize(normalizedText);
-
         List<Class> optionScannerClasses = new LinkedList<>();
         optionScannerClasses.add(Repeater.class);
         for (Class optionScannerClass : optionScannerClasses) {
             try {
                 tokens = (List<Token>) optionScannerClass.getMethod("scan", List.class, Options.class).invoke(null, tokens, options);
             } catch (Throwable e) {
-                throw new RuntimeException("Failed to scan tokens.", e);
+                throw new ParseException("failed to scan tokens", 0);
             }
         }
-
         List<Class> scannerClasses = new LinkedList<>();
         scannerClasses.add(Grabber.class);
         scannerClasses.add(Pointer.class);
@@ -93,10 +86,9 @@ public class Chronic {
             try {
                 tokens = (List<Token>) scannerClass.getMethod("scan", List.class, Options.class).invoke(null, tokens, options);
             } catch (Throwable e) {
-                throw new RuntimeException("Failed to scan tokens.", e);
+                throw new ParseException("failed to scan tokens", 0);
             }
         }
-
         List<Token> taggedTokens = new LinkedList<>();
         for (Token token : tokens) {
             if (token.isTagged()) {
@@ -104,14 +96,11 @@ public class Chronic {
             }
         }
         tokens = taggedTokens;
-
         Span span = Handler.tokensToSpan(tokens, options);
-
         // guess a time within a span if required
         if (options.isGuess()) {
             span = guess(span);
         }
-
         return span;
     }
 
@@ -175,7 +164,6 @@ public class Chronic {
     /**
      * Guess a specific time within the given span
      */
-    // DIFF: We return Span instead of Date
     protected static Span guess(Span span) {
         if (span == null) {
             return null;
@@ -186,6 +174,6 @@ public class Chronic {
         } else {
             guessValue = span.getBegin();
         }
-        return new Span(guessValue, guessValue);
+        return new Span(guessValue, guessValue, span.getZoneId());
     }
 }

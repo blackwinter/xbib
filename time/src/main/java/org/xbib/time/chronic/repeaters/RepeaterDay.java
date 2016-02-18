@@ -1,57 +1,53 @@
 package org.xbib.time.chronic.repeaters;
 
 import org.xbib.time.chronic.Span;
-import org.xbib.time.chronic.Time;
 import org.xbib.time.chronic.tags.Pointer.PointerType;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class RepeaterDay extends RepeaterUnit {
-    public static final int DAY_SECONDS = 86400; // (24 * 60 * 60);
+    public static final int DAY_SECONDS = 86400;
 
-    private Calendar _currentDayStart;
+    private ZonedDateTime currentDayStart;
 
     @Override
     protected Span _nextSpan(PointerType pointer) {
-        if (_currentDayStart == null) {
-            _currentDayStart = Time.ymd(getNow());
+        if (currentDayStart == null) {
+            currentDayStart = ymd(getNow());
         }
-
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
-        _currentDayStart.add(Calendar.DAY_OF_MONTH, direction);
-
-        return new Span(_currentDayStart, Calendar.DAY_OF_MONTH, 1);
+        int direction = pointer == PointerType.FUTURE ? 1 : -1;
+        currentDayStart = currentDayStart.plus(direction, ChronoUnit.DAYS);
+        return new Span(currentDayStart, ChronoUnit.DAYS, 1);
     }
 
     @Override
     protected Span _thisSpan(PointerType pointer) {
-        Calendar dayBegin;
-        Calendar dayEnd;
+        ZonedDateTime dayBegin;
+        ZonedDateTime dayEnd;
         if (pointer == PointerType.FUTURE) {
-            dayBegin = Time.cloneAndAdd(Time.ymdh(getNow()), Calendar.HOUR, 1);
-            dayEnd = Time.cloneAndAdd(Time.ymd(getNow()), Calendar.DAY_OF_MONTH, 1);
+            dayBegin = ymdh(getNow()).plus(1, ChronoUnit.HOURS);
+            dayEnd = ymd(getNow()).plus(1, ChronoUnit.DAYS);
         } else if (pointer == PointerType.PAST) {
-            dayBegin = Time.ymd(getNow());
-            dayEnd = Time.ymdh(getNow());
+            dayBegin = ymd(getNow());
+            dayEnd = ymdh(getNow());
         } else if (pointer == PointerType.NONE) {
-            dayBegin = Time.ymd(getNow());
-            dayEnd = Time.cloneAndAdd(Time.ymdh(getNow()), Calendar.DAY_OF_MONTH, 1);
+            dayBegin = ymd(getNow());
+            dayEnd = ymdh(getNow()).plus(1, ChronoUnit.DAYS);
         } else {
-            throw new IllegalArgumentException("Unable to handle pointer " + pointer + ".");
+            throw new IllegalArgumentException("unable to handle pointer " + pointer + ".");
         }
         return new Span(dayBegin, dayEnd);
     }
 
     @Override
     public Span getOffset(Span span, int amount, PointerType pointer) {
-        int direction = (pointer == PointerType.FUTURE) ? 1 : -1;
-        // WARN: Does not use Calendar
+        long direction = pointer == PointerType.FUTURE ? 1L : -1L;
         return span.add(direction * amount * RepeaterDay.DAY_SECONDS);
     }
 
     @Override
     public int getWidth() {
-        // WARN: Does not use Calendar
         return RepeaterDay.DAY_SECONDS;
     }
 
@@ -59,4 +55,15 @@ public class RepeaterDay extends RepeaterUnit {
     public String toString() {
         return super.toString() + "-day";
     }
+
+    private static ZonedDateTime ymd(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                0, 0, 0, 0, zonedDateTime.getZone());
+    }
+
+    private static ZonedDateTime ymdh(ZonedDateTime zonedDateTime) {
+        return ZonedDateTime.of(zonedDateTime.getYear(), zonedDateTime.getMonthValue(), zonedDateTime.getDayOfMonth(),
+                zonedDateTime.getHour(), 0, 0, 0, zonedDateTime.getZone());
+    }
+
 }

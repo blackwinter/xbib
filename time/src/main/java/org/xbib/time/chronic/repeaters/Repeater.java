@@ -9,6 +9,7 @@ import org.xbib.time.chronic.tags.Tag;
 import java.util.List;
 
 public abstract class Repeater<T> extends Tag<T> implements Comparable<Repeater<?>> {
+
     public Repeater(T type) {
         super(type);
     }
@@ -49,12 +50,12 @@ public abstract class Repeater<T> extends Tag<T> implements Comparable<Repeater<
     }
 
     /**
-     * returns the width (in seconds or months) of this repeatable.
+     * Returns the width (in seconds or months) of this repeatable.
      */
     public abstract int getWidth();
 
     /**
-     * returns the next occurance of this repeatable.
+     * Returns the next occurance of this repeatable.
      */
     public Span nextSpan(Pointer.PointerType pointer) {
         if (getNow() == null) {
