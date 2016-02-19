@@ -131,7 +131,8 @@ public class ExceptionMockWorker extends AbstractWorker<Pipeline<ExceptionMockWo
     protected void process(URI uri) throws Exception {
         logger.info("start of processing {}", uri);
         logger.info("got config={}", config);
-        // simlulate error
+        // wait some time (for thread schedule) and simlulate error
+        Thread.sleep(250L);
         throw new IOException("dummy");
     }
 
