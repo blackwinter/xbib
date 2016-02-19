@@ -10,6 +10,7 @@ cache:
     - $HOME/.m2
 
 # install OpenSSL for Nettty tcnative dependency (which is enabled by setOpenSSL(true) in the HTTP client)
+# install msttcorefonts for charts
 
 before_install:
   - sudo apt-get update -qq
@@ -18,5 +19,7 @@ before_install:
   - wget http://mirrors.kernel.org/ubuntu/pool/main/o/openssl/openssl_1.0.2d-0ubuntu1_amd64.deb
   - sudo dpkg -i libssl1.0.0_1.0.2d-0ubuntu1_amd64.deb
   - sudo dpkg -i openssl_1.0.2d-0ubuntu1_amd64.deb
+  - echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+  - sudo apt-get install msttcorefonts -qq
 
 install: true
