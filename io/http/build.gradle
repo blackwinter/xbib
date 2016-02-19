@@ -15,10 +15,10 @@ dependencies {
         compile "io.netty:netty-tcnative:1.1.33.Fork12:osx-x86_64"
     }    
     if ('linux' == OperatingSystem.current().getFamilyName()) {
-        // use this for libssl.so.1.0.0
-        //compile "io.netty:netty-tcnative:1.1.33.Fork12:linux-x86_64"
-        // use this for libssl.so.10
-        compile "io.netty:netty-tcnative:1.1.33.Fork12:linux-x86_64-fedora"
+        // use this for linking to libssl.so.1.0.0
+        // compile "io.netty:netty-tcnative:1.1.33.Fork13:linux-x86_64"
+        // use this for linking to libssl.so.10
+        compile "io.netty:netty-tcnative:1.1.33.Fork13:linux-x86_64-fedora"
     }
 }
 

@@ -1,7 +1,22 @@
-sudo: false
 language: java
+
+sudo: required
+
 jdk:
   - oraclejdk8
+
 cache:
   directories:
     - $HOME/.m2
+
+# install OpenSSL for Nettty tcnative dependency (which is enabled by setOpenSSL(true) in the HTTP client)
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libapr1
+  - wget http://mirrors.kernel.org/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2d-0ubuntu1_amd64.deb
+  - wget http://mirrors.kernel.org/ubuntu/pool/main/o/openssl/openssl_1.0.2d-0ubuntu1_amd64.deb
+  - sudo dpkg -i libssl1.0.0_1.0.2d-0ubuntu1_amd64.deb
+  - sudo dpkg -i openssl_1.0.2d-0ubuntu1_amd64.deb
+
+install: true
