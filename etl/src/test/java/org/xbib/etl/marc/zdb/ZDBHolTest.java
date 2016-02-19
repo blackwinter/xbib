@@ -31,16 +31,11 @@
  */
 package org.xbib.etl.marc.zdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.util.KeyValueStreamAdapter;
-import org.xbib.marc.FieldList;
-import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 
@@ -48,7 +43,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -57,48 +52,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ZDBHolTest extends Assert {
 
-    private static final Logger logger = LogManager.getLogger(ZDBHolTest.class.getName());
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1"); // 8 bit
-
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
     @Test
     public void testZDBElements() throws Exception {
         final InputStream in = getClass().getResource("zdblokutf8.mrc").openStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, ISO88591));
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id, key) -> {
             unmapped.add(key.toString());
-            logger.warn("record {}: unknown key: {}", id, key);
+            //logger.warn("record {}: unknown key: {}", id, key);
         });
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(value -> Normalizer.normalize(
-                        new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
-                .addListener(queue)
-                .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                        logger.debug("startStream");
-                        for (Field f : key) {
-                            logger.debug("tag={} ind={} subf={} data={}",
-                                    f.tag(), f.indicator(), f.subfieldId(), f.data());
-                        }
-                        logger.debug("endStream");
-                        return this;
-                    }
-
-                });
+                        new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8), Normalizer.Form.NFKC))
+                .addListener(queue);
         Iso2709Reader reader = new Iso2709Reader(br)
                 .setMarcXchangeListener("Holdings", kv);
         reader.setProperty(Iso2709Reader.FORMAT, "MARC");
         reader.setProperty(Iso2709Reader.TYPE, "Holdings");
         reader.parse();
         queue.close();
-        logger.info("zdb holdings counter = {}", queue.getCounter());
-        logger.info("zdb holdings unknown keys = {}", unmapped);
+        //logger.info("zdb holdings counter = {}", queue.getCounter());
+        //logger.info("zdb holdings unknown keys = {}", unmapped);
         br.close();
         assertEquals(queue.getCounter(), 293);
     }

@@ -89,7 +89,6 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
     public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) {
         super(new MARCSpecification().addParameters(params), workers, packageName, paths);
         this.packageName = packageName;
-        logger.info("identifier: {}", params.get("identifier"));
         this.identifierMapper = setupIdentifierMapper(params);
         logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
         this.statusMapper = setupStatusMapper(params);

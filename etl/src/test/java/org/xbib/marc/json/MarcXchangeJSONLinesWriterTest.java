@@ -51,7 +51,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -62,17 +62,10 @@ import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
 public class MarcXchangeJSONLinesWriterTest extends StreamTester {
 
-    private static final Logger logger = LogManager.getLogger(MarcXchangeJSONLinesWriterTest.class.getName());
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1"); // 8 bit
-
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
     @Test
     public void testMARC2JSONQueue() throws Exception {
         InputStream in = getClass().getResourceAsStream("zdbtitutf8.mrc");
-        //new GZIPInputStream(new FileInputStream(System.getProperty("user.home") + "/Daten/zdb/1302zdbtitgesamt.mrc.gz"));
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, ISO88591));
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id, key) -> unmapped.add(key.toString()));
@@ -81,7 +74,8 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
         file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
+                .setStringTransformer(value ->
+                        Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8), Normalizer.Form.NFKC))
                 .addListener(queue);
         MarcXchangeJSONLinesWriter marcXchangeJSONLinesWriter = new MarcXchangeJSONLinesWriter(out)
                 .setMarcXchangeListener(kv);
@@ -92,8 +86,8 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
         reader.parse();
         br.close();
         queue.close();
-        logger.info("unknown keys = {}", unmapped);
-        logger.info("counter = {}", queue.getCounter());
+        //logger.info("unknown keys = {}", unmapped);
+        //logger.info("counter = {}", queue.getCounter());
         assertEquals(queue.getCounter(), 8);
     }
 
@@ -134,8 +128,7 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
             RdfContentBuilder builder = rdfXContentBuilder(params);
             builder.receive(state.getResource());
             String result = params.getGenerator().get();
-
-            logger.info(result);
+            //logger.info(result);
         }
 
         public long getCounter() {

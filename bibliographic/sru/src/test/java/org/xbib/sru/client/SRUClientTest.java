@@ -31,8 +31,6 @@
  */
 package org.xbib.sru.client;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.Request;
 import org.xbib.marc.Field;
@@ -58,8 +56,6 @@ import java.util.Arrays;
 
 public class SRUClientTest {
 
-    private static final Logger logger = LogManager.getLogger(SRUClientTest.class.getName());
-
     @Test
     public void testClient() throws Exception {
         try {
@@ -77,42 +73,42 @@ public class SRUClientTest {
 
                 @Override
                 public void onConnect(Request request) {
-                    logger.info("connect, request = " + request);
+                    //logger.info("connect, request = " + request);
                 }
 
                 @Override
                 public void version(String version) {
-                    logger.info("version = " + version);
+                    //logger.info("version = " + version);
                 }
 
                 @Override
                 public void numberOfRecords(long numberOfRecords) {
-                    logger.info("numberOfRecords = " + numberOfRecords);
+                    //logger.info("numberOfRecords = " + numberOfRecords);
                 }
 
                 @Override
                 public void beginRecord() {
-                    logger.info("start record");
+                    //logger.info("start record");
                 }
 
                 @Override
                 public void recordSchema(String recordSchema) {
-                    logger.info("got record scheme:" + recordSchema);
+                    //logger.info("got record scheme:" + recordSchema);
                 }
 
                 @Override
                 public void recordPacking(String recordPacking) {
-                    logger.info("got recordPacking: " + recordPacking);
+                    //logger.info("got recordPacking: " + recordPacking);
                 }
 
                 @Override
                 public void recordIdentifier(String recordIdentifier) {
-                    logger.info("got recordIdentifier=" + recordIdentifier);
+                    //logger.info("got recordIdentifier=" + recordIdentifier);
                 }
 
                 @Override
                 public void recordPosition(int recordPosition) {
-                    logger.info("got recordPosition=" + recordPosition);
+                    //logger.info("got recordPosition=" + recordPosition);
                 }
 
                 @Override
@@ -129,12 +125,12 @@ public class SRUClientTest {
 
                 @Override
                 public void endRecord() {
-                    logger.info("end record");
+                    //logger.info("end record");
                 }
 
                 @Override
                 public void onDisconnect(Request request) {
-                    logger.info("disconnect, request = " + request);
+                    //logger.info("disconnect, request = " + request);
                 }
             };
             request.addListener(listener);
@@ -148,7 +144,7 @@ public class SRUClientTest {
             out.close();
         } catch (Exception e) {
             // we tolerate failures
-            logger.warn(e.getMessage(), e);
+            //logger.warn(e.getMessage(), e);
         }
     }
 
@@ -156,35 +152,7 @@ public class SRUClientTest {
     public void testServiceSearchRetrieve() throws Exception {
         try {
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))
-                    .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> begin() {
-                            logger.debug("start object");
-                            return this;
-                        }
-
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                            logger.debug("start");
-                            for (Field f : key) {
-                                logger.debug("tag={} ind={} subf={} data={}",
-                                        f.tag(), f.indicator(), f.subfieldId(), f.data());
-                            }
-                            if (value != null) {
-                                logger.debug("value={}", value);
-
-                            }
-                            logger.debug("end");
-                            return this;
-                        }
-
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> end() {
-                            logger.debug("end object");
-                            return this;
-                        }
-                    });
+                    .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC));
 
             final MarcXchangeContentHandler marcXmlHandler = new MarcXchangeContentHandler()
                     .addListener("Bibliographic", kv);
@@ -203,42 +171,42 @@ public class SRUClientTest {
 
                     @Override
                     public void onConnect(Request request) {
-                        logger.info("connect, request = " + request);
+                       // logger.info("connect, request = " + request);
                     }
 
                     @Override
                     public void version(String version) {
-                        logger.info("version = " + version);
+                        //logger.info("version = " + version);
                     }
 
                     @Override
                     public void numberOfRecords(long numberOfRecords) {
-                        logger.info("numberOfRecords = " + numberOfRecords);
+                        //logger.info("numberOfRecords = " + numberOfRecords);
                     }
 
                     @Override
                     public void beginRecord() {
-                        logger.info("startStream record");
+                        //logger.info("startStream record");
                     }
 
                     @Override
                     public void recordSchema(String recordSchema) {
-                        logger.info("got record scheme:" + recordSchema);
+                        //logger.info("got record scheme:" + recordSchema);
                     }
 
                     @Override
                     public void recordPacking(String recordPacking) {
-                        logger.info("got recordPacking: " + recordPacking);
+                        //logger.info("got recordPacking: " + recordPacking);
                     }
 
                     @Override
                     public void recordIdentifier(String recordIdentifier) {
-                        logger.info("got recordIdentifier=" + recordIdentifier);
+                        //logger.info("got recordIdentifier=" + recordIdentifier);
                     }
 
                     @Override
                     public void recordPosition(int recordPosition) {
-                        logger.info("got recordPosition=" + recordPosition);
+                        //logger.info("got recordPosition=" + recordPosition);
                     }
 
                     @Override
@@ -253,12 +221,12 @@ public class SRUClientTest {
 
                     @Override
                     public void endRecord() {
-                        logger.info("end record");
+                        //logger.info("end record");
                     }
 
                     @Override
                     public void onDisconnect(Request request) {
-                        logger.info("disconnect, request = " + request);
+                        //logger.info("disconnect, request = " + request);
                     }
                 };
                 SRUClient client = new DefaultSRUClient();
@@ -268,14 +236,14 @@ public class SRUClientTest {
                         .setStartRecord(from)
                         .setMaximumRecords(size);
                 SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
-                logger.info("http status = {}", response.httpStatus());
+                //logger.info("http status = {}", response.httpStatus());
                 client.close();
                 w.close();
                 out.close();
             }
         } catch (Exception e) {
             // we tolerate failures but log them
-            logger.warn(e.getMessage(), e);
+            //logger.warn(e.getMessage(), e);
         }
     }
 }

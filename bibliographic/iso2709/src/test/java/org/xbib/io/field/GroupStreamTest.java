@@ -1,7 +1,5 @@
 package org.xbib.io.field;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,8 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class GroupStreamTest extends Assert {
-
-    private static final Logger logger = LogManager.getLogger(FieldStreamTest.class.getName());
 
     int dataCount = 0;
 
@@ -47,7 +43,6 @@ public class GroupStreamTest extends Assert {
                 stream.readField();
             }
         }
-        logger.info("data = {} group = {}", dataCount,  groupCount);
 
         assertEquals(groupCount, 11);
 

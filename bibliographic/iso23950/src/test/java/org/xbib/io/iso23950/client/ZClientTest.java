@@ -50,17 +50,15 @@ import org.xbib.xml.transform.StylesheetTransformer;
 public class ZClientTest {
 
     static {
-        // TODO find out how to set this reliably in JVM for every test
+        // TODO find out how to set this reliably in JVM for every test!
         URL.setURLStreamHandlerFactory(new CustomURLStreamHandlerFactory());
     }
-
-    private final static Logger logger = LogManager.getLogger(ZClientTest.class.getName());
 
     @Test
     public void testClient() {
         for (String serviceName : Arrays.asList("LIBRIS", "LOC", "OBVSG")) {
             try {
-                logger.info("trying " + serviceName);
+                //logger.info("trying " + serviceName);
                 String query = "dc.title = Linux";
                 int from = 1;
                 int size = 10;
@@ -85,10 +83,10 @@ public class ZClientTest {
                     client.close();
                 }
             } catch (Diagnostics d) {
-                logger.warn(d.getPlainText(), d);
+                //logger.warn(d.getPlainText(), d);
             } catch (Throwable e) {
                 // ignore all errors, ignore missing service
-                logger.error(e.getMessage(), e);
+                //logger.error(e.getMessage(), e);
             }
         }
     }

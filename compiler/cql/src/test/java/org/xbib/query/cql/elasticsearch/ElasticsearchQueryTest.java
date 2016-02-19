@@ -1,7 +1,5 @@
 package org.xbib.query.cql.elasticsearch;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.query.cql.CQLParser;
@@ -11,8 +9,6 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 
 public class ElasticsearchQueryTest extends Assert {
-
-    private final static Logger logger = LogManager.getLogger(ElasticsearchQueryTest.class);
 
     @Test
     public void testValidQueries() throws IOException {
@@ -27,7 +23,7 @@ public class ElasticsearchQueryTest extends Assert {
         ElasticsearchFilterGenerator generator = new ElasticsearchFilterGenerator();
         parser.getCQLQuery().accept(generator);
         String json = generator.getResult().string();
-        logger.info("{} --> {}", cql, json);
+        //logger.info("{} --> {}", cql, json);
         assertEquals(json, "{\"term\":{\"cql.allIndexes\":\"Jörg\"}}");
     }
 
@@ -39,7 +35,7 @@ public class ElasticsearchQueryTest extends Assert {
         ElasticsearchFilterGenerator generator = new ElasticsearchFilterGenerator();
         parser.getCQLQuery().accept(generator);
         String json = generator.getResult().string();
-        logger.info("{} --> {}", cql, json);
+        //logger.info("{} --> {}", cql, json);
         assertEquals(json, "{\"query\":{\"term\":{\"dc.type\":\"electronic\"}}}");
     }
 
@@ -51,7 +47,7 @@ public class ElasticsearchQueryTest extends Assert {
         ElasticsearchFilterGenerator generator = new ElasticsearchFilterGenerator();
         parser.getCQLQuery().accept(generator);
         String json = generator.getResult().string();
-        logger.info("{} --> {}", cql, json);
+        //logger.info("{} --> {}", cql, json);
         assertEquals(
                 "{\"query\":{\"bool\":{\"must\":[{\"term\":{\"dc.type\":\"electronic\"}},{\"term\":{\"dc.date\":\"2013\"}}]}}}",
                 json
@@ -66,7 +62,7 @@ public class ElasticsearchQueryTest extends Assert {
         ElasticsearchFilterGenerator generator = new ElasticsearchFilterGenerator();
         parser.getCQLQuery().accept(generator);
         String json = generator.getResult().string();
-        logger.info("{} --> {}", cql, json);
+        //logger.info("{} --> {}", cql, json);
         assertEquals(
                 "{\"query\":{\"bool\":{\"must\":[{\"bool\":{\"must\":[{\"term\":{\"dc.format\":\"online\"}},{\"term\":{\"dc.type\":\"electronic\"}}]}},{\"term\":{\"dc.date\":\"2013\"}}]}}}",
                 json);
@@ -87,7 +83,7 @@ public class ElasticsearchQueryTest extends Assert {
                         ok++;
                     }
                 } catch (Exception e) {
-                    logger.warn(e.getMessage(), e);
+                   // logger.warn(e.getMessage(), e);
                     errors++;
                 }
                 count++;
@@ -101,11 +97,11 @@ public class ElasticsearchQueryTest extends Assert {
     private void validate(String cql, String expected) throws Exception {
         CQLParser parser = new CQLParser(cql);
         parser.parse();
-        logger.info("success: cql={}", cql);
+        //logger.info("success: cql={}", cql);
         ElasticsearchQueryGenerator generator = new ElasticsearchQueryGenerator();
         parser.getCQLQuery().accept(generator);
         String elasticsearchQuery = generator.getSourceResult();
-        logger.info("success: elastic={}", elasticsearchQuery);
+        //logger.info("success: elastic={}", elasticsearchQuery);
         assertEquals(expected, elasticsearchQuery);
     }
 

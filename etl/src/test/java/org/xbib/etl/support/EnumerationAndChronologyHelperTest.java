@@ -1,16 +1,12 @@
 package org.xbib.etl.support;
 
-import java.util.Arrays;
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.rdf.memory.MemoryResource;
@@ -18,9 +14,7 @@ import org.xbib.rdf.Resource;
 
 public class EnumerationAndChronologyHelperTest extends Assert {
 
-    private final Logger logger = LogManager.getLogger(EnumerationAndChronologyHelperTest.class.getName());
-
-    private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+    private final static Integer currentYear = ZonedDateTime.now().getYear();
 
     @Test
     public void test() {
@@ -102,7 +96,7 @@ public class EnumerationAndChronologyHelperTest extends Assert {
             "[1921, 1922, 1923, 1924]"
         };
         // set dynamic years
-        int year =  Calendar.getInstance().get(Calendar.YEAR);
+        int year = currentYear;
         dates[12] = "[" + createYearList(1971, year) + "]";
         dates[13] = "[" + createYearList(1971, year) + "]";
         dates[26] = "[1960, 1961, 1962, 1963, 1964, " + createYearList(1971, year) + "]";
@@ -114,7 +108,7 @@ public class EnumerationAndChronologyHelperTest extends Assert {
             String s = specs[i];
             Resource r = eac.parse(s);
             Set<Integer> d = eac.dates(r.id(), r);
-            logger.info("{} {}", d.toString(), dates[i]);
+            //logger.info("{} {}", d.toString(), dates[i]);
             assertEquals(d.toString(), dates[i]);
         }
     }

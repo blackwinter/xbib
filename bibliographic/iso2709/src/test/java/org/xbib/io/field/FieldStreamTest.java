@@ -31,8 +31,6 @@
  */
 package org.xbib.io.field;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,8 +38,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class FieldStreamTest extends Assert {
-
-    private static final Logger logger = LogManager.getLogger(FieldStreamTest.class.getName());
 
     int dataCount = 0;
     int unitCount = 0;
@@ -104,11 +100,11 @@ public class FieldStreamTest extends Assert {
         try (FieldStream stream = new BufferedFieldStreamReader(new InputStreamReader(in), 8192, listener)) {
             while (stream.ready()) {
                 Separable sep = stream.readField();
-                logger.debug("sep={}", sep.getClass().getSimpleName());
+                //logger.debug("sep={}", sep.getClass().getSimpleName());
             }
         }
-        logger.info("data = {} unit = {} record = {} group = {} file = {}",
-                dataCount, unitCount, recordCount, groupCount, fileCount);
+        //logger.info("data = {} unit = {} record = {} group = {} file = {}",
+        //        dataCount, unitCount, recordCount, groupCount, fileCount);
 
         assertEquals(unitCount, 23);
         assertEquals(groupCount, 10);

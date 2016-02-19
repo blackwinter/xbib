@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStreamReader;
-import java.util.function.Consumer;
 
 public class StreamTest extends Assert {
 
@@ -13,11 +12,8 @@ public class StreamTest extends Assert {
 
         BufferedFieldStreamReader streamReader = new BufferedFieldStreamReader(new InputStreamReader( getClass().getResourceAsStream("/sequential.groupstream")));
         streamReader.fields().forEach(
-                new Consumer<Separable>() {
-                    @Override
-                    public void accept(Separable separable) {
-                        //logger.info("sep={}", separable.getClass().getSimpleName());
-                    }
+                separable -> {
+                    //logger.info("sep={}", separable.getClass().getSimpleName());
                 }
         );
 

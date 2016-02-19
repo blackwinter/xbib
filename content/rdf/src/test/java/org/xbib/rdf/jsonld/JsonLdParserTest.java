@@ -1,7 +1,5 @@
 package org.xbib.rdf.jsonld;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.rdf.io.nquads.NQuadsSerializer;
@@ -24,8 +22,6 @@ import java.util.TreeSet;
 
 public class JsonLdParserTest extends Assert {
 
-    private final static Logger logger = LogManager.getLogger(JsonLdParserTest.class);
-
     @Test
     public void testToRdf() throws Exception {
         for (int i = 1; i < 120; i++) {
@@ -46,13 +42,11 @@ public class JsonLdParserTest extends Assert {
                 copy(new InputStreamReader(in2, "UTF-8"), writer2);
                 Collection<String> s1 = sortByLines(writer.toString().trim());
                 Collection<String> s2 = sortByLines(writer2.toString().trim());
-                //logger.info("{}", s1);
-                //logger.info("{}", s2);
                 try {
                     assertEquals("i=" + i, s1, s2);
                 } catch (AssertionError e) {
-                    logger.info("{} {}", i, s1);
-                    logger.info("{} {}", i, s2);
+                    //logger.info("{} {}", i, s1);
+                    //logger.info("{} {}", i, s2);
                 }
             }
         }

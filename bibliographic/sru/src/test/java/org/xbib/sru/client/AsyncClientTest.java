@@ -32,8 +32,6 @@
 package org.xbib.sru.client;
 
 import io.netty.channel.ConnectTimeoutException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.Request;
 import org.xbib.sru.SRUResponse;
@@ -54,8 +52,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 public class AsyncClientTest {
-
-    private static final Logger logger = LogManager.getLogger(AsyncClientTest.class.getName());
 
     @Test
     public void testMultiClient()  {
@@ -81,42 +77,42 @@ public class AsyncClientTest {
 
                     @Override
                     public void onConnect(Request request) {
-                        logger.info("connect, request = " + request);
+                        //logger.info("connect, request = " + request);
                     }
 
                     @Override
                     public void version(String version) {
-                        logger.info("version = " + version);
+                        //logger.info("version = " + version);
                     }
 
                     @Override
                     public void numberOfRecords(long numberOfRecords) {
-                        logger.info("numberOfRecords = " + numberOfRecords);
+                        //logger.info("numberOfRecords = " + numberOfRecords);
                     }
 
                     @Override
                     public void beginRecord() {
-                        logger.info("start record");
+                        //logger.info("start record");
                     }
 
                     @Override
                     public void recordSchema(String recordSchema) {
-                        logger.info("got record scheme:" + recordSchema);
+                        //logger.info("got record scheme:" + recordSchema);
                     }
 
                     @Override
                     public void recordPacking(String recordPacking) {
-                        logger.info("got recordPacking: " + recordPacking);
+                        //logger.info("got recordPacking: " + recordPacking);
                     }
 
                     @Override
                     public void recordIdentifier(String recordIdentifier) {
-                        logger.info("got recordIdentifier=" + recordIdentifier);
+                        //logger.info("got recordIdentifier=" + recordIdentifier);
                     }
 
                     @Override
                     public void recordPosition(int recordPosition) {
-                        logger.info("got recordPosition=" + recordPosition);
+                        //logger.info("got recordPosition=" + recordPosition);
                     }
 
                     @Override
@@ -133,12 +129,12 @@ public class AsyncClientTest {
 
                     @Override
                     public void endRecord() {
-                        logger.info("end record");
+                        //logger.info("end record");
                     }
 
                     @Override
                     public void onDisconnect(Request request) {
-                        logger.info("disconnect, request = " + request);
+                        //logger.info("disconnect, request = " + request);
                     }
                 };
                 request.addListener(listener);
@@ -149,14 +145,14 @@ public class AsyncClientTest {
                             .setStylesheetTransformer(transformer)
                             .to(writer);
                 } catch (ConnectTimeoutException e) {
-                    logger.error(e.getMessage(), e);
+                    //logger.error(e.getMessage(), e);
                 }
                 transformer.close();
                 client.close();
                 out.close();
             }
         } catch (InterruptedException | ExecutionException | IOException | TimeoutException e) {
-            logger.error(e.getMessage(), e);
+            //logger.error(e.getMessage(), e);
         }
     }
 }

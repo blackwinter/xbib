@@ -56,8 +56,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NatLizPicaElementsTest extends Assert {
 
-    private static final Logger logger = LogManager.getLogger(NatLizPicaElementsTest.class.getName());
-
     @Test
     public void testPicaSetup() throws Exception {
         PicaEntityQueue queue = new PicaEntityQueue("org.xbib.analyzer.pica.natliz.bib",
@@ -73,13 +71,12 @@ public class NatLizPicaElementsTest extends Assert {
         final MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id, key) -> {
             unmapped.add(key.toString());
-            logger.warn("record {}: unknown key {}", id, key);
+            //logger.warn("record {}: unknown key {}", id, key);
         });
         queue.execute();
         final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(new OurTransformer())
-                .addListener(queue)
-                .addListener(new OurAdapter());
+                .addListener(queue);
         final InputStream in = getClass().getResourceAsStream("natliz.xml");
         MarcXchangeReader reader = new MarcXchangeReader(new InputStreamReader(in, "UTF-8"));
         reader.addNamespace("info:srw/schema/5/picaXML-v1.0");
@@ -87,7 +84,7 @@ public class NatLizPicaElementsTest extends Assert {
         reader.parse();
         in.close();
         queue.close();
-        logger.info("counter={}, detected unknown elements = {}", queue.getCounter(), unmapped);
+        //logger.info("counter={}, detected unknown elements = {}", queue.getCounter(), unmapped);
         assertEquals(queue.getCounter(), 1);
     }
 
@@ -95,31 +92,6 @@ public class NatLizPicaElementsTest extends Assert {
         @Override
         public String transform(String value) {
             return Normalizer.normalize(value, Normalizer.Form.NFKC);
-        }
-    }
-
-    class OurAdapter extends KeyValueStreamAdapter<FieldList, String> {
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> begin() {
-            logger.debug("start object");
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                logger.debug("start");
-                for (Field f : key) {
-                    logger.info("tag={} ind={} subf={} data={}",
-                            f.tag(), f.indicator(), f.subfieldId(), f.data());
-                }
-                logger.debug("end");
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> end() {
-            logger.debug("end object");
-            return this;
         }
     }
 

@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -63,32 +64,27 @@ import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
 public class ZDBBibTest extends Assert {
 
-    private static final Logger logger = LogManager.getLogger(ZDBBibTest.class.getName());
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1"); // 8 bit
-
-    private final static Charset UTF8 = Charset.forName("UTF-8");
-
     @Test
     public void testZDBBib() throws Exception {
         InputStream in = getClass().getResourceAsStream("zdbtitutf8.mrc");
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, ISO88591));
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
         MyQueue queue = new MyQueue();
                 queue.setUnmappedKeyListener((id, key) -> unmapped.add(key.toString()));
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .setStringTransformer(value -> Normalizer.normalize(new String(value.getBytes(ISO88591), UTF8), Normalizer.Form.NFKC))
-                .addListener(queue)
-                .addListener(new OurAdapter());
+                .setStringTransformer(value ->
+                        Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                                Normalizer.Form.NFKC))
+                .addListener(queue);
         Iso2709Reader reader = new Iso2709Reader(br).setMarcXchangeListener(kv);
         reader.setProperty(Iso2709Reader.FORMAT, "MARC");
         reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
         reader.parse();
         br.close();
         queue.close();
-        logger.info("unknown keys = {}", unmapped);
-        logger.info("counter = {}", queue.getCounter());
+        //logger.info("unknown keys = {}", unmapped);
+        //logger.info("counter = {}", queue.getCounter());
         assertEquals(queue.getCounter(), 8);
     }
 
@@ -101,14 +97,13 @@ public class ZDBBibTest extends Assert {
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(new OurTransformer())
-                .addListener(queue)
-                .addListener(new OurAdapter());
+                .addListener(queue);
         MarcXchangeReader reader = new MarcXchangeReader(in).setMarcXchangeListener(kv);
         reader.parse();
         in.close();
         queue.close();
-        logger.info("unknown keys = {}", unmapped);
-        logger.info("counter = {}", queue.getCounter());
+        //logger.info("unknown keys = {}", unmapped);
+        //logger.info("counter = {}", queue.getCounter());
         assertEquals(queue.getCounter(), 50);
     }
 
@@ -134,8 +129,7 @@ public class ZDBBibTest extends Assert {
             RdfContentBuilder builder = rdfXContentBuilder(params);
             builder.receive(state.getResource());
             String result = params.getGenerator().get();
-
-            logger.info(result);
+            //logger.info(result);
         }
 
         public long getCounter() {
@@ -148,31 +142,6 @@ public class ZDBBibTest extends Assert {
         @Override
         public String transform(String value) {
             return Normalizer.normalize(value, Normalizer.Form.NFKC);
-        }
-    }
-
-    class OurAdapter extends KeyValueStreamAdapter<FieldList, String> {
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> begin() {
-            logger.info("start object");
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-            logger.info("start");
-            for (Field f : key) {
-                logger.info("tag={} ind={} subf={} data={}",
-                        f.tag(), f.indicator(), f.subfieldId(), f.data());
-            }
-            logger.info("end {}", key);
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> end() {
-            logger.info("end object");
-            return this;
         }
     }
 

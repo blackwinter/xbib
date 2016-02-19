@@ -31,8 +31,6 @@
  */
 package org.xbib.etl.marc;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.iri.IRI;
@@ -51,7 +49,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MARCEntityTest extends Assert {
 
-    private static final Logger logger = LogManager.getLogger(MARCEntityTest.class.getName());
 
     @Test
     public void testSetup() throws Exception {
@@ -81,8 +78,8 @@ public class MARCEntityTest extends Assert {
         reader.setType("Bibliographic");
         reader.parse();
         queue.close();
-        logger.info("unmapped = {}", unmapped);
-        logger.info("count = {}", queue.getCounter());
+        //logger.info("unmapped = {}", unmapped);
+        //logger.info("count = {}", queue.getCounter());
         assertEquals(8676, queue.getCounter());
     }
 

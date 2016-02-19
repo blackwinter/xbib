@@ -31,8 +31,6 @@
  */
 package org.xbib.rdf.jsonld;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
@@ -51,9 +49,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-
 public class JsonLdTest {
-    private final static Logger logger = LogManager.getLogger(JsonLdTest.class);
 
     @Test
     public void ntripleBuilderSink() throws Exception {
@@ -74,7 +70,6 @@ public class JsonLdTest {
                         @Override
                         public RdfContentBuilder endStream() throws IOException {
                             super.endStream();
-                            logger.info("ntriples={}", string());
                             return this;
                         }
                     };

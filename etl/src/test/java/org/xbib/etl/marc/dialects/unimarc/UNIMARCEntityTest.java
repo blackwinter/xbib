@@ -31,8 +31,6 @@
  */
 package org.xbib.etl.marc.dialects.unimarc;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
@@ -47,7 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -55,11 +53,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class UNIMARCEntityTest extends Assert {
 
-    private final static Logger logger = LogManager.getLogger(UNIMARCEntityTest.class.getName());
-
-    private final static Charset ISO88591 = Charset.forName("ISO-8859-1"); // 8 bit
-
-    private final static Charset UTF8 = Charset.forName("UTF-8");
 
     @Test
     public void testSetupOfElements() throws Exception {
@@ -81,23 +74,24 @@ public class UNIMARCEntityTest extends Assert {
     public void testUNIMARC() throws IOException {
         String s = "serres.mrc";
         InputStream in = getClass().getResourceAsStream(s);
-        InputStreamReader r = new InputStreamReader(in, ISO88591);
+        InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
-        logger.info("running UNIMARC test");
+        //logger.info("running UNIMARC test");
         MyQueue queue = new MyQueue();
         queue.setUnmappedKeyListener((id, key) -> unmapped.add(key.toString()));
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .addListener(queue);
         final Iso2709Reader reader = new Iso2709Reader(r)
-                .setStringTransformer(value -> value == null ? null : new String(value.getBytes(ISO88591), UTF8))
+                .setStringTransformer(value -> value == null ? null :
+                        new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8))
                 .setMarcXchangeListener(kv);
         reader.setFormat("MARC21");
         reader.setType("Bibliographic");
         reader.parse();
         queue.close();
-        logger.info("unknown elements = {}", unmapped);
-        logger.info("counter = {}", queue.getCounter());
+        //logger.info("unknown elements = {}", unmapped);
+        //logger.info("counter = {}", queue.getCounter());
         assertEquals(51279, queue.getCounter());
         r.close();
     }

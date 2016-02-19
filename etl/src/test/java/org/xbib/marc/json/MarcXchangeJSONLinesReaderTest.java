@@ -152,12 +152,6 @@ public class MarcXchangeJSONLinesReaderTest extends StreamTester {
         MarcXchangeJSONLinesReader reader = new MarcXchangeJSONLinesReader(in, handler);
         reader.parse();
         in.close();
-
-        //System.err.println(sb.toString());
-
-        //assertStream(getClass().getResource("zdb-marc-json.txt").openStream(),
-        //        new ByteArrayInputStream(sb.toString().getBytes("UTF-8")));
-
     }
 
 }

@@ -79,13 +79,11 @@ public class ArxivClientTest {
             SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
                 @Override
                 public void startDocument() throws SAXException {
-                    logger.debug("startDocument");
                 }
 
                 @Override
                 public void endDocument() throws SAXException {
                     count.incrementAndGet();
-                    logger.debug("endDocument");
                 }
 
                 @Override

@@ -29,8 +29,6 @@ import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
 public class MABEntitiesTest {
 
-    private static final Logger logger = LogManager.getLogger(MABEntitiesTest.class.getName());
-
     @Test
     public void testSetupOfMABElements() throws Exception {
         MyQueue queue = new MyQueue();
@@ -66,7 +64,7 @@ public class MABEntitiesTest {
         InputSource source = new InputSource(br);
         StreamResult target = new StreamResult(w);
         transformer.transform(new SAXSource(reader, source), target);
-        logger.info("unknown ZDB MAB elements = {}", unmapped);
+        //logger.info("unknown ZDB MAB elements = {}", unmapped);
         queue.close();
     }
 
@@ -83,7 +81,7 @@ public class MABEntitiesTest {
             // write title resource
             RdfContentBuilder builder = rdfXContentBuilder();
             builder.receive(state.getResource());
-            logger.info(builder.string());
+            //logger.info(builder.string());
         }
     }
 }
