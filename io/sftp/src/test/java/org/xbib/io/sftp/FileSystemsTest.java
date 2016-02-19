@@ -1,8 +1,9 @@
 
 package org.xbib.io.sftp;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.sshd.client.subsystem.sftp.SftpFileSystem;
+import org.apache.sshd.client.subsystem.sftp.SftpFileSystemProvider;
+import org.apache.sshd.client.subsystem.sftp.SftpPosixFileAttributeView;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -11,12 +12,14 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderNotFoundException;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FileSystemsTest extends Assert {
 
@@ -32,15 +35,15 @@ public class FileSystemsTest extends Assert {
 
     private static String url = "sftp://" + user + ":" + pwd + "@" + host + ":" + port;
 
-    private static FileSystemProvider sftpFileSystemProvider;
+    private static SftpFileSystemProvider sftpFileSystemProvider;
 
-    private static SFTPFileSystem sftpFileSystem;
+    private static SftpFileSystem sftpFileSystem;
 
     @BeforeClass
     static public void createResources() throws URISyntaxException, IOException {
         for (FileSystemProvider fileSystemProvider : FileSystemProvider.installedProviders()) {
-            if (SFTPFileSystemProvider.SFTP_SCHEME.equals(fileSystemProvider.getScheme())) {
-                sftpFileSystemProvider = fileSystemProvider;
+            if ("sftp".equals(fileSystemProvider.getScheme())) {
+                sftpFileSystemProvider = (SftpFileSystemProvider) fileSystemProvider;
             }
         }
         if (sftpFileSystemProvider == null) {
@@ -49,7 +52,7 @@ public class FileSystemsTest extends Assert {
         mockSftpServer = new MockSshSftpServer();
         mockSftpServer.start();
         URI uri = new URI(url);
-        sftpFileSystem = (SFTPFileSystem) sftpFileSystemProvider.newFileSystem(uri, null);
+        sftpFileSystem = sftpFileSystemProvider.newFileSystem(uri, null);
     }
 
     @AfterClass
@@ -88,7 +91,10 @@ public class FileSystemsTest extends Assert {
     @Test
     public void posixFileAttribute() throws IOException {
         Path file = sftpFileSystem.getPath("src", "test", "resources", "sftp", "testFileRead.txt");
-        SFTPPosixFileAttributes attrs = Files.readAttributes(file, SFTPPosixFileAttributes.class);
+        if (!sftpFileSystemProvider.isSupportedFileAttributeView(file, SftpPosixFileAttributeView.class)) {
+            return;
+        }
+        PosixFileAttributes attrs = Files.readAttributes(file, PosixFileAttributes.class);
         assertNotNull("The file exist, we must get attributes", attrs);
         assertFalse("This is not a directory", attrs.isDirectory());
         assertTrue("This is a regular file", attrs.isRegularFile());
@@ -99,12 +105,10 @@ public class FileSystemsTest extends Assert {
         //assertEquals("The last modified time is: ", "2016-02-03T10:43:49Z", attrs.lastModifiedTime().toString());
         //assertEquals("The last modified time is the creation time (Creation time doesn't exist in SFTP", attrs.creationTime(), attrs.lastModifiedTime());
         //assertEquals("The last access time is ", "2016-02-03T10:46:32Z", attrs.lastAccessTime().toString());
-        Set<PosixFilePermission> expectedPermission = new HashSet<PosixFilePermission>();
-        expectedPermission.add(PosixFilePermission.OWNER_READ);
-        expectedPermission.add(PosixFilePermission.OWNER_WRITE);
-        expectedPermission.add(PosixFilePermission.GROUP_READ);
-        expectedPermission.add(PosixFilePermission.OTHERS_READ);
-        assertEquals("The permissions are equal", expectedPermission, attrs.permissions());
+        assertTrue(attrs.permissions().contains(PosixFilePermission.OWNER_READ));
+        assertTrue(attrs.permissions().contains(PosixFilePermission.OWNER_WRITE));
+        assertTrue(attrs.permissions().contains(PosixFilePermission.GROUP_READ));
+        assertTrue(attrs.permissions().contains(PosixFilePermission.OTHERS_READ));
     }
 
 }

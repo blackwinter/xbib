@@ -3,7 +3,6 @@ dependencies {
     compile project(':io:stream')
     compile project(':io:archive')
     compile project(':io:zlib')
-    compile 'com.jcraft:jsch:0.1.53'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.54'
 }
 

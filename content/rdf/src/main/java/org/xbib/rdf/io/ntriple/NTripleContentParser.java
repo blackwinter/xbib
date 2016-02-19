@@ -31,8 +31,6 @@
  */
 package org.xbib.rdf.io.ntriple;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.RdfContentBuilder;
@@ -59,7 +57,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class NTripleContentParser implements RdfContentParser {
 
-    private final static Logger logger = LogManager.getLogger(NTripleContentParser.class);
+    //private final static Logger logger = LogManager.getLogger(NTripleContentParser.class);
 
     private final static Resource resource = new MemoryResource();
 
@@ -175,7 +173,6 @@ public class NTripleContentParser implements RdfContentParser {
         } else if (matcher.group(8) != null) {
             // resource node
             String obj = matcher.group(6);
-            logger.info("obj={}", obj);
             object = resource.newObject(IRI.builder().curie(obj.substring(1, obj.length()-1)).build());
         } else {
             // literal node
@@ -183,17 +180,7 @@ public class NTripleContentParser implements RdfContentParser {
             // with quotes or apostrophes. to have the value without them you need to look at groups 12 and 15
             String literal = matcher.group(10);
             literal = literal.length() > 2 ? literal.substring(1, literal.length()-1) : literal;
-            logger.info("new literal 9={} 10={} 11={} 12={}",
-                    matcher.group(9),
-                    matcher.group(10),
-                    matcher.group(11),
-                    matcher.group(12));
             if (matcher.groupCount() > 15) {
-                logger.info("new literal 13={} 14={} 15={} 16={}",
-                        matcher.group(13),
-                        matcher.group(14),
-                        matcher.group(15),
-                        matcher.group(16));
                 object = resource.newLiteral(literal).language(matcher.group(16));
             } else {
                 object = resource.newLiteral(literal);

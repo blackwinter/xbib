@@ -31,8 +31,6 @@
  */
 package org.xbib.rdf.io.ntriple;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.rdf.RdfContentBuilder;
@@ -43,8 +41,6 @@ import java.io.InputStream;
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
 public class NTripleReaderTest extends StreamTester {
-
-    private final static Logger logger = LogManager.getLogger(NTripleReaderTest.class);
 
     @Test
     public void testReader() throws Exception {
@@ -57,7 +53,6 @@ public class NTripleReaderTest extends StreamTester {
         NTripleContentParser reader = new NTripleContentParser(in);
         reader.setBuilder(builder);
         reader.parse();
-        logger.info("result={}", builder.string());
         //assertStream(getClass().getResource("rdfxml.ttl").openStream(),
         //        builder.streamInput());
     }

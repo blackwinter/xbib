@@ -1,19 +1,14 @@
 package org.xbib.io.archive.tar;
 
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 import org.junit.Test;
 import org.xbib.io.Session;
 import org.xbib.io.StringPacket;
 
 public class TarTest {
-
-    private static final Logger logger = LogManager.getLogger(TarTest.class);
 
     @Test
     public void readFromTar() throws Exception {
@@ -24,7 +19,7 @@ public class TarTest {
         session.open(Session.Mode.READ);
         StringPacket message;
         while ((message = session.read()) != null) {
-            logger.info("name = {} object = {}", message.name(), message.packet());
+            //logger.info("name = {} object = {}", message.name(), message.packet());
         }
         session.close();
         from.close();
@@ -44,7 +39,7 @@ public class TarTest {
         toSession.open(Session.Mode.WRITE);
         StringPacket message;
         while ((message = fromSession.read()) != null) {
-            logger.info("name = {} object = {}", message.name(), message.packet());
+            //logger.info("name = {} object = {}", message.name(), message.packet());
             toSession.write(message);
         }
         fromSession.close();

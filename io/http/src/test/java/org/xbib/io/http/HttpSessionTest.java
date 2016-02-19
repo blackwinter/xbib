@@ -31,8 +31,6 @@
  */
 package org.xbib.io.http;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.Request;
 import org.xbib.io.Session;
@@ -48,8 +46,6 @@ import static org.junit.Assert.assertTrue;
 
 public class HttpSessionTest {
 
-    private final static Logger logger = LogManager.getLogger(HttpSessionTest.class);
-
     @Test
     public void testGet() throws Exception {
         NettyHttpSession session = new NettyHttpSession();
@@ -62,12 +58,12 @@ public class HttpSessionTest {
         request.prepare().execute(new NettyHttpResponseListener() {
             @Override
             public void receivedResponse(HttpResponse result) {
-                logger.info("result = {}", result);
+                //logger.info("result = {}", result);
                 counter.incrementAndGet();
             }
             @Override
             public void onError(Request request, Throwable error) throws IOException {
-                logger.error(error.getMessage(), error);
+                //logger.error(error.getMessage(), error);
             }
         }).waitFor(15L, TimeUnit.SECONDS);
         session.close();
@@ -87,7 +83,7 @@ public class HttpSessionTest {
         request.prepare().execute(new NettyHttpResponseListener() {
             @Override
             public void receivedResponse(HttpResponse result) {
-                logger.info("result = {}",result);
+                //logger.info("result = {}",result);
                 counter.incrementAndGet();
             }
         }).waitFor(15, TimeUnit.SECONDS);

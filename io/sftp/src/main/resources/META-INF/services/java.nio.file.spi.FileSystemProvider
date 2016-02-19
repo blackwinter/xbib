@@ -1,1 +1,1 @@
-org.xbib.io.sftp.SFTPFileSystemProvider
+org.apache.sshd.client.subsystem.sftp.SftpFileSystemProvider
