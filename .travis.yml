@@ -9,7 +9,7 @@ cache:
   directories:
     - $HOME/.m2
 
-# install OpenSSL for Nettty tcnative dependency (which is enabled by setOpenSSL(true) in the HTTP client)
+# install OpenSSL for Netty tcnative dependency (which is enabled by setOpenSSL(true) in the HTTP client)
 # install msttcorefonts for charts
 
 before_install:
@@ -20,6 +20,8 @@ before_install:
   - sudo dpkg -i libssl1.0.0_1.0.2d-0ubuntu1_amd64.deb
   - sudo dpkg -i openssl_1.0.2d-0ubuntu1_amd64.deb
   - echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
-  - sudo apt-get install msttcorefonts -qq
+  - sudo apt-get install ttf-mscorefonts-installer
+  - sudo apt-get install x-ttcidfont-conf
+  - sudo mkfontdir
 
 install: true
