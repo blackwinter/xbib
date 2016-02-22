@@ -38,7 +38,7 @@ public class FieldEventLogger implements EventListener<FieldEvent> {
 
     private final static Logger logger = LogManager.getLogger(FieldEventLogger.class.getName());
 
-    private String level = "info";
+    private String level = "debug";
 
     public FieldEventLogger(String level) {
         this.level = level;

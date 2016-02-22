@@ -31,8 +31,6 @@
  */
 package org.xbib.rdf.content;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
@@ -50,8 +48,6 @@ import java.io.StringReader;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 public class RouteRdfXContentBuilderTest extends StreamTester {
-
-    private final static Logger logger = LogManager.getLogger(RouteRdfXContentBuilderTest.class);
 
     @Test
     public void testRoute() throws Exception {
@@ -79,7 +75,7 @@ public class RouteRdfXContentBuilderTest extends StreamTester {
         StringBuilder sb = new StringBuilder();
         RouteRdfXContentParams params = new RouteRdfXContentParams("index", "type");
         params.setHandler((content, p) -> {
-            logger.info("handle: {} {} {} {}", p.getIndex(), p.getType(), p.getId(), content);
+            //logger.info("handle: {} {} {} {}", p.getIndex(), p.getType(), p.getId(), content);
         });
         new RdfXmlContentParser(in)
                 .setRdfContentBuilderProvider(()-> routeRdfXContentBuilder(params))

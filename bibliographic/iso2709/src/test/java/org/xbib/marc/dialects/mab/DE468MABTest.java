@@ -101,15 +101,15 @@ public class DE468MABTest extends StreamTester {
         reader.setSubfieldCodeLength(2);
 
         // 902$ $ 9 -> 689$00$a0
-        Map<String,Object> subfields = new HashMap();
+        Map<String,Object> subfields = new HashMap<>();
         subfields.put("", ">689$0{r}");
         subfields.put(" ", "-689$0{r}$a");
         subfields.put("a", "-689$0{r}$a");
         subfields.put("9", "-689$0{r}$0");
         subfields.put("h", "-689$0{r}$h");
-        Map<String,Object> indicators = new HashMap();
+        Map<String,Object> indicators = new HashMap<>();
         indicators.put(" ", subfields);
-        Map<String,Object> fields = new HashMap();
+        Map<String,Object> fields = new HashMap<>();
         fields.put("902", indicators);
 
         reader.addFieldMap("test", fields); // --> selects field mapper

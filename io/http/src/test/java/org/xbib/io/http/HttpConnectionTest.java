@@ -23,6 +23,5 @@ public class HttpConnectionTest {
         StringWriter sw = new StringWriter();
         StreamUtil.copy(new InputStreamReader(in,"UTF-8"), sw);
         in.close();
-        System.err.println(sw);
     }
 }

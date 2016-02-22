@@ -36,8 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
@@ -50,8 +48,6 @@ import org.xbib.rdf.memory.MemoryResource;
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class TurtleTest extends StreamTester {
-
-    private final static Logger logger = LogManager.getLogger(TurtleTest.class.getName());
 
     @Test
     public void testTurtleGND() throws Exception {
@@ -85,7 +81,7 @@ public class TurtleTest extends StreamTester {
                 .context(context);
         reader.setRdfContentBuilderProvider(RdfContentFactory::ntripleBuilder);
         reader.setRdfContentBuilderHandler(b -> {
-            logger.info("doc id={} content={}", b.getSubject(), b.string());
+            //logger.info("doc id={} content={}", b.getSubject(), b.string());
         });
         reader.parse();
         in.close();

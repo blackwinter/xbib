@@ -31,8 +31,6 @@
  */
 package org.xbib.io.iso23950;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -40,8 +38,6 @@ import java.util.Collections;
 import java.util.ResourceBundle;
 
 public class Bib1Test {
-
-    private final static Logger logger = LogManager.getLogger(Bib1Test.class);
 
     @Test
     public void testBibUse() {
@@ -52,7 +48,7 @@ public class Bib1Test {
         }
         Collections.sort(values);
         for (Object v : values) {
-            logger.info(v.toString());
+            //logger.info(v.toString());
         }
     }
 }
