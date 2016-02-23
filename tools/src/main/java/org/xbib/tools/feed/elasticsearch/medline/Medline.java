@@ -137,8 +137,8 @@ public final class Medline extends Feeder {
                 getResource().add("xbib:key", key);
             }
             RouteRdfXContentParams params = new RouteRdfXContentParams(getNamespaceContext(),
-                    settings.get("index", "medline"),
-                    settings.get("type", "medline"));
+                    indexDefinitionMap.get("bib").getConcreteIndex(),
+                    indexDefinitionMap.get("bib").getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), id, convert2fabio(content)));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(getResource());

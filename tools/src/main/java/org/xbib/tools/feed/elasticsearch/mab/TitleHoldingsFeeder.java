@@ -77,10 +77,12 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     protected void performIndexSwitch() throws IOException {
         IndexDefinition def = indexDefinitionMap.get("title");
         String catalogId = settings.get(CATALOG_ID, "DE-605");
+        // simple index alias to the value in "identifier"
+        elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
+        elasticsearchOutput.retention(ingest, def);
         if ("DE-605".equals(catalogId)) {
-            // for union catalog, create aliases for "main ISILs" using xbib.identifier
+            // for union catalog, create additional aliases for "main ISILs" using xbib.identifier
             List<String> aliases = new LinkedList<>();
-            aliases.add(settings.get("identifier"));
             ValueMaps valueMaps = new ValueMaps();
             Map<String, String> sigel2isil =
                     valueMaps.getAssocStringMap(settings.get("sigel2isil", "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
@@ -89,10 +91,6 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                     .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
             elasticsearchOutput.switchIndex(ingest, def, aliases,
                     (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
-            elasticsearchOutput.retention(ingest, def);
-        } else {
-            // simple index alias to the value in "identifier"
-            elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
             elasticsearchOutput.retention(ingest, def);
         }
     }
