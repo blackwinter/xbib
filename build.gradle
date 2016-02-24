@@ -45,7 +45,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'findbugs'
+    //apply plugin: 'findbugs'
     configurations {
         provided
         testCompile.extendsFrom(provided)
@@ -72,10 +72,9 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-    // TODO fix java compile warnings by enabling this
-    //tasks.withType(JavaCompile) {
-    //    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-    //}
+    tasks.withType(JavaCompile) {
+        //options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
     test {
         classpath += configurations.provided
         testLogging {
@@ -83,13 +82,13 @@ subprojects {
             exceptionFormat = 'full'
         }
     }
-    tasks.withType(FindBugs) {
+    /*tasks.withType(FindBugs) {
         ignoreFailures = true
         reports {
             xml.enabled = false
             html.enabled = true
         }
-    }
+    }*/
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier 'sources'
         from sourceSets.main.allSource

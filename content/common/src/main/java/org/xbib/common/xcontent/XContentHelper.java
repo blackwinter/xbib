@@ -149,6 +149,7 @@ public class XContentHelper {
      * Updates the provided changes into the source. If the key exists in the changes, it overrides the one in source
      * unless both are Maps, in which case it recuersively updated it.
      */
+    @SuppressWarnings("unchecked")
     public static void update(Map<String, Object> source, Map<String, Object> changes) {
         for (Map.Entry<String, Object> changesEntry : changes.entrySet()) {
             if (!source.containsKey(changesEntry.getKey())) {

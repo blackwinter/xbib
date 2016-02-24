@@ -15,7 +15,7 @@ public interface SettingsLoader {
 
     class Helper {
 
-        public static Map<String, String> loadNestedFromMap(Map map) {
+        public static Map<String, String> loadNestedFromMap(Map<Object, Object> map) {
             Map<String, String> settings = new HashMap<>();
             if (map == null) {
                 return settings;
@@ -26,6 +26,7 @@ public interface SettingsLoader {
             return settings;
         }
 
+        @SuppressWarnings("unchecked")
         private static void serializeMap(Map<String, String> settings, StringBuilder sb, List<String> path, Map<Object, Object> map) {
             for (Map.Entry<Object, Object> entry : map.entrySet()) {
                 if (entry.getValue() instanceof Map) {
@@ -42,19 +43,20 @@ public interface SettingsLoader {
             }
         }
 
+        @SuppressWarnings("unchecked")
         private static void serializeList(Map<String, String> settings, StringBuilder sb, List<String> path, List list) {
             int counter = 0;
-            for (Object listEle : list) {
-                if (listEle instanceof Map) {
+            for (Object obj : list) {
+                if (obj instanceof Map) {
                     path.add(Integer.toString(counter));
-                    serializeMap(settings, sb, path, (Map<Object, Object>) listEle);
+                    serializeMap(settings, sb, path, (Map<Object, Object>) obj);
                     path.remove(path.size() - 1);
-                } else if (listEle instanceof List) {
+                } else if (obj instanceof List) {
                     path.add(Integer.toString(counter));
-                    serializeList(settings, sb, path, (List) listEle);
+                    serializeList(settings, sb, path, (List) obj);
                     path.remove(path.size() - 1);
                 } else {
-                    serializeValue(settings, sb, path, Integer.toString(counter), listEle);
+                    serializeValue(settings, sb, path, Integer.toString(counter), obj);
                 }
                 counter++;
             }

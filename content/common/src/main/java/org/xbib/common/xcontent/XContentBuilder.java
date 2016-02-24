@@ -970,6 +970,7 @@ public final class XContentBuilder implements BytesStream, ToXContent {
         generator.writeEndObject();
     }
 
+    @SuppressWarnings("unchecked")
     private void writeValue(Object value) throws IOException {
         if (value == null) {
             generator.writeNull();

@@ -99,8 +99,12 @@ public abstract class HoldingsFeeder extends Feeder {
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("hol").getConcreteIndex(),
-                    indexDefinitionMap.get("hol").getType());
+            IndexDefinition indexDefinition = indexDefinitionMap.get("hol");
+            if (indexDefinition == null) {
+                throw new IOException("no 'hol' index definition configured");
+            }
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
+                    indexDefinition.getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
@@ -108,7 +112,7 @@ public abstract class HoldingsFeeder extends Feeder {
             }
             builder.receive(state.getResource());
             getMetric().mark();
-            if (indexDefinitionMap.get("hol").isMock()) {
+            if (indexDefinition.isMock()) {
                 logger.debug("{}", builder.string());
             }
         }
