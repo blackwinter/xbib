@@ -259,7 +259,7 @@ public class HoldingsLicensesWorker
             }
             continueClusterBuild(candidates, cont, 0);
         }
-        boolean retry;
+        int retry;
         do {
             // Ensure all relationships in the candidate set
             state = State.PROCESSING;
@@ -273,38 +273,48 @@ public class HoldingsLicensesWorker
             searchLicensesAndIndicators(candidates, licenses);
             searchMonographs(candidates);
             // before indexing, fetch build queue again
-            retry = false;
+            retry = 0;
             int before = candidates.size();
             while ((cont = buildQueue.poll()) != null) {
                 for (TitleRecord tr : cont.cluster) {
                     candidates.add(tr);
                 }
                 int after = candidates.size();
-                retry = after > before;
+                if (after > before) {
+                    retry++;
+                }
                 continueClusterBuild(candidates, cont, 0);
             }
-            if (retry) {
-                logger.info("{}: retrying before indexing", titleRecord);
+            if (retry > 0 && retry < 10) {
+                logger.info("{}: retrying {} before indexing, {} candidates",
+                        titleRecord, retry, candidates.size());
                 continue;
             }
             state = State.INDEXING;
             for (TitleRecord tr : candidates) {
                 indexTitleRecord(tr);
             }
-            retry = false;
+            retry = 0;
             before = candidates.size();
             while ((cont = buildQueue.poll()) != null) {
                 for (TitleRecord tr : cont.cluster) {
                     candidates.add(tr);
                 }
                 int after = candidates.size();
-                retry = after > before;
+                if (after > before) {
+                    retry++;
+                }
                 continueClusterBuild(candidates, cont, 0);
             }
-            if (retry) {
-                logger.info("{}: retrying after indexing", titleRecord);
+            if (retry > 0 && retry < 10) {
+                logger.info("{}: retrying {} after indexing, {} candidates",
+                        titleRecord, retry, candidates.size());
             }
-        } while (retry);
+        } while (retry > 0 && retry < 10);
+        if (retry >= 10) {
+            logger.warn("retry limit exceeded: {}, candidates = {}, buildqueue = {}",
+                    titleRecord, candidates, buildQueue.size());
+        }
     }
 
     private void searchNeighbors(TitleRecord titleRecord, Collection<TitleRecord> candidates, int level)
@@ -326,7 +336,7 @@ public class HoldingsLicensesWorker
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         logger.debug("searchRequest {}", searchRequest);
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
         getMetric().mark();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
@@ -378,12 +388,12 @@ public class HoldingsLicensesWorker
             searchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
             getMetric().mark();
         } while (searchResponse.getHits().getHits().length > 0);
         holdingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                .execute().actionGet();
+                .execute().actionGet(30, TimeUnit.SECONDS);
     }
 
     private boolean detectCollisionAndTransfer(TitleRecord titleRecord, ClusterBuildContinuation c, int pos) {
@@ -448,7 +458,7 @@ public class HoldingsLicensesWorker
                     .setSize(scrollSize)
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
-            SearchResponse searchResponse = searchRequest.execute().actionGet();
+            SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
             logger.debug("searchHoldings search request = {} hits = {}",
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());
@@ -505,11 +515,11 @@ public class HoldingsLicensesWorker
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                        .execute().actionGet();
+                        .execute().actionGet(30, TimeUnit.SECONDS);
             } while (searchResponse.getHits().getHits().length > 0);
             holdingsLicensesMerger.search().client()
                     .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         }
     }
 
@@ -557,7 +567,7 @@ public class HoldingsLicensesWorker
                     .setSize(scrollSize)
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
-            SearchResponse searchResponse = searchRequest.execute().actionGet();
+            SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
             logger.debug("searchLicenses search request = {} hits = {}",
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());
@@ -615,11 +625,11 @@ public class HoldingsLicensesWorker
                 searchResponse = holdingsLicensesMerger.search().client()
                        .prepareSearchScroll(searchResponse.getScrollId())
                        .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                       .execute().actionGet();
+                       .execute().actionGet(30, TimeUnit.SECONDS);
             } while (searchResponse.getHits().getHits().length > 0);
             holdingsLicensesMerger.search().client()
                     .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         }
     }
 
@@ -643,7 +653,7 @@ public class HoldingsLicensesWorker
                     .setSize(scrollSize)
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .addSort(SortBuilders.fieldSort("_doc"));
-            SearchResponse searchResponse = searchRequest.execute().actionGet();
+            SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
             logger.debug("searchIndicators search request = {} hits = {}",
                     searchRequest.toString(),
                     searchResponse.getHits().getTotalHits());
@@ -696,11 +706,11 @@ public class HoldingsLicensesWorker
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                        .execute().actionGet();
+                        .execute().actionGet(30, TimeUnit.SECONDS); // must time out
             } while (searchResponse.getHits().getHits().length > 0);
             holdingsLicensesMerger.search().client()
                     .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         }
     }
 
@@ -724,7 +734,7 @@ public class HoldingsLicensesWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .setQuery(queryBuilder)
                     .addSort(SortBuilders.fieldSort("_doc"));
-            SearchResponse searchResponse = searchRequest.execute().actionGet();
+            SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
             logger.debug("searchMonographs search request={} hits={}",
                     searchRequest.toString(), searchResponse.getHits().getTotalHits());
             do {
@@ -738,11 +748,11 @@ public class HoldingsLicensesWorker
                 searchResponse = holdingsLicensesMerger.search().client()
                         .prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                        .execute().actionGet();
+                        .execute().actionGet(30, TimeUnit.SECONDS);
             } while (searchResponse.getHits().getHits().length > 0);
             holdingsLicensesMerger.search().client()
                     .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         }
     }
 
@@ -761,7 +771,7 @@ public class HoldingsLicensesWorker
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(termQuery("xbib.uid", key))
                 .addSort(SortBuilders.fieldSort("_doc"));
-        SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
+        SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet(30, TimeUnit.SECONDS);
         logger.debug("searchExtraHoldings search request = {} hits={}",
                 holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
         do {
@@ -807,11 +817,11 @@ public class HoldingsLicensesWorker
             holdingSearchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(holdingSearchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         } while (holdingSearchResponse.getHits().getHits().length > 0);
         holdingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(holdingSearchResponse.getScrollId())
-                .execute().actionGet();
+                .execute().actionGet(30, TimeUnit.SECONDS);
     }
 
     /**
@@ -832,7 +842,7 @@ public class HoldingsLicensesWorker
                 .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
                         .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())))
                 .addSort(SortBuilders.fieldSort("_doc"));
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        SearchResponse searchResponse = searchRequest.execute().actionGet(30, TimeUnit.SECONDS);
         logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
                 searchRequest.toString(), searchResponse.getHits().getTotalHits());
         do {
@@ -848,7 +858,7 @@ public class HoldingsLicensesWorker
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
                         .setQuery(termQuery("xbib.uid", volume.id()))
                         .addSort(SortBuilders.fieldSort("_doc"));
-                SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet();
+                SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet(30, TimeUnit.SECONDS);
                 getMetric().mark();
                 logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
                         holdingsSearchRequest.toString(), holdingSearchResponse.getHits().getTotalHits());
@@ -856,7 +866,7 @@ public class HoldingsLicensesWorker
                     holdingSearchResponse = holdingsLicensesMerger.search().client()
                             .prepareSearchScroll(holdingSearchResponse.getScrollId())
                             .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                            .execute().actionGet();
+                            .execute().actionGet(30, TimeUnit.SECONDS);
                     getMetric().mark();
                     SearchHits holdingHits = holdingSearchResponse.getHits();
                     if (holdingHits.getHits().length == 0) {
@@ -909,11 +919,11 @@ public class HoldingsLicensesWorker
             searchResponse = holdingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                    .execute().actionGet();
+                    .execute().actionGet(30, TimeUnit.SECONDS);
         } while (searchResponse.getHits().getHits().length > 0);
         holdingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                .execute().actionGet();
+                .execute().actionGet(30, TimeUnit.SECONDS);
     }
 
     @SuppressWarnings("unchecked")
@@ -1202,7 +1212,7 @@ public class HoldingsLicensesWorker
                 .setSize(0)
                 .setIndices(index)
                 .setQuery(termQuery("dc:identifier", issn));
-        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet(30, TimeUnit.SECONDS);
         logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
         return searchResponse.getHits().getTotalHits() > 0;
     }
