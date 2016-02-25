@@ -37,7 +37,9 @@ import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -213,8 +215,9 @@ public class HoldingsLicensesWorker
                 process(titleRecord);
                 long t1 = System.nanoTime();
                 long delta = (t1 -t0) / 1000000;
+                // warn if delta is longer than 10 secs
                 if (delta > 10000) {
-                    logger.warn("long processing of {} = {} ms", titleRecord.externalID(), delta);
+                    logger.warn("long processing of {}: {} ms", titleRecord.externalID(), delta);
                 }
                 metric.mark();
                 element = getPipeline().getQueue().take();
@@ -702,14 +705,25 @@ public class HoldingsLicensesWorker
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void searchMonographs(Collection<TitleRecord> titleRecords) throws IOException {
         for (TitleRecord titleRecord : titleRecords) {
+            BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+            queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+            Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("issn");
+            if (issns != null) {
+                for (String issn : issns) {
+                    // not known which ISSN is print or online
+                    queryBuilder.should(termQuery("IdentifierISSN.identifierISSN", issn));
+                    queryBuilder.should(termQuery("IdentifierSerial.identifierISSNOnline",issn));
+                }
+            }
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
                     .setIndices(sourceMonographicIndex)
                     .setSize(scrollSize)
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                    .setQuery(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()))
+                    .setQuery(queryBuilder)
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
             logger.debug("searchMonographs search request = {} hits={}",

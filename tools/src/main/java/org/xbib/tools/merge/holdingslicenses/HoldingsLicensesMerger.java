@@ -69,7 +69,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
  */
 public class HoldingsLicensesMerger extends Merger {
 
-    private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class.getSimpleName());
+    private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class);
 
     private HoldingsLicensesMerger holdingsLicensesMerger;
 
