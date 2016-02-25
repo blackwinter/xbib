@@ -585,10 +585,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
         }
         Set<String> set = new LinkedHashSet();
         for (Map<String, Object> m : (List<Map<String, Object>>) o) {
-            o = m.get("publisherName");
-            if (o == null) {
-                o = m.get("manufacturerName");
-            }
+            o = m.get("name");
             if (o == null) {
                 continue;
             }
@@ -621,10 +618,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
         }
         Set<String> set = new LinkedHashSet();
         for (Map<String, Object> m : (List<Map<String, Object>>) o) {
-            o = m.get("placeOfPublication");
-            if (o == null) {
-                o = m.get("placeOfManufacture");
-            }
+            o = m.get("place");
             if (o == null) {
                 continue;
             }

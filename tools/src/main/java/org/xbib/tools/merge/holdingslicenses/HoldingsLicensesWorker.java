@@ -226,7 +226,6 @@ public class HoldingsLicensesWorker
             getPipeline().quit(this);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            //logger.error(ExceptionFormatter.format(e));
             logger.error("exiting, exception while processing {}", titleRecord);
             getPipeline().quit(this, e);
         } finally {
@@ -726,7 +725,7 @@ public class HoldingsLicensesWorker
                     .setQuery(queryBuilder)
                     .addSort(SortBuilders.fieldSort("_doc"));
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            logger.debug("searchMonographs search request = {} hits={}",
+            logger.debug("searchMonographs search request={} hits={}",
                     searchRequest.toString(), searchResponse.getHits().getTotalHits());
             do {
                 getMetric().mark();
