@@ -66,6 +66,7 @@ public class SRU extends Feeder {
     private final static Logger logger = LogManager.getLogger(SRU.class.getName());
 
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return p -> new SRU().setPipeline(p);
     }
@@ -90,7 +91,7 @@ public class SRU extends Feeder {
 
     @Override
     public void process(URI uri) throws Exception {
-        final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<String>());
+        final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<>());
         final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1));
         bibqueue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect", false))) {
@@ -99,7 +100,7 @@ public class SRU extends Feeder {
             }
         });
 
-        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<String>());
+        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
         final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1));
         holqueue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect", false))) {

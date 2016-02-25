@@ -323,7 +323,7 @@ public class OAIFeeder extends Feeder {
         }
     }
 
-    public class OAISimpleMetadataHandler extends SimpleMetadataHandler {
+    class OAISimpleMetadataHandler extends SimpleMetadataHandler {
 
         private final IRINamespaceContext namespaceContext;
 
