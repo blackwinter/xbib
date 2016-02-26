@@ -118,8 +118,8 @@ public class JsonCoins extends Feeder {
     }
 
     @Override
-    public void prepareInput() throws IOException, InterruptedException {
-        super.prepareInput();
+    public void prepareRequests() throws IOException, InterruptedException {
+        super.prepareRequests();
         Map<String,Settings> inputMap = settings.getGroups("input");
         Settings settings = inputMap.get("serials");
         Queue<URI> input = new Finder()
@@ -138,8 +138,8 @@ public class JsonCoins extends Feeder {
     }
 
     @Override
-    public void prepareOutput() throws IOException {
-        super.prepareOutput();
+    public void prepareResources() throws IOException {
+        super.prepareResources();
         TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
         if (fileOutput.getMap().containsKey("turtle")) {
             setRdfContentBuilder(turtleBuilder(fileOutput.getMap().get("turtle").getOut(), params));

@@ -101,7 +101,7 @@ public class OAIFeeder extends Feeder {
     }
 
     @Override
-    protected void prepareInput() throws IOException, InterruptedException {
+    protected void prepareRequests() throws IOException, InterruptedException {
         Map<String,Settings> inputSettingsMap = settings.getGroups("input");
         Settings oaiSettings = inputSettingsMap.get("oai");
         if (oaiSettings != null) {
@@ -149,12 +149,12 @@ public class OAIFeeder extends Feeder {
                 }
             }
         }
-        super.prepareInput();
+        super.prepareRequests();
     }
 
     @Override
-    public void prepareOutput() throws IOException {
-        super.prepareOutput();
+    public void prepareResources() throws IOException {
+        super.prepareResources();
         if (fileOutput.getMap().containsKey("tar")) {
             Path path = fileOutput.getMap().get("tar").getPath();
             connection = new TarConnection();
@@ -250,14 +250,14 @@ public class OAIFeeder extends Feeder {
     }
 
     @Override
-    protected void disposeOutput() throws IOException {
+    protected void disposeResources(int returncode) throws IOException {
         if (session != null) {
             session.close();
         }
         if (connection != null) {
             connection.close();
         }
-        super.disposeOutput();
+        super.disposeResources(returncode);
     }
 
     protected SimpleMetadataHandler newMetadataHandler() throws IOException {

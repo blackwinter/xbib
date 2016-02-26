@@ -66,8 +66,8 @@ public class Feeder extends Converter {
     }
 
     @Override
-    protected void prepareOutput() throws IOException {
-        super.prepareOutput();
+    protected void prepareResources() throws IOException {
+        super.prepareResources();
         Map<String,Settings> outputMap = settings.getGroups("output");
         for (Map.Entry<String,Settings> entry : outputMap.entrySet()) {
             if ("elasticsearch".equals(entry.getKey())) {
@@ -92,11 +92,10 @@ public class Feeder extends Converter {
     }
 
     @Override
-    protected void disposeOutput() throws IOException {
+    protected void disposeResources(int returncode) throws IOException {
         logger.info("close down of {}", indexDefinitionMap.keySet());
         elasticsearchOutput.close(ingest, indexDefinitionMap);
-
-        if (getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
+        if (returncode == 0 && getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
             // post processing only in case of success
             performIndexSwitch();
             logger.info("performing replica setting for {}", indexDefinitionMap.keySet());
@@ -106,7 +105,7 @@ public class Feeder extends Converter {
         }
         elasticsearchOutput.shutdown(ingest);
         ingest = null;
-        super.disposeOutput();
+        super.disposeResources(returncode);
     }
 
     protected void performIndexSwitch() throws IOException {

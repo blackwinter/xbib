@@ -48,6 +48,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 import org.xbib.util.concurrent.WorkerRequest;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
@@ -98,8 +99,8 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
             logger.error(t.getMessage(), t);
             returncode = 1;
         } finally {
-            disposeRequests();
-            disposeResources();
+            disposeRequests(returncode);
+            disposeResources(returncode);
             disposeMetrics();
             pipeline.shutdown();
             Map<W, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
@@ -185,12 +186,34 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
         elasticsearchOutput.startup(ingest, outputIndexDefinitionMap);
     }
 
-    protected void disposeRequests() throws IOException {
+    protected void disposeRequests(int returncode) throws IOException {
         elasticsearchInput.close(search, inputIndexDefinitionMap);
     }
 
-    protected void disposeResources() throws IOException {
+    protected void disposeResources(int returncode) throws IOException {
         elasticsearchOutput.close(ingest, outputIndexDefinitionMap);
+        if (returncode == 0 && getPipeline().getWorkerErrors().getThrowables().isEmpty()) {
+            // post processing only in case of success
+            performIndexSwitch();
+            logger.info("performing replica setting for {}", outputIndexDefinitionMap.keySet());
+            for (Map.Entry<String, IndexDefinition> entry : outputIndexDefinitionMap.entrySet()) {
+                elasticsearchOutput.replica(ingest, entry.getValue());
+            }
+        }
+        elasticsearchOutput.shutdown(ingest);
+        ingest = null;
+    }
+
+    protected void performIndexSwitch() throws IOException {
+        for (Map.Entry<String, IndexDefinition> entry : outputIndexDefinitionMap.entrySet()) {
+            IndexDefinition def = entry.getValue();
+            if (def != null && def.getTimeWindow() != null) {
+                logger.info("switching index {}", def.getIndex());
+                elasticsearchOutput.switchIndex(ingest, def, Collections.singletonList(def.getIndex()));
+                logger.info("performing retention policy for index {}", def.getIndex());
+                elasticsearchOutput.retention(ingest, def);
+            }
+        }
     }
 
     protected void scheduleMetrics() {

@@ -235,12 +235,14 @@ public class HoldingsLicensesMerger extends Merger {
         logger.info("all title records processed");
     }
 
-    protected void disposeRequests() throws IOException {
-        super.disposeRequests();
+    @Override
+    protected void disposeRequests(int returncode) throws IOException {
+        super.disposeRequests(returncode);
     }
 
-    protected void disposeResources() throws IOException {
-        super.disposeResources();
+    @Override
+    protected void disposeResources(int returncode) throws IOException {
+        super.disposeResources(returncode);
     }
 
     public SearchTransportClient search() {

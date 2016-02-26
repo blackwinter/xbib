@@ -80,22 +80,22 @@ public class Converter
         ForkJoinPipeline<Converter, URIWorkerRequest> pipeline = newPipeline();
         pipeline.setQueue(new SynchronousQueue<>(true));
         setPipeline(pipeline);
-        int returnCode = 0;
+        int returncode = 0;
         try {
-            prepareOutput();
+            prepareResources();
             pipeline.setConcurrency(concurrency)
                     .setWorkerProvider(provider())
                     .prepare()
                     .execute();
-            prepareInput();
+            prepareRequests();
             scheduleMetrics();
             pipeline.waitFor(new URIWorkerRequest());
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
-            returnCode = 1;
+            returncode = 1;
         } finally {
-            disposeInput();
-            disposeOutput();
+            disposeRequests(returncode);
+            disposeResources(returncode);
             disposeMetrics();
             pipeline.shutdown();
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
@@ -106,12 +106,12 @@ public class Converter
                     Throwable t = entry.getValue();
                     logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
                 }
-                returnCode = 1;
+                returncode = 1;
             }
             // clear interrupt status, so Runner can continue
             Thread.interrupted();
         }
-        return returnCode;
+        return returncode;
     }
 
     @Override
@@ -140,11 +140,11 @@ public class Converter
         }
     }
 
-    protected void prepareOutput() throws IOException {
+    protected void prepareResources() throws IOException {
         fileOutput.createFileMap(settings);
     }
 
-    protected void prepareInput() throws IOException, InterruptedException {
+    protected void prepareRequests() throws IOException, InterruptedException {
         fileInput.createRequests(settings, getPipeline().getQueue());
     }
 
@@ -152,12 +152,12 @@ public class Converter
         // will be overridden
     }
 
-    protected void disposeInput() throws IOException {
-        // no need to close fileInput here
+    protected void disposeResources(int returncode) throws IOException {
+        fileOutput.closeFileMap();
     }
 
-    protected void disposeOutput() throws IOException {
-        fileOutput.closeFileMap();
+    protected void disposeRequests(int returncode) throws IOException {
+        // no need to close fileInput here
     }
 
     protected void disposeMetrics() throws IOException {

@@ -1153,6 +1153,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "SucceedingEntry",
             "OtherEditionEntry",
             "OtherRelationshipEntry",
+            "AdditionalPhysicalFormEntry",
             "SupplementSpecialIssueEntry",
             "SupplementParentEntry"
     ));
