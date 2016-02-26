@@ -324,11 +324,11 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    protected void disposeRequests() throws IOException {
+    protected void disposeRequests(int returncode) throws IOException {
     }
 
     @Override
-    protected void disposeResources() throws IOException {
+    protected void disposeResources(int returncode) throws IOException {
     }
 
     public SearchTransportClient search() {
