@@ -21,7 +21,7 @@ public abstract class AbstractBarcodeGenerator implements BarcodeGenerator {
     /** Font size in mm */
     protected double fontSize        = UnitConv.pt2mm(8); //8pt
     /** Font name */
-    protected String fontName        = "Helvetica"; //"OCR-B,Helvetica,Arial";
+    protected String fontName        = "Helvetica";
     /** True if quiet zone should be rendered */
     protected boolean doQuietZone    = true;
     /** Width of the quiet zone left and right of the barcode in mm */

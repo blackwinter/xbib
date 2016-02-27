@@ -27,7 +27,7 @@ public class FontTest extends TestCase {
                 DEFAULT_FONT.getSize2D(), DEFAULT_FONT.getSize2D() / 2f
         };
         final String[] names = {
-                DEFAULT_FONT.getName(), Font.SERIF, Font.MONOSPACED, "Arial"
+                DEFAULT_FONT.getName(), Font.SERIF, Font.MONOSPACED, "Monospaced"
         };
         final int[] styles = {
                 Font.PLAIN, Font.ITALIC, Font.BOLD, Font.BOLD | Font.ITALIC

@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -108,9 +107,6 @@ public class GraphicsUtilsTest {
 
         font = new Font("Monospaced", Font.PLAIN, 12);
         assertNotSame(font, GraphicsUtils.getPhysicalFont(font));
-
-        font = new Font("Arial", Font.PLAIN, 12);
-        assertSame(font, GraphicsUtils.getPhysicalFont(font));
     }
 
     @Test
