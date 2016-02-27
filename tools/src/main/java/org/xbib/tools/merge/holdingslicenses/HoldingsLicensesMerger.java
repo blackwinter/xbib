@@ -128,6 +128,7 @@ public class HoldingsLicensesMerger extends Merger {
             int i = 0;
 
             @Override
+            @SuppressWarnings("unchecked")
             public HoldingsLicensesWorker get(Pipeline pipeline) {
                 return (HoldingsLicensesWorker) new HoldingsLicensesWorker(settings, holdingsLicensesMerger,
                         settings.getAsInt("worker.scrollsize", 10), // per shard!

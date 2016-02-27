@@ -31,17 +31,16 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.common.util.ValidateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BaseFileSystem<T extends Path> extends FileSystem {
-    protected final Logger log;
+    protected final static Logger log = LogManager.getLogger(BaseFileSystem.class);
     private final FileSystemProvider fileSystemProvider;
 
     public BaseFileSystem(FileSystemProvider fileSystemProvider) {
-        this.log = LoggerFactory.getLogger(getClass());
         this.fileSystemProvider = ValidateUtils.checkNotNull(fileSystemProvider, "No file system provider");
     }
 

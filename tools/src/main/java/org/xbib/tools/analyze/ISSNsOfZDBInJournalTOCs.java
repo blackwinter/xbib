@@ -35,12 +35,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.io.Request;
@@ -54,7 +52,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Set;
+import java.util.Set;import org.elasticsearch.action.search.SearchType;
+
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -120,24 +119,14 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
                     .setSize(1000) // per shard
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMinutes(10));
-
             QueryBuilder queryBuilder =
                     boolQuery().must(matchAllQuery()).filter(existsQuery("identifiers.issn"));
             searchRequestBuilder.setQuery(queryBuilder)
                     .addFields("identifiers.issn");
-
             SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMinutes(10))
-                        .execute().actionGet();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+            do {
+                for (SearchHit hit : searchResponse.getHits()) {
                     if (hit.getFields().containsKey("identifiers.issn")) {
                         List<Object> l = hit.getFields().get("identifiers.issn").getValues();
                         for (Object o : l) {
@@ -157,7 +146,10 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                         }
                     }
                 }
-            }
+                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMinutes(10))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
             session.close();
             BufferedWriter fileWriter = getFileWriter(settings.get("output","journaltocs-issns.txt"));
             for (String s : issns) {

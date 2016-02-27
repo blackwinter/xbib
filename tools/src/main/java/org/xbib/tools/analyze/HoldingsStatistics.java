@@ -35,12 +35,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 
@@ -80,20 +78,12 @@ public class HoldingsStatistics extends Analyzer {
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "DateHoldings"))
                     .setSize(1000) // per shard
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMinutes(1))
                     .setQuery(queryBuilder)
                     .addFields("institution.service.serviceisil", "institution.service.carriertype");
             SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMinutes(1))
-                        .execute().actionGet();
-                SearchHits hits = searchResponse.getHits();
-                if (hits.getHits().length == 0) {
-                    break;
-                }
-                for (SearchHit hit : hits) {
+            do {
+                for (SearchHit hit : searchResponse.getHits()) {
                     List<Object> isils = hit.getFields().containsKey("institution.service.serviceisil") ?
                             hit.getFields().get("institution.service.serviceisil").getValues() : Collections.EMPTY_LIST;
                     List<Object> carriers = hit.getFields().containsKey("institution.service.carriertype") ?
@@ -130,7 +120,10 @@ public class HoldingsStatistics extends Analyzer {
                         }
                     }
                 }
-            }
+                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMinutes(1))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
 
             Map<String, Integer> sortedVolumes = sortByValue(volume);
             BufferedWriter fileWriter = getFileWriter("volumes-statistics.txt");

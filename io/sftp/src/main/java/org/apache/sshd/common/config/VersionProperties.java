@@ -26,10 +26,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.common.util.threads.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
@@ -66,12 +66,12 @@ public final class VersionProperties {
 
                     String prev = result.put(key, value);
                     if (prev != null) {
-                        Logger log = LoggerFactory.getLogger(anchor);
+                        Logger log = LogManager.getLogger(anchor);
                         log.warn("Multiple values for key=" + key + ": current=" + value + ", previous=" + prev);
                     }
                 }
             } catch (Exception e) {
-                Logger log = LoggerFactory.getLogger(anchor);
+                Logger log = LogManager.getLogger(anchor);
                 log.warn("Failed (" + e.getClass().getSimpleName() + ") to load version properties: " + e.getMessage());
             }
 

@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
@@ -190,7 +189,6 @@ public class ArticlesMerger extends Merger {
                 .setIndices(settings.get("ezdb-index"))
                 .setTypes(settings.get("ezdb-type"))
                 .setSize(size)
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(millis));
 
         QueryBuilder queryBuilder = matchAllQuery();

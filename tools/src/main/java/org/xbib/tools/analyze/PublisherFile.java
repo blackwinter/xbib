@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -78,9 +77,7 @@ public class PublisherFile extends Analyzer {
                     .setIndices(settings.get("ezdb-index", "ezdb"))
                     .setTypes(settings.get("ezdb-type", "Manifestation"))
                     .setSize(1000) // per shard
-                    .setSearchType(SearchType.SCAN)
                     .setScroll(TimeValue.timeValueMillis(1000));
-
             QueryBuilder queryBuilder = matchAllQuery();
             // default: filter all manifestations that have a service
             QueryBuilder filterBuilder = existsQuery("dates");
@@ -98,12 +95,8 @@ public class PublisherFile extends Analyzer {
                     boolQuery().must(queryBuilder).filter(filterBuilder) : queryBuilder;
             searchRequest.setQuery(queryBuilder)
                     .addFields("publishedby", "publishedat", "identifiers.issn");
-
             SearchResponse searchResponse = searchRequest.execute().actionGet();
-            while (searchResponse.getScrollId() != null) {
-                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
-                        .setScroll(TimeValue.timeValueMillis(1000))
-                        .execute().actionGet();
+            do {
                 SearchHits hits = searchResponse.getHits();
                 if (hits.getHits().length == 0) {
                     break;
@@ -143,7 +136,10 @@ public class PublisherFile extends Analyzer {
                         }
                     }
                 }
-            }
+                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+                        .setScroll(TimeValue.timeValueMillis(1000))
+                        .execute().actionGet();
+            } while (searchResponse.getHits().getHits().length > 0);
         BufferedWriter fileWriter = getFileWriter(settings.get("output","publishers.tsv"));
         for (Map.Entry<String,Collection<Object>> entry : publishers.entrySet()) {
             fileWriter.write(entry.getKey());

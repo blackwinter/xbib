@@ -49,10 +49,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.util.ValidateUtils;
 import org.apache.sshd.common.util.io.IoUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * File system provider which provides a rooted file system.
@@ -61,11 +61,10 @@ import org.slf4j.LoggerFactory;
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
 public class RootedFileSystemProvider extends FileSystemProvider {
-    protected final Logger log;
+    protected final static Logger log = LogManager.getLogger(RootedFileSystemProvider.class);
     private final Map<Path, RootedFileSystem> fileSystems = new HashMap<>();
 
     public RootedFileSystemProvider() {
-        log = LoggerFactory.getLogger(getClass());
     }
 
     @Override

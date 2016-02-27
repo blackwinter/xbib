@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -211,18 +210,10 @@ public class ArticlesMergerWorker
                 .setTypes(articlesMerger.settings().get("medline-type"))
                 .setQuery(queryBuilder)
                 .setSize(articlesMerger.size()) // size() is per shard!
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()))
-                .execute().actionGet();
-        SearchHits hits = searchResponse.getHits();
-        if (hits.getHits().length == 0) {
-            return;
-        }
         do {
-            hits = searchResponse.getHits();
+            SearchHits hits = searchResponse.getHits();
             for (int i = 0; i < hits.getHits().length; i++) {
                 SearchHit hit = hits.getAt(i);
                 String key = (String)hit.getSource().get("xbib:key");
@@ -248,11 +239,11 @@ public class ArticlesMergerWorker
                     docs.put(key, map);
                 }
             }
-            searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
+            searchResponse = articlesMerger.search().client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()))
                     .execute().actionGet();
-            hits = searchResponse.getHits();
-        } while (hits.getHits().length > 0);
+        } while (searchResponse.getHits().getHits().length > 0);
     }
 
     private void fetchXref(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
@@ -284,7 +275,6 @@ public class ArticlesMergerWorker
                 .setTypes(articlesMerger.settings().get("xref-type"))
                 .setQuery(queryBuilder)
                 .setSize(articlesMerger.size()) // size() is per shard
-                .setSearchType(SearchType.SCAN)
                 .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())

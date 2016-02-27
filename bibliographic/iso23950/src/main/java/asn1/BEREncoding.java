@@ -108,8 +108,7 @@ public abstract class BEREncoding {
      * use the output method.
      */
 
-    public byte[]
-    encoding_get() {
+    public byte[] encoding_get() {
         byte result[] = new byte[i_total_length];
         i_encoding_get(0, result);
         return result;
@@ -146,7 +145,7 @@ public abstract class BEREncoding {
      * The public wrapping for doInput() method.
      *
      * @param    src - the InputStream to read the raw BER from.
-     * @returns Returns the next complete BEREncoding object read
+     * @return Returns the next complete BEREncoding object read
      * in from the input stream. Returns null if the
      * end has been reached.
      * @exception ASN1Exception If data does not represent a BER encoding
@@ -175,7 +174,7 @@ public abstract class BEREncoding {
      *
      * @param numBytesRead - a counter for all read bytes.
      * @param    src - the InputStream to read the raw BER from.
-     * @returns Returns the next complete BEREncoding object read
+     * @return Returns the next complete BEREncoding object read
      * in from the input stream. Returns null if the
      * end has been reached.
      * @exception ASN1Exception If data does not represent a BER encoding
@@ -294,7 +293,7 @@ public abstract class BEREncoding {
         } else {
             // Constructed
 
-            ArrayList chunks = new ArrayList(); // dynamic storage for parts
+            ArrayList<BEREncoding> chunks = new ArrayList<>(); // dynamic storage for parts
             int total_read = 0;
 
 
@@ -335,7 +334,7 @@ public abstract class BEREncoding {
             int num_elements = chunks.size();
             BEREncoding parts[] = new BEREncoding[num_elements];
             for (int x = 0; x < num_elements; x++) {
-                parts[x] = ((BEREncoding) chunks.get(x));
+                parts[x] = chunks.get(x);
             }
 
             return new BERConstructed(tag_type, tag, parts);

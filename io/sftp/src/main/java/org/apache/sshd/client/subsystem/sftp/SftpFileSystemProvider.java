@@ -70,6 +70,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.client.subsystem.sftp.SftpClient.Attributes;
@@ -84,8 +86,6 @@ import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.common.util.NumberUtils;
 import org.apache.sshd.common.util.ValidateUtils;
 import org.apache.sshd.common.util.io.IoUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SftpFileSystemProvider extends FileSystemProvider {
     public static final String READ_BUFFER_PROP_NAME = "sftp-fs-read-buffer-size";
@@ -120,7 +120,7 @@ public class SftpFileSystemProvider extends FileSystemProvider {
                     add(BasicFileAttributeView.class);
                 }
             });
-    protected final Logger log;
+    protected final static Logger log = LogManager.getLogger(SftpFileSystemProvider.class);
 
     private final SshClient client;
     private final SftpVersionSelector selector;
@@ -145,7 +145,6 @@ public class SftpFileSystemProvider extends FileSystemProvider {
     }
 
     public SftpFileSystemProvider(SshClient client, SftpVersionSelector selector) {
-        this.log = LoggerFactory.getLogger(getClass());
         this.selector = ValidateUtils.checkNotNull(selector, "No SFTP version selector provided");
         if (client == null) {
             // TODO: make this configurable using system properties
