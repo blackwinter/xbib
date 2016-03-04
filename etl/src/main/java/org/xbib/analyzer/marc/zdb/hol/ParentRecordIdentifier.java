@@ -31,10 +31,12 @@
  */
 package org.xbib.analyzer.marc.zdb.hol;
 
+import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.marc.FieldList;
+import org.xbib.rdf.Resource;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ParentRecordIdentifier extends org.xbib.analyzer.marc.bib.Identifier {
 
@@ -44,17 +46,27 @@ public class ParentRecordIdentifier extends org.xbib.analyzer.marc.bib.Identifie
         return instance;
     }
 
+    private String prefix = "";
+
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
+    @SuppressWarnings("unchecked")
+    public MARCEntity setSettings(Map params) {
+        super.setSettings(params);
+        if (params.containsKey("_prefix")) {
+            this.prefix = params.get("_prefix").toString();
+        }
+        if (params.containsKey("catalogid")) {
+            this.prefix = "(" + params.get("catalogid").toString() + ")";
+        }
+        return this;
+    }
+
+    @Override
+    public String data(MARCEntityQueue.MARCWorker worker,
+                       String predicate, Resource resource, String property, String value) throws IOException {
         if (value == null || value.isEmpty()) {
-            return false;
+            return value;
         }
-        String predicate = getClass().getSimpleName();
-        if (getSettings().containsKey("_predicate")) {
-            predicate = (String) getSettings().get("_predicate");
-        }
-        worker.state().getResource().add(predicate, value.toLowerCase());
-        return false;
+        return prefix + value.trim();
     }
 }

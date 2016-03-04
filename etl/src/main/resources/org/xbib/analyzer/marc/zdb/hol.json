@@ -80,13 +80,17 @@
         "values" : [
         "001"
         ],
-        "_predicate" : "identifierForTheRecord"
+        "subfields" : {
+            "" : "identifierForTheRecord"
+        }
     },
     "ParentRecordIdentifier" : {
         "values" : [
         "004"
         ],
-        "_predicate" : "identifierForTheParentRecord"
+        "subfields" : {
+            "" : "identifierForTheParentRecord"
+        }
     },
     "PhysicalDescriptionCode" : {
         "values" : [

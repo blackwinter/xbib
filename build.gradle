@@ -106,6 +106,9 @@ subprojects {
                             url: uri('scpexe://xbib.org/repository'),
                             authentication: [userName: xbibUsername, privateKey: xbibPrivateKey]
                     )
+                    pom.project {
+
+                    }
                 }
             }
         }
