@@ -1,0 +1,74 @@
+{
+  "processor" : {
+    "class" : "org.xbib.tools.merge.holdingslicenses.HoldingsLicensesMerger"
+  },
+  "input" : {
+    "elasticsearch": {
+      "cluster" : "zbn",
+      "host" : [ "zephyros:9300", "boreas:9300", "notos:9300" ],
+      "index" : {
+        "bibdat" : {
+          "name" : "bibdat"
+        },
+        "nlzisil" : {
+          "name" : "nlzisil"
+        },
+        "zdb" : {
+          "name" : "zdb"
+        },
+        "zdbholdings" : {
+          "name" : "zdbholdings"
+        },
+        "ezbxml" : {
+          "name" : "ezbxml"
+        },
+        "ezbweb" : {
+          "name" : "ezbweb"
+        },
+        "hbz" : {
+          "name" : "hbz"
+        },
+        "hbzholdings" : {
+          "name" : "hbzholdings"
+        },
+        "doaj" : {
+          "name" : "doaj"
+        }
+      }
+    }
+  },
+  "output" : {
+    "elasticsearch" : {
+      "cluster" : "zbn",
+      "host" : [ "zephyros:9300", "boreas:9300", "notos:9300" ],
+      "maxbulkactions" : 1000,
+      "maxconcurrentbulkrequests" : 1,
+      "timeout" : "300s",
+      "mock" : true,
+      "index" : {
+        "holdingslicenses" : {
+          "name" : "ezdb",
+          "settings" : "classpath:org/xbib/tools/merge/holdingslicenses/settings.json",
+          "mapping" : "classpath:org/xbib/tools/merge/holdingslicenses/mapping.json",
+          "timewindow" : "yyyyMMdd",
+          "aliases" : true,
+          "skiperrors" : true,
+          "replica" : 0,
+          "retention" : {
+            "enabled" : true,
+            "mintokeep" : 1
+          }
+        }
+      }
+    }
+  },
+  "concurrency" : 1,
+  "scrolltimeout" : "300s",
+  "scrollsize" : 10,
+  "worker" : {
+    "scrolltimeout" : "180s",
+    "scrollsize" : 25
+  },
+  "identifier" : "11393877",
+  "mock": true
+}

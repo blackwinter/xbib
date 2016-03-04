@@ -129,8 +129,15 @@ public class Holding implements Comparable<Holding> {
     @SuppressWarnings("unchecked")
     protected void build() {
         this.identifier = getString("RecordIdentifier.identifierForTheRecord");
-        String parentId = getString("ParentRecordIdentifier.identifierForTheParentRecord");
-        this.parent = parentId != null ? parentId.toLowerCase() : null; // DNB-ID, turn 'X' to lower case
+        if (this.identifier == null) {
+            throw new IllegalArgumentException("parent identifier must not be null");
+        }
+        this.identifier = this.identifier.replace('X', 'x');
+        this.parent = getString("ParentRecordIdentifier.identifierForTheParentRecord");
+        if (this.parent == null) {
+            throw new IllegalArgumentException("parent identifier must not be null");
+        }
+        this.parent = this.parent.replace('X','x'); // DNB-ID, turn 'X' to lower case
         Object leader = map.get("leader");
         if (!(leader instanceof List)) {
             leader = Collections.singletonList(leader);
