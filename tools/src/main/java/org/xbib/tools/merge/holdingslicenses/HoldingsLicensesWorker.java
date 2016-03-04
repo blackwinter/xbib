@@ -428,10 +428,10 @@ public class HoldingsLicensesWorker
         // create a map of all title records that can have assigned a holding
         Map<String, TitleRecord> map = new HashMap<>();
         for (TitleRecord m : titleRecords) {
-            map.put(m.id(), m);
+            map.put("(DE-600)" + m.id(), m);
             // add print if not already there...
             if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
-                map.put(m.getPrintID(), m);
+                map.put("(DE-600)" + m.getPrintID(), m);
             }
         }
         searchHoldings(map, holdings);
@@ -451,7 +451,7 @@ public class HoldingsLicensesWorker
         for (int begin = 0; begin < array.length; begin += 1024) {
             int end = begin + 1024 > array.length ? array.length : begin + 1024;
             Object[] subarray = Arrays.copyOfRange(array, begin, end);
-            QueryBuilder queryBuilder = termsQuery("identifierForTheParentRecord", subarray);
+            QueryBuilder queryBuilder = termsQuery("ParentRecordIdentifier.identifierForTheParentRecord", subarray);
             // getSize is per shard
             SearchRequestBuilder searchRequest = holdingsLicensesMerger.search().client()
                     .prepareSearch()
