@@ -61,7 +61,7 @@ public class Holding implements Comparable<Holding> {
 
     protected String identifier;
 
-    protected String internalParent;
+    protected String parent;
 
     protected Set<String> parents = new HashSet<>();
 
@@ -128,8 +128,9 @@ public class Holding implements Comparable<Holding> {
 
     @SuppressWarnings("unchecked")
     protected void build() {
-        this.identifier = getString("identifierForTheRecord");
-        this.internalParent = getString("identifierForTheParentRecord").toLowerCase(); // DNB-ID, turn 'X' to lower case
+        this.identifier = getString("RecordIdentifier.identifierForTheRecord");
+        String parentId = getString("ParentRecordIdentifier.identifierForTheParentRecord");
+        this.parent = parentId != null ? parentId.toLowerCase() : null; // DNB-ID, turn 'X' to lower case
         Object leader = map.get("leader");
         if (!(leader instanceof List)) {
             leader = Collections.singletonList(leader);
@@ -189,7 +190,7 @@ public class Holding implements Comparable<Holding> {
     }
 
     public String parentIdentifier() {
-        return internalParent;
+        return parent;
     }
 
     public void addParent(String parent) {
