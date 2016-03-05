@@ -19,14 +19,11 @@ import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -34,15 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -433,10 +422,9 @@ public class NatLizCrawler extends Feeder {
         }
     }
 
-
     private void writeLicenses(Map<String,Object> licenses) throws IOException {
         // Java object
-        if (settings.get("mapfile") != null) {
+        if (settings.getAsBoolean("mapfile", true)) {
             Path path = Paths.get("nlz-licenses.map");
             try (Writer fileWriter = new OutputStreamWriter(Files.newOutputStream(path, StandardOpenOption.CREATE),
                     StandardCharsets.UTF_8)) {
@@ -444,7 +432,7 @@ public class NatLizCrawler extends Feeder {
             }
         }
         // JSON file
-        if (settings.get("jsonfile") != null) {
+        if (settings.getAsBoolean("jsonfile", true)) {
             XContentBuilder builder = jsonBuilder();
             builder.map(licenses);
             Path path = Paths.get("nlz-licenses.json");
@@ -454,7 +442,8 @@ public class NatLizCrawler extends Feeder {
             }
         }
         // ES
-        if (settings.get("index") != null) {
+        IndexDefinition indexDefinition = indexDefinitionMap.get("nlz");
+        if (indexDefinition != null) {
             for (Map.Entry<String,Object> entry : licenses.entrySet()) {
                 String key = entry.getKey();
                 List<Map<String, Object>> value = (List<Map<String, Object>>)entry.getValue();
@@ -464,7 +453,13 @@ public class NatLizCrawler extends Feeder {
                     isils.addAll((Collection<? extends String>) map.get("isil"));
                 }
                 builder.startObject().array("isil", isils).endObject();
-                ingest.index(settings.get("index"), settings.get("type"), key, builder.string());
+                ingest.index(indexDefinition.getConcreteIndex(), indexDefinition.getType(), key, builder.string());
+            }
+            if (indexDefinition.getTimeWindow() != null) {
+                logger.info("switching index {}", indexDefinition.getIndex());
+                elasticsearchOutput.switchIndex(ingest, indexDefinition, Collections.singletonList(indexDefinition.getIndex()));
+                logger.info("performing retention policy for index {}", indexDefinition.getIndex());
+                elasticsearchOutput.retention(ingest, indexDefinition);
             }
         }
     }

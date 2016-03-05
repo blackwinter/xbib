@@ -1,0 +1,15 @@
+
+task (mergeHoldingsLicensesDebug, dependsOn: ':build', type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperties = [ 'log4j.level': 'debug' ]
+    main = 'org.xbib.tools.Runner'
+    args 'conf/debug.json'
+}
+
+task (nlz, dependsOn: ':build', type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperties = [ 'log4j.level': 'debug' ]
+    main = 'org.xbib.tools.Runner'
+    args 'conf/nlz.json'
+}
+

@@ -36,8 +36,8 @@ public class NettyResponse implements Response {
     private final HttpResponseStatus status;
     private List<Cookie> cookies;
 
-    public NettyResponse(HttpResponseStatus status,//
-                         HttpResponseHeaders headers,//
+    public NettyResponse(HttpResponseStatus status,
+                         HttpResponseHeaders headers,
                          List<HttpResponseBodyPart> bodyParts) {
         this.bodyParts = bodyParts;
         this.headers = headers;

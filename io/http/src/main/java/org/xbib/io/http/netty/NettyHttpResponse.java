@@ -44,8 +44,6 @@ import java.util.Map;
 
 public class NettyHttpResponse extends NettyResponse implements HttpResponse {
 
-    private HttpHeaders headers;
-
     public NettyHttpResponse(HttpResponseStatus status,
             HttpResponseHeaders headers,
             List<HttpResponseBodyPart> bodyParts) {
@@ -53,20 +51,13 @@ public class NettyHttpResponse extends NettyResponse implements HttpResponse {
     }
 
     public Map<String, List<String>> getHeaderMap() {
+        HttpHeaders headers = getHeaders();
         Map<String, List<String>> map = new LinkedHashMap<>();
-        if (headers == null) {
-            return map;
-        }
         for (String key : headers.names()) {
             List<String> values = headers.getAll(key);
             map.put(key, values);
         }
         return map;
-    }
-
-    public NettyHttpResponse setHeaders(HttpHeaders headers) {
-        this.headers = headers;
-        return this;
     }
 
     @Override
