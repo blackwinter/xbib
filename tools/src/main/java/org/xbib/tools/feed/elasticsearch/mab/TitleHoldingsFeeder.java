@@ -85,14 +85,20 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             List<String> aliases = new LinkedList<>();
             ValueMaps valueMaps = new ValueMaps();
             Map<String, String> sigel2isil =
-                    valueMaps.getAssocStringMap(settings.get("sigel2isil", "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
+                    valueMaps.getAssocStringMap(settings.get("sigel2isil",
+                            "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
             // "main ISIL" = only one (or none) hyphen
             aliases.addAll(sigel2isil.values().stream()
                     .filter(isil -> isil.indexOf("-") == isil.lastIndexOf("-")).collect(Collectors.toList()));
             elasticsearchOutput.switchIndex(ingest, def, aliases,
-                    (builder, index1, alias) -> builder.addAlias(index1, alias, QueryBuilders.termsQuery("xbib.identifier", alias)));
+                    (builder, index1, alias) -> builder.addAlias(index1, alias,
+                            QueryBuilders.termsQuery("xbib.identifier", alias)));
             elasticsearchOutput.retention(ingest, def);
         }
+        // holdings
+        def = indexDefinitionMap.get("holdings");
+        elasticsearchOutput.switchIndex(ingest, def, Collections.singletonList(def.getIndex()));
+        elasticsearchOutput.retention(ingest, def);
     }
 
     protected MABEntityQueue createQueue(Map<String,Object> params) {
