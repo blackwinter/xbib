@@ -1,0 +1,4 @@
+
+dependencies {
+    testCompile 'org.assertj:assertj-core:3.3.0'
+}
