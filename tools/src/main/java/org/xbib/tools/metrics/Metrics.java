@@ -8,7 +8,7 @@ import org.xbib.graphics.chart.ChartBuilderXY;
 import org.xbib.graphics.chart.ChartXY;
 import org.xbib.graphics.chart.VectorGraphicsEncoder;
 import org.xbib.graphics.chart.internal.style.Styler;
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 import org.xbib.util.FormatUtil;
 
 import java.io.IOException;
@@ -84,7 +84,7 @@ public class Metrics {
         }
     }
 
-    public void scheduleMetrics(Settings settings, String type, MeterMetric metric) {
+    public void scheduleMetrics(Settings settings, String type, Meter metric) {
         if (settings == null) {
             logger.warn("no settings");
             return;
@@ -114,17 +114,17 @@ public class Metrics {
         logger.info("scheduled ingest metrics at {} seconds", value);
     }
 
-    public synchronized void append(String type, MeterMetric metric) {
+    public synchronized void append(String type, Meter metric) {
         if (metric == null) {
             return;
         }
-        long docs = metric.count();
+        long docs = metric.getCount();
         long elapsed = metric.elapsed() / 1000000; // nanos to millis
         double dps = docs * 1000.0 / elapsed;
-        long mean = Math.round(metric.meanRate());
-        long oneminute = Math.round(metric.oneMinuteRate());
-        long fiveminute = Math.round(metric.fiveMinuteRate());
-        long fifteenminute = Math.round(metric.fifteenMinuteRate());
+        long mean = Math.round(metric.getMeanRate());
+        long oneminute = Math.round(metric.getOneMinuteRate());
+        long fiveminute = Math.round(metric.getFiveMinuteRate());
+        long fifteenminute = Math.round(metric.getFifteenMinuteRate());
 
         logger.info("{}: {} docs, {} ms = {}, {} = {}, {} ({} {} {})",
                 type,
@@ -297,9 +297,9 @@ public class Metrics {
 
         private final String type;
 
-        private final MeterMetric metric;
+        private final Meter metric;
 
-        public MeterMetricThread(String type, MeterMetric meterMetric) {
+        public MeterMetricThread(String type, Meter meterMetric) {
             this.type = type;
             this.metric = meterMetric;
             setDaemon(true);

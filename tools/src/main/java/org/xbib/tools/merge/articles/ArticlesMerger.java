@@ -53,7 +53,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -120,13 +119,11 @@ public class ArticlesMerger extends Merger {
         getPipeline().waitFor(new SerialItemRequest());
         long total = 0L;
         for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
-            logger.info("pipeline {}, count {}, started {}, ended {}, took {}",
+            logger.info("pipeline {}, count {}, took {}",
                     worker,
-                    worker.getMetric().count(),
-                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
-                    DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                    worker.getMetric().getCount(),
                     TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
-            total += worker.getMetric().count();
+            total += worker.getMetric().getCount();
         }
         logger.info("total={}", total);
     }
@@ -301,10 +298,10 @@ public class ArticlesMerger extends Merger {
                         for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
                             logger.info("{} throughput={} {} {} mean={} mldup={} xrefdup={}",
                                     worker.toString(),
-                                    worker.getMetric().oneMinuteRate(),
-                                    worker.getMetric().fiveMinuteRate(),
-                                    worker.getMetric().fifteenMinuteRate(),
-                                    worker.getMetric().meanRate(),
+                                    worker.getMetric().getOneMinuteRate(),
+                                    worker.getMetric().getFiveMinuteRate(),
+                                    worker.getMetric().getFifteenMinuteRate(),
+                                    worker.getMetric().getMeanRate(),
                                     worker.getMedlineDuplicates().get(),
                                     worker.getXrefDuplicates().get()
                             );

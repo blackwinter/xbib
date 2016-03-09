@@ -43,7 +43,7 @@ import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
@@ -58,9 +58,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -85,14 +83,15 @@ public class HoldingsLicensesMerger extends Merger {
 
     private Metrics metrics;
 
-    private MeterMetric queryMetric;
+    private Meter queryMetric;
 
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
         this.metrics = new Metrics();
-        this.queryMetric = new MeterMetric(5L, TimeUnit.SECONDS);
+        this.queryMetric = new Meter();
+        queryMetric.spawn(5L);
         metrics.scheduleMetrics(settings, "meterquery", queryMetric);
         return super.run(settings);
     }
@@ -104,13 +103,11 @@ public class HoldingsLicensesMerger extends Merger {
         } finally {
             long total = 0L;
             for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
-                logger.info("worker {}, count {}, started {}, ended {}, took {}",
+                logger.info("worker {}, count {}, took {}",
                         worker,
-                        worker.getMetric().count(),
-                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().started()),
-                        DateTimeFormatter.ISO_INSTANT.format(worker.getMetric().stopped()),
+                        worker.getMetric().getCount(),
                         TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
-                total += worker.getMetric().count();
+                total += worker.getMetric().getCount();
             }
             logger.info("worker metric count total = {}", total);
             metrics.append("meterquery", queryMetric);

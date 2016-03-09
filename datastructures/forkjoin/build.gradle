@@ -1,4 +1,8 @@
 
+dependencies {
+    compile project(':datastructures:metrics')
+}
+
 test {
     useJUnit {
         forkEvery 1

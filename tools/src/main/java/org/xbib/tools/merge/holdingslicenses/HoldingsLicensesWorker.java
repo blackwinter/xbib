@@ -45,7 +45,7 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
 import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
@@ -87,7 +87,7 @@ public class HoldingsLicensesWorker
     }
 
     private Pipeline<HoldingsLicensesWorker, TitelRecordRequest> pipeline;
-    private MeterMetric metric;
+    private Meter metric;
     private final int number;
     private final HoldingsLicensesMerger holdingsLicensesMerger;
     private final Logger logger;
@@ -125,7 +125,8 @@ public class HoldingsLicensesWorker
         this.holdingsLicensesMerger = holdingsLicensesMerger;
         this.buildQueue = new ConcurrentLinkedQueue<>();
         this.logger = LogManager.getLogger(toString());
-        this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+        this.metric = new Meter();
+        metric.spawn(5L);
         holdingsLicensesMerger.getMetrics().scheduleMetrics(settings, "meter" + number, metric);
         this.scrollSize = scrollSize;
         this.scrollMillis = scrollMillis;
@@ -146,13 +147,13 @@ public class HoldingsLicensesWorker
     }
 
     @Override
-    public HoldingsLicensesWorker setMetric(MeterMetric metric) {
+    public HoldingsLicensesWorker setMetric(Meter metric) {
         this.metric = metric;
         return this;
     }
 
     @Override
-    public MeterMetric getMetric() {
+    public Meter getMetric() {
         return metric;
     }
 

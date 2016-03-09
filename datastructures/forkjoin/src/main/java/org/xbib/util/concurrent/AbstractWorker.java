@@ -31,7 +31,7 @@
  */
 package org.xbib.util.concurrent;
 
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +45,7 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
 
     private P pipeline;
 
-    private MeterMetric metric;
+    private Meter metric;
 
     private R element;
 
@@ -69,7 +69,7 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
 
 
     @Override
-    public Worker<P, R> setMetric(MeterMetric metric) {
+    public Worker<P, R> setMetric(Meter metric) {
         this.metric = metric;
         return this;
     }
@@ -80,7 +80,7 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
      * @return the metric of this pipeline
      */
     @Override
-    public MeterMetric getMetric() {
+    public Meter getMetric() {
         return metric;
     }
 
@@ -96,7 +96,9 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
     @SuppressWarnings("unchecked")
     public R call() throws Exception {
         if (metric == null) {
-            setMetric(new MeterMetric(5L, TimeUnit.SECONDS));
+            Meter meter = new Meter();
+            meter.spawn(5L);
+            setMetric(meter);
         }
         element = null;
         try {

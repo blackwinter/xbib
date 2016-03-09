@@ -31,7 +31,7 @@
  */
 package org.xbib.util.concurrent;
 
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 
 import java.io.Closeable;
 import java.util.concurrent.Callable;
@@ -48,7 +48,7 @@ public interface Worker<P extends Pipeline, R extends WorkerRequest> extends Cal
 
     P getPipeline();
 
-    Worker<P, R> setMetric(MeterMetric metric);
+    Worker<P, R> setMetric(Meter metric);
 
-    MeterMetric getMetric();
+    Meter getMetric();
 }

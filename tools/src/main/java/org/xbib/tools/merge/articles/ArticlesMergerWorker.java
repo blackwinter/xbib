@@ -42,7 +42,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.iri.IRI;
-import org.xbib.metric.MeterMetric;
+import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.Pipeline;
@@ -57,7 +57,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -81,7 +80,7 @@ public class ArticlesMergerWorker
 
     private SerialItem serialItem;
 
-    private MeterMetric metric;
+    private Meter metric;
 
     public ArticlesMergerWorker(ArticlesMerger articlesMerger, int number) {
         this.threadId = number;
@@ -100,12 +99,12 @@ public class ArticlesMergerWorker
         return articlesMerger.getPipeline();
     }
 
-    public ArticlesMergerWorker setMetric(MeterMetric metric) {
+    public ArticlesMergerWorker setMetric(Meter metric) {
         this.metric = metric;
         return this;
     }
 
-    public MeterMetric getMetric() {
+    public Meter getMetric() {
         return metric;
     }
 
@@ -121,7 +120,8 @@ public class ArticlesMergerWorker
     public SerialItemRequest call() throws Exception {
         logger.info("pipeline starting");
         if (metric == null) {
-            this.metric = new MeterMetric(5L, TimeUnit.SECONDS);
+            this.metric = new Meter();
+            metric.spawn(5L);
         }
         SerialItemRequest element = null;
         try {
