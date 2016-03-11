@@ -160,10 +160,10 @@ public class Metrics {
         if (metric == null) {
             return;
         }
-        long docs = metric.getSucceeded().count();
+        long docs = metric.getSucceeded().getCount();
         long elapsed = metric.elapsed() / 1000000; // nano to millis
         double dps = docs * 1000.0 / elapsed;
-        long bytes = metric.getTotalIngestSizeInBytes().count();
+        long bytes = metric.getTotalIngestSizeInBytes().getCount();
         double avg = bytes / (docs + 1.0); // avoid div by zero
         double bps = bytes * 1000.0 / elapsed;
 
