@@ -82,22 +82,34 @@ public class Converter
         setPipeline(pipeline);
         int returncode = 0;
         try {
+            // order is important
+            // open global resources before workers run
             prepareResources();
+            // spawn worker threads and execute all workers
             pipeline.setConcurrency(concurrency)
                     .setWorkerProvider(provider())
                     .prepare()
                     .execute();
+            // start to create input for workers on this thread
             prepareRequests();
+            // now measure throughput
             scheduleMetrics();
+            // send poison element to pipeline
             pipeline.waitFor(new URIWorkerRequest());
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
             returncode = 1;
         } finally {
+            // attention, order is important
+            // close the request source, do not create more input for workers
             disposeRequests(returncode);
-            disposeResources(returncode);
-            disposeMetrics();
+            // bring all workers to close down, let worker threads finish, global resources turn into a consistent state
             pipeline.shutdown();
+            // close global resources, also the resources that were shared by the workers
+            disposeResources(returncode);
+            // shut down metric threads
+            disposeMetrics();
+            // evaluate error conditions
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {
                 logger.error("found {} worker exceptions", throwables.size());
@@ -108,7 +120,7 @@ public class Converter
                 }
                 returncode = 1;
             }
-            // clear interrupt status, so Runner can continue
+            // clear interrupt status, so next Runner incarnation on same JVM can continue
             Thread.interrupted();
         }
         return returncode;

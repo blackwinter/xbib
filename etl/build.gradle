@@ -7,7 +7,7 @@ configurations {
 test {
     classpath += configurations.provided
     testLogging {
-        showStandardStreams = true
+        showStandardStreams = false
         exceptionFormat = 'full'
     }
 }

@@ -179,7 +179,6 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
         if (finished) {
             throw new IOException("This archive has already been finished");
         }
-
         if (haveUnclosedEntry) {
             throw new IOException("This archives contains unclosed entries.");
         }
@@ -202,8 +201,7 @@ public class TarArchiveOutputStream extends ArchiveOutputStream<TarArchiveOutput
         if (!closed) {
             if (outStream != null) {
                 flushBlock();
-                if (outStream != System.out
-                        && outStream != System.err) {
+                if (outStream != System.out && outStream != System.err) {
                     outStream.close();
                 }
             }
