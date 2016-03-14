@@ -29,65 +29,50 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.convert.geonames;
+package org.xbib.tools.feed.elasticsearch.wikidata;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.tools.convert.Converter;
+import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
-import org.xbib.util.Strings;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
-import java.util.Scanner;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.nio.charset.StandardCharsets;
 
-/**
- * Import geonames, UTF-8 tab-separated in ZIP
- */
-public class GeonamesFromZIP extends Converter {
+public class Wikidata extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(GeonamesFromZIP.class);
-
+    @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
-        return p -> new GeonamesFromZIP().setPipeline(p);
+        return p -> new Wikidata().setPipeline(p);
     }
 
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            ZipInputStream zin = new ZipInputStream(in);
-            for (ZipEntry zipEntry; (zipEntry = zin.getNextEntry()) != null; ) {
-                logger.info("reading zip entry {}", zipEntry.getName());
-                Scanner sc = new Scanner(zin, "UTF-8");
-                while (sc.hasNextLine()) {
-                    int i = 0;
-                    String[] line = sc.nextLine().split("\t");
-                    String geonameid = line[i++];
-                    String name = line[i++];
-                    String asciiname = line[i++];
-                    String[] alternatenames = line[i++].split(",");
-                    Double latitude = Double.parseDouble(line[i++]);
-                    Double longitude = Double.parseDouble(line[i++]);
-                    String featureClass = line[i++];
-                    String featureCode = line[i++];
-                    String country = line[i++];
-                    String cc2 = line[i++];
-                    String admin1 = line[i++];
-                    String admin2 = line[i++];
-                    String admin3 = line[i++];
-                    String admin4 = line[i++];
-                    Long population = Long.parseLong(line[i++]);
-                    String elevationStr = line[i++];
-                    Integer elevation = Strings.isNullOrEmpty(elevationStr) ? 0 : Integer.parseInt(line[i++]);
-                    String dem = line[i++];
-                    String timezone = line[i];
+            Reader r = new InputStreamReader(in, StandardCharsets.UTF_8);
+            BufferedReader reader = new BufferedReader(r);
+            String line;
+            long count = 0;
+            IndexDefinition indexDefinition = indexDefinitionMap.get("wikidata");
+            while ((line = reader.readLine()) != null) {
+                // skip JSON array
+                if ("[".equals(line) || "]".equals(line)) {
+                    continue;
                 }
+                if (line.endsWith(",")) {
+                    line = line.substring(0, line.length()-1);
+                }
+                ingest.index(indexDefinition.getConcreteIndex(),
+                        indexDefinition.getType(),
+                        String.valueOf(count++), line);
             }
-            zin.close();
+            reader.close();
         }
     }
-
 }

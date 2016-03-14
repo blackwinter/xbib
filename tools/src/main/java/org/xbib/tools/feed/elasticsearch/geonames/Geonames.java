@@ -49,11 +49,11 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  * Import geonames, UTF-8 tab-separated in ZIP
  * Example: cities1000.zip
  */
-public class GeonamesFromZIP extends Feeder {
+public class Geonames extends Feeder {
 
     @Override
     protected WorkerProvider<Converter> provider() {
-        return p -> new GeonamesFromZIP().setPipeline(p);
+        return p -> new Geonames().setPipeline(p);
     }
 
     @Override
@@ -107,8 +107,8 @@ public class GeonamesFromZIP extends Feeder {
                             .field("dem", dem)
                             .field("timezone", timezone)
                             .endObject();
-                    ingest.index(indexDefinitionMap.get("bib").getConcreteIndex(),
-                            indexDefinitionMap.get("bib").getType(),
+                    ingest.index(indexDefinitionMap.get("geonames").getConcreteIndex(),
+                            indexDefinitionMap.get("geonames").getType(),
                             geonameid,
                             builder.string());
                 }

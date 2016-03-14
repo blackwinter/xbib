@@ -71,14 +71,15 @@ public class VIAF extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
+
             IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
             Reader r = new InputStreamReader(in, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(r);
             String line;
             while ((line = reader.readLine()) != null) {
                 RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
-                        settings.get("index", "viaf"),
-                        settings.get("type", "viaf"));
+                        indexDefinitionMap.get("viaf").getConcreteIndex(),
+                        indexDefinitionMap.get("viaf").getType());
                 params.setHandler((content, p) -> {
                     if (settings.getAsBoolean("mock", false)) {
                         logger.info("{}/{}/{} {}", p.getIndex(), p.getType(), p.getId(), content);
@@ -98,6 +99,5 @@ public class VIAF extends Feeder {
             reader.close();
         }
     }
-
 }
 

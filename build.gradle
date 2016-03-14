@@ -13,7 +13,7 @@ println "Timestamp: " + java.time.Instant.now().atZone(java.time.ZoneId.systemDe
 
 ext {
   versions = [
-    'xbib-elasticsearch' : '2.2.0.4',
+    'xbib-elasticsearch' : '2.2.0.5',
     'jackson': '2.6.5',
     'netty': '4.0.34.Final',
     'woodstox' : '5.0.2',
