@@ -165,7 +165,7 @@ public class Converter
     }
 
     protected void disposeResources(int returncode) throws IOException {
-        fileOutput.closeFileMap();
+        fileOutput.closeFileMap(returncode);
     }
 
     protected void disposeRequests(int returncode) throws IOException {

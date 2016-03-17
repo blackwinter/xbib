@@ -1239,11 +1239,6 @@ public class HoldingsLicensesWorker
             logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, len);
             return false;
         }
-        if (holdingsLicensesMerger.docs().contains(id)) {
-            return false;
-        } else {
-            holdingsLicensesMerger.docs().add(id);
-        }
         return true;
     }
 

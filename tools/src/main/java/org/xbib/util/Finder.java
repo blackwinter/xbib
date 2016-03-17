@@ -145,24 +145,42 @@ public class Finder {
     }
 
     public Queue<PathFile> getPathFiles() {
+        return getPathFiles(-1);
+    }
+
+    public Queue<PathFile> getPathFiles(long max) {
         if (comparator != null) {
             Collections.sort(input, comparator);
         }
-        return new ConcurrentLinkedQueue<>(input);
+        return input.stream()
+                .limit(max < 0 ? input.size() : max)
+                .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
+    }
+
+    public Queue<PathFile> skipPathFiles(long skip) {
+        if (comparator != null) {
+            Collections.sort(input, comparator);
+        }
+        return input.stream()
+                .skip(skip < 0 ? 0 : skip)
+                .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
     }
 
     public Queue<URI> getURIs() {
         return getURIs(-1);
     }
 
-    public Queue<URI> getURIs(int max) {
-        return getPathFiles().stream()
+    public Queue<URI> getURIs(long max) {
+        if (comparator != null) {
+            Collections.sort(input, comparator);
+        }
+        return input.stream()
                 .map(p -> p.getPath().toAbsolutePath().toUri())
                 .limit(max < 0 ? input.size() : max)
                 .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
     }
 
-    static class PathFile {
+    public static class PathFile {
         private Path path;
         private BasicFileAttributes attr;
 
@@ -177,6 +195,10 @@ public class Finder {
 
         public BasicFileAttributes getAttributes() {
             return attr;
+        }
+
+        public String toString() {
+            return path.toString();
         }
     }
 

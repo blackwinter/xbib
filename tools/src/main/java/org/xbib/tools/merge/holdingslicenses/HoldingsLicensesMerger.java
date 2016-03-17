@@ -88,13 +88,10 @@ public class HoldingsLicensesMerger extends Merger {
 
     private Meter queryMetric;
 
-    private Set<String> docs;
-
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
         this.holdingsLicensesMerger = this;
-        this.docs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.metrics = new Metrics();
         this.queryMetric = new Meter();
         queryMetric.spawn(5L);
@@ -283,10 +280,6 @@ public class HoldingsLicensesMerger extends Merger {
 
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
-    }
-
-    public Set<String> docs() {
-        return docs;
     }
 
 }
