@@ -95,15 +95,15 @@ public class FileInput {
                     fileMap.put(inputKey, Collections.singletonList(input));
                 }
             } else if (inputSettings.get("pattern") != null) {
-                String pattern = inputSettings.get("pattern");
-                logger.info("{}: preparing inputs from pattern={}", inputKey, pattern);
+                String base = inputSettings.get("base");
+                String basepattern = inputSettings.get("basepattern");
+                String path = inputSettings.get("path");
+                String pathpattern = inputSettings.get("pattern");
+                // default: queue all files, orderd by last modified timestamp in ascending order
                 Queue<URI> uris = new Finder()
-                        .find(inputSettings.get("base"),
-                                inputSettings.get("basepattern"),
-                                inputSettings.get("path"),
-                                pattern)
-                        .sortBy(inputSettings.get("sort_by"))
-                        .order(inputSettings.get("order"))
+                        .find(base, basepattern, path, pathpattern)
+                        .sortBy(inputSettings.get("sort_by", "lastmodified"))
+                        .order(inputSettings.get("order", "asc"))
                         .getURIs(inputSettings.getAsInt("max", -1));
                 logger.info("{} URIs = {}", uris.size(), uris);
                 if (inputKey.startsWith("queue")) {
