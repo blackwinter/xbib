@@ -69,6 +69,8 @@ public class Converter
 
     private int number;
 
+    private URIWorkerRequest request;
+
     public int run(Settings settings) throws Exception {
         this.fileInput = new FileInput();
         this.fileOutput = new FileOutput();
@@ -116,7 +118,7 @@ public class Converter
                 for (Map.Entry<Converter, Throwable> entry : throwables.entrySet()) {
                     Converter w = entry.getKey();
                     Throwable t = entry.getValue();
-                    logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
+                    logger.error(w + ": " + w.getRequest() + ": " + t.getMessage(), t);
                 }
                 returncode = 1;
             }
@@ -135,11 +137,15 @@ public class Converter
     }
 
     @Override
-    public void processRequest(Worker<Pipeline<Converter, URIWorkerRequest>, URIWorkerRequest> worker,
-                               URIWorkerRequest request) throws Exception {
+    protected void processRequest(URIWorkerRequest request) throws Exception {
+        this.request = request;
         URI uri = request.get();
         logger.info("processing URI {}", uri);
         process(uri);
+    }
+
+    public URIWorkerRequest getRequest() {
+        return request;
     }
 
     protected void scheduleMetrics() {

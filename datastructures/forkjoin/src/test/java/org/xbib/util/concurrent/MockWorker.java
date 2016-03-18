@@ -136,7 +136,7 @@ public class MockWorker extends AbstractWorker<Pipeline<MockWorker,URIWorkerRequ
     }
 
     @Override
-    public void processRequest(Worker<Pipeline<MockWorker, URIWorkerRequest>, URIWorkerRequest> worker, URIWorkerRequest request) {
+    protected void processRequest(URIWorkerRequest request) {
         try {
             URI uri = request.get();
             logger.info("new request for URI {}", uri);

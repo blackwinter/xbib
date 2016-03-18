@@ -33,8 +33,6 @@ package org.xbib.util.concurrent;
 
 import org.xbib.metrics.Meter;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * This abstract class can be used for creating custom workers.
  *
@@ -46,12 +44,6 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
     private P pipeline;
 
     private Meter metric;
-
-    private R element;
-
-    public R getElement() {
-        return element;
-    }
 
     @Override
     public Worker<P, R> setPipeline(P pipeline) {
@@ -87,10 +79,8 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
     /**
      * Call this thread. Take next request and pass them to request listeners.
      * At least, this pipeline itself can listen to requests and handle errors.
-     * Only PipelineExceptions are handled for each listener. Other execptions will quit the
-     * pipeline request executions.
      * @return a metric about the pipeline request executions.
-     * @throws Exception if pipeline execution was sborted by a non-PipelineException
+     * @throws Exception is not thrown but caught, forwarded to quit()
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -100,13 +90,13 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
             meter.spawn(5L);
             setMetric(meter);
         }
-        element = null;
+        R request = null;
         try {
-            element = (R)pipeline.getQueue().take();
-            while (element != null && element.get() != null) {
-                processRequest(this, element);
+            request = (R)pipeline.getQueue().take();
+            while (request != null && request.get() != null) {
+                processRequest(request);
                 metric.mark();
-                element = (R)pipeline.getQueue().take();
+                request = (R)pipeline.getQueue().take();
             }
             pipeline.quit(this);
         } catch (Throwable t) {
@@ -115,14 +105,13 @@ public abstract class AbstractWorker<P extends Pipeline, R extends WorkerRequest
             close();
             metric.stop();
         }
-        return element;
+        return request;
     }
 
     /**
-     * A new request for the pipeline is processed.
-     * @param worker the pipeline
-     * @param request the pipeline request
+     * A request for the worker is processed.
+     * @param request the request
      */
-    public abstract void processRequest(Worker<P,R> worker, R request) throws Exception;
+    protected abstract void processRequest(R request) throws Exception;
 
 }

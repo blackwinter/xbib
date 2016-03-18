@@ -46,6 +46,8 @@ public class ExceptionMockWorker extends AbstractWorker<Pipeline<ExceptionMockWo
 
     private String config;
 
+    private URIWorkerRequest request;
+
     @SuppressWarnings("unchecked")
     public void bootstrap() throws Exception {
         try {
@@ -80,7 +82,7 @@ public class ExceptionMockWorker extends AbstractWorker<Pipeline<ExceptionMockWo
                     for (Map.Entry<ExceptionMockWorker, Throwable> entry : getPipeline().getWorkerErrors().getThrowables().entrySet()) {
                         ExceptionMockWorker w = entry.getKey();
                         Throwable t = entry.getValue();
-                        logger.error(w + ": " + w.getElement() + ": " + t.getMessage(), t);
+                        logger.error(w + ": " + w.getRequest() + ": " + t.getMessage(), t);
                     }
                 }
             }
@@ -142,11 +144,15 @@ public class ExceptionMockWorker extends AbstractWorker<Pipeline<ExceptionMockWo
     }
 
     @Override
-    public void processRequest(Worker<Pipeline<ExceptionMockWorker, URIWorkerRequest>, URIWorkerRequest> worker,
-                               URIWorkerRequest request) throws Exception {
+    protected void processRequest(URIWorkerRequest request) throws Exception {
+        this.request = request;
         URI uri = request.get();
         logger.info("new request for URI {}", uri);
         process(uri);
+    }
+
+    protected URIWorkerRequest getRequest() {
+        return request;
     }
 
     class ConfiguredPipeline extends ForkJoinPipeline {

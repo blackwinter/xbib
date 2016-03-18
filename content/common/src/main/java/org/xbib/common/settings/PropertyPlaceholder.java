@@ -51,7 +51,7 @@ public class PropertyPlaceholder {
      * @return the supplied value with placeholders replaced inline.
      */
     public String replacePlaceholders(String value, PlaceholderResolver placeholderResolver) {
-        return parseStringValue(value, placeholderResolver, new HashSet<String>());
+        return parseStringValue(value, placeholderResolver, new HashSet<>());
     }
 
     protected String parseStringValue(String strVal, PlaceholderResolver placeholderResolver,
