@@ -668,18 +668,17 @@ public class SerialRecord implements Comparable<SerialRecord> {
                 o = Collections.singletonList(o);
             }
             this.links = (List) o;
-            makeGreenDates(links);
-            return;
+            makeGreenDates();
+        } else {
+            this.links = Collections.EMPTY_LIST;
         }
-        this.links = Collections.EMPTY_LIST;
     }
 
     private final static Pattern yearPattern = Pattern.compile("(\\d\\d\\d\\d)");
 
-    private void makeGreenDates(List<Map<String, Object>> links) {
+    private void makeGreenDates() {
         for (Map<String, Object> link : links) {
-            boolean b = "kostenfrei".equals(link.get("publicnote"));
-            if (b) {
+            if ("kostenfrei".equals(link.get("publicnote"))) {
                 Object o = link.get("nonpublicnote");
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -847,7 +846,8 @@ public class SerialRecord implements Comparable<SerialRecord> {
     }
 
     /**
-     * Iterate through relations. Check for DNB IDs and remember as internal IDs.
+     * Iterate through relations.
+     * Check for DNB IDs and remember as internal IDs.
      * Check for ZDB IDs and remember as external IDs.
      */
     private void makeRelations() {

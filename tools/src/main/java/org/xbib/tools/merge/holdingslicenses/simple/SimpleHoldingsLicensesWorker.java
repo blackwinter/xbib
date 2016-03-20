@@ -169,17 +169,18 @@ public class SimpleHoldingsLicensesWorker
     private void process(SerialRecord serialRecord) throws IOException {
         addSerialHoldings(serialRecord);
         addMonographs(serialRecord);
-        // we really just rely on the carrier type to look for online access information
         if ("online resource".equals(serialRecord.carrierType())) {
-            addLicenses(serialRecord);
-            addIndicators(serialRecord);
+            // EZB
+            addLicenses(serialRecord, serialRecord.externalID());
+            addIndicators(serialRecord, serialRecord.externalID());
+        } else {
+            if (serialRecord.getOnlineExternalID() != null) {
+                // join EZB to print resource
+                addLicenses(serialRecord, serialRecord.getOnlineExternalID());
+                addIndicators(serialRecord, serialRecord.getOnlineExternalID());
+            }
         }
-        // find open access
-        boolean found = false;
-        for (String issn : serialRecord.getISSNs()) {
-            found = found || findOpenAccess(simpleHoldingsLicensesMerger.getSourceOpenAccessIndex(), issn);
-        }
-        serialRecord.setOpenAccess(found);
+        addOpenAccess(serialRecord);
         indexTitleRecord(serialRecord);
     }
 
@@ -255,8 +256,8 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private void addLicenses(SerialRecord serialRecord) throws IOException {
-        QueryBuilder queryBuilder = termsQuery("ezb:zdbid", serialRecord.externalID());
+    private void addLicenses(SerialRecord serialRecord, String zdbId) throws IOException {
+        QueryBuilder queryBuilder = termsQuery("ezb:zdbid", zdbId);
         // getSize is per shard
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
@@ -322,8 +323,8 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private void addIndicators(SerialRecord serialRecord) throws IOException {
-        QueryBuilder queryBuilder = termsQuery("xbib:identifier", serialRecord.externalID());
+    private void addIndicators(SerialRecord serialRecord, String zdbId) throws IOException {
+        QueryBuilder queryBuilder = termsQuery("xbib:identifier", zdbId);
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(simpleHoldingsLicensesMerger.getSourceIndicatorIndex())
@@ -591,6 +592,15 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
+    private void addOpenAccess(SerialRecord serialRecord) {
+        // find at least one open access via ISSN
+        boolean found = false;
+        for (String issn : serialRecord.getISSNs()) {
+            found = found || findOpenAccess(simpleHoldingsLicensesMerger.getSourceOpenAccessIndex(), issn);
+        }
+        serialRecord.setOpenAccess(found);
+    }
+
     private boolean findOpenAccess(String index, String issn) {
         SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(simpleHoldingsLicensesMerger.search().client(),
                 SearchAction.INSTANCE);
@@ -598,7 +608,7 @@ public class SimpleHoldingsLicensesWorker
                 .setSize(0)
                 .setIndices(index)
                 .setQuery(termQuery("dc:identifier", issn));
-        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet(30, TimeUnit.SECONDS);
+        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
         logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
         return searchResponse.getHits().getTotalHits() > 0;
     }
@@ -614,7 +624,7 @@ public class SimpleHoldingsLicensesWorker
             for (MonographVolume volume : serialRecord.getMonographVolumes()) {
                 XContentBuilder builder = jsonBuilder();
                 buildMonographVolume(builder, volume, statCounter);
-                checkForIndex(simpleHoldingsLicensesMerger.getManifestationsIndex(),
+                index(simpleHoldingsLicensesMerger.getManifestationsIndex(),
                         simpleHoldingsLicensesMerger.getManifestationsIndexType(),
                         volume.externalID(), builder);
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
@@ -624,7 +634,7 @@ public class SimpleHoldingsLicensesWorker
                         buildMonographHolding(builder, volumeHolding);
                         // to holding index
                         String hid = volume.externalID();
-                        checkForIndex(simpleHoldingsLicensesMerger.getHoldingsIndex(),
+                        index(simpleHoldingsLicensesMerger.getHoldingsIndex(),
                                 simpleHoldingsLicensesMerger.getHoldingsIndexType(),
                                 hid, builder);
 
@@ -634,7 +644,7 @@ public class SimpleHoldingsLicensesWorker
                         // extra entry by date
                         String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
-                        checkForIndex(simpleHoldingsLicensesMerger.getVolumesIndex(),
+                        index(simpleHoldingsLicensesMerger.getVolumesIndex(),
                                 simpleHoldingsLicensesMerger.getVolumesIndexType(),
                                 vhid, builder);
 
@@ -678,7 +688,7 @@ public class SimpleHoldingsLicensesWorker
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         buildService(serviceBuilder, holding);
-                        checkForIndex(simpleHoldingsLicensesMerger.getServicesIndex(),
+                        index(simpleHoldingsLicensesMerger.getServicesIndex(),
                                 simpleHoldingsLicensesMerger.getServicesIndexType(),
                                 serviceId,
                                 serviceBuilder);
@@ -696,36 +706,35 @@ public class SimpleHoldingsLicensesWorker
             builder.endArray();
             builder.field("institutioncount", instcount);
             builder.endObject();
-            // first, build holdings per year
+            // now, build holdings per year
             MultiMap<Integer,Holding> map = serialRecord.getHoldingsByDate();
             for (Integer date : map.keySet()) {
                 Collection<Holding> holdings = map.get(date);
                 String volumeId = serialRecord.externalID() + (date != -1 ? "." + date : "");
-                builder = jsonBuilder();
-                buildVolume(builder, serialRecord, serialRecord.externalID(), date, holdings);
-                checkForIndex(simpleHoldingsLicensesMerger.getVolumesIndex(),
+                XContentBuilder volumeBuilder = jsonBuilder();
+                buildVolume(volumeBuilder, serialRecord, date, holdings);
+                index(simpleHoldingsLicensesMerger.getVolumesIndex(),
                         simpleHoldingsLicensesMerger.getVolumesIndexType(),
-                        volumeId, builder);
+                        volumeId, volumeBuilder);
             }
             if (statCounter != null) {
                 statCounter.increase("stat", "volumes", map.size());
             }
-            // second, add one holding per manifestation
-            checkForIndex(simpleHoldingsLicensesMerger.getHoldingsIndex(),
+            // finally, add one holding per manifestation
+            index(simpleHoldingsLicensesMerger.getHoldingsIndex(),
                     simpleHoldingsLicensesMerger.getHoldingsIndexType(),
                     serialRecord.externalID(),
                     builder);
             if (statCounter != null) {
                 statCounter.increase("stat", "holdings", 1);
             }
-
         }
         if (statCounter != null) {
             statCounter.increase("stat", "manifestations", 1);
         }
         XContentBuilder builder = jsonBuilder();
         buildManifestation(builder, serialRecord, statCounter);
-        checkForIndex(simpleHoldingsLicensesMerger.getManifestationsIndex(),
+        index(simpleHoldingsLicensesMerger.getManifestationsIndex(),
                 simpleHoldingsLicensesMerger.getManifestationsIndexType(),
                 serialRecord.externalID(), builder);
     }
@@ -734,8 +743,7 @@ public class SimpleHoldingsLicensesWorker
                                     SerialRecord serialRecord,
                                     StatCounter statCounter) throws IOException {
         builder.startObject();
-        builder.field("identifierForTheManifestation", serialRecord.externalID())
-                .field("title", serialRecord.getExtendedTitle())
+        builder.field("title", serialRecord.getExtendedTitle())
                 .field("titlecomponents", serialRecord.getTitleComponents());
         String s = serialRecord.corporateName();
         if (s != null) {
@@ -755,11 +763,12 @@ public class SimpleHoldingsLicensesWorker
                 .field("contenttype", serialRecord.contentType())
                 .field("mediatype", serialRecord.mediaType())
                 .field("carriertype", serialRecord.carrierType())
-                .field("firstdate", serialRecord.firstDate())
-                .field("lastdate", serialRecord.lastDate());
+                .fieldIfNotNull("firstdate", serialRecord.firstDate())
+                .fieldIfNotNull("lastdate", serialRecord.lastDate());
         Set<Integer> missing = new HashSet<>(serialRecord.getDates());
         Set<Integer> set = serialRecord.getHoldingsByDate().keySet();
         builder.array("dates", set);
+        builder.field("current", set.contains(currentYear));
         missing.removeAll(set);
         builder.array("missingdates", missing);
         builder.array("missingdatescount", missing.size());
@@ -767,7 +776,7 @@ public class SimpleHoldingsLicensesWorker
         builder.field("greendatecount", serialRecord.getGreenDates().size());
         Set<String> isils = serialRecord.getRelatedHoldings().keySet();
         builder.array("isil", isils);
-        builder.array("isilcount", isils.size());
+        builder.field("isilcount", isils.size());
         builder.field("identifiers", serialRecord.getIdentifiers());
         builder.field("subseries", serialRecord.isSubseries());
         builder.field("aggregate", serialRecord.isAggregate());
@@ -800,7 +809,9 @@ public class SimpleHoldingsLicensesWorker
             }
             builder.endArray();
         }
-        builder.array("links", serialRecord.getLinks());
+        if (serialRecord.hasLinks()) {
+            builder.array("links", serialRecord.getLinks());
+        }
         builder.endObject();
         if (statCounter != null) {
             for (String country : serialRecord.country()) {
@@ -818,7 +829,6 @@ public class SimpleHoldingsLicensesWorker
     public void buildService(XContentBuilder builder, Holding holding)
             throws IOException {
         builder.startObject()
-                //.field("identifierForTheService", "(" + getServiceISIL() +")" + identifier());
                 .array("parents", holding.parents());
         builder.field("mediatype", holding.mediaType())
                 .field("carriertype", holding.carrierType())
@@ -851,12 +861,11 @@ public class SimpleHoldingsLicensesWorker
 
     public void buildMonographVolume(XContentBuilder builder, MonographVolume monographVolume, StatCounter statCounter)
             throws IOException {
-        builder.startObject();
-        builder//.field("identifierForTheManifestation", getIdentifier())
-                .array("parents", monographVolume.parents())
-                .field("title", monographVolume.getTitle())
-                .field("titlecomponents", monographVolume.getTitleComponents())
-                .field("firstdate", monographVolume.firstDate());
+        builder.startObject()
+            .array("parents", monographVolume.parents())
+            .field("title", monographVolume.getTitle())
+            .field("titlecomponents", monographVolume.getTitleComponents())
+            .fieldIfNotNull("firstdate", monographVolume.firstDate());
         String s = monographVolume.corporateName();
         if (s != null) {
             builder.field("corporateName", s);
@@ -883,7 +892,6 @@ public class SimpleHoldingsLicensesWorker
             builder.field("identifiers", monographVolume.getIdentifiers());
         }
         builder.endObject();
-
         if (statCounter != null) {
             for (String country : monographVolume.country()) {
                 statCounter.increase("country", country, 1);
@@ -902,10 +910,8 @@ public class SimpleHoldingsLicensesWorker
 
     public void buildMonographHolding(XContentBuilder builder, Holding holding) throws IOException {
         builder.startObject();
-        builder
-                //.field("identifierForTheHolding","(" + holding.getServiceISIL() + ")" + volume.externalID)
-                .array("parents", holding.parents());
-        builder.array("date", holding.dates())
+        builder.array("parents", holding.parents())
+                .array("date", holding.dates())
                 .startObject("institution")
                 .field("isil", holding.getISIL())
                 .startObject("service")
@@ -944,12 +950,10 @@ public class SimpleHoldingsLicensesWorker
 
     private void buildVolume(XContentBuilder builder,
                              SerialRecord serialRecord,
-                             String parentIdentifier,
                              Integer date,
                              Collection<Holding> holdings)
             throws IOException {
-        builder.startObject()
-                .field("identifierForTheVolume", parentIdentifier + "." + date);
+        builder.startObject();
         if (date != -1) {
             builder.field("date", date);
         }
@@ -994,7 +998,7 @@ public class SimpleHoldingsLicensesWorker
         }
     }
 
-    private void checkForIndex(String index, String type, String id, XContentBuilder builder) throws IOException {
+    private void index(String index, String type, String id, XContentBuilder builder) throws IOException {
         if (simpleHoldingsLicensesMerger.settings().getAsBoolean("mock", false)) {
             logger.debug("{}/{}/{} {}", index, type, id, builder.string());
             return;
