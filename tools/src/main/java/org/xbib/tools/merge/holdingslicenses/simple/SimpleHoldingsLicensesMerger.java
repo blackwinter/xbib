@@ -60,6 +60,7 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -208,7 +209,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
 
         logger.info("preparing ISIL blacklist...");
         isilbl = new BlackListedISIL();
-        try (InputStream in = getClass().getResourceAsStream("isil.blacklist")) {
+        try (InputStream in = getClass().getResourceAsStream(settings.get("isil.blacklist", "/org/xbib/tools/merge/holdingslicenses/isil.blacklist"))) {
             isilbl.buildLookup(in);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -217,7 +218,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
 
         logger.info("preparing mapped ISIL...");
         isilMapped = new MappedISIL();
-        try (InputStream in = getClass().getResourceAsStream("isil.map")) {
+        try (InputStream in = getClass().getResourceAsStream(settings.get("isil.map", "/org/xbib/tools/merge/holdingslicenses/isil.map"))) {
             isilMapped.buildLookup(in);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
