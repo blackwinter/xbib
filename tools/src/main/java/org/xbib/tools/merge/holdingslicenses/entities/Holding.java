@@ -38,10 +38,10 @@ import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.etl.support.EnumerationAndChronologyHelper;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -55,7 +55,7 @@ public class Holding implements Comparable<Holding> {
 
     private final static Logger logger = LogManager.getLogger(Holding.class);
 
-    private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+    protected final static Integer currentYear = LocalDate.now().getYear();
 
     protected final Map<String, Object> map;
 
@@ -409,7 +409,7 @@ public class Holding implements Comparable<Holding> {
         this.carrierType = "volume";
         if ("EZB".equals(getString("license.origin")) || map.containsKey("ElectronicLocationAndAccess")) {
             this.mediaType = "computer";
-            this.carrierType = "online resource";
+            this.carrierType = "online resource"; // triggers license/indicator search
             return;
         }
         Object o = map.get("textualholdings");
@@ -602,6 +602,7 @@ public class Holding implements Comparable<Holding> {
         }
         builder.fieldIfNotNull("comment", getServiceComment())
                 .field("info", getInfo())
+                .field("current", dates().contains(currentYear))
                 .endObject();
     }
 

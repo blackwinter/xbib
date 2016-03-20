@@ -189,7 +189,9 @@ public class MonographVolumeHolding extends Holding {
                 .fieldIfNotNull("callnumber", map.get("callnumber")) // 088 c (Signatur)
                         //.fieldIfNotNull("collection", map.get("collection")) // 088 d zus. Bestandsangabe (nicht vorhanden)
                 .endObject();
-        builder.endObject().endObject();
+        builder.endObject();
+        builder.field("current", dates().contains(currentYear));
+        builder.endObject();
     }
 
     @Override

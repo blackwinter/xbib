@@ -431,7 +431,6 @@ public class HoldingsLicensesWorker
         Map<String, SerialRecord> map = new HashMap<>();
         for (SerialRecord m : serialRecords) {
             map.put("(DE-600)" + m.id(), m);
-            // add print if not already there...
             if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
                 map.put("(DE-600)" + m.getPrintID(), m);
             }

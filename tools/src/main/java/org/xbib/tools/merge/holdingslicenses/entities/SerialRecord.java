@@ -171,14 +171,14 @@ public class SerialRecord implements Comparable<SerialRecord> {
         findLinks();
         findSupplement();
         this.genre = getString("OtherCodes.genre");
-        String genreCode = getString("OtherCodes.genreSource");
         this.resourceType = getString("typeOfContinuingResource");
         this.isWebsite = "Updating Web site".equals(resourceType);
         this.isDatabase = "Updating database".equals(resourceType);
-        this.isPacket = "pt".equals(genreCode);
         this.isNewspaper = "Newspaper".equals(resourceType);
         String natureOfContent = getString("natureOfContent");
         this.isBibliography = "Bibliographies".equals(natureOfContent);
+        String genreCode = getString("OtherCodes.genreSource");
+        this.isPacket = "pt".equals(genreCode);
         boolean isAgg = "ag".equals(genreCode);
         this.isAggregate = isWebsite || isDatabase || isPacket || isNewspaper || isBibliography || isAgg;
         computeContentTypes();
@@ -406,6 +406,11 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     public Map<String, Object> getIdentifiers() {
         return identifiers;
+    }
+
+    public Collection<String> getISSNs() {
+        Collection<String> issns = (Collection<String>) getIdentifiers().get("issn");
+        return issns == null ? Collections.EMPTY_LIST : issns;
     }
 
     public boolean hasLinks() {
@@ -693,7 +698,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
                 return;
             }
         }
-        // before assuming unmediated text, check title strings for media phrases
+        // before assuming text without any media, check title strings for media phrases
         String[] phraseTitles = new String[]{
                 getString("AdditionalPhysicalFormNote.value"),
                 getString("OtherCodes.genre"),
@@ -935,13 +940,18 @@ public class SerialRecord implements Comparable<SerialRecord> {
         }
     }
 
+    /**
+     * Coserce indicators into holdings/licenses, if exist
+     * @param relation relation
+     * @param indicator indicator
+     */
     public void addRelatedIndicator(String relation, Indicator indicator) {
         // already exist?
         Collection<Holding> c = relatedHoldings.get(relation);
         if (c != null && c.contains(indicator)) {
             return;
         }
-        // coerce with licenses first
+        // coerce indicator with licenses first
         Collection<Holding> oldHoldings = relatedHoldings.get(relation);
         Collection<Holding> newHoldings = indicator.coerceWithLicense(oldHoldings);
         if (newHoldings == null) {

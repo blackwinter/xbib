@@ -42,13 +42,13 @@ public class Expression {
 
     private SerialRecord serialRecord;
 
-    private TitleRecordCluster titleRecordCluster;
+    private SerialRecordCluster serialRecordCluster;
 
     private StatCounter statCounter;
 
-    public Expression(SerialRecord serialRecord, TitleRecordCluster titleRecordCluster) {
+    public Expression(SerialRecord serialRecord, SerialRecordCluster serialRecordCluster) {
         this.serialRecord = serialRecord;
-        this.titleRecordCluster = titleRecordCluster;
+        this.serialRecordCluster = serialRecordCluster;
     }
 
     public SerialRecord getSerialRecord() {
@@ -67,8 +67,8 @@ public class Expression {
         builder.startObject();
         builder.field("identifierForTheExpression", serialRecord.externalID);
         builder.field("title", serialRecord.getTitleComponents());
-        builder.field("firstdate", titleRecordCluster.getFirstDate());
-        builder.field("lastdate", titleRecordCluster.getLastDate());
+        builder.field("firstdate", serialRecordCluster.getFirstDate());
+        builder.field("lastdate", serialRecordCluster.getLastDate());
         // struct counter
         builder.startObject("count");
         for (Map.Entry<String,Map<String,Integer>> entry : statCounter.entrySet()) {
@@ -85,7 +85,7 @@ public class Expression {
         builder.endObject();
         // list all titles
         builder.startArray("titles");
-        for (SerialRecord serialRecord : titleRecordCluster.getMain()) {
+        for (SerialRecord serialRecord : serialRecordCluster.getMain()) {
             builder.startObject();
             builder.field("identifierForTheTitle", serialRecord.externalID());
             builder.field("firstdate", serialRecord.firstDate());
@@ -104,7 +104,7 @@ public class Expression {
                 }
             }
         }
-        for (SerialRecord serialRecord : titleRecordCluster.getOther()) {
+        for (SerialRecord serialRecord : serialRecordCluster.getOther()) {
             builder.startObject();
             builder.field("identifierForTheTitle", serialRecord.externalID());
             builder.field("main", false);

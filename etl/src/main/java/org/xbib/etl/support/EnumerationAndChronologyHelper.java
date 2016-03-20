@@ -38,7 +38,7 @@ import org.xbib.rdf.Node;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.Resource;
 
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class EnumerationAndChronologyHelper {
 
     private static final Logger logger = LogManager.getLogger(EnumerationAndChronologyHelper.class.getName());
 
-    private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+    private final static Integer currentYear = LocalDate.now().getYear();
 
     // yyyy
     private final static Pattern[] p1a = new Pattern[] {
