@@ -45,7 +45,7 @@ import org.xbib.elasticsearch.helper.client.Ingest;
 import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.tools.merge.Merger;
-import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -235,19 +235,19 @@ public class ArticlesMerger extends Merger {
                     }
                     docs.add(id);
                     Set<Integer> dates = new LinkedHashSet<>();
-                    List<TitleRecord> titleRecords = new LinkedList<>();
-                    TitleRecord titleRecord = expand(id);
-                    if (titleRecord == null) {
+                    List<SerialRecord> serialRecords = new LinkedList<>();
+                    SerialRecord serialRecord = expand(id);
+                    if (serialRecord == null) {
                         continue;
                     }
-                    Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("formattedissn");
+                    Collection<String> issns = (Collection<String>) serialRecord.getIdentifiers().get("formattedissn");
                     if (issns != null) {
                         for (String issn : issns) {
-                            expandOA(titleRecord, issn);
+                            expandOA(serialRecord, issn);
                         }
                     }
-                    titleRecords.add(titleRecord);
-                    Collection<Integer> manifestationDates = titleRecord.getDates();
+                    serialRecords.add(serialRecord);
+                    Collection<Integer> manifestationDates = serialRecord.getDates();
                     if (manifestationDates != null) {
                         dates.addAll(manifestationDates);
                     }
@@ -261,10 +261,10 @@ public class ArticlesMerger extends Merger {
                                     continue;
                                 }
                                 docs.add(relid);
-                                TitleRecord m = expand(relid);
+                                SerialRecord m = expand(relid);
                                 if (m != null) {
-                                    titleRecords.add(m);
-                                    logger.info("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
+                                    serialRecords.add(m);
+                                    logger.info("{} + {} added manifestation", serialRecord.externalID(), m.externalID());
                                     manifestationDates = m.getDates();
                                     if (manifestationDates != null) {
                                         dates.addAll(manifestationDates);
@@ -276,18 +276,18 @@ public class ArticlesMerger extends Merger {
                     for (Integer date : dates) {
                         SerialItem serialItem = new SerialItem();
                         serialItem.setDate(date);
-                        for (TitleRecord m : titleRecords) {
+                        for (SerialRecord m : serialRecords) {
                             if (m.firstDate() != null && m.lastDate() != null) {
                                 if (m.firstDate() <= date && date <= m.lastDate()) {
-                                    serialItem.addManifestation(titleRecord);
+                                    serialItem.addManifestation(serialRecord);
                                 }
                             } else if (m.firstDate() != null) {
                                 if (m.firstDate() <= date) {
-                                    serialItem.addManifestation(titleRecord);
+                                    serialItem.addManifestation(serialRecord);
                                 }
                             }
                         }
-                        if (!serialItem.getTitleRecords().isEmpty()) {
+                        if (!serialItem.getSerialRecords().isEmpty()) {
                             getPipeline().getQueue().put(new SerialItemRequest().set(serialItem));
                         }
                     }
@@ -346,7 +346,7 @@ public class ArticlesMerger extends Merger {
         return millis;
     }
 
-    private TitleRecord expand(String id) throws IOException {
+    private SerialRecord expand(String id) throws IOException {
         QueryBuilder queryBuilder = termQuery("IdentifierZDB.identifierZDB", id);
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
                 .setIndices(settings().get("zdb-index", "zdb"))
@@ -358,10 +358,10 @@ public class ArticlesMerger extends Merger {
             logger.warn("ZDB-ID {} does not exist", id);
             return null;
         }
-        return new TitleRecord(hits.getAt(0).getSource());
+        return new SerialRecord(hits.getAt(0).getSource());
     }
 
-    private TitleRecord expandOA(TitleRecord titleRecord, String issn) throws IOException {
+    private SerialRecord expandOA(SerialRecord serialRecord, String issn) throws IOException {
         QueryBuilder queryBuilder = termQuery("dc:identifier", issn);
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
                 .setIndices(settings().get("doaj-index", "doaj"))
@@ -370,13 +370,13 @@ public class ArticlesMerger extends Merger {
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length > 0) {
-            titleRecord.setOpenAccess(true);
+            serialRecord.setOpenAccess(true);
             String license = hits.getAt(0).getSource().containsKey("dc:rights") ?
                     hits.getAt(0).getSource().get("dc:rights").toString() : null;
-            titleRecord.setLicense(license);
-            logger.info("{} set to open access: {}", titleRecord.externalID(), license);
+            serialRecord.setLicense(license);
+            logger.info("{} set to open access: {}", serialRecord.externalID(), license);
         }
-        return titleRecord;
+        return serialRecord;
     }
 
 }

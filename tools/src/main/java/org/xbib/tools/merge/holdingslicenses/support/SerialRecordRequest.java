@@ -29,25 +29,25 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.holdingslicenses;
+package org.xbib.tools.merge.holdingslicenses.support;
 
-import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.util.concurrent.WorkerRequest;
 
-public class TitelRecordRequest implements WorkerRequest<TitleRecord> {
+public class SerialRecordRequest implements WorkerRequest<SerialRecord> {
 
-    private TitleRecord titleRecord;
+    private SerialRecord serialRecord;
 
-    public TitelRecordRequest set(TitleRecord titleRecord) {
-        this.titleRecord = titleRecord;
+    public SerialRecordRequest set(SerialRecord serialRecord) {
+        this.serialRecord = serialRecord;
         return this;
     }
 
-    public TitleRecord get() {
-        return titleRecord;
+    public SerialRecord get() {
+        return serialRecord;
     }
 
     public String toString() {
-        return titleRecord.toString();
+        return serialRecord.toString();
     }
 }

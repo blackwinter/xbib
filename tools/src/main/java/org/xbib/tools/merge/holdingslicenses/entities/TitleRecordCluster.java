@@ -49,15 +49,15 @@ public class TitleRecordCluster {
 
     private Integer lastDate = Integer.MIN_VALUE;
 
-    private Set<TitleRecord> main = new TreeSet<>();
+    private Set<SerialRecord> main = new TreeSet<>();
 
-    private Set<TitleRecord> other = new TreeSet<>();
+    private Set<SerialRecord> other = new TreeSet<>();
 
     private List<Expression> expressions = new ArrayList<>();
 
     private WorkSet workSet = new WorkSet();
 
-    public void addMain(Collection<TitleRecord> main) {
+    public void addMain(Collection<SerialRecord> main) {
         this.main.addAll(main);
         // expressions
         findExpressions();
@@ -73,15 +73,15 @@ public class TitleRecordCluster {
         }
     }
 
-    public void addOther(Collection<TitleRecord> other) {
+    public void addOther(Collection<SerialRecord> other) {
         this.other.addAll(other);
     }
 
-    public Collection<TitleRecord> getMain() {
+    public Collection<SerialRecord> getMain() {
         return main;
     }
 
-    public Collection<TitleRecord> getOther() {
+    public Collection<SerialRecord> getOther() {
         return other;
     }
 
@@ -93,8 +93,8 @@ public class TitleRecordCluster {
         return workSet;
     }
 
-    public Collection<TitleRecord> getAll() {
-        Set<TitleRecord> set = new TreeSet<>();
+    public Collection<SerialRecord> getAll() {
+        Set<SerialRecord> set = new TreeSet<>();
         set.addAll(main);
         set.addAll(other);
         return set;
@@ -109,15 +109,15 @@ public class TitleRecordCluster {
     }
 
     private void findExpressions() {
-        List<TitleRecord> headRecords = new ArrayList<>();
+        List<SerialRecord> headRecords = new ArrayList<>();
         // special case of single element
         if (main.size() == 1) {
-            TitleRecord tr = main.iterator().next();
+            SerialRecord tr = main.iterator().next();
             headRecords.add(tr);
             this.firstDate = tr.firstDate();
             this.lastDate = tr.lastDate();
         } else {
-            for (TitleRecord m : this.main) {
+            for (SerialRecord m : this.main) {
                 if (m.firstDate() == null) {
                     continue;
                 }
@@ -129,9 +129,9 @@ public class TitleRecordCluster {
                     this.lastDate = d;
                 }
                 // we have to check all related title records for first/last dates
-                MultiMap<String,TitleRecord> mm  = m.getRelated();
+                MultiMap<String,SerialRecord> mm  = m.getRelated();
                 for (String key : mm.keySet()) {
-                    for (TitleRecord p : mm.get(key)) {
+                    for (SerialRecord p : mm.get(key)) {
                         if (p.firstDate() != null && p.firstDate() < firstDate) {
                             this.firstDate = p.firstDate();
                         }
@@ -165,7 +165,7 @@ public class TitleRecordCluster {
             lastDate = null;
         }
         // create expressions
-        for (TitleRecord tr : headRecords) {
+        for (SerialRecord tr : headRecords) {
             Expression expression = new Expression(tr, this);
             expressions.add(expression);
         }

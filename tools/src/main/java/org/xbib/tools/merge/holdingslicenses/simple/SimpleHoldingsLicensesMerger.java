@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.holdingslicenses;
+package org.xbib.tools.merge.holdingslicenses.simple;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,15 +45,16 @@ import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
 import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
 import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
+import org.xbib.util.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -63,14 +64,11 @@ import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-/**
- * Merge holdings and licenses
- */
-public class HoldingsLicensesMerger extends Merger {
+public class SimpleHoldingsLicensesMerger extends Merger {
 
-    private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class);
+    private final static Logger logger = LogManager.getLogger(SimpleHoldingsLicensesMerger.class);
 
-    private HoldingsLicensesMerger holdingsLicensesMerger;
+    private SimpleHoldingsLicensesMerger simpleHoldingsLicensesMerger;
 
     private BibdatLookup bibdatLookup;
 
@@ -86,10 +84,27 @@ public class HoldingsLicensesMerger extends Merger {
 
     private Meter queryMetric;
 
+    private String sourceTitleIndex;
+    private String sourceHoldingsIndex;
+    private String sourceLicenseIndex;
+    private String sourceIndicatorIndex;
+    private String sourceMonographicIndex;
+    private String sourceMonographicHoldingsIndex;
+    private String sourceOpenAccessIndex;
+
+    private String manifestationsIndex;
+    private String manifestationsIndexType;
+    private String holdingsIndex;
+    private String holdingsIndexType;
+    private String volumesIndex;
+    private String volumesIndexType;
+    private String servicesIndex;
+    private String servicesIndexType;
+
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
-        this.holdingsLicensesMerger = this;
+        this.simpleHoldingsLicensesMerger = this;
         this.metrics = new Metrics();
         this.queryMetric = new Meter();
         queryMetric.spawn(5L);
@@ -97,13 +112,14 @@ public class HoldingsLicensesMerger extends Merger {
         return super.run(settings);
     }
 
+
     protected void waitFor() throws IOException {
         try {
             // send poison elements and wait for completion
             getPipeline().waitFor(new SerialRecordRequest());
         } finally {
             long total = 0L;
-            for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+            for (SimpleHoldingsLicensesWorker worker : getPipeline().getWorkers()) {
                 logger.info("worker {}, count {}, took {}",
                         worker,
                         worker.getMetric().getCount(),
@@ -116,21 +132,20 @@ public class HoldingsLicensesMerger extends Merger {
     }
 
     @SuppressWarnings("unchecked")
-    public Pipeline<HoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
+    public Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
         return pipeline;
     }
 
     @Override
     protected WorkerProvider provider() {
-        return new WorkerProvider<HoldingsLicensesWorker>() {
+        return new WorkerProvider<SimpleHoldingsLicensesWorker>() {
             int i = 0;
 
             @Override
             @SuppressWarnings("unchecked")
-            public HoldingsLicensesWorker get(Pipeline pipeline) {
-                return (HoldingsLicensesWorker) new HoldingsLicensesWorker(settings, holdingsLicensesMerger,
-                        settings.getAsInt("worker.scrollsize", 10), // per shard!
-                        settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis(),
+            public SimpleHoldingsLicensesWorker get(Pipeline pipeline) {
+                return (SimpleHoldingsLicensesWorker) new SimpleHoldingsLicensesWorker(settings,
+                        simpleHoldingsLicensesMerger,
                         i++)
                         .setPipeline(pipeline);
             }
@@ -141,11 +156,50 @@ public class HoldingsLicensesMerger extends Merger {
     @SuppressWarnings("unchecked")
     protected void prepareRequests() throws Exception {
         super.prepareRequests();
-        Map<String,IndexDefinition> indexDefinition = getInputIndexDefinitionMap();
+        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        this.sourceTitleIndex = indexDefinitionMap.get("zdb").getIndex();
+        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
+            throw new IllegalArgumentException("no zdb index given");
+        }
+        this.sourceHoldingsIndex = indexDefinitionMap.get("zdbholdings").getIndex();
+        if (Strings.isNullOrEmpty(sourceHoldingsIndex)) {
+            throw new IllegalArgumentException("no zdbholdings index given");
+        }
+        this.sourceLicenseIndex = indexDefinitionMap.get("ezbxml").getIndex();
+        if (Strings.isNullOrEmpty(sourceLicenseIndex)) {
+            throw new IllegalArgumentException("no ezbxml index given");
+        }
+        this.sourceIndicatorIndex = indexDefinitionMap.get("ezbweb").getIndex();
+        if (Strings.isNullOrEmpty(sourceIndicatorIndex)) {
+            throw new IllegalArgumentException("no ezbweb index given");
+        }
+        this.sourceMonographicIndex = indexDefinitionMap.get("hbz").getIndex();
+        if (Strings.isNullOrEmpty(sourceMonographicIndex)) {
+            throw new IllegalArgumentException("no hbz index given");
+        }
+        this.sourceMonographicHoldingsIndex = indexDefinitionMap.get("hbzholdings").getIndex();
+        if (Strings.isNullOrEmpty(sourceMonographicHoldingsIndex)) {
+            throw new IllegalArgumentException("no hbzholdings index given");
+        }
+        this.sourceOpenAccessIndex = indexDefinitionMap.get("doaj").getIndex();
+        if (Strings.isNullOrEmpty(sourceOpenAccessIndex)) {
+            throw new IllegalArgumentException("no doaj index given");
+        }
+        indexDefinitionMap = simpleHoldingsLicensesMerger.getOutputIndexDefinitionMap();
+        String indexName = indexDefinitionMap.get("holdingslicenses").getConcreteIndex();
+        this.manifestationsIndex = indexName;
+        this.manifestationsIndexType = "manifestations";
+        this.holdingsIndex = indexName;
+        this.holdingsIndexType = "holdings";
+        this.volumesIndex = indexName;
+        this.volumesIndexType = "volumes";
+        this.servicesIndex = indexName;
+        this.servicesIndexType = "services";
+
         logger.info("preparing bibdat lookup...");
         bibdatLookup = new BibdatLookup();
         try {
-            bibdatLookup.buildLookup(search.client(), indexDefinition.get("bibdat").getIndex());
+            bibdatLookup.buildLookup(search.client(), indexDefinitionMap.get("bibdat").getIndex());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -158,7 +212,7 @@ public class HoldingsLicensesMerger extends Merger {
         // prepare "national license" / consortia ISIL expansion
         consortiaLookup = new ConsortiaLookup();
         try {
-            consortiaLookup.buildLookup(search.client(), indexDefinition.get("nlzisil").getIndex());
+            consortiaLookup.buildLookup(search.client(), indexDefinitionMap.get("nlzisil").getIndex());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -196,7 +250,7 @@ public class HoldingsLicensesMerger extends Merger {
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
-        searchRequest.setIndices(indexDefinition.get("zdb").getIndex());
+        searchRequest.setIndices(indexDefinitionMap.get("zdb").getIndex());
         // single identifier?
         String identifier = settings.get("identifier");
         if (identifier != null) {
@@ -228,7 +282,7 @@ public class HoldingsLicensesMerger extends Merger {
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (!failure && searchResponse.getHits().getHits().length > 0);
-        holdingsLicensesMerger.search().client()
+        simpleHoldingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet();
         logger.info("all title records processed");
@@ -278,6 +332,66 @@ public class HoldingsLicensesMerger extends Merger {
 
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
+    }
+
+    public String getSourceTitleIndex() {
+        return sourceTitleIndex;
+    }
+
+    public String getSourceHoldingsIndex() {
+        return sourceHoldingsIndex;
+    }
+
+    public String getSourceLicenseIndex() {
+        return sourceLicenseIndex;
+    }
+
+    public String getSourceIndicatorIndex() {
+        return sourceIndicatorIndex;
+    }
+
+    public String getSourceMonographicIndex() {
+        return sourceMonographicIndex;
+    }
+
+    public String getSourceMonographicHoldingsIndex() {
+        return sourceMonographicHoldingsIndex;
+    }
+
+    public String getSourceOpenAccessIndex() {
+        return sourceOpenAccessIndex;
+    }
+
+    public String getManifestationsIndex() {
+        return manifestationsIndex;
+    }
+
+    public String getManifestationsIndexType() {
+        return manifestationsIndexType;
+    }
+
+    public String getHoldingsIndex() {
+        return holdingsIndex;
+    }
+
+    public String getHoldingsIndexType() {
+        return holdingsIndexType;
+    }
+
+    public String getVolumesIndex() {
+        return volumesIndex;
+    }
+
+    public String getVolumesIndexType() {
+        return volumesIndexType;
+    }
+
+    public String getServicesIndex() {
+        return servicesIndex;
+    }
+
+    public String getServicesIndexType() {
+        return servicesIndexType;
     }
 
 }

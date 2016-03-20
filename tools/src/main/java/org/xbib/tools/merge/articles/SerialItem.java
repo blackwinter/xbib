@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.merge.articles;
 
-import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,7 +40,7 @@ public class SerialItem {
 
     private Integer date;
 
-    private Collection<TitleRecord> titleRecords = new HashSet<>();
+    private Collection<SerialRecord> serialRecords = new HashSet<>();
 
     public SerialItem() {
     }
@@ -53,12 +53,12 @@ public class SerialItem {
         return date;
     }
 
-    public void addManifestation(TitleRecord titleRecord) {
-        this.titleRecords.add(titleRecord);
+    public void addManifestation(SerialRecord serialRecord) {
+        this.serialRecords.add(serialRecord);
     }
 
-    public Collection<TitleRecord> getTitleRecords() {
-        return titleRecords;
+    public Collection<SerialRecord> getSerialRecords() {
+        return serialRecords;
     }
 
 }

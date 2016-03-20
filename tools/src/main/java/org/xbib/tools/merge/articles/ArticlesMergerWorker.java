@@ -43,7 +43,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.iri.IRI;
 import org.xbib.metrics.Meter;
-import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
@@ -161,8 +161,8 @@ public class ArticlesMergerWorker
         BoolQueryBuilder queryBuilder = boolQuery();
         QueryBuilder dateQuery = termQuery("dc:date", serialItem.getDate());
         Set<String> issns = new HashSet<>();
-        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
-            Collection<String> l = (Collection<String>) titleRecord.getIdentifiers().get("issn");
+        for (SerialRecord serialRecord : serialItem.getSerialRecords()) {
+            Collection<String> l = (Collection<String>) serialRecord.getIdentifiers().get("issn");
             issns.addAll(l);
         }
         BoolQueryBuilder issnQuery = boolQuery();
@@ -334,24 +334,24 @@ public class ArticlesMergerWorker
 
     private Collection<Map<String,Object>> makePublications(SerialItem serialItem) {
         Collection<Map<String,Object>> publications = new HashSet<>();
-        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
+        for (SerialRecord serialRecord : serialItem.getSerialRecords()) {
             Map<String, Object> publication = new HashMap<>();
-            String zdbid = titleRecord.externalID();
+            String zdbid = serialRecord.externalID();
             // hyphenated form of ZDB ID for linking to ld.zdb-services.de
             String zdborig = new StringBuilder(zdbid).insert(zdbid.length() - 1, "-").toString();
             IRI zdbserviceid = IRI.builder().scheme("http").host("ld.zdb-services.de").path("/resource/" + zdborig).build();
             publication.put("xbib:zdbid", zdbid);
             publication.put("rdfs:seeAlso", zdbserviceid.toString());
             publication.put("rdf:type", "fabio:Journal");
-            publication.put("prism:publicationName", titleRecord.getTitle());
-            publication.put("dc:publisher", titleRecord.getPublisher());
-            publication.put("prism:place", titleRecord.getPublisherPlace());
-            publication.put("prism:issn", titleRecord.getIdentifiers().get("formattedissn"));
-            publication.put("dc:rights", titleRecord.getLicense());
-            publication.put("xbib:doaj", titleRecord.isOpenAccess());
-            publication.put("xbib:media", titleRecord.mediaType());
-            publication.put("xbib:content", titleRecord.contentType());
-            publication.put("xbib:carrier", titleRecord.carrierType());
+            publication.put("prism:publicationName", serialRecord.getTitle());
+            publication.put("dc:publisher", serialRecord.getPublisher());
+            publication.put("prism:place", serialRecord.getPublisherPlace());
+            publication.put("prism:issn", serialRecord.getIdentifiers().get("formattedissn"));
+            publication.put("dc:rights", serialRecord.getLicense());
+            publication.put("xbib:doaj", serialRecord.isOpenAccess());
+            publication.put("xbib:media", serialRecord.mediaType());
+            publication.put("xbib:content", serialRecord.contentType());
+            publication.put("xbib:carrier", serialRecord.carrierType());
             publications.add(publication);
         }
         if (publications.size() > 1) {
@@ -362,8 +362,8 @@ public class ArticlesMergerWorker
 
     private Collection<String> makeSubjects(SerialItem serialItem) {
         Collection<String> subjects = new HashSet<>();
-        for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
-            subjects.addAll(getDDC(titleRecord));
+        for (SerialRecord serialRecord : serialItem.getSerialRecords()) {
+            subjects.addAll(getDDC(serialRecord));
         }
         return subjects;
     }
@@ -516,10 +516,10 @@ public class ArticlesMergerWorker
         map1.put("prism:doi", newDOIS);
     }
 
-    private Set<String> getDDC(TitleRecord titleRecord) {
+    private Set<String> getDDC(SerialRecord serialRecord) {
         // DDC
         Set<String> subjects = new HashSet<>();
-        Object o = titleRecord.map().get("DDCClassificationNumber");
+        Object o = serialRecord.map().get("DDCClassificationNumber");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);
@@ -541,10 +541,10 @@ public class ArticlesMergerWorker
         return subjects;
     }
 
-    private Set<String> getAbbrev(TitleRecord titleRecord) {
+    private Set<String> getAbbrev(SerialRecord serialRecord) {
         // Title abbrev
         Set<String> abbrevs = new HashSet<>();
-        Object o = titleRecord.map().get("AbbreviatedTitle");
+        Object o = serialRecord.map().get("AbbreviatedTitle");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);

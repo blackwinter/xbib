@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.merge.holdingslicenses;
+package org.xbib.tools.merge.holdingslicenses.timeline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,12 +45,12 @@ import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
+import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
+import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
-import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
 import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
@@ -66,11 +66,11 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 /**
  * Merge holdings and licenses
  */
-public class HoldingsLicensesMerger extends Merger {
+public class TimelineHoldingsLicensesMerger extends Merger {
 
-    private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class);
+    private final static Logger logger = LogManager.getLogger(TimelineHoldingsLicensesMerger.class);
 
-    private HoldingsLicensesMerger holdingsLicensesMerger;
+    private TimelineHoldingsLicensesMerger timelineHoldingsLicensesMerger;
 
     private BibdatLookup bibdatLookup;
 
@@ -89,7 +89,7 @@ public class HoldingsLicensesMerger extends Merger {
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
-        this.holdingsLicensesMerger = this;
+        this.timelineHoldingsLicensesMerger = this;
         this.metrics = new Metrics();
         this.queryMetric = new Meter();
         queryMetric.spawn(5L);
@@ -103,7 +103,7 @@ public class HoldingsLicensesMerger extends Merger {
             getPipeline().waitFor(new SerialRecordRequest());
         } finally {
             long total = 0L;
-            for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+            for (TimelineHoldingsLicensesWorker worker : getPipeline().getWorkers()) {
                 logger.info("worker {}, count {}, took {}",
                         worker,
                         worker.getMetric().getCount(),
@@ -116,19 +116,19 @@ public class HoldingsLicensesMerger extends Merger {
     }
 
     @SuppressWarnings("unchecked")
-    public Pipeline<HoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
+    public Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
         return pipeline;
     }
 
     @Override
     protected WorkerProvider provider() {
-        return new WorkerProvider<HoldingsLicensesWorker>() {
+        return new WorkerProvider<TimelineHoldingsLicensesWorker>() {
             int i = 0;
 
             @Override
             @SuppressWarnings("unchecked")
-            public HoldingsLicensesWorker get(Pipeline pipeline) {
-                return (HoldingsLicensesWorker) new HoldingsLicensesWorker(settings, holdingsLicensesMerger,
+            public TimelineHoldingsLicensesWorker get(Pipeline pipeline) {
+                return (TimelineHoldingsLicensesWorker) new TimelineHoldingsLicensesWorker(settings, timelineHoldingsLicensesMerger,
                         settings.getAsInt("worker.scrollsize", 10), // per shard!
                         settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis(),
                         i++)
@@ -228,7 +228,7 @@ public class HoldingsLicensesMerger extends Merger {
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (!failure && searchResponse.getHits().getHits().length > 0);
-        holdingsLicensesMerger.search().client()
+        timelineHoldingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet();
         logger.info("all title records processed");

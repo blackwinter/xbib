@@ -43,9 +43,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class MonographVolume extends TitleRecord {
+public class MonographVolume extends SerialRecord {
 
-    protected final TitleRecord titleRecord;
+    protected final SerialRecord serialRecord;
 
     protected List<String> parents = new LinkedList<>();
 
@@ -59,14 +59,14 @@ public class MonographVolume extends TitleRecord {
 
     protected List<String> genres;
 
-    public MonographVolume(Map<String, Object> map, TitleRecord titleRecord) {
+    public MonographVolume(Map<String, Object> map, SerialRecord serialRecord) {
         super(map);
-        this.titleRecord = titleRecord;
-        titleRecord.addRelated("hasMonographVolume", this);
+        this.serialRecord = serialRecord;
+        serialRecord.addRelated("hasMonographVolume", this);
     }
 
-    public TitleRecord getTitleRecord() {
-        return titleRecord;
+    public SerialRecord getSerialRecord() {
+        return serialRecord;
     }
 
     public String getIdentifier() {
@@ -341,7 +341,7 @@ public class MonographVolume extends TitleRecord {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof TitleRecord && externalID.equals(((TitleRecord)other).externalID);
+        return other instanceof SerialRecord && externalID.equals(((SerialRecord)other).externalID);
     }
 
     @Override
@@ -350,7 +350,7 @@ public class MonographVolume extends TitleRecord {
     }
 
     @Override
-    public int compareTo(TitleRecord m) {
+    public int compareTo(SerialRecord m) {
         return externalID.compareTo(m.externalID());
     }
 
