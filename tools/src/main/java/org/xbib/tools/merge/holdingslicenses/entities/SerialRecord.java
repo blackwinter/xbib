@@ -235,8 +235,10 @@ public class SerialRecord implements Comparable<SerialRecord> {
         Object o = map.get(key);
         if (o instanceof Collection) {
             return new HashSet<>((Collection<Integer>)o);
+        } else if (o != null) {
+            return Collections.singleton((Integer)o);
         }
-        return null;
+        return Collections.EMPTY_SET;
     }
 
     public Map map() {
