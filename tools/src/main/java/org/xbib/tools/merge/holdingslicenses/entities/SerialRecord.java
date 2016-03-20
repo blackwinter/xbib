@@ -168,6 +168,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
         Integer lastDate = getInteger("date2");
         this.lastDate = lastDate == null ? null : lastDate == 9999 ? null : lastDate;
         this.dates = getIntegerSet("Dates");
+        this.greenDates = new TreeSet<>();
         findLinks();
         findSupplement();
         this.genre = getString("OtherCodes.genre");
@@ -674,7 +675,6 @@ public class SerialRecord implements Comparable<SerialRecord> {
     private final static Pattern yearPattern = Pattern.compile("(\\d\\d\\d\\d)");
 
     private void makeGreenDates(List<Map<String, Object>> links) {
-        this.greenDates = new TreeSet<>();
         for (Map<String, Object> link : links) {
             boolean b = "kostenfrei".equals(link.get("publicnote"));
             if (b) {
