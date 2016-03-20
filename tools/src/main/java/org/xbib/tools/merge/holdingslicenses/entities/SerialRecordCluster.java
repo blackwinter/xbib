@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class TitleRecordCluster {
+public class SerialRecordCluster {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
