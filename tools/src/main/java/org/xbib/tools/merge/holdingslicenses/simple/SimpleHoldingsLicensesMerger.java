@@ -185,17 +185,6 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         if (Strings.isNullOrEmpty(sourceOpenAccessIndex)) {
             throw new IllegalArgumentException("no doaj index given");
         }
-        indexDefinitionMap = simpleHoldingsLicensesMerger.getOutputIndexDefinitionMap();
-        String indexName = indexDefinitionMap.get("holdingslicenses").getConcreteIndex();
-        this.manifestationsIndex = indexName;
-        this.manifestationsIndexType = "manifestations";
-        this.holdingsIndex = indexName;
-        this.holdingsIndexType = "holdings";
-        this.volumesIndex = indexName;
-        this.volumesIndexType = "volumes";
-        this.servicesIndex = indexName;
-        this.servicesIndexType = "services";
-
         logger.info("preparing bibdat lookup...");
         bibdatLookup = new BibdatLookup();
         try {
@@ -241,6 +230,17 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         statusCodeMapper = new StatusCodeMapper();
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
+
+        Map<String,IndexDefinition> outputIndexDefinitionMap = simpleHoldingsLicensesMerger.getOutputIndexDefinitionMap();
+        String indexName = outputIndexDefinitionMap.get("holdingslicenses").getConcreteIndex();
+        this.manifestationsIndex = indexName;
+        this.manifestationsIndexType = "manifestations";
+        this.holdingsIndex = indexName;
+        this.holdingsIndexType = "holdings";
+        this.volumesIndex = indexName;
+        this.volumesIndexType = "volumes";
+        this.servicesIndex = indexName;
+        this.servicesIndexType = "services";
 
         // all prepared. Enter loop over all title records
         int scrollSize = settings.getAsInt("scrollsize", 10);
