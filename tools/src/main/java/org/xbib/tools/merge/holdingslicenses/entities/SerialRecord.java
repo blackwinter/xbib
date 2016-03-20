@@ -113,7 +113,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     private boolean openAccess;
 
-    private String resourceType;
+    protected String resourceType;
 
     private String genre;
 
@@ -314,6 +314,14 @@ public class SerialRecord implements Comparable<SerialRecord> {
         return lastDate;
     }
 
+    public String resourceType() {
+        return resourceType;
+    }
+
+    public String genre() {
+        return genre;
+    }
+
     public boolean isSupplement() {
         return isSupplement;
     }
@@ -430,6 +438,10 @@ public class SerialRecord implements Comparable<SerialRecord> {
      */
     public MultiMap<String, String> getRelations() {
         return relations;
+    }
+
+    public MultiMap<String, String> getExternalRelations() {
+        return externalRelations;
     }
 
     public Set<Integer> getDates() {
@@ -1034,9 +1046,16 @@ public class SerialRecord implements Comparable<SerialRecord> {
             builder.array("dates", set);
             missing.removeAll(set);
             builder.array("missingdates", missing);
+            builder.array("missingdatescount", missing.size());
         }
         if (greenDates != null && !greenDates.isEmpty()) {
             builder.field("greendate", greenDates);
+            builder.field("greendatecount", greenDates.size());
+        }
+        if (!relatedHoldings.isEmpty()) {
+            Set<String> isils = relatedHoldings.keySet();
+            builder.array("isil", isils);
+            builder.array("isilcount", isils.size());
         }
         if (hasIdentifiers()) {
             builder.field("identifiers", getIdentifiers());

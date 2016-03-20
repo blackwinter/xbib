@@ -49,13 +49,11 @@ public class MonographVolume extends SerialRecord {
 
     protected List<String> parents = new LinkedList<>();
 
-    protected Object conference;
+    protected Map<String,Object> conference;
 
     protected String volumeDesignation;
 
     protected String numbering;
-
-    protected String resourceType;
 
     protected List<String> genres;
 
@@ -69,6 +67,10 @@ public class MonographVolume extends SerialRecord {
         return serialRecord;
     }
 
+    public List<String> parents() {
+        return parents;
+    }
+
     public String getIdentifier() {
         return identifier;
     }
@@ -79,6 +81,10 @@ public class MonographVolume extends SerialRecord {
 
     public String getNumbering() {
         return numbering;
+    }
+
+    public List<String> genres() {
+        return genres;
     }
 
     @Override
@@ -96,6 +102,10 @@ public class MonographVolume extends SerialRecord {
     @Override
     public boolean isMonographic() {
         return true;
+    }
+
+    public Map<String,Object> conference() {
+        return conference;
     }
 
     public void addParent(String parent) {

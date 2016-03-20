@@ -62,6 +62,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +84,6 @@ public class SimpleHoldingsLicensesWorker
     private final int scrollSize;
     private final long scrollMillis;
     private final long timeoutSeconds;
-    private final Integer currentYear;
 
     @SuppressWarnings("unchecked")
     public SimpleHoldingsLicensesWorker(Settings settings,
@@ -98,7 +98,6 @@ public class SimpleHoldingsLicensesWorker
         this.scrollSize = settings.getAsInt("worker.scrollsize", 10); // per shard!
         this.scrollMillis = settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis();
         this.timeoutSeconds = settings.getAsTime("worker.timeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
-        this.currentYear = LocalDate.now().getYear();
     }
 
     @Override
@@ -184,154 +183,10 @@ public class SimpleHoldingsLicensesWorker
         indexTitleRecord(serialRecord);
     }
 
-    /*private void process(SerialRecord serialRecord) throws IOException {
-        this.candidates = new HashSet<>();
-        candidates.add(serialRecord);
-        state = State.COLLECTING_CANDIDATES;
-        searchNeighbors(serialRecord, candidates, 0);
-        // process build queue to get candidates
-        ClusterBuildContinuation cont;
-        while ((cont = buildQueue.poll()) != null) {
-            for (SerialRecord tr : cont.cluster) {
-                candidates.add(tr);
-            }
-            continueClusterBuild(candidates, cont, 0);
-        }
-        int retry;
-        do {
-            // Ensure all relationships in the candidate set
-            state = State.PROCESSING;
-            for (SerialRecord m : candidates) {
-                setAllRelationsBetween(m, candidates);
-            }
-            // Now, this is expensive. Find holdings, licenses, indicators of candidates
-            Set<Holding> holdings = new TreeSet<>();
-            searchHoldings(candidates, holdings);
-            Set<License> licenses = new HashSet<>();
-            searchLicensesAndIndicators(candidates, licenses);
-            searchMonographs(candidates);
-            // before indexing, fetch build queue again
-            retry = 0;
-            int before = candidates.size();
-            while ((cont = buildQueue.poll()) != null) {
-                for (SerialRecord tr : cont.cluster) {
-                    candidates.add(tr);
-                }
-                int after = candidates.size();
-                if (after > before) {
-                    retry++;
-                }
-                continueClusterBuild(candidates, cont, 0);
-            }
-            if (retry > 0 && retry < 10) {
-                logger.info("{}: retrying {} before indexing, {} candidates",
-                        serialRecord, retry, candidates.size());
-                continue;
-            }
-            state = State.INDEXING;
-            for (SerialRecord tr : candidates) {
-                indexTitleRecord(tr);
-            }
-            retry = 0;
-            before = candidates.size();
-            while ((cont = buildQueue.poll()) != null) {
-                for (SerialRecord tr : cont.cluster) {
-                    candidates.add(tr);
-                }
-                int after = candidates.size();
-                if (after > before) {
-                    retry++;
-                }
-                continueClusterBuild(candidates, cont, 0);
-            }
-            if (retry > 0 && retry < 10) {
-                logger.info("{}: retrying {} after indexing, {} candidates",
-                        serialRecord, retry, candidates.size());
-            }
-        } while (retry > 0 && retry < 10);
-        if (retry >= 10) {
-            logger.warn("retry limit exceeded: {}, candidates = {}, buildqueue = {}",
-                    serialRecord, candidates, buildQueue.size());
-        }
-    }*/
-
-    /*private void searchNeighbors(SerialRecord serialRecord, Collection<SerialRecord> candidates, int level)
-            throws IOException {
-        Set<String> neighbors = new HashSet<>();
-        MultiMap<String,String> m = serialRecord.getRelations();
-        for (String key : m.keySet()) {
-            neighbors.addAll(m.get(key).stream().collect(Collectors.toList()));
-        }
-        if (neighbors.isEmpty()) {
-            return;
-        }
-        QueryBuilder queryBuilder = termsQuery("IdentifierDNB.identifierDNB", neighbors.toArray());
-        SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
-                .prepareSearch()
-                .setIndices(simpleHoldingsLicensesMerger.getSourceTitleIndex())
-                .setQuery(queryBuilder)
-                .setSize(scrollSize) // size is per shard!
-                .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                .addSort(SortBuilders.fieldSort("_doc"));
-        logger.debug("searchRequest {}", searchRequest);
-        SearchResponse searchResponse = searchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
-        getMetric().mark();
-        SearchHits hits = searchResponse.getHits();
-        if (hits.getHits().length == 0) {
-            return;
-        }
-        // copy candidates to a new list for each continuation, may be used by other threads after a collision
-        List<SerialRecord> list = new ArrayList<>(candidates);
-        ClusterBuildContinuation carrierCont = new ClusterBuildContinuation(serialRecord, searchResponse,
-                SerialRecord.getCarrierRelations(), list, level);
-        buildQueue.offer(carrierCont);
-    }*/
-
-    /*private void continueClusterBuild(Set<SerialRecord> serialRecords, ClusterBuildContinuation c, int level)
-            throws IOException {
-        SearchResponse searchResponse = c.searchResponse;
-        do {
-            for (int i = c.pos; i < searchResponse.getHits().getHits().length; i++) {
-                SearchHit hit = searchResponse.getHits().getAt(i);
-                SerialRecord m = new SerialRecord(hit.getSource());
-                if (m.id().equals(c.serialRecord.id())) {
-                    continue;
-                }
-                if (serialRecords.contains(m)) {
-                    continue;
-                }
-                serialRecords.add(m);
-                boolean expand = false;
-                Collection<String> relations = findTheRelationsBetween(c.serialRecord, m.id());
-                for (String relation : relations) {
-                    if (relation == null) {
-                        continue;
-                    }
-                    String inverse = SerialRecord.getInverseRelations().get(relation);
-                    c.serialRecord.addRelated(relation, m);
-                    if (inverse != null) {
-                        m.addRelated(inverse, c.serialRecord);
-                    }
-                    expand = expand || c.relations.contains(relation);
-                }
-                if (expand && level < 2) {
-                    searchNeighbors(m, serialRecords, level + 1);
-                }
-            }
-            searchResponse = simpleHoldingsLicensesMerger.search().client()
-                    .prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                    .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
-            getMetric().mark();
-        } while (searchResponse.getHits().getHits().length > 0);
-        simpleHoldingsLicensesMerger.search().client()
-                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
-                .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
-    }*/
-
     private void addSerialHoldings(SerialRecord serialRecord) throws IOException {
         QueryBuilder queryBuilder =
-                termQuery("ParentRecordIdentifier.identifierForTheParentRecord", serialRecord.id());
+                termQuery("ParentRecordIdentifier.identifierForTheParentRecord",
+                        "(DE-600)" + serialRecord.id());
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(simpleHoldingsLicensesMerger.getSourceHoldingsIndex())
@@ -399,29 +254,6 @@ public class SimpleHoldingsLicensesWorker
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
-
-    /*private void addLicensesAndIndicators(Collection<SerialRecord> serialRecords, Set<License> licenses)
-            throws IOException {
-        // create a map of all title records that can have assigned a license
-        Map<String, SerialRecord> map = new HashMap<>();
-        boolean isOnline = false;
-        for (SerialRecord m : serialRecords) {
-            map.put(m.externalID(), m);
-            // we really just rely on the carrier type. There may be licenses or indicators
-            isOnline = isOnline || "online resource".equals(m.carrierType());
-            // copy print to the online edition in case it is not there
-            String id = m.getOnlineExternalID();
-            if (id != null && !map.containsKey(id)) {
-                map.put(id, m);
-            }
-        }
-        if (isOnline) {
-            addLicenses(licenses, map);
-            logger.debug("after license search: licenses={}", licenses.size());
-            searchIndicators(licenses, map);
-            logger.debug("after indicator search: licenses={}", licenses.size());
-        }
-    }*/
 
     private void addLicenses(SerialRecord serialRecord) throws IOException {
         QueryBuilder queryBuilder = termsQuery("ezb:zdbid", serialRecord.externalID());
@@ -771,96 +603,6 @@ public class SimpleHoldingsLicensesWorker
         return searchResponse.getHits().getTotalHits() > 0;
     }
 
-    /*@SuppressWarnings("unchecked")
-    private Set<String> findTheRelationsBetween(SerialRecord serialRecord, String id) {
-        Set<String> relationNames = new HashSet<>();
-        for (String entry : SerialRecord.relationEntries()) {
-            Object o = serialRecord.map().get(entry);
-            if (o != null) {
-                if (!(o instanceof List)) {
-                    o = Collections.singletonList(o);
-                }
-                for (Object obj : (List) o) {
-                    Map<String, Object> m = (Map<String, Object>) obj;
-                    Object internalObj = m.get("identifierDNB");
-                    // take only first entry from list...
-                    String value = internalObj == null ? null : internalObj instanceof List ?
-                            ((List) internalObj).get(0).toString() : internalObj.toString();
-                    if (id.equals(value)) {
-                        // defined relation?
-                        Object oo = m.get("relation");
-                        if (oo != null) {
-                            if (!(oo instanceof List)) {
-                                oo = Collections.singletonList(oo);
-                            }
-                            for (Object relName : (List) oo) {
-                                relationNames.add(relName.toString());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return relationNames;
-    }*/
-
-    /*@SuppressWarnings("unchecked")
-    private void setAllRelationsBetween(SerialRecord serialRecord, Collection<SerialRecord> cluster) {
-        for (String relation : SerialRecord.relationEntries()) {
-            Object o = serialRecord.map().get(relation);
-            if (o != null) {
-                if (!(o instanceof List)) {
-                    o = Collections.singletonList(o);
-                }
-                for (Object s : (List) o) {
-                    Map<String, Object> entry = (Map<String, Object>) s;
-                    Object internalObj = entry.get("relation");
-                    String key = internalObj == null ? null : internalObj instanceof List ?
-                            ((List) internalObj).get(0).toString() : internalObj.toString();
-                    if (key == null) {
-                        internalObj = entry.get("relationshipInformation");
-                        if (internalObj != null) {
-                            //key = "hasRelationTo";
-                            continue;
-                        } else {
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("entry {} has no relation name in {}", entry, serialRecord.externalID());
-                            }
-                            continue;
-                        }
-                    }
-                    internalObj = entry.get("identifierDNB");
-                    // take only first entry from list...
-                    String value = internalObj == null ? null : internalObj instanceof List ?
-                            ((List) internalObj).get(0).toString() : internalObj.toString();
-                    for (SerialRecord m : cluster) {
-                        // self?
-                        if (m.id().equals(serialRecord.id())) {
-                            continue;
-                        }
-                        if (m.id().equals(value)) {
-                            serialRecord.addRelated(key, m);
-                            // special trick: move over links from online to print
-                            if ("hasPrintEdition".equals(key)) {
-                                m.setLinks(serialRecord.getLinks());
-                            }
-                            String inverse = SerialRecord.getInverseRelations().get(key);
-                            if (inverse != null) {
-                                m.addRelated(inverse, serialRecord);
-                            } else {
-                                if (logger.isTraceEnabled()) {
-                                    logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key,
-                                            serialRecord.externalID());
-                                }
-                                m.addRelated("isRelatedTo", serialRecord);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }*/
-
     private void indexTitleRecord(SerialRecord serialRecord) throws IOException {
         indexTitleRecord(serialRecord, null);
     }
@@ -871,7 +613,7 @@ public class SimpleHoldingsLicensesWorker
         if (!serialRecord.getMonographVolumes().isEmpty()) {
             for (MonographVolume volume : serialRecord.getMonographVolumes()) {
                 XContentBuilder builder = jsonBuilder();
-                volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
+                buildMonographVolume(builder, volume, statCounter);
                 checkForIndex(simpleHoldingsLicensesMerger.getManifestationsIndex(),
                         simpleHoldingsLicensesMerger.getManifestationsIndexType(),
                         volume.externalID(), builder);
@@ -879,7 +621,7 @@ public class SimpleHoldingsLicensesWorker
                 for (String key : mm.keySet()) {
                     for (Holding volumeHolding : mm.get(key)){
                         builder = jsonBuilder();
-                        volumeHolding.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
+                        buildMonographHolding(builder, volumeHolding);
                         // to holding index
                         String hid = volume.externalID();
                         checkForIndex(simpleHoldingsLicensesMerger.getHoldingsIndex(),
@@ -935,10 +677,11 @@ public class SimpleHoldingsLicensesWorker
                         }
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
-                        holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
+                        buildService(serviceBuilder, holding);
                         checkForIndex(simpleHoldingsLicensesMerger.getServicesIndex(),
                                 simpleHoldingsLicensesMerger.getServicesIndexType(),
-                                serviceId, serviceBuilder);
+                                serviceId,
+                                serviceBuilder);
                         builder.value(serviceId);
                         count++;
                     }
@@ -981,10 +724,222 @@ public class SimpleHoldingsLicensesWorker
             statCounter.increase("stat", "manifestations", 1);
         }
         XContentBuilder builder = jsonBuilder();
-        serialRecord.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
+        buildManifestation(builder, serialRecord, statCounter);
         checkForIndex(simpleHoldingsLicensesMerger.getManifestationsIndex(),
                 simpleHoldingsLicensesMerger.getManifestationsIndexType(),
                 serialRecord.externalID(), builder);
+    }
+
+    private void buildManifestation(XContentBuilder builder,
+                                    SerialRecord serialRecord,
+                                    StatCounter statCounter) throws IOException {
+        builder.startObject();
+        builder.field("identifierForTheManifestation", serialRecord.externalID())
+                .field("title", serialRecord.getExtendedTitle())
+                .field("titlecomponents", serialRecord.getTitleComponents());
+        String s = serialRecord.corporateName();
+        if (s != null) {
+            builder.field("corporatename", s);
+        }
+        s = serialRecord.meetingName();
+        if (s != null) {
+            builder.field("meetingname", s);
+        }
+        builder.field("country", serialRecord.country())
+                .fieldIfNotNull("language", serialRecord.language())
+                .field("publishedat", serialRecord.getPublisherPlace())
+                .field("publishedby", serialRecord.getPublisher())
+                .field("monographic", serialRecord.isMonographic())
+                .field("openaccess", serialRecord.isOpenAccess())
+                .fieldIfNotNull("license", serialRecord.getLicense())
+                .field("contenttype", serialRecord.contentType())
+                .field("mediatype", serialRecord.mediaType())
+                .field("carriertype", serialRecord.carrierType())
+                .field("firstdate", serialRecord.firstDate())
+                .field("lastdate", serialRecord.lastDate());
+        Set<Integer> missing = new HashSet<>(serialRecord.getDates());
+        Set<Integer> set = serialRecord.getHoldingsByDate().keySet();
+        builder.array("dates", set);
+        missing.removeAll(set);
+        builder.array("missingdates", missing);
+        builder.array("missingdatescount", missing.size());
+        builder.field("greendate", serialRecord.getGreenDates());
+        builder.field("greendatecount", serialRecord.getGreenDates().size());
+        Set<String> isils = serialRecord.getRelatedHoldings().keySet();
+        builder.array("isil", isils);
+        builder.array("isilcount", isils.size());
+        builder.field("identifiers", serialRecord.getIdentifiers());
+        builder.field("subseries", serialRecord.isSubseries());
+        builder.field("aggregate", serialRecord.isAggregate());
+        builder.field("supplement", serialRecord.isSupplement());
+        builder.fieldIfNotNull("resourcetype", serialRecord.resourceType());
+        builder.fieldIfNotNull("genre", serialRecord.genre());
+        MultiMap<String, SerialRecord> map = serialRecord.getRelated();
+        if (!map.isEmpty()) {
+            builder.startArray("relations");
+            for (String rel : map.keySet()) {
+                for (SerialRecord tr : map.get(rel)) {
+                    builder.startObject()
+                            .field("identifierForTheRelated", tr.externalID())
+                            .field("label", rel)
+                            .endObject();
+                }
+            }
+            builder.endArray();
+        }
+        MultiMap<String, String> mm = serialRecord.getExternalRelations();
+        if (!mm.isEmpty()) {
+            builder.startArray("relations");
+            for (String rel : mm.keySet()) {
+                for (String relid : mm.get(rel)) {
+                    builder.startObject()
+                            .field("identifierForTheRelated", relid)
+                            .field("label", rel)
+                            .endObject();
+                }
+            }
+            builder.endArray();
+        }
+        builder.array("links", serialRecord.getLinks());
+        builder.endObject();
+        if (statCounter != null) {
+            for (String country : serialRecord.country()) {
+                statCounter.increase("country", country, 1);
+            }
+            statCounter.increase("language", serialRecord.language(), 1);
+            statCounter.increase("contenttype", serialRecord.contentType(), 1);
+            statCounter.increase("mediatype", serialRecord.mediaType(), 1);
+            statCounter.increase("carriertype", serialRecord.carrierType(), 1);
+            statCounter.increase("resourcetype", serialRecord.resourceType(), 1);
+            statCounter.increase("genre", serialRecord.genre(), 1);
+        }
+    }
+
+    public void buildService(XContentBuilder builder, Holding holding)
+            throws IOException {
+        builder.startObject()
+                //.field("identifierForTheService", "(" + getServiceISIL() +")" + identifier());
+                .array("parents", holding.parents());
+        builder.field("mediatype", holding.mediaType())
+                .field("carriertype", holding.carrierType())
+                .field("name", holding.getName())
+                .field("isil", holding.getISIL())
+                .field("region", holding.getRegion())
+                .fieldIfNotNull("organization", holding.getOrganization())
+                .field("serviceisil", holding.getServiceISIL())
+                .field("priority", holding.getPriority())
+                .fieldIfNotNull("type", holding.getServiceType());
+        Object o = holding.getServiceMode();
+        if (o instanceof List) {
+            builder.array("mode", (List) o);
+        } else {
+            builder.fieldIfNotNull("mode", o);
+        }
+        o = holding.getServiceDistribution();
+        if (o instanceof List) {
+            builder.array("distribution", (List) o);
+        } else {
+            builder.fieldIfNotNull("distribution", o);
+        }
+        builder.fieldIfNotNull("comment", holding.getServiceComment())
+                .field("info", holding.getInfo())
+                .field("current", holding.dates().contains(currentYear))
+                .endObject();
+    }
+
+    private final static Integer currentYear = LocalDate.now().getYear();
+
+    public void buildMonographVolume(XContentBuilder builder, MonographVolume monographVolume, StatCounter statCounter)
+            throws IOException {
+        builder.startObject();
+        builder//.field("identifierForTheManifestation", getIdentifier())
+                .array("parents", monographVolume.parents())
+                .field("title", monographVolume.getTitle())
+                .field("titlecomponents", monographVolume.getTitleComponents())
+                .field("firstdate", monographVolume.firstDate());
+        String s = monographVolume.corporateName();
+        if (s != null) {
+            builder.field("corporateName", s);
+        }
+        s = monographVolume.meetingName();
+        if (s != null) {
+            builder.field("meetingName", s);
+        }
+        if (monographVolume.conference() != null) {
+            builder.field("conference");
+            builder.map(monographVolume.conference());
+        }
+        builder.fieldIfNotNull("volume", monographVolume.getVolumeDesignation())
+                .fieldIfNotNull("number", monographVolume.getNumbering())
+                .fieldIfNotNull("resourcetype", monographVolume.resourceType())
+                .fieldIfNotNull("genre", monographVolume.genre());
+        if (monographVolume.country() != null && !monographVolume.country().isEmpty()) {
+            builder.field("country", monographVolume.country());
+        }
+        builder.fieldIfNotNull("language", monographVolume.language())
+                .fieldIfNotNull("publishedat", monographVolume.getPublisherPlace())
+                .fieldIfNotNull("publishedby", monographVolume.getPublisher());
+        if (monographVolume.hasIdentifiers()) {
+            builder.field("identifiers", monographVolume.getIdentifiers());
+        }
+        builder.endObject();
+
+        if (statCounter != null) {
+            for (String country : monographVolume.country()) {
+                statCounter.increase("country", country, 1);
+            }
+            statCounter.increase("language", monographVolume.language(), 1);
+            // TODO
+            //structCounter.increase("contenttype", contentType, 1);
+            //structCounter.increase("mediatype", mediaType, 1);
+            //structCounter.increase("carriertype", carrierType, 1);
+            statCounter.increase("resourcetype", monographVolume.resourceType(), 1);
+            for (String genre : monographVolume.genres()) {
+                statCounter.increase("genre", genre, 1);
+            }
+        }
+    }
+
+    public void buildMonographHolding(XContentBuilder builder, Holding holding) throws IOException {
+        builder.startObject();
+        builder
+                //.field("identifierForTheHolding","(" + holding.getServiceISIL() + ")" + volume.externalID)
+                .array("parents", holding.parents());
+        builder.array("date", holding.dates())
+                .startObject("institution")
+                .field("isil", holding.getISIL())
+                .startObject("service")
+                .field("mediatype", holding.mediaType())
+                .field("carriertype", holding.carrierType())
+                .field("region", holding.getRegion())
+                .field("organization", holding.getOrganization())
+                .field("name", holding.getName())
+                .field("isil", holding.getServiceISIL())
+                .field("serviceisil", holding.getServiceISIL())
+                .field("priority", holding.getPriority())
+                .field("type", holding.getServiceType());
+        Object o = holding.getServiceMode();
+        if (o instanceof List) {
+            builder.array("mode", (List) o);
+        } else {
+            builder.field("mode", o);
+        }
+        o = holding.getServiceDistribution();
+        if (o instanceof List) {
+            builder.array("distribution", (List) o);
+        } else {
+            builder.field("distribution", o);
+        }
+        builder.startObject("info")
+                .startObject("location")
+                // https://www.hbz-nrw.de/dokumentencenter/produkte/verbunddatenbank/aktuell/plausi/Exemplar-Online-Kurzform.pdf
+                .fieldIfNotNull("collection", holding.map().get("shelfmark")) // 088 b sublocation (Standort)
+                .fieldIfNotNull("callnumber", holding.map().get("callnumber")) // 088 c (Signatur)
+                //.fieldIfNotNull("collection", map.get("collection")) // 088 d zus. Bestandsangabe (nicht vorhanden)
+                .endObject();
+        builder.endObject();
+        builder.field("current", holding.dates().contains(currentYear));
+        builder.endObject();
     }
 
     private void buildVolume(XContentBuilder builder,

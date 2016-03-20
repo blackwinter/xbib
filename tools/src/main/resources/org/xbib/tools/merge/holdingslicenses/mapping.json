@@ -203,6 +203,9 @@
       },
       "institutioncount" : {
         "type" : "long"
+      },
+      "current" : {
+        "type" : "boolean"
       }
     }
   },
