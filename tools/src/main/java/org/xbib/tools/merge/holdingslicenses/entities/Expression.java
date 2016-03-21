@@ -40,19 +40,19 @@ import java.util.Map;
 
 public class Expression {
 
-    private SerialRecord serialRecord;
+    private TitleRecord titleRecord;
 
-    private SerialRecordCluster serialRecordCluster;
+    private TitleRecordCluster titleRecordCluster;
 
     private StatCounter statCounter;
 
-    public Expression(SerialRecord serialRecord, SerialRecordCluster serialRecordCluster) {
-        this.serialRecord = serialRecord;
-        this.serialRecordCluster = serialRecordCluster;
+    public Expression(TitleRecord titleRecord, TitleRecordCluster titleRecordCluster) {
+        this.titleRecord = titleRecord;
+        this.titleRecordCluster = titleRecordCluster;
     }
 
-    public SerialRecord getSerialRecord() {
-        return serialRecord;
+    public TitleRecord getTitleRecord() {
+        return titleRecord;
     }
 
     public void setStatCounter(StatCounter statCounter) {
@@ -65,10 +65,10 @@ public class Expression {
 
     public void toXContent(XContentBuilder builder, ToXContent.Params params) throws IOException {
         builder.startObject();
-        builder.field("identifierForTheExpression", serialRecord.externalID);
-        builder.field("title", serialRecord.getTitleComponents());
-        builder.field("firstdate", serialRecordCluster.getFirstDate());
-        builder.field("lastdate", serialRecordCluster.getLastDate());
+        builder.field("identifierForTheExpression", titleRecord.externalID);
+        builder.field("title", titleRecord.getTitleComponents());
+        builder.field("firstdate", titleRecordCluster.getFirstDate());
+        builder.field("lastdate", titleRecordCluster.getLastDate());
         // struct counter
         builder.startObject("count");
         for (Map.Entry<String,Map<String,Integer>> entry : statCounter.entrySet()) {
@@ -85,16 +85,16 @@ public class Expression {
         builder.endObject();
         // list all titles
         builder.startArray("titles");
-        for (SerialRecord serialRecord : serialRecordCluster.getMain()) {
+        for (TitleRecord titleRecord : titleRecordCluster.getMain()) {
             builder.startObject();
-            builder.field("identifierForTheTitle", serialRecord.externalID());
-            builder.field("firstdate", serialRecord.firstDate());
-            builder.field("lastdate", serialRecord.lastDate());
-            builder.array("title", serialRecord.getTitleComponents());
+            builder.field("identifierForTheTitle", titleRecord.externalID());
+            builder.field("firstdate", titleRecord.firstDate());
+            builder.field("lastdate", titleRecord.lastDate());
+            builder.array("title", titleRecord.getTitleComponents());
             builder.endObject();
             // list all monographic volumes of this title record
-            synchronized (serialRecord.getMonographVolumes()) {
-                for (MonographVolume monographVolume : serialRecord.getMonographVolumes()) {
+            synchronized (titleRecord.getMonographVolumes()) {
+                for (MonographVolume monographVolume : titleRecord.getMonographVolumes()) {
                     builder.startObject();
                     builder.field("identifierForTheTitle", monographVolume.externalID());
                     builder.field("firstdate", monographVolume.firstDate());
@@ -104,17 +104,17 @@ public class Expression {
                 }
             }
         }
-        for (SerialRecord serialRecord : serialRecordCluster.getOther()) {
+        for (TitleRecord titleRecord : titleRecordCluster.getOther()) {
             builder.startObject();
-            builder.field("identifierForTheTitle", serialRecord.externalID());
+            builder.field("identifierForTheTitle", titleRecord.externalID());
             builder.field("main", false);
-            builder.field("firstdate", serialRecord.firstDate());
-            builder.field("lastdate", serialRecord.lastDate());
-            builder.array("title", serialRecord.getTitleComponents());
+            builder.field("firstdate", titleRecord.firstDate());
+            builder.field("lastdate", titleRecord.lastDate());
+            builder.array("title", titleRecord.getTitleComponents());
             builder.endObject();
             // list all monographic volumes of this title record
-            synchronized (serialRecord.getMonographVolumes()) {
-                for (MonographVolume monographVolume : serialRecord.getMonographVolumes()) {
+            synchronized (titleRecord.getMonographVolumes()) {
+                for (MonographVolume monographVolume : titleRecord.getMonographVolumes()) {
                     builder.startObject();
                     builder.field("identifierForTheTitle", monographVolume.externalID());
                     builder.field("firstdate", monographVolume.firstDate());
@@ -130,6 +130,6 @@ public class Expression {
 
     @Override
     public String toString() {
-        return serialRecord.externalID();
+        return titleRecord.externalID();
     }
 }

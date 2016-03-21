@@ -39,9 +39,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class MonographVolume extends SerialRecord {
+public class MonographVolume extends TitleRecord {
 
-    protected final SerialRecord serialRecord;
+    protected final TitleRecord titleRecord;
 
     protected List<String> parents = new LinkedList<>();
 
@@ -53,14 +53,14 @@ public class MonographVolume extends SerialRecord {
 
     protected List<String> genres;
 
-    public MonographVolume(Map<String, Object> map, SerialRecord serialRecord) {
+    public MonographVolume(Map<String, Object> map, TitleRecord titleRecord) {
         super(map);
-        this.serialRecord = serialRecord;
-        serialRecord.addRelated("hasMonographVolume", this);
+        this.titleRecord = titleRecord;
+        titleRecord.addRelated("hasMonographVolume", this);
     }
 
-    public SerialRecord getSerialRecord() {
-        return serialRecord;
+    public TitleRecord getTitleRecord() {
+        return titleRecord;
     }
 
     public List<String> parents() {
@@ -93,11 +93,6 @@ public class MonographVolume extends SerialRecord {
         makeDate();
         makeGenre();
         makeIdentifiers();
-    }
-
-    @Override
-    public boolean isMonographic() {
-        return true;
     }
 
     public Map<String,Object> conference() {
@@ -184,9 +179,15 @@ public class MonographVolume extends SerialRecord {
         if (this.publisherName == null) {
             this.publisherName = getString("PublisherName.printerName");
         }
+        if (this.publisherName == null) {
+            this.publisherName = getString("PublisherName.name");
+        }
         this.publisherPlace = getString("PublicationPlace.publisherPlace");
         if (this.publisherPlace == null) {
             this.publisherPlace = getString("PublicationPlace.printingPlace");
+        }
+        if (this.publisherPlace == null) {
+            this.publisherPlace = getString("PublicationPlace.place");
         }
         this.language = getString("Language.languageSource", null);
         Object o = getAnyObject("Country.countryISO");
@@ -286,7 +287,7 @@ public class MonographVolume extends SerialRecord {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof SerialRecord && externalID.equals(((SerialRecord)other).externalID);
+        return other instanceof TitleRecord && externalID.equals(((TitleRecord)other).externalID);
     }
 
     @Override
@@ -295,7 +296,7 @@ public class MonographVolume extends SerialRecord {
     }
 
     @Override
-    public int compareTo(SerialRecord m) {
+    public int compareTo(TitleRecord m) {
         return externalID.compareTo(m.externalID());
     }
 

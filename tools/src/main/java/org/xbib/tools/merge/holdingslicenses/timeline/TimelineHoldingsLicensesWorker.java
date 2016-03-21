@@ -44,13 +44,13 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.metrics.Meter;
-import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
+import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
 import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
 import org.xbib.tools.merge.holdingslicenses.entities.License;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
@@ -78,13 +78,13 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 public class TimelineHoldingsLicensesWorker
-        implements Worker<Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest>, SerialRecordRequest> {
+        implements Worker<Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest>, TitleRecordRequest> {
 
     enum State {
         COLLECTING_CANDIDATES, PROCESSING, INDEXING
     }
 
-    private Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest> pipeline;
+    private Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest> pipeline;
     private Meter metric;
     private final int number;
     private final TimelineHoldingsLicensesMerger timelineHoldingsLicensesMerger;
@@ -104,7 +104,7 @@ public class TimelineHoldingsLicensesWorker
 
     private State state;
 
-    private Set<SerialRecord> candidates;
+    private Set<TitleRecord> candidates;
 
     @SuppressWarnings("unchecked")
     public TimelineHoldingsLicensesWorker(Settings settings,
@@ -124,14 +124,14 @@ public class TimelineHoldingsLicensesWorker
     }
 
     @Override
-    public Worker<Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest>, SerialRecordRequest>
-            setPipeline(Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest> pipeline) {
+    public Worker<Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest>, TitleRecordRequest>
+            setPipeline(Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest> pipeline) {
         this.pipeline = pipeline;
         return this;
     }
 
     @Override
-    public Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
+    public Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest> getPipeline() {
         return pipeline;
     }
 
@@ -150,16 +150,16 @@ public class TimelineHoldingsLicensesWorker
         return buildQueue;
     }
 
-    public Set<SerialRecord> getCandidates() {
+    public Set<TitleRecord> getCandidates() {
         return candidates;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public SerialRecordRequest call() throws Exception {
+    public TitleRecordRequest call() throws Exception {
         logger.info("worker {} starting", this);
-        SerialRecordRequest element = null;
-        SerialRecord serialRecord = null;
+        TitleRecordRequest element = null;
+        TitleRecord titleRecord = null;
         try {
             Map<String,IndexDefinition> indexDefinitionMap = timelineHoldingsLicensesMerger.getInputIndexDefinitionMap();
             this.sourceTitleIndex = indexDefinitionMap.get("zdb").getIndex();
@@ -191,24 +191,24 @@ public class TimelineHoldingsLicensesWorker
                 throw new IllegalArgumentException("no doaj index given");
             }
             element = getPipeline().getQueue().take();
-            serialRecord = element != null ? element.get() : null;
-            while (serialRecord != null) {
+            titleRecord = element != null ? element.get() : null;
+            while (titleRecord != null) {
                 long t0 = System.nanoTime();
-                process(serialRecord);
+                process(titleRecord);
                 long t1 = System.nanoTime();
                 long delta = (t1 -t0) / 1000000;
                 // warn if delta is longer than 10 secs
                 if (delta > 10000) {
-                    logger.warn("long processing of {}: {} ms", serialRecord.externalID(), delta);
+                    logger.warn("long processing of {}: {} ms", titleRecord.externalID(), delta);
                 }
                 metric.mark();
                 element = getPipeline().getQueue().take();
-                serialRecord = element != null ? element.get() : null;
+                titleRecord = element != null ? element.get() : null;
             }
             getPipeline().quit(this);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            logger.error("exiting, exception while processing {}", serialRecord);
+            logger.error("exiting, exception while processing {}", titleRecord);
             getPipeline().quit(this, e);
         } finally {
             metric.stop();
@@ -226,17 +226,17 @@ public class TimelineHoldingsLicensesWorker
         return TimelineHoldingsLicensesMerger.class.getSimpleName() + "." + number;
     }
 
-    private void process(SerialRecord serialRecord) throws IOException {
+    private void process(TitleRecord titleRecord) throws IOException {
         // Candidates are unstructured, no timeline organization,
         // no relationship analysis, not ordered by ID
         this.candidates = new HashSet<>();
-        candidates.add(serialRecord);
+        candidates.add(titleRecord);
         state = State.COLLECTING_CANDIDATES;
-        searchNeighbors(serialRecord, candidates, 0);
+        searchNeighbors(titleRecord, candidates, 0);
         // process build queue to get candidates
         ClusterBuildContinuation cont;
         while ((cont = buildQueue.poll()) != null) {
-            for (SerialRecord tr : cont.cluster) {
+            for (TitleRecord tr : cont.cluster) {
                 candidates.add(tr);
             }
             continueClusterBuild(candidates, cont, 0);
@@ -245,7 +245,7 @@ public class TimelineHoldingsLicensesWorker
         do {
             // Ensure all relationships in the candidate set
             state = State.PROCESSING;
-            for (SerialRecord m : candidates) {
+            for (TitleRecord m : candidates) {
                 setAllRelationsBetween(m, candidates);
             }
             // Now, this is expensive. Find holdings, licenses, indicators of candidates
@@ -258,7 +258,7 @@ public class TimelineHoldingsLicensesWorker
             retry = 0;
             int before = candidates.size();
             while ((cont = buildQueue.poll()) != null) {
-                for (SerialRecord tr : cont.cluster) {
+                for (TitleRecord tr : cont.cluster) {
                     candidates.add(tr);
                 }
                 int after = candidates.size();
@@ -269,17 +269,17 @@ public class TimelineHoldingsLicensesWorker
             }
             if (retry > 0 && retry < 10) {
                 logger.info("{}: retrying {} before indexing, {} candidates",
-                        serialRecord, retry, candidates.size());
+                        titleRecord, retry, candidates.size());
                 continue;
             }
             state = State.INDEXING;
-            for (SerialRecord tr : candidates) {
+            for (TitleRecord tr : candidates) {
                 timelineHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(tr);
             }
             retry = 0;
             before = candidates.size();
             while ((cont = buildQueue.poll()) != null) {
-                for (SerialRecord tr : cont.cluster) {
+                for (TitleRecord tr : cont.cluster) {
                     candidates.add(tr);
                 }
                 int after = candidates.size();
@@ -290,19 +290,19 @@ public class TimelineHoldingsLicensesWorker
             }
             if (retry > 0 && retry < 10) {
                 logger.info("{}: retrying {} after indexing, {} candidates",
-                        serialRecord, retry, candidates.size());
+                        titleRecord, retry, candidates.size());
             }
         } while (retry > 0 && retry < 10);
         if (retry >= 10) {
             logger.warn("retry limit exceeded: {}, candidates = {}, buildqueue = {}",
-                    serialRecord, candidates, buildQueue.size());
+                    titleRecord, candidates, buildQueue.size());
         }
     }
 
-    private void searchNeighbors(SerialRecord serialRecord, Collection<SerialRecord> candidates, int level)
+    private void searchNeighbors(TitleRecord titleRecord, Collection<TitleRecord> candidates, int level)
             throws IOException {
         Set<String> neighbors = new HashSet<>();
-        MultiMap<String,String> m = serialRecord.getRelations();
+        MultiMap<String,String> m = titleRecord.getRelations();
         for (String key : m.keySet()) {
             neighbors.addAll(m.get(key).stream().collect(Collectors.toList()));
         }
@@ -325,46 +325,46 @@ public class TimelineHoldingsLicensesWorker
             return;
         }
         // copy candidates to a new list for each continuation, may be used by other threads after a collision
-        List<SerialRecord> list = new ArrayList<>(candidates);
-        ClusterBuildContinuation carrierCont = new ClusterBuildContinuation(serialRecord, searchResponse,
-                SerialRecord.getCarrierRelations(), list, level);
+        List<TitleRecord> list = new ArrayList<>(candidates);
+        ClusterBuildContinuation carrierCont = new ClusterBuildContinuation(titleRecord, searchResponse,
+                TitleRecord.getCarrierRelations(), list, level);
         buildQueue.offer(carrierCont);
     }
 
-    private void continueClusterBuild(Set<SerialRecord> serialRecords, ClusterBuildContinuation c, int level)
+    private void continueClusterBuild(Set<TitleRecord> titleRecords, ClusterBuildContinuation c, int level)
             throws IOException {
         SearchResponse searchResponse = c.searchResponse;
         do {
             for (int i = c.pos; i < searchResponse.getHits().getHits().length; i++) {
                 SearchHit hit = searchResponse.getHits().getAt(i);
-                SerialRecord m = new SerialRecord(hit.getSource());
-                if (m.id().equals(c.serialRecord.id())) {
+                TitleRecord m = new TitleRecord(hit.getSource());
+                if (m.id().equals(c.titleRecord.id())) {
                     continue;
                 }
-                if (serialRecords.contains(m)) {
+                if (titleRecords.contains(m)) {
                     continue;
                 }
-                serialRecords.add(m);
+                titleRecords.add(m);
                 boolean collided = detectCollisionAndTransfer(m, c, i);
                 if (collided) {
                     // abort immediately
                     return;
                 }
                 boolean expand = false;
-                Collection<String> relations = findTheRelationsBetween(c.serialRecord, m.id());
+                Collection<String> relations = findTheRelationsBetween(c.titleRecord, m.id());
                 for (String relation : relations) {
                     if (relation == null) {
                         continue;
                     }
-                    String inverse = SerialRecord.getInverseRelations().get(relation);
-                    c.serialRecord.addRelated(relation, m);
+                    String inverse = TitleRecord.getInverseRelations().get(relation);
+                    c.titleRecord.addRelated(relation, m);
                     if (inverse != null) {
-                        m.addRelated(inverse, c.serialRecord);
+                        m.addRelated(inverse, c.titleRecord);
                     }
                     expand = expand || c.relations.contains(relation);
                 }
                 if (expand && level < 2) {
-                    searchNeighbors(m, serialRecords, level + 1);
+                    searchNeighbors(m, titleRecords, level + 1);
                 }
             }
             searchResponse = timelineHoldingsLicensesMerger.search().client()
@@ -378,18 +378,18 @@ public class TimelineHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private boolean detectCollisionAndTransfer(SerialRecord serialRecord, ClusterBuildContinuation c, int pos) {
+    private boolean detectCollisionAndTransfer(TitleRecord titleRecord, ClusterBuildContinuation c, int pos) {
         for (TimelineHoldingsLicensesWorker worker : getPipeline().getWorkers()) {
             if (this == worker) {
                 continue;
             }
-            Set<SerialRecord> set = worker.getCandidates();
-            if (set != null && set.contains(serialRecord)) {
-                logger.warn("collision detected for {} with {} state={}", serialRecord, worker, worker.state.name());
+            Set<TitleRecord> set = worker.getCandidates();
+            if (set != null && set.contains(titleRecord)) {
+                logger.warn("collision detected for {} with {} state={}", titleRecord, worker, worker.state.name());
                 c.pos = pos;
                 // remove from our candidates, because we pass over to other thread
-                candidates.remove(serialRecord);
-                for (SerialRecord tr : c.cluster) {
+                candidates.remove(titleRecord);
+                for (TitleRecord tr : c.cluster) {
                     candidates.remove(tr);
                 }
                 // pass it over
@@ -400,14 +400,14 @@ public class TimelineHoldingsLicensesWorker
         return false;
     }
 
-    private void searchHoldings(Collection<SerialRecord> serialRecords, Set<Holding> holdings)
+    private void searchHoldings(Collection<TitleRecord> titleRecords, Set<Holding> holdings)
             throws IOException {
         if (sourceHoldingsIndex == null) {
             return;
         }
         // create a map of all title records that can have assigned a holding
-        Map<String, SerialRecord> map = new HashMap<>();
-        for (SerialRecord m : serialRecords) {
+        Map<String, TitleRecord> map = new HashMap<>();
+        for (TitleRecord m : titleRecords) {
             map.put("(DE-600)" + m.id(), m);
             // add print if not already there...
             if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
@@ -418,7 +418,7 @@ public class TimelineHoldingsLicensesWorker
     }
 
     @SuppressWarnings("unchecked")
-    private void searchHoldings(Map<String, SerialRecord> titleRecordMap, Set<Holding> holdings)
+    private void searchHoldings(Map<String, TitleRecord> titleRecordMap, Set<Holding> holdings)
             throws IOException {
         if (sourceHoldingsIndex == null) {
             return;
@@ -477,8 +477,8 @@ public class TimelineHoldingsLicensesWorker
                                     .lookupRegion().get(expandedisil));
                             holding.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup()
                                     .lookupOrganization().get(expandedisil));
-                            SerialRecord parentSerialRecord = titleRecordMap.get(holding.parentIdentifier());
-                            parentSerialRecord.addRelatedHolding(expandedisil, holding);
+                            TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                            parentTitleRecord.addRelatedHolding(expandedisil, holding);
                             holdings.add(holding);
                         }
                     } else {
@@ -489,8 +489,8 @@ public class TimelineHoldingsLicensesWorker
                         holding.setName(timelineHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                         holding.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         holding.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                        SerialRecord parentSerialRecord = titleRecordMap.get(holding.parentIdentifier());
-                        parentSerialRecord.addRelatedHolding(isil, holding);
+                        TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                        parentTitleRecord.addRelatedHolding(isil, holding);
                         holdings.add(holding);
                     }
                 }
@@ -505,12 +505,12 @@ public class TimelineHoldingsLicensesWorker
         }
     }
 
-    private void searchLicensesAndIndicators(Collection<SerialRecord> serialRecords, Set<License> licenses)
+    private void searchLicensesAndIndicators(Collection<TitleRecord> titleRecords, Set<License> licenses)
             throws IOException {
         // create a map of all title records that can have assigned a license
-        Map<String, SerialRecord> map = new HashMap<>();
+        Map<String, TitleRecord> map = new HashMap<>();
         boolean isOnline = false;
-        for (SerialRecord m : serialRecords) {
+        for (TitleRecord m : titleRecords) {
             map.put(m.externalID(), m);
             // we really just rely on the carrier type. There may be licenses or indicators
             isOnline = isOnline || "online resource".equals(m.carrierType());
@@ -528,7 +528,7 @@ public class TimelineHoldingsLicensesWorker
         }
     }
 
-    private void searchLicenses(Set<License> licenses, Map<String, SerialRecord> titleRecordMap) throws IOException {
+    private void searchLicenses(Set<License> licenses, Map<String, TitleRecord> titleRecordMap) throws IOException {
         if (sourceLicenseIndex == null) {
             return;
         }
@@ -584,7 +584,7 @@ public class TimelineHoldingsLicensesWorker
                             license.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             license.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
                             for (String parent : license.parents()) {
-                                SerialRecord m = titleRecordMap.get(parent);
+                                TitleRecord m = titleRecordMap.get(parent);
                                 m.addRelatedHolding(expandedisil, license);
                             }
                             licenses.add(license);
@@ -598,7 +598,7 @@ public class TimelineHoldingsLicensesWorker
                         license.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         license.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
                         for (String parent : license.parents()) {
-                            SerialRecord m = titleRecordMap.get(parent);
+                            TitleRecord m = titleRecordMap.get(parent);
                             m.addRelatedHolding(isil, license);
                         }
                         licenses.add(license);
@@ -615,7 +615,7 @@ public class TimelineHoldingsLicensesWorker
         }
     }
 
-    private void searchIndicators(Set<License> indicators, Map<String, SerialRecord> titleRecordMap) throws IOException {
+    private void searchIndicators(Set<License> indicators, Map<String, TitleRecord> titleRecordMap) throws IOException {
         if (sourceIndicatorIndex == null) {
             return;
         }
@@ -665,7 +665,7 @@ public class TimelineHoldingsLicensesWorker
                             indicator.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             indicator.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
                             for (String parent : indicator.parents()) {
-                                SerialRecord m = titleRecordMap.get(parent);
+                                TitleRecord m = titleRecordMap.get(parent);
                                 m.addRelatedIndicator(expandedisil, indicator);
                             }
                             indicators.add(indicator);
@@ -679,7 +679,7 @@ public class TimelineHoldingsLicensesWorker
                         indicator.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         indicator.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
                         for (String parent : indicator.parents()) {
-                            SerialRecord m = titleRecordMap.get(parent);
+                            TitleRecord m = titleRecordMap.get(parent);
                             m.addRelatedIndicator(isil, indicator);
                         }
                         indicators.add(indicator);
@@ -697,11 +697,11 @@ public class TimelineHoldingsLicensesWorker
     }
 
     @SuppressWarnings("unchecked")
-    private void searchMonographs(Collection<SerialRecord> serialRecords) throws IOException {
-        for (SerialRecord serialRecord : serialRecords) {
+    private void searchMonographs(Collection<TitleRecord> titleRecords) throws IOException {
+        for (TitleRecord titleRecord : titleRecords) {
             BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-            queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", serialRecord.externalID()));
-            Collection<String> issns = (Collection<String>) serialRecord.getIdentifiers().get("issn");
+            queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+            Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("issn");
             if (issns != null) {
                 for (String issn : issns) {
                     // not known which ISSN is print or online
@@ -723,7 +723,7 @@ public class TimelineHoldingsLicensesWorker
                 getMetric().mark();
                 for (SearchHit hit : searchResponse.getHits()) {
                     Map<String, Object> m = hit.getSource();
-                    MonographVolume volume = new MonographVolume(m, serialRecord);
+                    MonographVolume volume = new MonographVolume(m, titleRecord);
                     searchExtraHoldings(volume);
                     searchSeriesVolumeHoldings(volume);
                 }
@@ -744,7 +744,7 @@ public class TimelineHoldingsLicensesWorker
      */
     @SuppressWarnings("unchecked")
     private void searchExtraHoldings(MonographVolume volume) {
-        SerialRecord serialRecord = volume.getSerialRecord();
+        TitleRecord titleRecord = volume.getTitleRecord();
         String key = volume.id();
         SearchRequestBuilder holdingsSearchRequest = timelineHoldingsLicensesMerger.search().client()
                 .prepareSearch()
@@ -779,8 +779,8 @@ public class TimelineHoldingsLicensesWorker
                             continue;
                         }
                         volumeHolding.addParent(volume.externalID());
-                        volumeHolding.setMediaType(serialRecord.mediaType());
-                        volumeHolding.setCarrierType(serialRecord.carrierType());
+                        volumeHolding.setMediaType(titleRecord.mediaType());
+                        volumeHolding.setCarrierType(titleRecord.carrierType());
                         volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                         volumeHolding.setName(timelineHoldingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(isil));
@@ -814,7 +814,7 @@ public class TimelineHoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void searchSeriesVolumeHoldings(MonographVolume parent)
             throws IOException {
-        SerialRecord serialRecord = parent.getSerialRecord();
+        TitleRecord titleRecord = parent.getTitleRecord();
         if (parent.id() == null || parent.id().isEmpty()) {
             return;
         }
@@ -833,8 +833,8 @@ public class TimelineHoldingsLicensesWorker
         do {
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
-                MonographVolume volume = new MonographVolume(hit.getSource(), serialRecord);
-                volume.addParent(serialRecord.externalID());
+                MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
+                volume.addParent(titleRecord.externalID());
                 // for each conference/congress, search holdings
                 SearchRequestBuilder holdingsSearchRequest = timelineHoldingsLicensesMerger.search().client()
                         .prepareSearch()
@@ -870,10 +870,10 @@ public class TimelineHoldingsLicensesWorker
                                 if (timelineHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
                                     continue;
                                 }
-                                volumeHolding.addParent(serialRecord.externalID());
+                                volumeHolding.addParent(titleRecord.externalID());
                                 volumeHolding.addParent(volume.externalID());
-                                volumeHolding.setMediaType(serialRecord.mediaType());
-                                volumeHolding.setCarrierType(serialRecord.carrierType());
+                                volumeHolding.setMediaType(titleRecord.mediaType());
+                                volumeHolding.setCarrierType(titleRecord.carrierType());
                                 volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                                 volumeHolding.setName(timelineHoldingsLicensesMerger.bibdatLookup()
                                         .lookupName().get(isil));
@@ -898,7 +898,7 @@ public class TimelineHoldingsLicensesWorker
                         .prepareClearScroll().addScrollId(holdingSearchResponse.getScrollId())
                         .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
                 // this also copies holdings from the found volume to the title record
-                serialRecord.addVolume(volume);
+                titleRecord.addVolume(volume);
             }
             searchResponse = timelineHoldingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
@@ -911,10 +911,10 @@ public class TimelineHoldingsLicensesWorker
     }
 
     @SuppressWarnings("unchecked")
-    private Set<String> findTheRelationsBetween(SerialRecord serialRecord, String id) {
+    private Set<String> findTheRelationsBetween(TitleRecord titleRecord, String id) {
         Set<String> relationNames = new HashSet<>();
-        for (String entry : SerialRecord.relationEntries()) {
-            Object o = serialRecord.map().get(entry);
+        for (String entry : TitleRecord.relationEntries()) {
+            Object o = titleRecord.map().get(entry);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -944,9 +944,9 @@ public class TimelineHoldingsLicensesWorker
     }
 
     @SuppressWarnings("unchecked")
-    private void setAllRelationsBetween(SerialRecord serialRecord, Collection<SerialRecord> cluster) {
-        for (String relation : SerialRecord.relationEntries()) {
-            Object o = serialRecord.map().get(relation);
+    private void setAllRelationsBetween(TitleRecord titleRecord, Collection<TitleRecord> cluster) {
+        for (String relation : TitleRecord.relationEntries()) {
+            Object o = titleRecord.map().get(relation);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -963,7 +963,7 @@ public class TimelineHoldingsLicensesWorker
                             continue;
                         } else {
                             if (logger.isTraceEnabled()) {
-                                logger.trace("entry {} has no relation name in {}", entry, serialRecord.externalID());
+                                logger.trace("entry {} has no relation name in {}", entry, titleRecord.externalID());
                             }
                             continue;
                         }
@@ -972,26 +972,26 @@ public class TimelineHoldingsLicensesWorker
                     // take only first entry from list...
                     String value = internalObj == null ? null : internalObj instanceof List ?
                             ((List) internalObj).get(0).toString() : internalObj.toString();
-                    for (SerialRecord m : cluster) {
+                    for (TitleRecord m : cluster) {
                         // self?
-                        if (m.id().equals(serialRecord.id())) {
+                        if (m.id().equals(titleRecord.id())) {
                             continue;
                         }
                         if (m.id().equals(value)) {
-                            serialRecord.addRelated(key, m);
+                            titleRecord.addRelated(key, m);
                             // special trick: move over links from online to print
                             if ("hasPrintEdition".equals(key)) {
-                                m.setLinks(serialRecord.getLinks());
+                                m.setLinks(titleRecord.getLinks());
                             }
-                            String inverse = SerialRecord.getInverseRelations().get(key);
+                            String inverse = TitleRecord.getInverseRelations().get(key);
                             if (inverse != null) {
-                                m.addRelated(inverse, serialRecord);
+                                m.addRelated(inverse, titleRecord);
                             } else {
                                 if (logger.isTraceEnabled()) {
                                     logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key,
-                                            serialRecord.externalID());
+                                            titleRecord.externalID());
                                 }
-                                m.addRelated("isRelatedTo", serialRecord);
+                                m.addRelated("isRelatedTo", titleRecord);
                             }
                         }
                     }
@@ -1001,18 +1001,18 @@ public class TimelineHoldingsLicensesWorker
     }
 
     private static class ClusterBuildContinuation {
-        final SerialRecord serialRecord;
+        final TitleRecord titleRecord;
         final SearchResponse searchResponse;
-        final Collection<SerialRecord> cluster;
+        final Collection<TitleRecord> cluster;
         final Set<String> relations;
         int pos;
 
-        ClusterBuildContinuation(SerialRecord serialRecord,
+        ClusterBuildContinuation(TitleRecord titleRecord,
                                  SearchResponse searchResponse,
                                  Set<String> relations,
-                                 Collection<SerialRecord> cluster,
+                                 Collection<TitleRecord> cluster,
                                  int pos) {
-            this.serialRecord = serialRecord;
+            this.titleRecord = titleRecord;
             this.searchResponse = searchResponse;
             this.relations = relations;
             this.cluster = cluster;

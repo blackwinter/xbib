@@ -37,7 +37,7 @@ import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
@@ -62,10 +62,12 @@ public class HoldingsLicensesIndexer {
 
     private final String manifestationsIndex;
     private final String manifestationsIndexType;
-    private final String holdingsIndex;
-    private final String holdingsIndexType;
     private final String volumesIndex;
     private final String volumesIndexType;
+    private final String holdingsIndex;
+    private final String holdingsIndexType;
+    private final String shelfIndex;
+    private final String shelfIndexType;
     private final String servicesIndex;
     private final String servicesIndexType;
 
@@ -75,26 +77,33 @@ public class HoldingsLicensesIndexer {
         String indexName = outputIndexDefinitionMap.get("holdingslicenses").getConcreteIndex();
         this.manifestationsIndex = indexName;
         this.manifestationsIndexType = "manifestations";
-        this.holdingsIndex = indexName;
-        this.holdingsIndexType = "holdings";
         this.volumesIndex = indexName;
         this.volumesIndexType = "volumes";
+        this.holdingsIndex = indexName;
+        this.holdingsIndexType = "holdings";
+        this.shelfIndex = indexName;
+        this.shelfIndexType = "shelf";
         this.servicesIndex = indexName;
         this.servicesIndexType = "services";
     }
 
-    public void index(SerialRecord serialRecord) throws IOException {
-        index(serialRecord, null);
+    public void index(TitleRecord titleRecord) throws IOException {
+        index(titleRecord, null);
     }
 
     @SuppressWarnings("unchecked")
-    public void index(SerialRecord serialRecord, StatCounter statCounter) throws IOException {
-        // first, index related conference/proceedings/abstracts/...
-        if (!serialRecord.getMonographVolumes().isEmpty()) {
-            for (MonographVolume volume : serialRecord.getMonographVolumes()) {
+    public void index(TitleRecord titleRecord, StatCounter statCounter) throws IOException {
+        // first, index related conferences/proceedings/abstracts/...
+        if (!titleRecord.getMonographVolumes().isEmpty()) {
+            for (MonographVolume volume : titleRecord.getMonographVolumes()) {
                 XContentBuilder builder = jsonBuilder();
-                buildMonographVolume(builder, volume, statCounter);
-                validateIndex(manifestationsIndex, manifestationsIndexType, volume.externalID(), builder);
+                boolean isManifestation = buildMonographVolume(builder, volume, statCounter);
+                // if ISBN, index to manifestations for top level search
+                if (isManifestation) {
+                    validateIndex(manifestationsIndex, manifestationsIndexType, volume.externalID(), builder);
+                } else {
+                    validateIndex(volumesIndex, volumesIndexType, volume.externalID(), builder);
+                }
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
                 for (String key : mm.keySet()) {
                     for (Holding volumeHolding : mm.get(key)){
@@ -106,32 +115,31 @@ public class HoldingsLicensesIndexer {
                         if (statCounter != null) {
                             statCounter.increase("stat", "holdings", 1);
                         }
-                        // extra entry by date
                         String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
-                        validateIndex(volumesIndex, volumesIndexType, vhid, builder);
+                        validateIndex(shelfIndex, shelfIndexType, vhid, builder);
                         if (statCounter != null) {
-                            statCounter.increase("stat", "volumes", 1);
+                            statCounter.increase("stat", "shelf", 1);
                         }
                     }
                 }
             }
-            int n = serialRecord.getMonographVolumes().size();
+            int n = titleRecord.getMonographVolumes().size();
             if (statCounter != null) {
                 statCounter.increase("stat", "manifestations", n);
             }
         }
         // write holdings and services
-        if (!serialRecord.getRelatedHoldings().isEmpty()) {
+        if (!titleRecord.getRelatedHoldings().isEmpty()) {
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
-                    .field("parent", serialRecord.externalID());
-            if (serialRecord.hasLinks()) {
-                builder.field("links", serialRecord.getLinks());
+                    .field("parent", titleRecord.externalID());
+            if (titleRecord.hasLinks()) {
+                builder.field("links", titleRecord.getLinks());
             }
             builder.startArray("institution");
             int instcount = 0;
-            final MultiMap<String, Holding> holdingsMap = serialRecord.getRelatedHoldings();
+            final MultiMap<String, Holding> holdingsMap = titleRecord.getRelatedHoldings();
             for (String isil : holdingsMap.keySet()) {
                 Collection<Holding> holdings = holdingsMap.get(isil);
                 if (holdings != null && !holdings.isEmpty()) {
@@ -146,10 +154,7 @@ public class HoldingsLicensesIndexer {
                         String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         buildService(serviceBuilder, holding);
-                        validateIndex(servicesIndex,
-                                servicesIndexType,
-                                serviceId,
-                                serviceBuilder);
+                        validateIndex(servicesIndex, servicesIndexType, serviceId, serviceBuilder);
                         builder.value(serviceId);
                         count++;
                     }
@@ -165,24 +170,19 @@ public class HoldingsLicensesIndexer {
             builder.field("institutioncount", instcount);
             builder.endObject();
             // now, build holdings per year
-            MultiMap<Integer,Holding> map = serialRecord.getHoldingsByDate();
+            MultiMap<Integer,Holding> map = titleRecord.getHoldingsByDate();
             for (Integer date : map.keySet()) {
                 Collection<Holding> holdings = map.get(date);
-                String volumeId = serialRecord.externalID() + (date != -1 ? "." + date : "");
+                String shelfId = titleRecord.externalID() + (date != -1 ? "." + date : "");
                 XContentBuilder volumeBuilder = jsonBuilder();
-                buildVolume(volumeBuilder, serialRecord, date, holdings);
-                validateIndex(volumesIndex,
-                        volumesIndexType,
-                        volumeId, volumeBuilder);
+                buildVolume(volumeBuilder, titleRecord, date, holdings);
+                validateIndex(shelfIndex, shelfIndexType, shelfId, volumeBuilder);
             }
             if (statCounter != null) {
-                statCounter.increase("stat", "volumes", map.size());
+                statCounter.increase("stat", "shelf", map.size());
             }
             // finally, add one holding per manifestation
-            validateIndex(holdingsIndex,
-                    holdingsIndexType,
-                    serialRecord.externalID(),
-                    builder);
+            validateIndex(holdingsIndex, holdingsIndexType, titleRecord.externalID(), builder);
             if (statCounter != null) {
                 statCounter.increase("stat", "holdings", 1);
             }
@@ -191,61 +191,66 @@ public class HoldingsLicensesIndexer {
             statCounter.increase("stat", "manifestations", 1);
         }
         XContentBuilder builder = jsonBuilder();
-        buildManifestation(builder, serialRecord, statCounter);
-        validateIndex(manifestationsIndex,
-                manifestationsIndexType,
-                serialRecord.externalID(), builder);
+        buildManifestation(builder, titleRecord, statCounter);
+        validateIndex(manifestationsIndex, manifestationsIndexType, titleRecord.externalID(), builder);
     }
 
     private void buildManifestation(XContentBuilder builder,
-                                    SerialRecord serialRecord,
+                                    TitleRecord titleRecord,
                                     StatCounter statCounter) throws IOException {
         builder.startObject();
-        builder.field("title", serialRecord.getExtendedTitle())
-                .field("titlecomponents", serialRecord.getTitleComponents());
-        String s = serialRecord.corporateName();
+        builder.field("title", titleRecord.getExtendedTitle())
+                .field("titlecomponents", titleRecord.getTitleComponents());
+        String s = titleRecord.corporateName();
         if (s != null) {
             builder.field("corporatename", s);
         }
-        s = serialRecord.meetingName();
+        s = titleRecord.meetingName();
         if (s != null) {
             builder.field("meetingname", s);
         }
-        builder.field("country", serialRecord.country())
-                .fieldIfNotNull("language", serialRecord.language())
-                .field("publishedat", serialRecord.getPublisherPlace())
-                .field("publishedby", serialRecord.getPublisher())
-                .field("monographic", serialRecord.isMonographic())
-                .field("openaccess", serialRecord.isOpenAccess())
-                .fieldIfNotNull("license", serialRecord.getLicense())
-                .field("contenttype", serialRecord.contentType())
-                .field("mediatype", serialRecord.mediaType())
-                .field("carriertype", serialRecord.carrierType())
-                .fieldIfNotNull("firstdate", serialRecord.firstDate())
-                .fieldIfNotNull("lastdate", serialRecord.lastDate());
-        Set<Integer> missing = new HashSet<>(serialRecord.getDates());
-        Set<Integer> set = serialRecord.getHoldingsByDate().keySet();
+        builder.field("country", titleRecord.country())
+                .fieldIfNotNull("language", titleRecord.language())
+                .field("publishedat", titleRecord.getPublisherPlace())
+                .field("publishedby", titleRecord.getPublisherName())
+                .field("openaccess", titleRecord.isOpenAccess())
+                .fieldIfNotNull("license", titleRecord.getLicense())
+                .field("contenttype", titleRecord.contentType())
+                .field("mediatype", titleRecord.mediaType())
+                .field("carriertype", titleRecord.carrierType())
+                .fieldIfNotNull("firstdate", titleRecord.firstDate())
+                .fieldIfNotNull("lastdate", titleRecord.lastDate());
+        Set<Integer> missing = new HashSet<>(titleRecord.getDates());
+        Set<Integer> set = titleRecord.getHoldingsByDate().keySet();
         builder.array("dates", set);
         builder.field("current", set.contains(currentYear));
         missing.removeAll(set);
         builder.array("missingdates", missing);
         builder.array("missingdatescount", missing.size());
-        builder.field("greendate", serialRecord.getGreenDates());
-        builder.field("greendatecount", serialRecord.getGreenDates().size());
-        Set<String> isils = serialRecord.getRelatedHoldings().keySet();
+        builder.field("greendate", titleRecord.getGreenDates());
+        builder.field("greendatecount", titleRecord.getGreenDates().size());
+        Set<String> isils = titleRecord.getRelatedHoldings().keySet();
         builder.array("isil", isils);
         builder.field("isilcount", isils.size());
-        builder.field("identifiers", serialRecord.getIdentifiers());
-        builder.field("subseries", serialRecord.isSubseries());
-        builder.field("aggregate", serialRecord.isAggregate());
-        builder.field("supplement", serialRecord.isSupplement());
-        builder.fieldIfNotNull("resourcetype", serialRecord.resourceType());
-        builder.fieldIfNotNull("genre", serialRecord.genre());
-        MultiMap<String, SerialRecord> map = serialRecord.getRelated();
+        builder.field("identifiers", titleRecord.getIdentifiers());
+        builder.field("subseries", titleRecord.isSubseries());
+        builder.field("aggregate", titleRecord.isAggregate());
+        builder.field("supplement", titleRecord.isSupplement());
+        builder.fieldIfNotNull("resourcetype", titleRecord.resourceType());
+        builder.fieldIfNotNull("genre", titleRecord.genre());
+        if (!titleRecord.getMonographVolumes().isEmpty()) {
+            builder.startArray("volumes");
+            for (MonographVolume volume : titleRecord.getMonographVolumes()) {
+                builder.value(volume.externalID());
+            }
+            builder.endArray();
+            builder.field("volumescount", titleRecord.getMonographVolumes().size());
+        }
+        MultiMap<String, TitleRecord> map = titleRecord.getRelated();
         if (!map.isEmpty()) {
             builder.startArray("relations");
             for (String rel : map.keySet()) {
-                for (SerialRecord tr : map.get(rel)) {
+                for (TitleRecord tr : map.get(rel)) {
                     builder.startObject()
                             .field("identifierForTheRelated", tr.externalID())
                             .field("label", rel)
@@ -254,7 +259,7 @@ public class HoldingsLicensesIndexer {
             }
             builder.endArray();
         }
-        MultiMap<String, String> mm = serialRecord.getExternalRelations();
+        MultiMap<String, String> mm = titleRecord.getExternalRelations();
         if (!mm.isEmpty()) {
             builder.startArray("relations");
             for (String rel : mm.keySet()) {
@@ -267,24 +272,24 @@ public class HoldingsLicensesIndexer {
             }
             builder.endArray();
         }
-        if (serialRecord.hasLinks()) {
-            builder.array("links", serialRecord.getLinks());
+        if (titleRecord.hasLinks()) {
+            builder.array("links", titleRecord.getLinks());
         }
         builder.endObject();
         if (statCounter != null) {
-            for (String country : serialRecord.country()) {
+            for (String country : titleRecord.country()) {
                 statCounter.increase("country", country, 1);
             }
-            statCounter.increase("language", serialRecord.language(), 1);
-            statCounter.increase("contenttype", serialRecord.contentType(), 1);
-            statCounter.increase("mediatype", serialRecord.mediaType(), 1);
-            statCounter.increase("carriertype", serialRecord.carrierType(), 1);
-            statCounter.increase("resourcetype", serialRecord.resourceType(), 1);
-            statCounter.increase("genre", serialRecord.genre(), 1);
+            statCounter.increase("language", titleRecord.language(), 1);
+            statCounter.increase("contenttype", titleRecord.contentType(), 1);
+            statCounter.increase("mediatype", titleRecord.mediaType(), 1);
+            statCounter.increase("carriertype", titleRecord.carrierType(), 1);
+            statCounter.increase("resourcetype", titleRecord.resourceType(), 1);
+            statCounter.increase("genre", titleRecord.genre(), 1);
         }
     }
 
-    private void buildMonographVolume(XContentBuilder builder, MonographVolume monographVolume, StatCounter statCounter)
+    private boolean buildMonographVolume(XContentBuilder builder, MonographVolume monographVolume, StatCounter statCounter)
             throws IOException {
         builder.startObject()
                 .array("parents", monographVolume.parents())
@@ -312,9 +317,14 @@ public class HoldingsLicensesIndexer {
         }
         builder.fieldIfNotNull("language", monographVolume.language())
                 .fieldIfNotNull("publishedat", monographVolume.getPublisherPlace())
-                .fieldIfNotNull("publishedby", monographVolume.getPublisher());
+                .fieldIfNotNull("publishedby", monographVolume.getPublisherName());
+        boolean isManifestation = false;
         if (monographVolume.hasIdentifiers()) {
-            builder.field("identifiers", monographVolume.getIdentifiers());
+            Map<String,Object> identifiers =  monographVolume.getIdentifiers();
+            builder.field("identifiers", identifiers);
+            if (identifiers.get("isbn") != null) {
+                isManifestation = true;
+            }
         }
         builder.endObject();
         if (statCounter != null) {
@@ -331,6 +341,7 @@ public class HoldingsLicensesIndexer {
                 statCounter.increase("genre", genre, 1);
             }
         }
+        return isManifestation;
     }
 
     private void buildMonographHolding(XContentBuilder builder, Holding holding) throws IOException {
@@ -374,7 +385,7 @@ public class HoldingsLicensesIndexer {
     }
 
     private void buildVolume(XContentBuilder builder,
-                             SerialRecord serialRecord,
+                             TitleRecord titleRecord,
                              Integer date,
                              Collection<Holding> holdings)
             throws IOException {
@@ -382,8 +393,8 @@ public class HoldingsLicensesIndexer {
         if (date != -1) {
             builder.field("date", date);
         }
-        if (serialRecord.hasLinks()) {
-            builder.field("links", serialRecord.getLinks());
+        if (titleRecord.hasLinks()) {
+            builder.field("links", titleRecord.getLinks());
         }
         Map<String, Set<Holding>> institutions = new HashMap<>();
         for (Holding holding : holdings) {

@@ -44,8 +44,8 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.HoldingsLicensesIndexer;
-import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
+import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
@@ -99,7 +99,7 @@ public class TimelineHoldingsLicensesMerger extends Merger {
     }
 
     @SuppressWarnings("unchecked")
-    public Pipeline<TimelineHoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
+    public Pipeline<TimelineHoldingsLicensesWorker, TitleRecordRequest> getPipeline() {
         return pipeline;
     }
 
@@ -198,9 +198,9 @@ public class TimelineHoldingsLicensesMerger extends Merger {
                         logger.error("no more workers left to receive, aborting feed");
                         return;
                     }
-                    SerialRecord serialRecord = new SerialRecord(hit.getSource());
-                    SerialRecordRequest serialRecordRequest = new SerialRecordRequest().set(serialRecord);
-                    getPipeline().putQueue(serialRecordRequest);
+                    TitleRecord titleRecord = new TitleRecord(hit.getSource());
+                    TitleRecordRequest titleRecordRequest = new TitleRecordRequest().set(titleRecord);
+                    getPipeline().putQueue(titleRecordRequest);
                 } catch (Throwable e) {
                     logger.error("error passing data to workers, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
@@ -222,7 +222,7 @@ public class TimelineHoldingsLicensesMerger extends Merger {
     protected void waitFor() throws IOException {
         try {
             // send poison elements and wait for completion
-            getPipeline().waitFor(new SerialRecordRequest());
+            getPipeline().waitFor(new TitleRecordRequest());
         } finally {
             long total = 0L;
             for (TimelineHoldingsLicensesWorker worker : getPipeline().getWorkers()) {

@@ -54,7 +54,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unchecked")
-public class SerialRecord implements Comparable<SerialRecord> {
+public class TitleRecord implements Comparable<TitleRecord> {
 
     private final static Integer currentYear = Year.now().getValue();
 
@@ -132,7 +132,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     private List<Map<String, Object>> links;
 
-    private final MultiMap<String, SerialRecord> relatedRecords = new LinkedHashMultiMap<>();
+    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
     private final MultiMap<String, Holding> relatedHoldings = new ConcurrentHashMapHashSetMultiMap<>();
@@ -140,7 +140,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 
-    public SerialRecord(Map<String, Object> map) {
+    public TitleRecord(Map<String, Object> map) {
         this.map = map;
         build();
     }
@@ -290,7 +290,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
         return meeting;
     }
 
-    public String getPublisher() {
+    public String getPublisherName() {
         return publisherName;
     }
 
@@ -370,11 +370,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
         return onlineID != null;
     }
 
-    public boolean isMonographic() {
-        return false;
-    }
-
-    public SerialRecord setOpenAccess(boolean openAccess) {
+    public TitleRecord setOpenAccess(boolean openAccess) {
         this.openAccess = openAccess;
         return this;
     }
@@ -383,7 +379,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
         return openAccess;
     }
 
-    public SerialRecord setLicense(String license) {
+    public TitleRecord setLicense(String license) {
         this.license = license;
         return this;
     }
@@ -907,8 +903,8 @@ public class SerialRecord implements Comparable<SerialRecord> {
         }
     }
 
-    public void addRelated(String relation, SerialRecord serialRecord) {
-        relatedRecords.put(relation, serialRecord);
+    public void addRelated(String relation, TitleRecord titleRecord) {
+        relatedRecords.put(relation, titleRecord);
     }
 
     public void addRelatedHolding(String relation, Holding holding) {
@@ -932,8 +928,8 @@ public class SerialRecord implements Comparable<SerialRecord> {
             return;
         }
         // tricky: add this holding also to title records of other carrier editions!
-        List<SerialRecord> list = new LinkedList();
-        Collection<SerialRecord> trs = relatedRecords.get("hasPrintEdition");
+        List<TitleRecord> list = new LinkedList();
+        Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
         if (trs != null) {
             list.addAll(trs);
         }
@@ -945,7 +941,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
         if (trs != null) {
             list.addAll(trs);
         }
-        for (SerialRecord tr : list) {
+        for (TitleRecord tr : list) {
             // add holding, avoid recursion
             tr.addRelatedHolding(holding.getISIL(), holding, false);
         }
@@ -979,8 +975,8 @@ public class SerialRecord implements Comparable<SerialRecord> {
         indicator.addParent(this.getPrintExternalID());
         indicator.addParent(this.getOnlineExternalID());
         // tricky: add this holding also to title records of other carrier editions!
-        List<SerialRecord> list = new LinkedList();
-        Collection<SerialRecord> trs = relatedRecords.get("hasPrintEdition");
+        List<TitleRecord> list = new LinkedList();
+        Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
         if (trs != null) {
             list.addAll(trs);
         }
@@ -993,12 +989,12 @@ public class SerialRecord implements Comparable<SerialRecord> {
             list.addAll(trs);
         }
         // add holding, avoid recursion
-        for (SerialRecord tr : list) {
+        for (TitleRecord tr : list) {
             tr.addRelatedHolding(indicator.getISIL(), indicator, false);
         }
     }
 
-    public MultiMap<String, SerialRecord> getRelated() {
+    public MultiMap<String, TitleRecord> getRelated() {
         return relatedRecords;
     }
 
@@ -1131,7 +1127,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof SerialRecord && externalID.equals(((SerialRecord)other).externalID);
+        return other instanceof TitleRecord && externalID.equals(((TitleRecord)other).externalID);
     }
 
     @Override
@@ -1140,7 +1136,7 @@ public class SerialRecord implements Comparable<SerialRecord> {
     }
 
     @Override
-    public int compareTo(SerialRecord m) {
+    public int compareTo(TitleRecord m) {
         return externalID.compareTo(m.externalID());
     }
 

@@ -31,23 +31,23 @@
  */
 package org.xbib.tools.merge.holdingslicenses.support;
 
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.concurrent.WorkerRequest;
 
-public class SerialRecordRequest implements WorkerRequest<SerialRecord> {
+public class TitleRecordRequest implements WorkerRequest<TitleRecord> {
 
-    private SerialRecord serialRecord;
+    private TitleRecord titleRecord;
 
-    public SerialRecordRequest set(SerialRecord serialRecord) {
-        this.serialRecord = serialRecord;
+    public TitleRecordRequest set(TitleRecord titleRecord) {
+        this.titleRecord = titleRecord;
         return this;
     }
 
-    public SerialRecord get() {
-        return serialRecord;
+    public TitleRecord get() {
+        return titleRecord;
     }
 
     public String toString() {
-        return serialRecord.toString();
+        return titleRecord.toString();
     }
 }

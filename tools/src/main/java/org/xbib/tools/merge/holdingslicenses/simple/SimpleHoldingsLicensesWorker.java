@@ -48,8 +48,8 @@ import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
 import org.xbib.tools.merge.holdingslicenses.entities.License;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
-import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
-import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
+import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
@@ -65,9 +65,9 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 public class SimpleHoldingsLicensesWorker
-        implements Worker<Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest>, SerialRecordRequest> {
+        implements Worker<Pipeline<SimpleHoldingsLicensesWorker, TitleRecordRequest>, TitleRecordRequest> {
 
-    private Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest> pipeline;
+    private Pipeline<SimpleHoldingsLicensesWorker, TitleRecordRequest> pipeline;
     private Meter metric;
     private final int number;
     private final SimpleHoldingsLicensesMerger simpleHoldingsLicensesMerger;
@@ -92,14 +92,14 @@ public class SimpleHoldingsLicensesWorker
     }
 
     @Override
-    public Worker<Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest>, SerialRecordRequest>
-            setPipeline(Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest> pipeline) {
+    public Worker<Pipeline<SimpleHoldingsLicensesWorker, TitleRecordRequest>, TitleRecordRequest>
+            setPipeline(Pipeline<SimpleHoldingsLicensesWorker, TitleRecordRequest> pipeline) {
         this.pipeline = pipeline;
         return this;
     }
 
     @Override
-    public Pipeline<SimpleHoldingsLicensesWorker, SerialRecordRequest> getPipeline() {
+    public Pipeline<SimpleHoldingsLicensesWorker, TitleRecordRequest> getPipeline() {
         return pipeline;
     }
 
@@ -116,30 +116,30 @@ public class SimpleHoldingsLicensesWorker
 
     @Override
     @SuppressWarnings("unchecked")
-    public SerialRecordRequest call() throws Exception {
+    public TitleRecordRequest call() throws Exception {
         logger.info("worker {} starting", this);
-        SerialRecordRequest request = null;
-        SerialRecord serialRecord = null;
+        TitleRecordRequest request = null;
+        TitleRecord titleRecord = null;
         try {
             while ((request = getPipeline().getQueue().take()) != null) {
-                serialRecord = request.get();
-                if (serialRecord == null) {
+                titleRecord = request.get();
+                if (titleRecord == null) {
                     break;
                 }
                 long t0 = System.nanoTime();
-                process(serialRecord);
+                process(titleRecord);
                 long t1 = System.nanoTime();
                 long delta = (t1 -t0) / 1000000;
                 // warn if delta is longer than 10 secs
                 if (delta > 10000) {
-                    logger.warn("long processing of {}: {} ms", serialRecord.externalID(), delta);
+                    logger.warn("long processing of {}: {} ms", titleRecord.externalID(), delta);
                 }
                 metric.mark();
             }
             getPipeline().quit(this);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            logger.error("exiting, exception while processing {}", serialRecord);
+            logger.error("exiting, exception while processing {}", titleRecord);
             getPipeline().quit(this, e);
         } finally {
             metric.stop();
@@ -157,32 +157,32 @@ public class SimpleHoldingsLicensesWorker
         return SimpleHoldingsLicensesMerger.class.getSimpleName() + "." + number;
     }
 
-    private void process(SerialRecord serialRecord) throws IOException {
-        boolean isOnline = "online resource".equals(serialRecord.carrierType());
+    private void process(TitleRecord titleRecord) throws IOException {
+        boolean isOnline = "online resource".equals(titleRecord.carrierType());
         logger.debug("processing {} {} (print: {} {}) (online: {} {}) {}",
-                serialRecord.id(), serialRecord.externalID(),
-                serialRecord.getPrintID(), serialRecord.getPrintExternalID(),
-                serialRecord.getOnlineID(), serialRecord.getOnlineExternalID(),
+                titleRecord.id(), titleRecord.externalID(),
+                titleRecord.getPrintID(), titleRecord.getPrintExternalID(),
+                titleRecord.getOnlineID(), titleRecord.getOnlineExternalID(),
                 isOnline);
+        addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.id());
         if (isOnline) {
-            if (serialRecord.getPrintID() != null) {
-                addSerialHoldings(serialRecord, "(DE-600)" + serialRecord.getPrintID());
+            if (titleRecord.getPrintID() != null && !titleRecord.getPrintID().equals(titleRecord.id())) {
+                addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.getPrintID());
             }
-            addLicenses(serialRecord, serialRecord.externalID());
-            addIndicators(serialRecord, serialRecord.externalID());
+            addLicenses(titleRecord, titleRecord.externalID());
+            addIndicators(titleRecord, titleRecord.externalID());
         } else {
-            addSerialHoldings(serialRecord, "(DE-600)" + serialRecord.id());
-            if (serialRecord.getOnlineExternalID() != null) {
-                addLicenses(serialRecord, serialRecord.getOnlineExternalID());
-                addIndicators(serialRecord, serialRecord.getOnlineExternalID());
+            if (titleRecord.getOnlineExternalID() != null) {
+                addLicenses(titleRecord, titleRecord.getOnlineExternalID());
+                addIndicators(titleRecord, titleRecord.getOnlineExternalID());
             }
         }
-        addMonographs(serialRecord);
-        addOpenAccess(serialRecord);
-        simpleHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(serialRecord);
+        addMonographs(titleRecord);
+        addOpenAccess(titleRecord);
+        simpleHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(titleRecord);
     }
 
-    private void addSerialHoldings(SerialRecord serialRecord, String id) throws IOException {
+    private void addSerialHoldings(TitleRecord titleRecord, String id) throws IOException {
         QueryBuilder queryBuilder = termQuery("ParentRecordIdentifier.identifierForTheParentRecord", id);
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
@@ -228,7 +228,7 @@ public class SimpleHoldingsLicensesWorker
                                 .lookupRegion().get(expandedisil));
                         holding.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup()
                                 .lookupOrganization().get(expandedisil));
-                        serialRecord.addRelatedHolding(expandedisil, holding);
+                        titleRecord.addRelatedHolding(expandedisil, holding);
                     }
                 } else {
                     // blacklisted ISIL?
@@ -238,7 +238,7 @@ public class SimpleHoldingsLicensesWorker
                     holding.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     holding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     holding.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    serialRecord.addRelatedHolding(isil, holding);
+                    titleRecord.addRelatedHolding(isil, holding);
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()
@@ -251,7 +251,7 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private void addLicenses(SerialRecord serialRecord, String zdbId) throws IOException {
+    private void addLicenses(TitleRecord titleRecord, String zdbId) throws IOException {
         QueryBuilder queryBuilder = termsQuery("ezb:zdbid", zdbId);
         // getSize is per shard
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
@@ -295,7 +295,7 @@ public class SimpleHoldingsLicensesWorker
                         license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        serialRecord.addRelatedHolding(expandedisil, license);
+                        titleRecord.addRelatedHolding(expandedisil, license);
                     }
                 } else {
                     // blacklisted ISIL?
@@ -305,7 +305,7 @@ public class SimpleHoldingsLicensesWorker
                     license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    serialRecord.addRelatedHolding(isil, license);
+                    titleRecord.addRelatedHolding(isil, license);
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()
@@ -318,7 +318,7 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private void addIndicators(SerialRecord serialRecord, String zdbId) throws IOException {
+    private void addIndicators(TitleRecord titleRecord, String zdbId) throws IOException {
         QueryBuilder queryBuilder = termsQuery("xbib:identifier", zdbId);
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
@@ -357,7 +357,7 @@ public class SimpleHoldingsLicensesWorker
                         indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        serialRecord.addRelatedIndicator(expandedisil, indicator);
+                        titleRecord.addRelatedIndicator(expandedisil, indicator);
                     }
                 } else {
                     // blacklisted ISIL?
@@ -367,7 +367,7 @@ public class SimpleHoldingsLicensesWorker
                     indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    serialRecord.addRelatedIndicator(isil, indicator);
+                    titleRecord.addRelatedIndicator(isil, indicator);
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()
@@ -380,10 +380,10 @@ public class SimpleHoldingsLicensesWorker
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    private void addMonographs(SerialRecord serialRecord) throws IOException {
+    private void addMonographs(TitleRecord titleRecord) throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", serialRecord.externalID()));
-        for (String issn : serialRecord.getISSNs()) {
+        queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+        for (String issn : titleRecord.getISSNs()) {
             // not guaranteed which ISSN is really the print or online edition!
             queryBuilder.should(termQuery("IdentifierISSN.identifierISSN", issn));
             queryBuilder.should(termQuery("IdentifierSerial.identifierISSNOnline",issn));
@@ -402,7 +402,7 @@ public class SimpleHoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
                 Map<String, Object> m = hit.getSource();
-                MonographVolume volume = new MonographVolume(m, serialRecord);
+                MonographVolume volume = new MonographVolume(m, titleRecord);
                 addExtraHoldings(volume);
                 addSeriesVolumeHoldings(volume);
             }
@@ -422,7 +422,7 @@ public class SimpleHoldingsLicensesWorker
      */
     @SuppressWarnings("unchecked")
     private void addExtraHoldings(MonographVolume volume) {
-        SerialRecord serialRecord = volume.getSerialRecord();
+        TitleRecord titleRecord = volume.getTitleRecord();
         String key = volume.id();
         SearchRequestBuilder holdingsSearchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
@@ -457,8 +457,8 @@ public class SimpleHoldingsLicensesWorker
                             continue;
                         }
                         volumeHolding.addParent(volume.externalID());
-                        volumeHolding.setMediaType(serialRecord.mediaType());
-                        volumeHolding.setCarrierType(serialRecord.carrierType());
+                        volumeHolding.setMediaType(titleRecord.mediaType());
+                        volumeHolding.setCarrierType(titleRecord.carrierType());
                         volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                         volumeHolding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(isil));
@@ -491,7 +491,7 @@ public class SimpleHoldingsLicensesWorker
      */
     @SuppressWarnings("unchecked")
     private void addSeriesVolumeHoldings(MonographVolume parent) throws IOException {
-        SerialRecord serialRecord = parent.getSerialRecord();
+        TitleRecord titleRecord = parent.getTitleRecord();
         if (parent.id() == null || parent.id().isEmpty()) {
             return;
         }
@@ -510,8 +510,8 @@ public class SimpleHoldingsLicensesWorker
         while (searchResponse.getHits().getHits().length > 0) {
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
-                MonographVolume volume = new MonographVolume(hit.getSource(), serialRecord);
-                volume.addParent(serialRecord.externalID());
+                MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
+                volume.addParent(titleRecord.externalID());
                 // for each conference/congress, search holdings
                 SearchRequestBuilder holdingsSearchRequest = simpleHoldingsLicensesMerger.search().client()
                         .prepareSearch()
@@ -547,10 +547,10 @@ public class SimpleHoldingsLicensesWorker
                                 if (simpleHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
                                     continue;
                                 }
-                                volumeHolding.addParent(serialRecord.externalID());
+                                volumeHolding.addParent(titleRecord.externalID());
                                 volumeHolding.addParent(volume.externalID());
-                                volumeHolding.setMediaType(serialRecord.mediaType());
-                                volumeHolding.setCarrierType(serialRecord.carrierType());
+                                volumeHolding.setMediaType(titleRecord.mediaType());
+                                volumeHolding.setCarrierType(titleRecord.carrierType());
                                 volumeHolding.setDate(volume.firstDate(), volume.lastDate());
                                 volumeHolding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                         .lookupName().get(isil));
@@ -575,7 +575,7 @@ public class SimpleHoldingsLicensesWorker
                         .prepareClearScroll().addScrollId(holdingSearchResponse.getScrollId())
                         .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
                 // this also copies holdings from the found volume to the title record
-                serialRecord.addVolume(volume);
+                titleRecord.addVolume(volume);
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
@@ -588,11 +588,11 @@ public class SimpleHoldingsLicensesWorker
     }
 
     @SuppressWarnings("unchecked")
-    private void addOpenAccess(SerialRecord serialRecord) {
-        if (serialRecord.hasIdentifiers()) {
-            Collection<String> issns = (Collection<String>) serialRecord.getIdentifiers().get("formattedissn");
+    private void addOpenAccess(TitleRecord titleRecord) {
+        if (titleRecord.hasIdentifiers()) {
+            Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("formattedissn");
             if (issns != null) {
-                serialRecord.setOpenAccess(searchOpenAccess(issns));
+                titleRecord.setOpenAccess(searchOpenAccess(issns));
             }
         }
     }

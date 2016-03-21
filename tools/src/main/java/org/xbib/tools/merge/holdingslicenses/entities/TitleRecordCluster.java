@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class SerialRecordCluster {
+public class TitleRecordCluster {
 
     private final static Integer currentYear = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
 
@@ -49,15 +49,15 @@ public class SerialRecordCluster {
 
     private Integer lastDate = Integer.MIN_VALUE;
 
-    private Set<SerialRecord> main = new TreeSet<>();
+    private Set<TitleRecord> main = new TreeSet<>();
 
-    private Set<SerialRecord> other = new TreeSet<>();
+    private Set<TitleRecord> other = new TreeSet<>();
 
     private List<Expression> expressions = new ArrayList<>();
 
     private WorkSet workSet = new WorkSet();
 
-    public void addMain(Collection<SerialRecord> main) {
+    public void addMain(Collection<TitleRecord> main) {
         this.main.addAll(main);
         // expressions
         findExpressions();
@@ -73,15 +73,15 @@ public class SerialRecordCluster {
         }
     }
 
-    public void addOther(Collection<SerialRecord> other) {
+    public void addOther(Collection<TitleRecord> other) {
         this.other.addAll(other);
     }
 
-    public Collection<SerialRecord> getMain() {
+    public Collection<TitleRecord> getMain() {
         return main;
     }
 
-    public Collection<SerialRecord> getOther() {
+    public Collection<TitleRecord> getOther() {
         return other;
     }
 
@@ -93,8 +93,8 @@ public class SerialRecordCluster {
         return workSet;
     }
 
-    public Collection<SerialRecord> getAll() {
-        Set<SerialRecord> set = new TreeSet<>();
+    public Collection<TitleRecord> getAll() {
+        Set<TitleRecord> set = new TreeSet<>();
         set.addAll(main);
         set.addAll(other);
         return set;
@@ -109,15 +109,15 @@ public class SerialRecordCluster {
     }
 
     private void findExpressions() {
-        List<SerialRecord> headRecords = new ArrayList<>();
+        List<TitleRecord> headRecords = new ArrayList<>();
         // special case of single element
         if (main.size() == 1) {
-            SerialRecord tr = main.iterator().next();
+            TitleRecord tr = main.iterator().next();
             headRecords.add(tr);
             this.firstDate = tr.firstDate();
             this.lastDate = tr.lastDate();
         } else {
-            for (SerialRecord m : this.main) {
+            for (TitleRecord m : this.main) {
                 if (m.firstDate() == null) {
                     continue;
                 }
@@ -129,9 +129,9 @@ public class SerialRecordCluster {
                     this.lastDate = d;
                 }
                 // we have to check all related title records for first/last dates
-                MultiMap<String,SerialRecord> mm  = m.getRelated();
+                MultiMap<String,TitleRecord> mm  = m.getRelated();
                 for (String key : mm.keySet()) {
-                    for (SerialRecord p : mm.get(key)) {
+                    for (TitleRecord p : mm.get(key)) {
                         if (p.firstDate() != null && p.firstDate() < firstDate) {
                             this.firstDate = p.firstDate();
                         }
@@ -144,7 +144,7 @@ public class SerialRecordCluster {
                 // Find all "head record" which qualifies for a "work".
                 // - no monographs connected to serial
                 // - no series connected to serial
-                if (!m.isMonographic() && !m.isSubseries()) {
+                if (!m.isSubseries()) {
                     Set<String> rel = m.getRelations().keySet();
                     if (!rel.contains("isTransientEditionOf") && !rel.contains("succeededBy")) {
                         if (m.isPrint() || (m.isOnline() && !m.hasPrint())) {
@@ -165,7 +165,7 @@ public class SerialRecordCluster {
             lastDate = null;
         }
         // create expressions
-        for (SerialRecord tr : headRecords) {
+        for (TitleRecord tr : headRecords) {
             Expression expression = new Expression(tr, this);
             expressions.add(expression);
         }
