@@ -31,16 +31,13 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.tools.merge.holdingslicenses.support.NaturalOrderComparator;
-import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.TreeMultiMap;
 import org.xbib.util.concurrent.ConcurrentHashMapHashSetMultiMap;
 
-import java.io.IOException;
 import java.time.Year;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1011,138 +1008,6 @@ public class SerialRecord implements Comparable<SerialRecord> {
 
     public MultiMap<Integer, Holding> getHoldingsByDate() {
         return holdingsByDate;
-    }
-
-    public void toXContent(XContentBuilder builder, XContentBuilder.Params params) throws IOException {
-        toXContent(builder, params, null);
-    }
-
-    public void toXContent(XContentBuilder builder, XContentBuilder.Params params, StatCounter statCounter) throws IOException {
-        builder.startObject();
-        builder.field("identifierForTheManifestation", externalID)
-                .field("title", getExtendedTitle())
-                .field("titlecomponents", getTitleComponents());
-        String s = corporateName();
-        if (s != null) {
-            builder.field("corporatename", s);
-        }
-        s = meetingName();
-        if (s != null) {
-            builder.field("meetingname", s);
-        }
-        builder.field("country", country())
-                .fieldIfNotNull("language", language())
-                .field("publishedat", getPublisherPlace())
-                .field("publishedby", getPublisher())
-                .field("monographic", isMonographic())
-                .field("openaccess", openAccess)
-                .fieldIfNotNull("license", getLicense())
-                .field("contenttype", contentType())
-                .field("mediatype", mediaType())
-                .field("carriertype", carrierType())
-                .field("firstdate", firstDate())
-                .field("lastdate", lastDate());
-        if (dates != null && !dates.isEmpty()) {
-            Set<Integer> missing = new HashSet<>(dates);
-            Set<Integer> set = holdingsByDate.keySet();
-            builder.array("dates", set);
-            missing.removeAll(set);
-            builder.array("missingdates", missing);
-            builder.array("missingdatescount", missing.size());
-        }
-        if (greenDates != null && !greenDates.isEmpty()) {
-            builder.field("greendate", greenDates);
-            builder.field("greendatecount", greenDates.size());
-        }
-        if (!relatedHoldings.isEmpty()) {
-            Set<String> isils = relatedHoldings.keySet();
-            builder.array("isil", isils);
-            builder.array("isilcount", isils.size());
-        }
-        if (hasIdentifiers()) {
-            builder.field("identifiers", getIdentifiers());
-        }
-        if (isSubseries()) {
-            builder.field("subseries", isSubseries());
-        }
-        if (isAggregate()) {
-            builder.field("aggregate", isAggregate());
-        }
-        if (isSupplement()) {
-            builder.field("supplement", isSupplement());
-        }
-        builder.fieldIfNotNull("resourcetype", resourceType);
-        builder.fieldIfNotNull("genre", genre);
-        // list relations
-        MultiMap<String, SerialRecord> map = relatedRecords;
-        if (!map.isEmpty()) {
-            builder.startArray("relations");
-            for (String rel : map.keySet()) {
-                for (SerialRecord tr : map.get(rel)) {
-                    builder.startObject()
-                            .field("identifierForTheRelated", tr.externalID())
-                            .field("label", rel)
-                            .endObject();
-                }
-            }
-            builder.endArray();
-        }
-        // list external relations for linking
-        MultiMap<String, String> mm = externalRelations;
-        if (!mm.isEmpty()) {
-            builder.startArray("relations");
-            for (String rel : mm.keySet()) {
-                for (String relid : mm.get(rel)) {
-                    builder.startObject()
-                            .field("identifierForTheRelated", relid)
-                            .field("label", rel)
-                            .endObject();
-                }
-            }
-            builder.endArray();
-        }
-        // links in catalog
-        if (hasLinks()) {
-            builder.array("links", getLinks());
-        }
-        // monograph volumes
-        /*if (!monographVolumes.isEmpty()) {
-            synchronized (monographVolumes) {
-                builder.field("monographvolumescount", monographVolumes.size());
-                builder.startArray("monographvolumes");
-                for (MonographVolume monographVolume : monographVolumes) {
-                    builder.value(monographVolume.getIdentifier());
-                }
-                builder.endArray();
-            }
-        }*/
-        // holdings
-        /*if (!relatedHoldings.isEmpty()) {
-            builder.field("servicecount", relatedHoldings.size());
-            builder.startArray("service");
-            for (String key : relatedHoldings.keySet()) {
-                for (Holding holding : relatedHoldings.get(key)) {
-                    builder.startObject()
-                            .field("isil", key)
-                            .field("identifierForTheService", "(" + key + ")" + holding.identifier())
-                            .field("dates", holding.dates())
-                            .endObject();
-                }
-            }
-            builder.endArray();
-        }*/
-        builder.endObject();
-        if (statCounter != null) {
-            for (String country : country()) {
-                statCounter.increase("country", country, 1);
-            }
-            statCounter.increase("language", language, 1);
-            statCounter.increase("contenttype", contentType, 1);
-            statCounter.increase("mediatype", mediaType, 1);
-            statCounter.increase("carriertype", carrierType, 1);
-            statCounter.increase("resourcetype", resourceType, 1);
-            statCounter.increase("genre", genre, 1);
-        }
     }
 
     private final static Set<String> temporalRelations = new HashSet<>(Arrays.asList(

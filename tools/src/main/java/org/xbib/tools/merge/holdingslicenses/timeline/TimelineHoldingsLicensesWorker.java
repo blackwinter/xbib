@@ -33,7 +33,6 @@ package org.xbib.tools.merge.holdingslicenses.timeline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
@@ -44,7 +43,6 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
-import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.support.SerialRecordRequest;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
@@ -53,7 +51,6 @@ import org.xbib.tools.merge.holdingslicenses.entities.License;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
-import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
@@ -104,15 +101,6 @@ public class TimelineHoldingsLicensesWorker
     private String sourceMonographicIndex;
     private String sourceMonographicHoldingsIndex;
     private String sourceOpenAccessIndex;
-
-    private String manifestationsIndex;
-    private String manifestationsIndexType;
-    private String holdingsIndex;
-    private String holdingsIndexType;
-    private String volumesIndex;
-    private String volumesIndexType;
-    private String servicesIndex;
-    private String servicesIndexType;
 
     private State state;
 
@@ -202,16 +190,6 @@ public class TimelineHoldingsLicensesWorker
             if (Strings.isNullOrEmpty(sourceOpenAccessIndex)) {
                 throw new IllegalArgumentException("no doaj index given");
             }
-            indexDefinitionMap = timelineHoldingsLicensesMerger.getOutputIndexDefinitionMap();
-            String indexName = indexDefinitionMap.get("holdingslicenses").getConcreteIndex();
-            this.manifestationsIndex = indexName;
-            this.manifestationsIndexType = "manifestations";
-            this.holdingsIndex = indexName;
-            this.holdingsIndexType = "holdings";
-            this.volumesIndex = indexName;
-            this.volumesIndexType = "volumes";
-            this.servicesIndex = indexName;
-            this.servicesIndexType = "services";
             element = getPipeline().getQueue().take();
             serialRecord = element != null ? element.get() : null;
             while (serialRecord != null) {
@@ -296,7 +274,7 @@ public class TimelineHoldingsLicensesWorker
             }
             state = State.INDEXING;
             for (SerialRecord tr : candidates) {
-                indexTitleRecord(tr);
+                timelineHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(tr);
             }
             retry = 0;
             before = candidates.size();
@@ -1020,227 +998,6 @@ public class TimelineHoldingsLicensesWorker
                 }
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void indexTitleRecord(SerialRecord m) throws IOException {
-        indexTitleRecord(m, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void indexTitleRecord(SerialRecord m, StatCounter statCounter) throws IOException {
-        // find open access
-        Collection<String> issns = m.hasIdentifiers() ?
-                (Collection<String>) m.getIdentifiers().get("formattedissn") : null;
-        if (issns != null) {
-            boolean found = false;
-            for (String issn : issns) {
-                found = found || findOpenAccess(sourceOpenAccessIndex, issn);
-            }
-            m.setOpenAccess(found);
-            if (found) {
-                if (statCounter != null) {
-                    statCounter.increase("stat", "openaccess", 1);
-                }
-            }
-        }
-        // first, index related conference/proceedings/abstracts/...
-        if (!m.getMonographVolumes().isEmpty()) {
-            for (MonographVolume volume : m.getMonographVolumes()) {
-                XContentBuilder builder = jsonBuilder();
-                volume.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
-                String vid = volume.externalID();
-                if (checkForIndex(manifestationsIndex, manifestationsIndexType, vid, builder)) {
-                    timelineHoldingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, vid,
-                            builder.string());
-                }
-                MultiMap<String,Holding> mm = volume.getRelatedHoldings();
-                for (String key : mm.keySet()) {
-                    for (Holding volumeHolding : mm.get(key)){
-                        builder = jsonBuilder();
-                        volumeHolding.toXContent(builder, XContentBuilder.EMPTY_PARAMS);
-                        // to holding index
-                        String hid = volume.externalID();
-                        if (checkForIndex(holdingsIndex, holdingsIndexType, hid, builder)) {
-                            timelineHoldingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType, hid, builder.string());
-                        }
-                        if (statCounter != null) {
-                            statCounter.increase("stat", "holdings", 1);
-                        }
-                        // extra entry by date
-                        String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
-                                + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
-                        if (checkForIndex(volumesIndex, volumesIndexType, vhid, builder)) {
-                            timelineHoldingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType, vhid, builder.string());
-                        }
-                        if (statCounter != null) {
-                            statCounter.increase("stat", "volumes", 1);
-                        }
-                    }
-                }
-            }
-            int n = m.getMonographVolumes().size();
-            if (statCounter != null) {
-                statCounter.increase("stat", "manifestations", n);
-            }
-        }
-        // write holdings and services
-        if (!m.getRelatedHoldings().isEmpty()) {
-            XContentBuilder builder = jsonBuilder();
-            builder.startObject()
-                    .field("parent", m.externalID());
-            if (m.hasLinks()) {
-                builder.field("links", m.getLinks());
-            }
-            builder.startArray("institution");
-            int instcount = 0;
-            final MultiMap<String, Holding> holdingsMap = m.getRelatedHoldings();
-            for (String isil : holdingsMap.keySet()) {
-                // blacklisted ISIL?
-                if (timelineHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
-                    continue;
-                }
-                Collection<Holding> holdings = holdingsMap.get(isil);
-                if (holdings != null && !holdings.isEmpty()) {
-                    instcount++;
-                    builder.startObject().field("isil", isil);
-                    builder.startArray("service");
-                    int count = 0;
-                    for (Holding holding : holdings) {
-                        if (holding.isDeleted()) {
-                            continue;
-                        }
-                        String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
-                        XContentBuilder serviceBuilder = jsonBuilder();
-                        holding.toXContent(serviceBuilder, XContentBuilder.EMPTY_PARAMS);
-                        if (checkForIndex(servicesIndex, servicesIndexType, serviceId, serviceBuilder)) {
-                            timelineHoldingsLicensesMerger.ingest().index(servicesIndex, servicesIndexType,
-                                    serviceId, serviceBuilder.string());
-                        }
-                        builder.value(serviceId);
-                        count++;
-                    }
-                    builder.endArray()
-                            .field("servicecount", count)
-                            .endObject();
-                    if (statCounter != null) {
-                        statCounter.increase("stat", "services", count);
-                    }
-                }
-            }
-            builder.endArray();
-            builder.field("institutioncount", instcount);
-
-            builder.endObject();
-            // one holding per manifestation
-            if (checkForIndex(holdingsIndex, holdingsIndexType, m.externalID(), builder)) {
-                timelineHoldingsLicensesMerger.ingest().index(holdingsIndex, holdingsIndexType,
-                        m.externalID(), builder.string());
-            }
-            if (statCounter != null) {
-                statCounter.increase("stat", "holdings", 1);
-            }
-            // holdings per year
-            MultiMap<Integer,Holding> map = m.getHoldingsByDate();
-            for (Integer date : map.keySet()) {
-                Collection<Holding> holdings = map.get(date);
-                String volumeId = m.externalID() + (date != -1 ? "." + date : "");
-                builder = jsonBuilder();
-                buildVolume(builder, m, m.externalID(), date, holdings);
-                if (checkForIndex(volumesIndex, volumesIndexType, volumeId, builder)) {
-                    timelineHoldingsLicensesMerger.ingest().index(volumesIndex, volumesIndexType,
-                            volumeId, builder.string());
-                }
-            }
-            if (statCounter != null) {
-                statCounter.increase("stat", "volumes", map.size());
-            }
-        }
-        if (statCounter != null) {
-            statCounter.increase("stat", "manifestations", 1);
-        }
-        XContentBuilder builder = jsonBuilder();
-        m.toXContent(builder, XContentBuilder.EMPTY_PARAMS, statCounter);
-        if (checkForIndex(manifestationsIndex, manifestationsIndexType, m.externalID(), builder)) {
-            timelineHoldingsLicensesMerger.ingest().index(manifestationsIndex, manifestationsIndexType, m.externalID(),
-                    builder.string());
-        }
-    }
-
-    private void buildVolume(XContentBuilder builder,
-                             SerialRecord serialRecord,
-                             String parentIdentifier,
-                             Integer date,
-                             Collection<Holding> holdings)
-            throws IOException {
-        builder.startObject()
-                .field("identifierForTheVolume", parentIdentifier + "." + date);
-        if (date != -1) {
-            builder.field("date", date);
-        }
-        if (serialRecord.hasLinks()) {
-            builder.field("links", serialRecord.getLinks());
-        }
-        Map<String, Set<Holding>> institutions = new HashMap<>();
-        for (Holding holding : holdings) {
-            // create holdings in order
-            Set<Holding> set = institutions.containsKey(holding.getISIL()) ?
-                    institutions.get(holding.getISIL()) : new TreeSet<>();
-            set.add(holding);
-            institutions.put(holding.getISIL(), set);
-        }
-        builder.field("institutioncount", institutions.size());
-        builder.startArray("institution");
-        for (Map.Entry<String,Set<Holding>> entry : institutions.entrySet()) {
-            String isil = entry.getKey();
-            Collection<Holding> set = entry.getValue();
-            builder.startObject()
-                    .field("isil", isil)
-                    .field("servicecount", set.size());
-            builder.startArray("service");
-            for (Holding holding : set) {
-                if (holding.isDeleted()) {
-                    continue;
-                }
-                builder.value("(" + holding.getServiceISIL() + ")" + holding.identifier());
-            }
-            builder.endArray();
-            builder.endObject();
-        }
-        builder.endArray();
-        builder.endObject();
-    }
-
-    private boolean findOpenAccess(String index, String issn) {
-        SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(timelineHoldingsLicensesMerger.search().client(),
-                SearchAction.INSTANCE);
-        searchRequestBuilder
-                .setSize(0)
-                .setIndices(index)
-                .setQuery(termQuery("dc:identifier", issn));
-        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet(30, TimeUnit.SECONDS);
-        logger.debug("open access query {} ", searchRequestBuilder, searchResponse.getHits().getTotalHits());
-        return searchResponse.getHits().getTotalHits() > 0;
-    }
-
-    private XContentBuilder jsonBuilder() throws IOException {
-        if (timelineHoldingsLicensesMerger.settings().getAsBoolean("mock", false)) {
-            return org.xbib.common.xcontent.XContentService.jsonBuilder().prettyPrint();
-        } else {
-            return org.xbib.common.xcontent.XContentService.jsonBuilder();
-        }
-    }
-
-    private boolean checkForIndex(String index, String type, String id, XContentBuilder builder) throws IOException {
-        if (timelineHoldingsLicensesMerger.settings().getAsBoolean("mock", false)) {
-            logger.debug("{}/{}/{} {}", index, type, id, builder.string());
-        }
-        long len = builder.string().length();
-        if (len > 1024 * 1024) {
-            logger.warn("large document {}/{}/{} detected: {} bytes", index, type, id, len);
-            return false;
-        }
-        return true;
     }
 
     private static class ClusterBuildContinuation {

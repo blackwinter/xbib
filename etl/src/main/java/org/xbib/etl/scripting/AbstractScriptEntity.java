@@ -58,7 +58,7 @@ public abstract class AbstractScriptEntity implements Entity {
     }
 
     @Override
-    public AbstractScriptEntity setSettings(Map settings) {
+    public AbstractScriptEntity setSettings(Map<String,Object> settings) {
         try {
             this.settings = settings;
             engine.eval(script);

@@ -31,12 +31,8 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import org.xbib.common.xcontent.ToXContent;
-import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.util.Strings;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -286,67 +282,6 @@ public class MonographVolume extends SerialRecord {
             }
         }
         this.identifiers = m;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void toXContent(XContentBuilder builder, ToXContent.Params params)
-            throws IOException {
-        toXContent(builder, params, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void toXContent(XContentBuilder builder, ToXContent.Params params, StatCounter statCounter)
-            throws IOException {
-        builder.startObject();
-        builder.field("identifierForTheManifestation", getIdentifier())
-                .array("parents", parents)
-                .field("title", getTitle())
-                .field("titlecomponents", titleComponents)
-                .field("firstdate", firstDate);
-        String s = corporateName();
-        if (s != null) {
-            builder.field("corporateName", s);
-        }
-        s = meetingName();
-        if (s != null) {
-            builder.field("meetingName", s);
-        }
-        if (conference != null) {
-            builder.field("conference");
-            builder.map((Map<String, Object>) conference);
-        }
-        builder.fieldIfNotNull("volume", volumeDesignation)
-                .fieldIfNotNull("number", numbering)
-                .fieldIfNotNull("resourcetype", resourceType)
-                .fieldIfNotNull("genre", genres);
-        if (country != null && !country.isEmpty()) {
-            builder.field("country", country());
-        }
-        builder.fieldIfNotNull("language", language())
-                .fieldIfNotNull("publishedat", getPublisherPlace())
-                .fieldIfNotNull("publishedby", getPublisher());
-        if (hasIdentifiers()) {
-            builder.field("identifiers", getIdentifiers());
-        }
-        builder.endObject();
-
-        if (statCounter != null) {
-            for (String country : country()) {
-                statCounter.increase("country", country, 1);
-            }
-            statCounter.increase("language", language, 1);
-
-            // TODO
-            //structCounter.increase("contenttype", contentType, 1);
-            //structCounter.increase("mediatype", mediaType, 1);
-            //structCounter.increase("carriertype", carrierType, 1);
-            statCounter.increase("resourcetype", resourceType, 1);
-            for (String genre : genres) {
-                statCounter.increase("genre", genre, 1);
-            }
-        }
     }
 
     @Override

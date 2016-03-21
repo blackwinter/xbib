@@ -39,8 +39,6 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
@@ -63,9 +61,6 @@ import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-/**
- * Merge holdings and licenses
- */
 public class HoldingsLicensesMerger extends Merger {
 
     private final static Logger logger = LogManager.getLogger(HoldingsLicensesMerger.class);
@@ -86,6 +81,8 @@ public class HoldingsLicensesMerger extends Merger {
 
     private Meter queryMetric;
 
+    private HoldingsLicensesIndexer holdingsLicensesIndexer;
+
     @Override
     @SuppressWarnings("unchecked")
     public int run(Settings settings) throws Exception {
@@ -95,24 +92,6 @@ public class HoldingsLicensesMerger extends Merger {
         queryMetric.spawn(5L);
         metrics.scheduleMetrics(settings, "meterquery", queryMetric);
         return super.run(settings);
-    }
-
-    protected void waitFor() throws IOException {
-        try {
-            // send poison elements and wait for completion
-            getPipeline().waitFor(new SerialRecordRequest());
-        } finally {
-            long total = 0L;
-            for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
-                logger.info("worker {}, count {}, took {}",
-                        worker,
-                        worker.getMetric().getCount(),
-                        TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
-                total += worker.getMetric().getCount();
-            }
-            logger.info("worker metric count total = {}", total);
-            metrics.append("meterquery", queryMetric);
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -188,6 +167,8 @@ public class HoldingsLicensesMerger extends Merger {
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
 
+        this.holdingsLicensesIndexer = new HoldingsLicensesIndexer(this);
+
         // all prepared. Enter loop over all title records
         int scrollSize = settings.getAsInt("scrollsize", 10);
         long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
@@ -234,6 +215,24 @@ public class HoldingsLicensesMerger extends Merger {
         logger.info("all title records processed");
     }
 
+    protected void waitFor() throws IOException {
+        try {
+            // send poison elements and wait for completion
+            getPipeline().waitFor(new SerialRecordRequest());
+        } finally {
+            long total = 0L;
+            for (HoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+                logger.info("worker {}, count {}, took {}",
+                        worker,
+                        worker.getMetric().getCount(),
+                        TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
+                total += worker.getMetric().getCount();
+            }
+            logger.info("worker metric count total = {}", total);
+            metrics.append("meterquery", queryMetric);
+        }
+    }
+
     @Override
     protected void disposeRequests(int returncode) throws IOException {
         super.disposeRequests(returncode);
@@ -242,18 +241,6 @@ public class HoldingsLicensesMerger extends Merger {
     @Override
     protected void disposeResources(int returncode) throws IOException {
         super.disposeResources(returncode);
-    }
-
-    public SearchTransportClient search() {
-        return search;
-    }
-
-    public Ingest ingest() {
-        return ingest;
-    }
-
-    public Settings settings() {
-        return settings;
     }
 
     public Metrics getMetrics() {
@@ -280,4 +267,7 @@ public class HoldingsLicensesMerger extends Merger {
         return statusCodeMapper;
     }
 
+    public HoldingsLicensesIndexer getHoldingsLicensesIndexer() {
+        return holdingsLicensesIndexer;
+    }
 }

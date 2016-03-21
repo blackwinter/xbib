@@ -66,11 +66,10 @@ public class DefaultSpecification implements Specification {
 
     private final static int DEFAULT_BUFFER_SIZE = 8192;
 
-    private Map<String,Object> params = new HashMap<>();
-
-    private Map<String,List<String>> elements;
+    private final Map<String,Object> params;
 
     public DefaultSpecification() {
+        params = new HashMap<>();
     }
 
     public DefaultSpecification addParameters(Map<String,Object> params) {
@@ -135,7 +134,6 @@ public class DefaultSpecification implements Specification {
             // allow override static struct map from json with given params
             struct.putAll(params);
             Entity entity = null;
-            Collection<String> values = (Collection<String>) struct.get("values");
             String type = (String) struct.get("_type");
             if (type != null && type.startsWith("application/x-")) {
                 String language = type.substring("application/x-".length());
@@ -188,7 +186,8 @@ public class DefaultSpecification implements Specification {
                     }
                 }
             }
-            // connect each value to an element class
+            // connect each value to an entity class
+            Collection<String> values = (Collection<String>) struct.get("values");
             if (values != null) {
                 for (String value : values) {
                     addKey(value, entity, elementMap);
@@ -228,8 +227,8 @@ public class DefaultSpecification implements Specification {
         if (m == null) {
             throw new IOException("format "+ format + " missing");
         }
-        elements = new TreeMap<>();
-        dump(null, m);
+        Map<String,List<String>> elements = new TreeMap<>();
+        dump(elements, null, m);
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(writer, elements);
     }
@@ -296,13 +295,13 @@ public class DefaultSpecification implements Specification {
     }
 
     @SuppressWarnings("unchecked")
-    private void dump(String key, Map<String,Object> m) {
+    private void dump(Map<String,List<String>> elements, String key, Map<String,Object> m) {
         for (Map.Entry<String,Object> entry : m.entrySet()) {
             String k = entry.getKey();
             Object o = m.get(k);
             String kk = key == null ? k : key + "$" + k;
             if (o instanceof Map) {
-                dump(kk, (Map) o);
+                dump(elements, kk, (Map) o);
             } else if (o instanceof Entity) {
                 Entity e = (Entity)o;
                 String elemKey = e.getClass().getSimpleName();

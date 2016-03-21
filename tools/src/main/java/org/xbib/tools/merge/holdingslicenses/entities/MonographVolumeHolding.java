@@ -31,10 +31,6 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import org.xbib.common.xcontent.ToXContent;
-import org.xbib.common.xcontent.XContentBuilder;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,11 +40,8 @@ import java.util.TreeSet;
 
 public class MonographVolumeHolding extends Holding {
 
-    private final MonographVolume volume;
-
     public MonographVolumeHolding(Map<String, Object> map, MonographVolume volume) {
         super(map);
-        this.volume = volume;
         this.identifier = makeIdentity(volume);
     }
 
@@ -148,50 +141,6 @@ public class MonographVolumeHolding extends Holding {
             default:
                 throw new IllegalArgumentException("unknown carrier: " + carrierType());
         }
-    }
-
-    @Override
-    public void toXContent(XContentBuilder builder, ToXContent.Params params)
-            throws IOException {
-        builder.startObject();
-        builder.field("identifierForTheHolding", "(" + getServiceISIL() + ")" + volume.externalID)
-                .array("parents", parents);
-        builder.array("date", dates)
-                .startObject("institution")
-                .field("isil", isil)
-                .startObject("service")
-                .array("parents", parents)
-                .field("mediatype", mediaType)
-                .field("carriertype", carrierType)
-                .field("region", getRegion())
-                .field("organization", getOrganization())
-                .field("name", getName())
-                .field("isil", getServiceISIL())
-                .field("serviceisil", getServiceISIL())
-                .field("priority", getPriority())
-                .field("type", getServiceType());
-        Object o = getServiceMode();
-        if (o instanceof List) {
-            builder.array("mode", (List) o);
-        } else {
-            builder.field("mode", o);
-        }
-        o = getServiceDistribution();
-        if (o instanceof List) {
-            builder.array("distribution", (List) o);
-        } else {
-            builder.field("distribution", o);
-        }
-        builder.startObject("info")
-                .startObject("location")
-                        // https://www.hbz-nrw.de/dokumentencenter/produkte/verbunddatenbank/aktuell/plausi/Exemplar-Online-Kurzform.pdf
-                .fieldIfNotNull("collection", map.get("shelfmark")) // 088 b sublocation (Standort)
-                .fieldIfNotNull("callnumber", map.get("callnumber")) // 088 c (Signatur)
-                        //.fieldIfNotNull("collection", map.get("collection")) // 088 d zus. Bestandsangabe (nicht vorhanden)
-                .endObject();
-        builder.endObject();
-        builder.field("current", dates().contains(currentYear));
-        builder.endObject();
     }
 
     @Override

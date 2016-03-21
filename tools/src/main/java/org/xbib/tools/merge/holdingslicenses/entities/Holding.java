@@ -33,11 +33,8 @@ package org.xbib.tools.merge.holdingslicenses.entities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.common.xcontent.ToXContent;
-import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.etl.support.EnumerationAndChronologyHelper;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +98,7 @@ public class Holding implements Comparable<Holding> {
         build();
     }
 
-    public Map map() {
+    public Map<String, Object> map() {
         return map;
     }
 
@@ -568,42 +565,6 @@ public class Holding implements Comparable<Holding> {
 
     public String toString() {
         return map.toString();
-    }
-
-    public void toXContent(XContentBuilder builder, ToXContent.Params params)
-            throws IOException {
-        builder.startObject()
-                .field("identifierForTheService", "(" + getServiceISIL() +")" + identifier());
-        builder.startArray("parent");
-        for (String p : parents()) {
-            builder.value(p);
-        }
-        builder.endArray();
-        builder.field("mediatype", mediaType())
-                .field("carriertype", carrierType())
-                .field("name", getName())
-                .field("isil", getISIL())
-                .field("region", getRegion())
-                .fieldIfNotNull("organization", getOrganization())
-                .field("serviceisil", getServiceISIL())
-                .field("priority", getPriority())
-                .fieldIfNotNull("type", getServiceType());
-        Object o = getServiceMode();
-        if (o instanceof List) {
-            builder.array("mode", (List) o);
-        } else {
-            builder.fieldIfNotNull("mode", o);
-        }
-        o = getServiceDistribution();
-        if (o instanceof List) {
-            builder.array("distribution", (List) o);
-        } else {
-            builder.fieldIfNotNull("distribution", o);
-        }
-        builder.fieldIfNotNull("comment", getServiceComment())
-                .field("info", getInfo())
-                .field("current", dates().contains(currentYear))
-                .endObject();
     }
 
     @Override

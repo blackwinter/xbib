@@ -231,6 +231,16 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
         metrics.disposeMetrics();
     }
 
+    public Settings settings() {
+        return settings;
+    }
 
+    public SearchTransportClient search() {
+        return search;
+    }
+
+    public Ingest ingest() {
+        return ingest;
+    }
 
 }

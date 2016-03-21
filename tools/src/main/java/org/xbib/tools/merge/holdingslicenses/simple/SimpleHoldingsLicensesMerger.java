@@ -39,12 +39,11 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
+import org.xbib.tools.merge.holdingslicenses.HoldingsLicensesIndexer;
 import org.xbib.tools.merge.holdingslicenses.entities.SerialRecord;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
@@ -60,7 +59,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -93,14 +91,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     private String sourceMonographicHoldingsIndex;
     private String sourceOpenAccessIndex;
 
-    private String manifestationsIndex;
-    private String manifestationsIndexType;
-    private String holdingsIndex;
-    private String holdingsIndexType;
-    private String volumesIndex;
-    private String volumesIndexType;
-    private String servicesIndex;
-    private String servicesIndexType;
+    private HoldingsLicensesIndexer holdingsLicensesIndexer;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -111,25 +102,6 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         queryMetric.spawn(5L);
         metrics.scheduleMetrics(settings, "meterquery", queryMetric);
         return super.run(settings);
-    }
-
-
-    protected void waitFor() throws IOException {
-        try {
-            // send poison elements and wait for completion
-            getPipeline().waitFor(new SerialRecordRequest());
-        } finally {
-            long total = 0L;
-            for (SimpleHoldingsLicensesWorker worker : getPipeline().getWorkers()) {
-                logger.info("worker {}, count {}, took {}",
-                        worker,
-                        worker.getMetric().getCount(),
-                        TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
-                total += worker.getMetric().getCount();
-            }
-            logger.info("worker metric count total = {}", total);
-            metrics.append("meterquery", queryMetric);
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -232,16 +204,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
 
-        Map<String,IndexDefinition> outputIndexDefinitionMap = simpleHoldingsLicensesMerger.getOutputIndexDefinitionMap();
-        String indexName = outputIndexDefinitionMap.get("holdingslicenses").getConcreteIndex();
-        this.manifestationsIndex = indexName;
-        this.manifestationsIndexType = "manifestations";
-        this.holdingsIndex = indexName;
-        this.holdingsIndexType = "holdings";
-        this.volumesIndex = indexName;
-        this.volumesIndexType = "volumes";
-        this.servicesIndex = indexName;
-        this.servicesIndexType = "services";
+        this.holdingsLicensesIndexer = new HoldingsLicensesIndexer(this);
 
         // all prepared. Enter loop over all title records
         int scrollSize = settings.getAsInt("scrollsize", 10);
@@ -289,6 +252,24 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         logger.info("all title records processed");
     }
 
+    protected void waitFor() throws IOException {
+        try {
+            // send poison elements and wait for completion
+            getPipeline().waitFor(new SerialRecordRequest());
+        } finally {
+            long total = 0L;
+            for (SimpleHoldingsLicensesWorker worker : getPipeline().getWorkers()) {
+                logger.info("worker {}, count {}, took {}",
+                        worker,
+                        worker.getMetric().getCount(),
+                        TimeValue.timeValueNanos(worker.getMetric().elapsed()).format());
+                total += worker.getMetric().getCount();
+            }
+            logger.info("worker metric count total = {}", total);
+            metrics.append("meterquery", queryMetric);
+        }
+    }
+
     @Override
     protected void disposeRequests(int returncode) throws IOException {
         super.disposeRequests(returncode);
@@ -297,18 +278,6 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     @Override
     protected void disposeResources(int returncode) throws IOException {
         super.disposeResources(returncode);
-    }
-
-    public SearchTransportClient search() {
-        return search;
-    }
-
-    public Ingest ingest() {
-        return ingest;
-    }
-
-    public Settings settings() {
-        return settings;
     }
 
     public Metrics getMetrics() {
@@ -363,36 +332,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         return sourceOpenAccessIndex;
     }
 
-    public String getManifestationsIndex() {
-        return manifestationsIndex;
+    public HoldingsLicensesIndexer getHoldingsLicensesIndexer() {
+        return holdingsLicensesIndexer;
     }
-
-    public String getManifestationsIndexType() {
-        return manifestationsIndexType;
-    }
-
-    public String getHoldingsIndex() {
-        return holdingsIndex;
-    }
-
-    public String getHoldingsIndexType() {
-        return holdingsIndexType;
-    }
-
-    public String getVolumesIndex() {
-        return volumesIndex;
-    }
-
-    public String getVolumesIndexType() {
-        return volumesIndexType;
-    }
-
-    public String getServicesIndex() {
-        return servicesIndex;
-    }
-
-    public String getServicesIndexType() {
-        return servicesIndexType;
-    }
-
 }
