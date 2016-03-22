@@ -61,7 +61,10 @@ public class GeneralInformation extends MARCEntity {
     }
 
     /**
-     * Example "991118d19612006xx z||p|r ||| 0||||0ger c"
+     * Example
+     * "991118d19612006xx z||p|r ||| 0||||0ger c"
+     *
+     * "091130||||||||||||||||ger|||||||"
      */
     @Override
     @SuppressWarnings("unchecked")
