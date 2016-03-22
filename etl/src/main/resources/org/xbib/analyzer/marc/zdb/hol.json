@@ -437,6 +437,220 @@
             }
         }
     },
+    "GeneralInformation" :{
+        "values" : [
+            "008",
+            "008$"
+        ],
+        "codes" : {
+            /* Date entered on file */
+            "0-5" : "date",
+            "6" : {
+                /* Type of date/Publication status */
+                /*"_predicate" : "typeOfDate",*/
+                "b" : "No dates given",
+                "c" : "Continuing resource currently published",
+                "d" : "Continuing resource ceased publication",
+                "e" : "Detailed date",
+                "i" : "Inclusive dates of collection",
+                "k" : "Range of years of bulk of collection",
+                "m" : "Multiple dates",
+                "n" : "Dates unknown"
+            },
+            "7-10" : "date1",
+            "11-14" : "date2",
+            "15-17" : { /*  Place of publication, production, or execution http://www.loc.gov/marc/countries/ */
+                "xx" : "no place",
+                "vp" : "various places"
+            },
+            "18-34" : "material-specific codes",
+            "35-37" : { /* http://www.loc.gov/marc/languages/ */
+                "zxx" : "no linguistic content",
+                "ger" : "german",
+                "mul" : "multiple languages",
+                "sgn" : "sign languages",
+                "und" : "undetermined"
+            },
+            "38" : {
+                /* Modified record */
+                /* "_predicate" : "modifiedRecord", */
+                "d" : "Dashed-on information omitted",
+                "o" : "Completely romanized/printed cards romanized",
+                "r" : "Completely romanized/printed cards in script",
+                "s" : "Shortened",
+                "x" : "Missing characters"
+            },
+            "39" : {
+                /* Cataloging source */
+                /*"_predicate" : "catalogingSource",*/
+                "c" : "Cooperative cataloging program",
+                "d" : "Other",
+                "u" : "Unknown"
+            }
+        },
+        "continuingresource" : {
+            "18" : { /* Frequency (006/01) */
+                /*"_predicate" : "frequency",*/
+                "a" : "Annual",
+                "b" : "Bimonthly",
+                "c" : "Semiweekly",
+                "d" : "Daily",
+                "e" : "Biweekly",
+                "f" : "Semiannual",
+                "g" : "Biennial",
+                "h" : "Triennial",
+                "i" : "Three times a week",
+                "j" : "Three times a month",
+                "k" : "Continuously updated",
+                "m" : "Monthly",
+                "q" : "Quarterly",
+                "s" : "Semimonthly",
+                "t" : "Three times a year",
+                "u" : "Unknown",
+                "w" : "Weekly",
+                "z" : "Other"
+            },
+            "19" : { /* Regularity (006/02) */
+                /*"_predicate" : "regularity", */
+                "n" : "Normalized irregular",
+                "r" : "Regular",
+                "u" : "Unknown",
+                "x" : "Completely irregular"
+            },
+            "21" : { /* Type of continuing resource (006/04) */
+                /* "_predicate" : "typeOfContinuingResource", */
+                "d" : "Updating database",
+                "l" : "Updating loose-leaf",
+                "m" : "Monographic series",
+                "n" : "Newspaper",
+                "p" : "Periodical",
+                "w" : "Updating Web site"
+            },
+            "22" : { /* Form of original item (006/05) */
+                /* "_predicate" : "formOfOriginalItem", */
+                "a" : "Microfilm",
+                "b" : "Microfiche",
+                "c" : "Microopaque",
+                "d" : "Large print",
+                "e" : "Newspaper format",
+                "f" : "Braille",
+                "o" : "Online",
+                "q" : "Direct electronic",
+                "s" : "Electronic"
+            },
+            "23" : { /* Form of item (006/06) */
+                /* "_predicate" : "formOfItem", */
+                "a" : "Microfilm",
+                "b" : "Microfiche",
+                "c" : "Microopaque",
+                "d" : "Large print",
+                "f" : "Braille",
+                "o" : "Online",
+                "q" : "Direct electronic",
+                "r" : "Regular print reproduction",
+                "s" : "Electronic"
+            },
+            "24" : { /* Nature of entire work (006/07) */
+                /* "_predicate" : "natureOfWork", */
+                "a" : "Abstracts/summaries",
+                "b" : "Bibliographies",
+                "c" : "Catalogs",
+                "d" : "Dictionaries",
+                "e" : "Encyclopedias",
+                "f" : "Handbooks",
+                "g" : "Legal articles",
+                "h" : "Biography",
+                "i" : "Indexes",
+                "k" : "Discographies",
+                "l" : "Legislation",
+                "m" : "Theses",
+                "n" : "Surveys of literature in a subject area",
+                "o" : "Reviews",
+                "p" : "Programmed texts",
+                "q" : "Filmographies",
+                "r" : "Directories",
+                "s" : "Statistics",
+                "t" : "Technical reports",
+                "u" : "Standards/specifications",
+                "v" : "Legal cases and case notes",
+                "w" : "Law reports and digests",
+                "y" : "Yearbooks",
+                "z" : "Treaties",
+                "5" : "Calendars",
+                "6" : "Comics/graphic novels"
+            },
+            "25" : {  /* Nature of contents (006/08-10) */
+                /* "_predicate" : "natureOfContent", */
+                "a" : "Abstracts/summaries",
+                "b" : "Bibliographies",
+                "c" : "Catalogs",
+                "d" : "Dictionaries",
+                "e" : "Encyclopedias",
+                "f" : "Handbooks",
+                "g" : "Legal articles",
+                "h" : "Biography",
+                "i" : "Indexes",
+                "k" : "Discographies",
+                "l" : "Legislation",
+                "m" : "Theses",
+                "n" : "Surveys of literature in a subject area",
+                "o" : "Reviews",
+                "p" : "Programmed texts",
+                "q" : "Filmographies",
+                "r" : "Directories",
+                "s" : "Statistics",
+                "t" : "Technical reports",
+                "u" : "Standards/specifications",
+                "v" : "Legal cases and case notes",
+                "w" : "Law reports and digests",
+                "y" : "Yearbooks",
+                "z" : "Treaties",
+                "5" : "Calendars",
+                "6" : "Comics/graphic novels"
+            },
+            "28" : { /* Government publication (006/11) */
+                /*"_predicate" : "governmentPublication",*/
+                "a" : "Autonomous or semi-autonomous component",
+                "c" : "Multilocal",
+                "f" : "Federal/national",
+                "i" : "International intergovernmental",
+                "l" : "Local",
+                "m" : "Multistate",
+                "o" : "Government publication-level undetermined",
+                "s" : "State, provincial, territorial, dependent, etc.",
+                "u" : "Unknown if item is government publication",
+                "z" : "Other"
+            },
+            "29" : { /* Conference publication (006/12) */
+                /*"_predicate" : "conferencePublication",*/
+                "0" : "Not a conference publication",
+                "1" : "Conference publication"
+            },
+            "33" : { /* Original alphabet or script of title (006/16) */
+                /*"_predicate" : "scriptOfTitle",*/
+                "a" : "Basic Roman",
+                "b" : "Extended Roman",
+                "c" : "Cyrillic",
+                "d" : "Japanese",
+                "e" : "Chinese",
+                "f" : "Arabic",
+                "g" : "Greek",
+                "h" : "Hebrew",
+                "i" : "Thai",
+                "j" : "Devanagari",
+                "k" : "Korean",
+                "l" : "Tamil",
+                "u" : "Unknown",
+                "z" : "Other"
+            },
+            "34" : { /* Entry convention (006/17) */
+                /*"_predicate" : "entryConvention",*/
+                "0" : "Successive entry",
+                "1" : "Latest entry",
+                "2" : "Integrated entry"
+            }
+        }
+    },
     "Identifier" : {
         "values" : [
         "035$  $8",
@@ -1056,7 +1270,8 @@
     },
     "Location" : {
         "values" : [
-        "852$  $a",
+            "852$  $8",
+            "852$  $a",
         "852$ 1$9c",
         "852$ 1$9cz",
         "852$ 1$9=c",
@@ -1203,6 +1418,10 @@
     },
     "NormalizedHoldings" : {
         "values": [
+            "859$ 0$x",
+            "859$ 0$z",
+            "859$30$z",
+            "859$10$8",
             "869$  $9y",
             "869$00$89",
             "869$00$89a",
@@ -1233,6 +1452,8 @@
             "a" : "volume",
             "b" : "issue",
             "i" : "date",
+             "x" : "nonpublicNote",
+             "z" : "publicNote",
             "y" : "movingwall",
             "8" : "sequenceNumber",
             "9" : "number"
@@ -1351,26 +1572,44 @@
             "z" : "publicnote"
         }
     },
+    "ActionNote" : {
+        "subfields" : {
+            "a" : "action",
+            "h" : "jurisdiction"
+        },
+        "values" : [
+            "583$  $a",
+            "583$  $h",
+            "583$  $hh"
+        ]
+    },
+    "Ownership" : {
+        "subfields" : {
+          "a" : "history"
+        },
+        "values" : [
+            "561$  $a"
+        ]
+    },
+    "CopyAndVersionIdentification" : {
+        "subfields" : {
+            "a" : "markings",
+            "b" : "copyIdentification",
+            "c" : "versionIdentification"
+        },
+        "values" : [
+            "562$  $a",
+            "562$  $ab",
+            "562$  $abb",
+            "562$  $c"
+        ]
+    },
     "Ignore" : {
         /* known, but ignored by intent */
         "values" : [
             "",
             "003",
-            "005",
-            "008",
-            "852$  $8",
-            "859$ 0$x",
-            "859$ 0$z",
-            "859$30$z",
-            "859$10$8",
-            "561$  $a",
-            "562$  $a",
-            "562$  $ab",
-            "562$  $abb",
-            "562$  $c",
-            "583$  $a",
-            "583$  $h",
-            "583$  $hh"
+            "005"
             ]
     }
 }

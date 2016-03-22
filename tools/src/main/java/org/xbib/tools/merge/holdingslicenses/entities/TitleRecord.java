@@ -354,22 +354,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return isSubseries;
     }
 
-    public boolean isPrint() {
-        return printID != null;
-    }
-
-    public boolean hasPrint() {
-        return printID != null && identifier.equals(onlineID);
-    }
-
-    public boolean isOnline() {
-        return onlineID != null && identifier.equals(onlineID);
-    }
-
-    public boolean hasOnline() {
-        return onlineID != null;
-    }
-
     public TitleRecord setOpenAccess(boolean openAccess) {
         this.openAccess = openAccess;
         return this;
@@ -548,16 +532,16 @@ public class TitleRecord implements Comparable<TitleRecord> {
         setExtendedTitle(sb.toString());
     }
 
-    protected String clean(String title) {
-        if (title == null) {
+    protected String clean(String s) {
+        if (s == null) {
             return null;
         }
-        int pos = title.indexOf("/ ");
+        int pos = s.indexOf("/ ");
         if (pos > 0) {
-            title = title.substring(0, pos);
+            s = s.substring(0, pos);
         }
-        title = title.replaceAll("\\[.*?\\]", "").trim();
-        return title;
+        s = s.replaceAll("\\[.*?\\]", "").trim();
+        return s;
     }
 
     protected List<String> split(String title) {

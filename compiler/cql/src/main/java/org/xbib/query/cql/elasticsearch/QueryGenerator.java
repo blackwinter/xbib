@@ -40,6 +40,21 @@ public class QueryGenerator implements Visitor {
         builder.endObject();
     }
 
+    public void startBoost(String boostField, String modifier, Float factor, String boostMode) throws IOException {
+        builder.startObject("function_score")
+                .startObject("field_value_factor")
+                .field("field", boostField)
+                .field("modifier", modifier != null ? modifier : "log1p")
+                .field("factor", factor != null ? factor : 1.0f)
+                .endObject()
+                .field("boost_mode", boostMode != null ? boostMode : "multiply")
+                .startObject("query");
+    }
+
+    public void endBoost() throws IOException {
+        builder.endObject().endObject();
+    }
+
     public XContentBuilder getResult() {
         return builder;
     }

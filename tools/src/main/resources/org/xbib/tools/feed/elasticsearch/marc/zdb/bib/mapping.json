@@ -1,20 +1,203 @@
 {
   "date_detection": false,
   "properties": {
-    "RecordIdentifier": {
-      "properties": {
-        "identifierForTheRecord": {
-          "type": "string",
-          "analyzer": "keyword",
-          "norms": {
-            "enabled": false
+    "collection" : {
+      "type" : "string",
+      "analyzer" : "keyword",
+      "norms" : {
+        "enabled" : false
+      }
+    },
+    "cql" : {
+      "properties" : {
+        "allIndexes" : {
+          "type" : "string"
+        }
+      }
+    },
+    "dc" : {
+      "properties" : {
+        "date" : {
+          "type" : "integer"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "publisher" : {
+          "type" : "string"
+        },
+        "subject" : {
+          "type" : "string"
+        },
+        "identifier" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "format" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "type" :  {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "language" :  {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
           }
         }
       }
     },
-    "xbib": {
+    "rda" : {
+      "properties" : {
+        "content" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "carrier" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "media" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "type" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        }
+      }
+    },
+    "bib" : {
+      "properties" : {
+        "namePersonal" : {
+          "type" : "string",
+          "analyzer" : "unstemmed"
+        },
+        "nameCorporate" : {
+          "type" : "string"
+        },
+        "nameConference" : {
+          "type" : "string"
+        },
+        "subjectPlace" : {
+          "type" : "string"
+        },
+        "subjectTitle" : {
+          "type" : "string"
+        },
+        "subjectName" : {
+          "type" : "string"
+        },
+        "dateIssued" : {
+          "type" : "string",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "identifierAuthority=mab" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "identifierAuthority=mabwhole" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "identifierAuthority=zdb" : {
+          "type" : "string",
+          "analyzer" : "standardnumber",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "identifierAuthority=isbn" : {
+          "type" : "string",
+          "analyzer" : "standardnumber",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "identifierAuthority=issn" : {
+          "type" : "string",
+          "analyzer" : "standardnumber",
+          "norms" : {
+            "enabled" : false
+          }
+        }
+      }
+    },
+    "xbib" : {
+      "properties" : {
+        "identifier" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "uid" : {
+          "type" : "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
+        },
+        "taxonomy" : {
+          "properties" : {
+            "DE-A96" : {
+              "properties" : {
+                "notation" : {
+                  "type" : "string",
+                  "analyzer" : "keyword",
+                  "norms" : {
+                    "enabled" : false
+                  }
+                },
+                "text" : {
+                  "type" : "string",
+                  "analyzer" : "keyword",
+                  "norms" : {
+                    "enabled" : false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "RecordIdentifier": {
       "properties": {
-        "uid": {
+        "identifierForTheRecord": {
           "type": "string",
           "analyzer": "keyword",
           "norms": {
@@ -37,13 +220,6 @@
         "modifyingAgency": {
           "type": "string"
         }
-      }
-    },
-    "collection": {
-      "type": "string",
-      "analyzer": "keyword",
-      "norms": {
-        "enabled": false
       }
     },
     "AbbreviatedTitle": {
@@ -345,14 +521,22 @@
           "type": "string"
         },
         "value": {
-          "type": "standardnumber"
+          "type": "string",
+          "copy_to" : [ "cql.allIndexes", "dc.identifier", "bib.identifierAuthority=issn" ],
+          "norms" : {
+            "enabled" : false
+          }
         }
       }
     },
     "IdentifierLCCN": {
       "properties": {
         "value": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         }
       }
     },
@@ -362,37 +546,66 @@
           "type": "string"
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         }
       }
     },
     "IdentifierPostal": {
       "properties": {
         "value": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         }
       }
     },
     "IdentifierZDB": {
       "properties": {
         "identifierEKI": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         },
         "identifierOCLC": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         },
         "identifierZDB": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "copy_to" : [ "cql.allIndexes", "dc.identifier" ],
+          "norms" : {
+            "enabled" : false
+          }
         },
         "typeSource": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         }
       }
     },
     "IndexNote": {
       "properties": {
         "linkage": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         },
         "value": {
           "type": "string"
@@ -402,7 +615,11 @@
     "IssuingBodyNote": {
       "properties": {
         "linkage": {
-          "type": "string"
+          "type": "string",
+          "analyzer" : "keyword",
+          "norms" : {
+            "enabled" : false
+          }
         },
         "value": {
           "type": "string"

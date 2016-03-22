@@ -68,6 +68,20 @@ public class ElasticsearchQueryTest extends Assert {
                 json);
     }
 
+    @Test
+    public void testBoost() throws Exception {
+        String cql = "Jörg";
+        CQLParser parser = new CQLParser(cql);
+        parser.parse();
+        ElasticsearchQueryGenerator generator = new ElasticsearchQueryGenerator();
+        generator.setBoostParams("boost", "log2p", 2.0f, "sum");
+        parser.getCQLQuery().accept(generator);
+        String json = generator.getSourceResult();
+        assertEquals(
+                "{\"from\":0,\"size\":10,\"query\":{\"function_score\":{\"field_value_factor\":{\"field\":\"boost\",\"modifier\":\"log2p\",\"factor\":2.0},\"boost_mode\":\"sum\",\"query\":{\"simple_query_string\":{\"query\":\"Jörg\",\"fields\":[\"cql.allIndexes\"],\"analyze_wildcard\":true,\"default_operator\":\"and\"}}}}}",
+                json);
+    }
+
     private void test(String path) throws IOException {
         int count = 0;
         int ok = 0;
@@ -83,7 +97,6 @@ public class ElasticsearchQueryTest extends Assert {
                         ok++;
                     }
                 } catch (Exception e) {
-                   // logger.warn(e.getMessage(), e);
                     errors++;
                 }
                 count++;
@@ -97,11 +110,9 @@ public class ElasticsearchQueryTest extends Assert {
     private void validate(String cql, String expected) throws Exception {
         CQLParser parser = new CQLParser(cql);
         parser.parse();
-        //logger.info("success: cql={}", cql);
         ElasticsearchQueryGenerator generator = new ElasticsearchQueryGenerator();
         parser.getCQLQuery().accept(generator);
         String elasticsearchQuery = generator.getSourceResult();
-        //logger.info("success: elastic={}", elasticsearchQuery);
         assertEquals(expected, elasticsearchQuery);
     }
 

@@ -49,6 +49,14 @@ public class ElasticsearchQueryGenerator implements Visitor {
 
     private int size;
 
+    private String boostField;
+
+    private String modifier;
+
+    private Float factor;
+
+    private String boostMode;
+
     private SourceGenerator sourceGen;
 
     private QueryGenerator queryGen;
@@ -64,7 +72,7 @@ public class ElasticsearchQueryGenerator implements Visitor {
         this.size = 10;
         this.model = new ElasticsearchQueryModel();
         this.filterGenerator = new ElasticsearchFilterGenerator(model);
-        this.stack = new Stack<Node>();
+        this.stack = new Stack<>();
         try {
             this.sourceGen = new SourceGenerator();
             this.queryGen = new QueryGenerator();
@@ -91,6 +99,14 @@ public class ElasticsearchQueryGenerator implements Visitor {
 
     public ElasticsearchQueryGenerator setSort(XContentBuilder sort) {
         this.sort = sort;
+        return this;
+    }
+
+    public ElasticsearchQueryGenerator setBoostParams(String boostField, String modifier, Float factor, String boostMode) {
+        this.boostField = boostField;
+        this.modifier = modifier;
+        this.factor = factor;
+        this.boostMode = boostMode;
         return this;
     }
 
@@ -153,6 +169,9 @@ public class ElasticsearchQueryGenerator implements Visitor {
             }
             queryGen.start();
             node.getQuery().accept(this);
+            if (boostField != null) {
+                queryGen.startBoost(boostField, modifier, factor, boostMode);
+            }
             if (model.hasFilter()) {
                 queryGen.startFiltered();
             } else if (filterGenerator.getResult().bytes().length() > 0) {
@@ -177,6 +196,9 @@ public class ElasticsearchQueryGenerator implements Visitor {
                 queryGen.end();
                 queryGen.getResult().rawField("filter", filterGenerator.getResult().bytes());
                 queryGen.endFiltered();
+            }
+            if (boostField != null) {
+                queryGen.endBoost();
             }
             if (model.hasFacets()) {
                 facetGen = new FacetsGenerator();

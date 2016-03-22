@@ -29,12 +29,12 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.analyzer.marc.zdb.bib;
+package org.xbib.analyzer.marc.zdb.hol;
 
 import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
+import org.xbib.marc.FieldList;
 
 import java.io.IOException;
 import java.util.Map;
@@ -52,7 +52,6 @@ public class GeneralInformation extends MARCEntity {
     private Map<String,Object> continuingresource;
 
     @Override
-    @SuppressWarnings("unchecked")
     public MARCEntity setSettings(Map params) {
         super.setSettings(params);
         this.codes= (Map<String,Object>)params.get("codes");
@@ -64,7 +63,6 @@ public class GeneralInformation extends MARCEntity {
      * Example "991118d19612006xx z||p|r ||| 0||||0ger c"
      */
     @Override
-    @SuppressWarnings("unchecked")
     public boolean fields(MARCEntityQueue.MARCWorker worker,
                           FieldList fields, String value) throws IOException {
 

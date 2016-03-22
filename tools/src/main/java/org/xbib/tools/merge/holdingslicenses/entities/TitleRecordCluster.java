@@ -147,7 +147,9 @@ public class TitleRecordCluster {
                 if (!m.isSubseries()) {
                     Set<String> rel = m.getRelations().keySet();
                     if (!rel.contains("isTransientEditionOf") && !rel.contains("succeededBy")) {
-                        if (m.isPrint() || (m.isOnline() && !m.hasPrint())) {
+                        if (m.getPrintID() != null ||
+                                (m.getPrintID() != null && m.id().equals(m.getOnlineID())
+                                        && !(m.getOnlineID() != null && m.id().equals(m.getOnlineID())))) {
                             // here we have works for all languages
                             headRecords.add(m);
                         }
