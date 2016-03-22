@@ -771,7 +771,10 @@
             "092$  $adklwyz",
             "092$  $adklwz",
             "092$  $adky",
-            "092$  $adklwwwy"
+            "092$  $adklwwwy",
+            "092$  $adklouuwy",
+            "092$  $adklouyy",
+            "092$  $adklowwwyyy"
         ],
         "_predicate": "service",
         "subfields" : {
@@ -848,7 +851,8 @@
             "933$  $ai",
             "933$  $aux",
             "933$  $ax",
-            "933$  $uxx"
+            "933$  $uxx",
+            "093$  $bg"
         ],
         "tags" : {
           "093" : "LicenseInformation",
