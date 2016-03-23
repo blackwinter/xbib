@@ -161,13 +161,15 @@ public class SimpleHoldingsLicensesWorker
 
     private void process(TitleRecord titleRecord) throws IOException {
         boolean isOnline = "online resource".equals(titleRecord.carrierType());
-        // collect all IDs we want to integrate
+        // collect all IDs from all carrier relations that we want to integrate
         Collection<String> internalIDs = new HashSet<>();
         Collection<String> externalIDs = new HashSet<>();
         for (String relation : TitleRecord.getCarrierRelations()) {
+            // internal for ZDB lookup
             if (titleRecord.getRelations().containsKey(relation)) {
                 internalIDs.addAll(titleRecord.getRelations().get(relation));
             }
+            // external for EZB/union catalog lookup
             if (titleRecord.getRelationsExternalIDs().containsKey(relation)) {
                 externalIDs.addAll(titleRecord.getRelationsExternalIDs().get(relation));
             }

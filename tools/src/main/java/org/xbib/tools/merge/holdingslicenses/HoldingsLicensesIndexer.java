@@ -145,6 +145,7 @@ public class HoldingsLicensesIndexer {
                 if (holdings != null && !holdings.isEmpty()) {
                     instcount++;
                     builder.startObject().field("isil", isil);
+                    Set<Integer> priorities = new TreeSet<>();
                     builder.startArray("service");
                     int count = 0;
                     for (Holding holding : holdings) {
@@ -156,10 +157,12 @@ public class HoldingsLicensesIndexer {
                         buildService(serviceBuilder, holding);
                         validateIndex(servicesIndex, servicesIndexType, serviceId, serviceBuilder);
                         builder.value(serviceId);
+                        priorities.add(holding.getPriority());
                         count++;
                     }
                     builder.endArray()
                             .field("servicecount", count)
+                            .array("priorities", priorities)
                             .endObject();
                     if (statCounter != null) {
                         statCounter.increase("stat", "services", count);
