@@ -454,7 +454,8 @@ public class HoldingsLicensesIndexer {
         } else {
             builder.fieldIfNotNull("distribution", o);
         }
-        builder.fieldIfNotNull("comment", holding.getServiceComment())
+        builder.fieldIfNotNull("gap", holding.getGap())
+                .fieldIfNotNull("comment", holding.getServiceComment())
                 .field("info", holding.getInfo())
                 .endObject();
     }

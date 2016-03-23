@@ -83,6 +83,8 @@ public class Holding implements Comparable<Holding> {
 
     protected boolean deleted;
 
+    protected String gap;
+
     private Object servicetype;
     private Object servicemode;
     private Object servicedistribution;
@@ -188,6 +190,7 @@ public class Holding implements Comparable<Holding> {
         }
         buildDateArray();
         setPriority(findPriority());
+        this.gap = getString("TextualHoldings.gap");
     }
 
     public String identifier() {
@@ -305,6 +308,10 @@ public class Holding implements Comparable<Holding> {
 
     public Integer getLastDate() {
         return lastdate;
+    }
+
+    public String getGap() {
+        return gap;
     }
 
     public String mediaType() {
