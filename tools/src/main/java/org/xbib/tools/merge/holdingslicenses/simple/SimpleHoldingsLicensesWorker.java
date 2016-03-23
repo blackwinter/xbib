@@ -177,6 +177,7 @@ public class SimpleHoldingsLicensesWorker
                 addIndicators(titleRecord, titleRecord.getOnlineExternalID());
             }
         }
+        logger.debug("after holdings/licenses/indicators: {}", titleRecord.getRelatedHoldings());
         addMonographs(titleRecord);
         addOpenAccess(titleRecord);
         simpleHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(titleRecord);
@@ -340,7 +341,9 @@ public class SimpleHoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit :  searchResponse.getHits()) {
                 Indicator indicator = new Indicator(hit.getSource());
+                logger.debug("processing indicator {}", indicator);
                 String isil = indicator.getISIL();
+                // invalid/unknown institution in indicator
                 if (isil == null) {
                     continue;
                 }
@@ -362,7 +365,9 @@ public class SimpleHoldingsLicensesWorker
                         indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
+                        logger.debug("before addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                         titleRecord.addRelatedIndicator(expandedisil, indicator);
+                        logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                     }
                 } else {
                     // blacklisted ISIL?
@@ -372,7 +377,9 @@ public class SimpleHoldingsLicensesWorker
                     indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                    logger.debug("before addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                     titleRecord.addRelatedIndicator(isil, indicator);
+                    logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()

@@ -644,32 +644,29 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 o = Collections.singletonList(o);
             }
             this.links = (List) o;
-            makeGreenDates();
+            // green dates?
+            for (Map<String, Object> link : links) {
+                if ("kostenfrei".equals(link.get("publicnote"))) {
+                    o = link.get("nonpublicnote");
+                    if (!(o instanceof List)) {
+                        o = Collections.singletonList(o);
+                    }
+                    List l = (List) o;
+                    for (Object obj : l) {
+                        String dateString = (String) obj;
+                        Matcher m = yearPattern.matcher(dateString);
+                        if (m.matches()) {
+                            greenDates.add(Integer.parseInt(m.group()));
+                        }
+                    }
+                }
+            }
         } else {
             this.links = Collections.EMPTY_LIST;
         }
     }
 
-    private final static Pattern yearPattern = Pattern.compile("(\\d\\d\\d\\d)");
-
-    private void makeGreenDates() {
-        for (Map<String, Object> link : links) {
-            if ("kostenfrei".equals(link.get("publicnote"))) {
-                Object o = link.get("nonpublicnote");
-                if (!(o instanceof List)) {
-                    o = Collections.singletonList(o);
-                }
-                List l = (List) o;
-                for (Object obj : l) {
-                    String dateString = (String) obj;
-                    Matcher m = yearPattern.matcher(dateString);
-                    if (m.matches()) {
-                        greenDates.add(Integer.parseInt(m.group()));
-                    }
-                }
-            }
-        }
-    }
+    private final static Pattern yearPattern = Pattern.compile("(\\d{4})");
 
     private void computeContentTypes() {
         Object o = map.get("physicalDescriptionElectronicResource");
