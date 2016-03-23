@@ -6240,8 +6240,42 @@
             "a" : "author",
             "t" : "title",
             "w" : "id",
-            "x" : "issn"
+            "x" : "issn",
+          "n" : "note",
+          "d" : "publisherStatement",
+          "h" : "physicalDescription"
         },
+      "OtherRelationshipEntry" : {
+        "a" : "mainEntryHeading",
+        "A" : "mainEntryHeading",
+        "b" : "edition",
+        "c" : "qualifyingInformation",
+        "d" : "publisherStatement",
+        "D" : "publisherStatement",
+        "g" : "relatedParts",
+        "h" : "physicalDescription",
+        "i" : "relationshipInformation",
+        "k" : "seriesDataForRelatedItem",
+        "m" : "materialSpecificDetails",
+        "n" : "note",
+        "o" : "otherItemIdentifier",
+        "r" : "reportNumber",
+        "s" : "uniformTitle",
+        "t" : "title",
+        "u" : "standardTechnicalReportNumber",
+        "w" : "id",
+        "x" : "issn",
+        "y" : "coden",
+        "z" : "isbn",
+        "4" : "code",
+        "6" : "linkage",
+        "7" : "controlfield",
+        /* 0 - Type of main entry heading
+          1 - Form of name
+          2 - Type of record
+          3 - Bibliographic level */
+        "8" : "sequenceNumber"
+      },
         "relation" : {
             "Original-Ausg." : "hasOriginalEdition",
             "Orig.-Ausg." : "hasOriginalEdition",
@@ -6272,7 +6306,6 @@
             "Frühere Druckausg." : "hasPrintEdition",
             "Druckausg. vermutl." : "hasPrintEdition",
             "Druckausg. anfangs" : "hasPrintEdition",
-            "Druckausg. teils" : "hasPrintEdition",
             "Jährl. Druckausg" : "hasPrintEdition",
             "Engl. Druckausg." : "hasPrintEdition",
             "Dt. Druckausg." : "hasPrintEdition",
@@ -7180,38 +7213,8 @@
             "Ergänzungsbd." : "hasSupplement",
             "Ergänzungsbl." : "hasSupplement",
             "Ergänzungsheft" : "hasSupplement",
-            "Ergänzungsschr." : "hasSupplement"
-        },
-        "OtherRelationshipEntry" : {
-            "a" : "mainEntryHeading",
-            "A" : "mainEntryHeading",
-            "b" : "edition",
-            "c" : "qualifyingInformation",
-            "d" : "publisherStatement",
-            "D" : "publisherStatement",
-            "g" : "relatedParts",
-            "h" : "physicalDescription",
-            "i" : "relationshipInformation",
-            "k" : "seriesDataForRelatedItem",
-            "m" : "materialSpecificDetails",
-            "n" : "note",
-            "o" : "otherItemIdentifier",
-            "r" : "reportNumber",
-            "s" : "uniformTitle",
-            "t" : "title",
-            "u" : "standardTechnicalReportNumber",
-            "w" : "id",
-            "x" : "issn",
-            "y" : "coden",
-            "z" : "isbn",
-            "4" : "code",
-            "6" : "linkage",
-            "7" : "controlfield",
-                /* 0 - Type of main entry heading
-                  1 - Form of name
-                  2 - Type of record
-                  3 - Bibliographic level */
-            "8" : "sequenceNumber"
+            "Ergänzungsschr." : "hasSupplement",
+            "Erscheint auch als" : "hasEdition"
         },
         "relationpattern" : [
             {

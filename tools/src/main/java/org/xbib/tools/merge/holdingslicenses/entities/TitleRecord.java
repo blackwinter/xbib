@@ -956,7 +956,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "hasDVDEdition",
             "hasMicroformEdition",
             "hasDigitizedEdition",
-            "AdditionalPhysicalFormEntry"
+            "hasEdition"
     ));
 
     public static Set<String> getCarrierRelations() {

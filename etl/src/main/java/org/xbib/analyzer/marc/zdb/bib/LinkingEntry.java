@@ -51,7 +51,8 @@ public class LinkingEntry extends MARCEntity {
                 resource.add("identifierZDB", value.substring(8).replaceAll("\\-","").toLowerCase());
                 return null;
             } else if (value.startsWith("(DE-101)")) {
-                resource.add("identifierDNB", value.substring(8).replaceAll("\\-","").toLowerCase());
+                // DNB-ID 'X' always upper case(!)
+                resource.add("identifierDNB", value.substring(8).replaceAll("\\-","").toUpperCase());
                 return null;
             }
             return value.replaceAll("\\-","").toLowerCase();
