@@ -36,7 +36,6 @@ import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
 import org.xbib.util.Strings;
 import org.xbib.util.TreeMultiMap;
-import org.xbib.util.concurrent.ConcurrentHashMapHashSetMultiMap;
 
 import java.time.Year;
 import java.util.Arrays;
@@ -116,13 +115,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     private String license;
 
-    private String printID;
-
-    private String onlineID;
-
-    private String printExternalID;
-
-    private String onlineExternalID;
 
     private String contentType;
 
@@ -132,9 +124,9 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     private List<Map<String, Object>> links;
 
-    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
+    private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, Holding> relatedHoldings = new LinkedHashMultiMap<>();
     private final MultiMap<Integer, Holding> holdingsByDate =  new LinkedHashMultiMap<>();
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
@@ -371,22 +363,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return license;
     }
 
-    public String getPrintID() {
-        return printID;
-    }
-
-    public String getPrintExternalID() {
-        return printExternalID;
-    }
-
-    public String getOnlineID() {
-        return onlineID;
-    }
-
-    public String getOnlineExternalID() {
-        return onlineExternalID;
-    }
-
     public boolean hasIdentifiers() {
         return identifiers != null && !identifiers.isEmpty();
     }
@@ -412,14 +388,11 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return links;
     }
 
-    /*
-     * relation key, id
-     */
     public MultiMap<String, String> getRelations() {
         return relations;
     }
 
-    public MultiMap<String, String> getExternalRelations() {
+    public MultiMap<String, String> getRelationsExternalIDs() {
         return externalRelations;
     }
 
@@ -824,9 +797,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
      * Check for ZDB IDs and remember as external IDs.
      */
     private void makeRelations() {
-        // default is print
-        this.printID = identifier;
-        this.printExternalID = externalID;
         for (String rel : relationEntries) {
             Object o = map.get(rel);
             if (o == null) {
@@ -861,24 +831,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
                     continue;
                 }
                 externalRelations.put(key, external);
-                switch (key) {
-                    case "hasDigitizedEdition" :
-                    case "hasOnlineEdition": {
-                        this.printID = identifier;
-                        this.printExternalID = externalID;
-                        this.onlineID = internal;
-                        this.onlineExternalID = external;
-                        break;
-                    }
-                    case "hasPrintEdition":
-                        this.onlineID = identifier;
-                        this.onlineExternalID = externalID;
-                        this.printID = internal;
-                        this.printExternalID = external;
-                        break;
-                    default:
-                        break;
-                }
             }
         }
     }
@@ -903,8 +855,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
             holdingsByDate.put(date, holding);
         }
         holding.addParent(this.externalID());
-        holding.addParent(this.getPrintExternalID());
-        holding.addParent(this.getOnlineExternalID());
         if (!otherCarriers) {
             return;
         }
@@ -953,8 +903,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
             holdingsByDate.put(date, indicator);
         }
         indicator.addParent(this.externalID());
-        indicator.addParent(this.getPrintExternalID());
-        indicator.addParent(this.getOnlineExternalID());
         // tricky: add this holding also to title records of other carrier editions!
         List<TitleRecord> list = new LinkedList();
         Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");

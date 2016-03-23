@@ -259,7 +259,7 @@ public class HoldingsLicensesIndexer {
             }
             builder.endArray();
         }
-        MultiMap<String, String> mm = titleRecord.getExternalRelations();
+        MultiMap<String, String> mm = titleRecord.getRelationsExternalIDs();
         if (!mm.isEmpty()) {
             builder.startArray("relations");
             for (String rel : mm.keySet()) {

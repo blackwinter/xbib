@@ -56,8 +56,10 @@ import org.xbib.util.concurrent.Worker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -159,23 +161,24 @@ public class SimpleHoldingsLicensesWorker
 
     private void process(TitleRecord titleRecord) throws IOException {
         boolean isOnline = "online resource".equals(titleRecord.carrierType());
-        logger.debug("processing {} {} (print: {} {}) (online: {} {}) {}",
+        // collect all IDs we want to integrate
+        Collection<String> internalIDs = new HashSet<>();
+        Collection<String> externalIDs = new HashSet<>();
+        for (String relation : TitleRecord.getCarrierRelations()) {
+            internalIDs.addAll(titleRecord.getRelations().get(relation));
+            externalIDs.addAll(titleRecord.getRelationsExternalIDs().get(relation));
+        }
+        logger.debug("IDs: {}/{} -> {}/{} online={}",
                 titleRecord.id(), titleRecord.externalID(),
-                titleRecord.getPrintID(), titleRecord.getPrintExternalID(),
-                titleRecord.getOnlineID(), titleRecord.getOnlineExternalID(),
-                isOnline);
+                internalIDs, externalIDs, isOnline);
         addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.id());
-        if (isOnline) {
-            if (titleRecord.getPrintID() != null && !titleRecord.getPrintID().equals(titleRecord.id())) {
-                addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.getPrintID());
-            }
-            addLicenses(titleRecord, titleRecord.externalID());
-            addIndicators(titleRecord, titleRecord.externalID());
-        } else {
-            if (titleRecord.getOnlineExternalID() != null) {
-                addLicenses(titleRecord, titleRecord.getOnlineExternalID());
-                addIndicators(titleRecord, titleRecord.getOnlineExternalID());
-            }
+
+        for (String id : internalIDs) {
+            addSerialHoldings(titleRecord, "(DE-600)" + id);
+        }
+        for (String id : externalIDs) {
+            addLicenses(titleRecord, id);
+            addIndicators(titleRecord, id);
         }
         addMonographs(titleRecord);
         addOpenAccess(titleRecord);
@@ -296,9 +299,7 @@ public class SimpleHoldingsLicensesWorker
                         license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        logger.debug("before addRelatedHoldings {} dates={}", titleRecord.getRelatedHoldings().size(), license.dates());
                         titleRecord.addRelatedHolding(expandedisil, license);
-                        logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                     }
                 } else {
                     // blacklisted ISIL?
@@ -308,9 +309,7 @@ public class SimpleHoldingsLicensesWorker
                     license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    logger.debug("before addRelatedHoldings {} dates={}", titleRecord.getRelatedHoldings().size(), license.dates());
                     titleRecord.addRelatedHolding(isil, license);
-                    logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()
@@ -340,7 +339,6 @@ public class SimpleHoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit :  searchResponse.getHits()) {
                 Indicator indicator = new Indicator(hit.getSource());
-                logger.debug("processing indicator {}", indicator);
                 String isil = indicator.getISIL();
                 // invalid/unknown institution in indicator
                 if (isil == null) {
@@ -364,9 +362,7 @@ public class SimpleHoldingsLicensesWorker
                         indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        logger.debug("before addRelatedIndicator {} dates={}", titleRecord.getRelatedHoldings().size(), indicator.dates());
                         titleRecord.addRelatedIndicator(expandedisil, indicator);
-                        logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                     }
                 } else {
                     // blacklisted ISIL?
@@ -376,9 +372,7 @@ public class SimpleHoldingsLicensesWorker
                     indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    logger.debug("before addRelatedIndicator {} dates={}", titleRecord.getRelatedHoldings().size(), indicator.dates());
                     titleRecord.addRelatedIndicator(isil, indicator);
-                    logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()

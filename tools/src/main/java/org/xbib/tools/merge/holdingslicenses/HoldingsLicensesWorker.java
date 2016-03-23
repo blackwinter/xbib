@@ -409,9 +409,9 @@ public class HoldingsLicensesWorker
         Map<String, TitleRecord> map = new HashMap<>();
         for (TitleRecord m : titleRecords) {
             map.put("(DE-600)" + m.id(), m);
-            if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
-                map.put("(DE-600)" + m.getPrintID(), m);
-            }
+            //if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
+            //    map.put("(DE-600)" + m.getPrintID(), m);
+            //}
         }
         searchHoldings(map, holdings);
     }
@@ -514,10 +514,10 @@ public class HoldingsLicensesWorker
             // we really just rely on the carrier type. There may be licenses or indicators
             isOnline = isOnline || "online resource".equals(m.carrierType());
             // copy print to the online edition in case it is not there
-            String id = m.getOnlineExternalID();
-            if (id != null && !map.containsKey(id)) {
-                map.put(id, m);
-            }
+            //String id = m.getOnlineExternalID();
+            //if (id != null && !map.containsKey(id)) {
+            //    map.put(id, m);
+            //}
         }
         if (isOnline) {
             searchLicenses(licenses, map);

@@ -144,7 +144,7 @@ public class TitleRecordCluster {
                 // Find all "head record" which qualifies for a "work".
                 // - no monographs connected to serial
                 // - no series connected to serial
-                if (!m.isSubseries()) {
+                /*if (!m.isSubseries()) {
                     Set<String> rel = m.getRelations().keySet();
                     if (!rel.contains("isTransientEditionOf") && !rel.contains("succeededBy")) {
                         if (m.getPrintID() != null ||
@@ -154,7 +154,7 @@ public class TitleRecordCluster {
                             headRecords.add(m);
                         }
                     }
-                }
+                }*/
             }
         }
         if (firstDate != null && firstDate == Integer.MAX_VALUE) {
