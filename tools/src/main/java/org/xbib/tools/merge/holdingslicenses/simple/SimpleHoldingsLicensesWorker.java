@@ -165,8 +165,12 @@ public class SimpleHoldingsLicensesWorker
         Collection<String> internalIDs = new HashSet<>();
         Collection<String> externalIDs = new HashSet<>();
         for (String relation : TitleRecord.getCarrierRelations()) {
-            internalIDs.addAll(titleRecord.getRelations().get(relation));
-            externalIDs.addAll(titleRecord.getRelationsExternalIDs().get(relation));
+            if (titleRecord.getRelations().containsKey(relation)) {
+                internalIDs.addAll(titleRecord.getRelations().get(relation));
+            }
+            if (titleRecord.getRelationsExternalIDs().containsKey(relation)) {
+                externalIDs.addAll(titleRecord.getRelationsExternalIDs().get(relation));
+            }
         }
         logger.debug("IDs: {}/{} -> {}/{} online={}",
                 titleRecord.id(), titleRecord.externalID(),
