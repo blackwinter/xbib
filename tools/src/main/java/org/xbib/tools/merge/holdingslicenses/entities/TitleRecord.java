@@ -139,7 +139,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
     protected void build() {
         // we use DNB ID. ZDB ID collides with GND ID. Example: 21573803
         String s = getString("IdentifierDNB.identifierDNB");
-        this.identifier = s != null ? s : "undefined";
+        // DNB ID always upper case
+        this.identifier = s != null ? s.toUpperCase() : "undefined";
         s = getString("IdentifierZDB.identifierZDB");
         this.externalID = s != null ? s : "undefined";
         this.isSubseries = getString("TitleStatement.titlePartName") != null
@@ -766,6 +767,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 String s = (String) aL.get("value");
                 if (s != null) {
                     formattedISSNs.add(s);
+                    // lower case ISSN for better search
                     issns.add(s.replaceAll("\\-", "").toLowerCase());
                 }
             }
