@@ -177,7 +177,6 @@ public class SimpleHoldingsLicensesWorker
                 addIndicators(titleRecord, titleRecord.getOnlineExternalID());
             }
         }
-        logger.debug("after holdings/licenses/indicators: {}", titleRecord.getRelatedHoldings());
         addMonographs(titleRecord);
         addOpenAccess(titleRecord);
         simpleHoldingsLicensesMerger.getHoldingsLicensesIndexer().index(titleRecord);
@@ -297,7 +296,7 @@ public class SimpleHoldingsLicensesWorker
                         license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        logger.debug("before addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
+                        logger.debug("before addRelatedHoldings {} dates={}", titleRecord.getRelatedHoldings().size(), license.dates());
                         titleRecord.addRelatedHolding(expandedisil, license);
                         logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                     }
@@ -309,7 +308,7 @@ public class SimpleHoldingsLicensesWorker
                     license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    logger.debug("before addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
+                    logger.debug("before addRelatedHoldings {} dates={}", titleRecord.getRelatedHoldings().size(), license.dates());
                     titleRecord.addRelatedHolding(isil, license);
                     logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                 }
@@ -365,7 +364,7 @@ public class SimpleHoldingsLicensesWorker
                         indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                        logger.debug("before addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
+                        logger.debug("before addRelatedIndicator {} dates={}", titleRecord.getRelatedHoldings().size(), indicator.dates());
                         titleRecord.addRelatedIndicator(expandedisil, indicator);
                         logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                     }
@@ -377,7 +376,7 @@ public class SimpleHoldingsLicensesWorker
                     indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                    logger.debug("before addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
+                    logger.debug("before addRelatedIndicator {} dates={}", titleRecord.getRelatedHoldings().size(), indicator.dates());
                     titleRecord.addRelatedIndicator(isil, indicator);
                     logger.debug("after addRelatedIndicator {}", titleRecord.getRelatedHoldings().size());
                 }

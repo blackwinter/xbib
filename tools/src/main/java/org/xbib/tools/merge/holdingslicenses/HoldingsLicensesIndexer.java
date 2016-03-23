@@ -174,9 +174,9 @@ public class HoldingsLicensesIndexer {
             for (Integer date : map.keySet()) {
                 Collection<Holding> holdings = map.get(date);
                 String shelfId = titleRecord.externalID() + (date != -1 ? "." + date : "");
-                XContentBuilder volumeBuilder = jsonBuilder();
-                buildVolume(volumeBuilder, titleRecord, date, holdings);
-                validateIndex(shelfIndex, shelfIndexType, shelfId, volumeBuilder);
+                XContentBuilder shelfBuilder = jsonBuilder();
+                buildShelf(shelfBuilder, titleRecord, date, holdings);
+                validateIndex(shelfIndex, shelfIndexType, shelfId, shelfBuilder);
             }
             if (statCounter != null) {
                 statCounter.increase("stat", "shelf", map.size());
@@ -384,10 +384,7 @@ public class HoldingsLicensesIndexer {
         builder.endObject();
     }
 
-    private void buildVolume(XContentBuilder builder,
-                             TitleRecord titleRecord,
-                             Integer date,
-                             Collection<Holding> holdings)
+    private void buildShelf(XContentBuilder builder, TitleRecord titleRecord, Integer date, Collection<Holding> holdings)
             throws IOException {
         builder.startObject();
         if (date != -1) {
@@ -398,7 +395,7 @@ public class HoldingsLicensesIndexer {
         }
         Map<String, Set<Holding>> institutions = new HashMap<>();
         for (Holding holding : holdings) {
-            // create holdings in order
+            // collect holdings per institution
             Set<Holding> set = institutions.containsKey(holding.getISIL()) ?
                     institutions.get(holding.getISIL()) : new TreeSet<>();
             set.add(holding);
@@ -408,18 +405,21 @@ public class HoldingsLicensesIndexer {
         builder.startArray("institution");
         for (Map.Entry<String,Set<Holding>> entry : institutions.entrySet()) {
             String isil = entry.getKey();
-            Collection<Holding> set = entry.getValue();
+            Collection<Holding> services = entry.getValue();
             builder.startObject()
                     .field("isil", isil)
-                    .field("servicecount", set.size());
+                    .field("servicecount", services.size());
             builder.startArray("service");
-            for (Holding holding : set) {
-                if (holding.isDeleted()) {
+            Set<Integer> priorities = new TreeSet<>();
+            for (Holding service : services) {
+                if (service.isDeleted()) {
                     continue;
                 }
-                builder.value("(" + holding.getServiceISIL() + ")" + holding.identifier());
+                builder.value("(" + service.getServiceISIL() + ")" + service.identifier());
+                priorities.add(service.getPriority());
             }
             builder.endArray();
+            builder.array("priorities", priorities);
             builder.endObject();
         }
         builder.endArray();

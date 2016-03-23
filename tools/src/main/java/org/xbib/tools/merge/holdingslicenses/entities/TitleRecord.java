@@ -948,6 +948,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             return;
         }
         relatedHoldings.putAll(relation, newHoldings);
+        // unfold dates
         for (Integer date : indicator.dates()) {
             holdingsByDate.put(date, indicator);
         }
