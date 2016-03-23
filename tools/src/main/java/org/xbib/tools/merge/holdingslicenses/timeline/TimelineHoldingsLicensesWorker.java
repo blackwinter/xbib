@@ -913,7 +913,7 @@ public class TimelineHoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private Set<String> findTheRelationsBetween(TitleRecord titleRecord, String id) {
         Set<String> relationNames = new HashSet<>();
-        for (String entry : TitleRecord.relationEntries()) {
+        for (String entry : TitleRecord.getRelationEntries()) {
             Object o = titleRecord.map().get(entry);
             if (o != null) {
                 if (!(o instanceof List)) {
@@ -945,7 +945,7 @@ public class TimelineHoldingsLicensesWorker
 
     @SuppressWarnings("unchecked")
     private void setAllRelationsBetween(TitleRecord titleRecord, Collection<TitleRecord> cluster) {
-        for (String relation : TitleRecord.relationEntries()) {
+        for (String relation : TitleRecord.getRelationEntries()) {
             Object o = titleRecord.map().get(relation);
             if (o != null) {
                 if (!(o instanceof List)) {

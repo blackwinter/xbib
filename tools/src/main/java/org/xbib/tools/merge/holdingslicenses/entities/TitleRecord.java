@@ -953,7 +953,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "hasCDEdition",
             "hasDVDEdition",
             "hasMicroformEdition",
-            "hasDigitizedEdition"
+            "hasDigitizedEdition",
+            "AdditionalPhysicalFormEntry"
     ));
 
     public static Set<String> getCarrierRelations() {
@@ -979,7 +980,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "SupplementParentEntry"
     ));
 
-    public static Set<String> relationEntries() {
+    public static Set<String> getRelationEntries() {
         return relationEntries;
     }
 

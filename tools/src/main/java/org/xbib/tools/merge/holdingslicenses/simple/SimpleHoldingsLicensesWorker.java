@@ -178,9 +178,8 @@ public class SimpleHoldingsLicensesWorker
                 titleRecord.id(), titleRecord.externalID(),
                 internalIDs, externalIDs, isOnline);
         addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.id());
-
         for (String id : internalIDs) {
-            addSerialHoldings(titleRecord, "(DE-600)" + id);
+            addSerialHoldings(titleRecord, "(DE-600)" + id.toUpperCase());
         }
         for (String id : externalIDs) {
             addLicenses(titleRecord, id);

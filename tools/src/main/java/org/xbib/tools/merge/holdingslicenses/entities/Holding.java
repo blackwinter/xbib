@@ -52,7 +52,7 @@ public class Holding implements Comparable<Holding> {
 
     private final static Logger logger = LogManager.getLogger(Holding.class);
 
-    protected final static Integer currentYear = LocalDate.now().getYear();
+    private final static Integer currentYear = LocalDate.now().getYear();
 
     protected final Map<String, Object> map;
 
@@ -81,9 +81,7 @@ public class Holding implements Comparable<Holding> {
     // delta from a moving wall
     protected Integer delta;
 
-    protected boolean deleted;
-
-    protected String gap;
+    private boolean deleted;
 
     private Object servicetype;
     private Object servicemode;
@@ -190,7 +188,6 @@ public class Holding implements Comparable<Holding> {
         }
         buildDateArray();
         setPriority(findPriority());
-        this.gap = getString("TextualHoldings.gap");
     }
 
     public String identifier() {
@@ -308,10 +305,6 @@ public class Holding implements Comparable<Holding> {
 
     public Integer getLastDate() {
         return lastdate;
-    }
-
-    public String getGap() {
-        return gap;
     }
 
     public String mediaType() {
@@ -446,7 +439,7 @@ public class Holding implements Comparable<Holding> {
     @SuppressWarnings("unchecked")
     private Map<String, Object> buildInfo() {
         Map<String, Object> info = new LinkedHashMap<>();
-        List<Map<String,Object>> l = new ArrayList<Map<String,Object>>();
+        List<Map<String,Object>> l = new ArrayList<>();
         for (String locKey : new String[]{"Location","AdditionalLocation"}) {
             Object o = map.get(locKey);
             if (o != null) {
@@ -478,8 +471,7 @@ public class Holding implements Comparable<Holding> {
             }
         }
         info.put("location", l);
-        Object textualholdings = map.get("textualholdings");
-        info.put("textualholdings", textualholdings);
+        info.put("textualholdings", map.get("textualholdings"));
         info.put("holdings", map.get("holdings"));
         Object o = map.get("ElectronicLocationAndAccess");
         if (o != null) {
