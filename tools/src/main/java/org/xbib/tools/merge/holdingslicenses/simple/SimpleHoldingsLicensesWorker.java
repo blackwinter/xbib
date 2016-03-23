@@ -269,6 +269,7 @@ public class SimpleHoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit :  searchResponse.getHits()) {
                 License license = new License(hit.getSource());
+                logger.debug("processing license {}", license);
                 if (license.isDeleted()) {
                     continue;
                 }
@@ -295,7 +296,9 @@ public class SimpleHoldingsLicensesWorker
                         license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
+                        logger.debug("before addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                         titleRecord.addRelatedHolding(expandedisil, license);
+                        logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                     }
                 } else {
                     // blacklisted ISIL?
@@ -305,7 +308,9 @@ public class SimpleHoldingsLicensesWorker
                     license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                     license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                     license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                    logger.debug("before addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                     titleRecord.addRelatedHolding(isil, license);
+                    logger.debug("after addRelatedHoldings {}", titleRecord.getRelatedHoldings().size());
                 }
             }
             searchResponse = simpleHoldingsLicensesMerger.search().client()

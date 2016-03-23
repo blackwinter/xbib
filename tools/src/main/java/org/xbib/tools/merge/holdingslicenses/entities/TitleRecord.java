@@ -135,9 +135,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
-    private final MultiMap<String, Holding> relatedHoldings = new ConcurrentHashMapHashSetMultiMap<>();
-    private final MultiMap<Integer, Holding> holdingsByDate =  new ConcurrentHashMapHashSetMultiMap<>();
-
+    private final MultiMap<String, Holding> relatedHoldings = new LinkedHashMultiMap<>();
+    private final MultiMap<Integer, Holding> holdingsByDate =  new LinkedHashMultiMap<>();
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 
     public TitleRecord(Map<String, Object> map) {
@@ -895,23 +894,24 @@ public class TitleRecord implements Comparable<TitleRecord> {
         addRelatedHolding(relation, holding, true);
     }
 
-    private void addRelatedHolding(String relation, Holding holding, boolean recursion) {
-        Collection<Holding> c = relatedHoldings.get(relation);
+    private void addRelatedHolding(String isil, Holding holding, boolean otherCarriers) {
+        Collection<Holding> c = relatedHoldings.get(isil);
         if (c != null && c.contains(holding)) {
             return;
         }
         // add while we go, no coercion
-        relatedHoldings.put(relation, holding);
+        relatedHoldings.put(isil, holding);
+        // unfold dates
         for (Integer date : holding.dates()) {
             holdingsByDate.put(date, holding);
         }
         holding.addParent(this.externalID());
         holding.addParent(this.getPrintExternalID());
         holding.addParent(this.getOnlineExternalID());
-        if (!recursion) {
+        if (!otherCarriers) {
             return;
         }
-        // tricky: add this holding also to title records of other carrier editions!
+        // tricky: add this holding also to title records of other carrier editions, but avoid recursion
         List<TitleRecord> list = new LinkedList();
         Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
         if (trs != null) {
@@ -937,7 +937,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
      * @param indicator indicator
      */
     public void addRelatedIndicator(String relation, Indicator indicator) {
-        // already exist?
         Collection<Holding> c = relatedHoldings.get(relation);
         if (c != null && c.contains(indicator)) {
             return;

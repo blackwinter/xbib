@@ -60,7 +60,7 @@ public class Holding implements Comparable<Holding> {
 
     protected String parent;
 
-    protected Set<String> parents = new HashSet<>();
+    protected Set<String> parents;
 
     protected String isil;
 
@@ -78,7 +78,7 @@ public class Holding implements Comparable<Holding> {
 
     protected Integer lastdate;
 
-    // from a moving wall
+    // delta from a moving wall
     protected Integer delta;
 
     protected boolean deleted;
@@ -95,6 +95,7 @@ public class Holding implements Comparable<Holding> {
 
     public Holding(Map<String, Object> map) {
         this.map = map;
+        this.parents = new HashSet<>();
         build();
     }
 
@@ -102,7 +103,7 @@ public class Holding implements Comparable<Holding> {
         return map;
     }
 
-    public String getString(String key) {
+    protected String getString(String key) {
         return get(key);
     }
 
