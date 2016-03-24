@@ -41,6 +41,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.xbib.common.settings.Settings;
 import org.xbib.iri.IRI;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
@@ -77,19 +78,26 @@ public class ArticlesMergerWorker
     private final int threadId;
 
     private final Logger logger;
+    private final int scrollSize;
+    private final long scrollMillis;
+    private final long timeoutSeconds;
 
     private SerialItem serialItem;
 
     private Meter metric;
 
-    public ArticlesMergerWorker(ArticlesMerger articlesMerger, int number) {
+    public ArticlesMergerWorker(Settings settings, ArticlesMerger articlesMerger, int number) {
         this.threadId = number;
         this.articlesMerger = articlesMerger;
         this.logger = LogManager.getLogger(toString());
+        this.scrollSize = settings.getAsInt("worker.scrollsize", 10); // per shard!
+        this.scrollMillis = settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis();
+        this.timeoutSeconds = settings.getAsTime("worker.timeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
+
     }
 
     @Override
-    public Worker<Pipeline<ArticlesMergerWorker, SerialItemRequest>, SerialItemRequest> setPipeline(Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline) {
+    public ArticlesMergerWorker setPipeline(Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline) {
         // unused
         return this;
     }
@@ -209,8 +217,8 @@ public class ArticlesMergerWorker
                 .setIndices(articlesMerger.settings().get("medline-index"))
                 .setTypes(articlesMerger.settings().get("medline-type"))
                 .setQuery(queryBuilder)
-                .setSize(articlesMerger.size()) // size() is per shard!
-                .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()));
+                .setSize(scrollSize) // size() is per shard!
+                .setScroll(TimeValue.timeValueMillis(scrollMillis));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         do {
             SearchHits hits = searchResponse.getHits();
@@ -241,7 +249,7 @@ public class ArticlesMergerWorker
             }
             searchResponse = articlesMerger.search().client()
                     .prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         } while (searchResponse.getHits().getHits().length > 0);
     }
@@ -274,11 +282,11 @@ public class ArticlesMergerWorker
                 .setIndices(articlesMerger.settings().get("xref-index"))
                 .setTypes(articlesMerger.settings().get("xref-type"))
                 .setQuery(queryBuilder)
-                .setSize(articlesMerger.size()) // size() is per shard
-                .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()));
+                .setSize(scrollSize) // size() is per shard
+                .setScroll(TimeValue.timeValueMillis(scrollMillis));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()))
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .execute().actionGet();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
@@ -305,7 +313,7 @@ public class ArticlesMergerWorker
                 }
             }
             searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(articlesMerger.millis()))
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
             hits = searchResponse.getHits();
         } while (hits.getHits().length > 0);

@@ -130,6 +130,8 @@ public class HoldingsLicensesIndexer {
             }
         }
         // holdings and services
+        boolean eonly = true;
+        int instcount = 0;
         if (!titleRecord.getRelatedHoldings().isEmpty()) {
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
@@ -137,8 +139,6 @@ public class HoldingsLicensesIndexer {
             if (titleRecord.hasLinks()) {
                 builder.field("links", titleRecord.getLinks());
             }
-            boolean eonly = true;
-            int instcount = 0;
             builder.startArray("institution");
             final MultiMap<String, Holding> holdingsMap = titleRecord.getRelatedHoldings();
             for (String isil : holdingsMap.keySet()) {
@@ -175,7 +175,6 @@ public class HoldingsLicensesIndexer {
             }
             builder.endArray();
             builder.field("institutioncount", instcount);
-            builder.field("eonly", instcount > 0 && eonly);
             builder.endObject();
             // now, build holdings per year
             MultiMap<Integer,Holding> map = titleRecord.getHoldingsByDate();
@@ -199,14 +198,16 @@ public class HoldingsLicensesIndexer {
             statCounter.increase("stat", "manifestations", 1);
         }
         XContentBuilder builder = jsonBuilder();
+        builder.startObject();
         buildManifestation(builder, titleRecord, statCounter);
+        builder.field("eonly", instcount > 0 && eonly);
+        builder.endObject();
         validateIndex(manifestationsIndex, manifestationsIndexType, titleRecord.externalID(), builder);
     }
 
     private void buildManifestation(XContentBuilder builder,
                                     TitleRecord titleRecord,
                                     StatCounter statCounter) throws IOException {
-        builder.startObject();
         builder.field("title", titleRecord.getExtendedTitle())
                 .field("titlecomponents", titleRecord.getTitleComponents());
         String s = titleRecord.corporateName();
@@ -283,7 +284,6 @@ public class HoldingsLicensesIndexer {
         if (titleRecord.hasLinks()) {
             builder.array("links", titleRecord.getLinks());
         }
-        builder.endObject();
         if (statCounter != null) {
             for (String country : titleRecord.country()) {
                 statCounter.increase("country", country, 1);

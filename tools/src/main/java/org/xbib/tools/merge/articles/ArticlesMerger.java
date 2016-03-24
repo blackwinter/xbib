@@ -40,19 +40,16 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.xbib.common.settings.Settings;
-import org.xbib.elasticsearch.helper.client.ClientBuilder;
-import org.xbib.elasticsearch.helper.client.Ingest;
-import org.xbib.elasticsearch.helper.client.LongAdderIngestMetric;
-import org.xbib.elasticsearch.helper.client.SearchTransportClient;
+import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
+import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.ExceptionFormatter;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -78,48 +75,43 @@ public class ArticlesMerger extends Merger {
 
     private ArticlesMerger merger;
 
-    private Settings settings;
-
-    private SearchTransportClient search;
-
-    private Ingest ingest;
-
-    private int size;
-
-    private long millis;
-
+    private Meter queryMetric;
 
     @Override
+    @SuppressWarnings("unchecked")
+    public int run(Settings settings) throws Exception {
+        this.merger = this;
+        this.metrics = new Metrics();
+        this.queryMetric = new Meter();
+        queryMetric.spawn(5L);
+        metrics.scheduleMetrics(settings, "meterquery", queryMetric);
+        return super.run(settings);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
+        return pipeline;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider provider() {
         return new WorkerProvider<ArticlesMergerWorker>() {
             int i = 0;
 
             @Override
             public ArticlesMergerWorker get(Pipeline pipeline) {
-                return new ArticlesMergerWorker(merger, i++);
+                return new ArticlesMergerWorker(settings, merger, i++).setPipeline(pipeline);
             }
         };
     }
 
-    protected void setPipeline(Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline) {
-        this.pipeline = pipeline;
-    }
-
-    public Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
-        return pipeline;
-    }
-
     @Override
-    public int run(Settings settings) throws Exception {
-        this.merger = this;
-        return super.run(settings);
-    }
-
     protected void waitFor() throws IOException {
         getPipeline().waitFor(new SerialItemRequest());
         long total = 0L;
         for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
-            logger.info("pipeline {}, count {}, took {}",
+            logger.info("worker {}, count {}, took {}",
                     worker,
                     worker.getMetric().getCount(),
                     TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
@@ -128,68 +120,25 @@ public class ArticlesMerger extends Merger {
         logger.info("total={}", total);
     }
 
-    protected void prepareResources() throws Exception {
-        this.ingest = createIngest();
-        ingest.waitForCluster("YELLOW", TimeValue.timeValueSeconds(30));
-        String indexSettings = settings.get("target-index-settings",
-                "classpath:org/xbib/tools/merge/articles/settings.json");
-        InputStream indexSettingsInput = new URL(indexSettings).openStream();
-        String indexMappings = settings.get("target-index-mapping",
-                "classpath:org/xbib/tools/merge/articles/mapping.json");
-        InputStream indexMappingsInput = new URL(indexMappings).openStream();
-        ingest.newIndex(settings.get("target-index"), settings.get("target-type"),
-                indexSettingsInput, indexMappingsInput);
-        ingest.startBulk(settings.get("target-index"), -1, 1);
-    }
-
-    protected Ingest createIngest() throws IOException {
-        org.elasticsearch.common.settings.Settings clientSettings = org.elasticsearch.common.settings.Settings.settingsBuilder()
-                .put("cluster.name", settings.get("elasticsearch.cluster", "elasticsearch"))
-                .put("host", settings.get("elasticsearch.host", "localhost"))
-                .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                .build();
-        ClientBuilder clientBuilder = ClientBuilder.builder()
-                .put(clientSettings)
-                .put(ClientBuilder.MAX_ACTIONS_PER_REQUEST, settings.getAsInt("maxbulkactions", 1000))
-                .put(ClientBuilder.MAX_CONCURRENT_REQUESTS, settings.getAsInt("maxconcurrentbulkrequests",
-                        Runtime.getRuntime().availableProcessors()))
-                .setMetric(new LongAdderIngestMetric());
-        if (settings.getAsBoolean("mock", false)) {
-            return clientBuilder.toMockTransportClient();
-        }
-        if ("ingest".equals(settings.get("client"))) {
-            return clientBuilder.toIngestTransportClient();
-        }
-        return clientBuilder.toBulkTransportClient();
-    }
-
     @Override
+    @SuppressWarnings("unchecked")
     protected void prepareRequests() throws Exception {
-        this.search = new SearchTransportClient().init(Settings.settingsBuilder()
-                .put("cluster.name", settings.get("source.cluster"))
-                .put("host", settings.get("source.host"))
-                .put("port", settings.getAsInt("source.port", 9300))
-                .put("sniff", settings.getAsBoolean("source.sniff", false))
-                .put("autodiscover", settings.getAsBoolean("source.autodiscover", false))
-                .build().getAsMap());
-        this.size = settings.getAsInt("scrollsize", 10);
-        this.millis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(600)).millis();
-        String identifier = settings.get("identifier");
+        super.prepareRequests();
+        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+
 
         boolean failure = false;
         boolean complete = false;
-        // strategy: iterate over ezdb/Manifestation, then iterate over existing dates,
-        // pick the holdings, offer into queue
-        SearchRequestBuilder searchRequest = search.client().prepareSearch()
-                .setIndices(settings.get("ezdb-index"))
-                .setTypes(settings.get("ezdb-type"))
-                .setSize(size)
-                .setScroll(TimeValue.timeValueMillis(millis));
+        int scrollSize = settings.getAsInt("scrollsize", 10);
+        long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
+
+        // strategy: iterate over ezdb manifestations,
+        // then iterate over existing dates,
+        // pick the holdings, offer to workers
 
         QueryBuilder queryBuilder = matchAllQuery();
         QueryBuilder filterBuilder = existsQuery("dates");
+        String identifier = settings.get("identifier");
         if (identifier != null) {
             // execute on a single ID
             filterBuilder = null;
@@ -208,23 +157,17 @@ public class ArticlesMerger extends Merger {
         }
         queryBuilder = filterBuilder != null ?
                 boolQuery().must(queryBuilder).filter(filterBuilder) : queryBuilder;
-        searchRequest.setQuery(queryBuilder);
-
+        SearchRequestBuilder searchRequest = search.client().prepareSearch()
+                .setIndices(indexDefinitionMap.get("ezdb").getIndex())
+                .setTypes(indexDefinitionMap.get("ezdb").getType())
+                .setSize(scrollSize)
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                .setQuery(queryBuilder);
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        long total = searchResponse.getHits().getTotalHits();
-        long count = 0L;
-        long lastpercent = -1L;
-        while (!failure && !complete && searchResponse.getScrollId() != null) {
-            searchResponse = search.client().prepareSearchScroll(searchResponse.getScrollId())
-                    .setScroll(TimeValue.timeValueMillis(millis))
-                    .execute().actionGet();
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit hit : hits) {
+        while (!failure && !complete && searchResponse.getHits().getHits().length > 0) {
+            for (SearchHit hit : searchResponse.getHits()) {
                 try {
-                    if (getPipeline().getWorkers().size() == 0) {
+                    if (getPipeline().getWorkers().isEmpty()) {
                         logger.error("no more workers left to receive, aborting");
                         complete = true;
                         break;
@@ -291,30 +234,16 @@ public class ArticlesMerger extends Merger {
                             getPipeline().getQueue().put(new SerialItemRequest().set(serialItem));
                         }
                     }
-                    count++;
-                    long percent = count * 100 / total;
-                    if (percent != lastpercent && logger.isInfoEnabled()) {
-                        logger.info("{}/{} {}%", count, total, percent);
-                        for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
-                            logger.info("{} throughput={} {} {} mean={} mldup={} xrefdup={}",
-                                    worker.toString(),
-                                    worker.getMetric().getOneMinuteRate(),
-                                    worker.getMetric().getFiveMinuteRate(),
-                                    worker.getMetric().getFifteenMinuteRate(),
-                                    worker.getMetric().getMeanRate(),
-                                    worker.getMedlineDuplicates().get(),
-                                    worker.getXrefDuplicates().get()
-                            );
-                        }
-                    }
-                    lastpercent = percent;
                 } catch (Throwable e) {
-                    logger.error("error passing data to merge pipelines, exiting", e);
+                    logger.error("error passing data to worker, exiting", e);
                     logger.error(ExceptionFormatter.format(e));
                     failure = true;
                     break;
                 }
             }
+            searchResponse = search.client().prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                    .execute().actionGet();
         }
     }
 
@@ -326,36 +255,16 @@ public class ArticlesMerger extends Merger {
     protected void disposeResources(int returncode) throws IOException {
     }
 
-    public SearchTransportClient search() {
-        return search;
-    }
 
-    public Ingest ingest() {
-        return ingest;
-    }
-
-    public Settings settings() {
-        return settings;
-    }
-
-    public int size() {
-        return size;
-    }
-
-    public long millis() {
-        return millis;
-    }
-
-    private TitleRecord expand(String id) throws IOException {
-        QueryBuilder queryBuilder = termQuery("IdentifierZDB.identifierZDB", id);
+    private TitleRecord expand(String zdbId) throws IOException {
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
                 .setIndices(settings().get("zdb-index", "zdb"))
-                .setQuery(queryBuilder)
+                .setQuery(termQuery("IdentifierZDB.identifierZDB", zdbId))
                 .setSize(1);
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         SearchHits hits = searchResponse.getHits();
         if (hits.getHits().length == 0) {
-            logger.warn("ZDB-ID {} does not exist", id);
+            logger.warn("ZDB-ID {} does not exist", zdbId);
             return null;
         }
         return new TitleRecord(hits.getAt(0).getSource());

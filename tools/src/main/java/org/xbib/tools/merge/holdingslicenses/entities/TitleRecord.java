@@ -956,6 +956,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
             "hasDVDEdition",
             "hasMicroformEdition",
             "hasDigitizedEdition",
+            "hasUSBEdition",
             "hasEdition"
     ));
 

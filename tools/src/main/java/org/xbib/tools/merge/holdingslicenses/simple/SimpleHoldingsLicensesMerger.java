@@ -118,8 +118,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
             @SuppressWarnings("unchecked")
             public SimpleHoldingsLicensesWorker get(Pipeline pipeline) {
                 return (SimpleHoldingsLicensesWorker) new SimpleHoldingsLicensesWorker(settings,
-                        simpleHoldingsLicensesMerger,
-                        i++)
+                        simpleHoldingsLicensesMerger, i++)
                         .setPipeline(pipeline);
             }
         };
@@ -302,10 +301,6 @@ public class SimpleHoldingsLicensesMerger extends Merger {
 
     public StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
-    }
-
-    public String getSourceTitleIndex() {
-        return sourceTitleIndex;
     }
 
     public String getSourceHoldingsIndex() {
