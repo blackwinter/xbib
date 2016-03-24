@@ -76,7 +76,7 @@ public final class BibdatFromPPXML extends Feeder {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             MyQueue queue = new MyQueue("pica/zdb/bib", settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {
-                if ((settings.getAsBoolean("detect", false))) {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("unmapped field {}", key);
                     unmapped.add("\"" + key + "\"");
                 }
@@ -120,7 +120,7 @@ public final class BibdatFromPPXML extends Feeder {
             reader.setMarcXchangeListener(kv);
             reader.parse();
             queue.close();
-            if (settings.getAsBoolean("detect", false)) {
+            if (settings.getAsBoolean("detect-unknown", false)) {
                 logger.info("detected unmapped elements = {}", unmapped);
             }
         }
@@ -128,7 +128,7 @@ public final class BibdatFromPPXML extends Feeder {
 
     class MyQueue extends PicaEntityQueue {
 
-        public MyQueue(String path, int workers) {
+        MyQueue(String path, int workers) {
             super(path, workers);
         }
 

@@ -67,7 +67,7 @@ public final class PICA extends Converter {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             MyQueue queue = new MyQueue("/org/xbib/analyze/pica/zdb/bibdat.json", settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {
-                if ((settings.getAsBoolean("detect", false))) {
+                if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("unmapped field {}", key);
                     unmapped.add("\"" + key + "\"");
                 }
@@ -104,7 +104,7 @@ public final class PICA extends Converter {
 
     static class MyQueue extends PicaEntityQueue {
 
-        public MyQueue(String path, int workers) {
+        MyQueue(String path, int workers) {
             super(path, workers);
         }
 

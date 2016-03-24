@@ -148,6 +148,9 @@ public final class OAI extends OAIFeeder {
             until = ldt.toInstant(ZoneOffset.UTC);
         } while (count-- > 0L);
         queue.close();
+        if (settings.getAsBoolean("detect-unknown", false)) {
+            logger.info("detected unmapped elements = {}", unmapped);
+        }
     }
 
     protected PicaEntityQueue createQueue(Map<String,Object> params) {
