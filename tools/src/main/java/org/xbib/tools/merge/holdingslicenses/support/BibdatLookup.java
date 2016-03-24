@@ -71,32 +71,40 @@ public class BibdatLookup {
         do {
             for (SearchHit hit : searchResponse.getHits()) {
                 Map<String, Object> m = hit.getSource();
-                // Library
-                String type = m.containsKey("Organization") ?
-                        (String) ((Map<String, Object>) m.get("Organization")).get("organizationType") : null;
-                if (type == null) {
-                    continue;
-                }
-                // ISIL
-                String key = m.containsKey("Identifier") ?
-                        (String) ((Map<String, Object>) m.get("Identifier")).get("identifierAuthorityISIL") : null;
-                if (key == null) {
-                    continue;
-                }
-                // organization state = "Adresse", "Information"
-                String state = m.containsKey("Organization") ?
-                        (String) ((Map<String, Object>) m.get("Organization")).get("organizationState") : null;
-                if (state == null) {
-                    continue;
-                }
+                // always set name, region, organization
+                String name = m.containsKey("ShortName") ?
+                        (String) ((Map<String, Object>) m.get("ShortName")).get("name") : null;
                 String region = m.containsKey("LibraryService") ?
                         (String) ((Map<String, Object>) m.get("LibraryService")).get("libraryServiceRegion") : null;
                 String organization = m.containsKey("LibraryService") ?
                         (String) ((Map<String, Object>) m.get("LibraryService")).get("libraryServiceOrganization") : null;
-                String name = m.containsKey("ShortName") ?
-                        (String) ((Map<String, Object>) m.get("ShortName")).get("name") : null;
+
+                // filter out "real libraries"
+
+                // ISIL?
+                String key = m.containsKey("Identifier") ?
+                        (String) ((Map<String, Object>) m.get("Identifier")).get("identifierAuthorityISIL") : null;
+                if (key == null) {
+                    // no ISIL, skip
+                    continue;
+                }
+                // Library organization type (statistical information) ?
+                String type = m.containsKey("Organization") ?
+                        (String) ((Map<String, Object>) m.get("Organization")).get("organizationType") : null;
+                if (type == null) {
+                    // no library organization type, skip
+                    continue;
+                }
+                // Library organization state = "Adresse" ?
+                String state = m.containsKey("Organization") ?
+                        (String) ((Map<String, Object>) m.get("Organization")).get("organizationState") : null;
+                if (state == null) {
+                    // no library address, skip
+                    continue;
+                }
                 if ("Adresse".equals(state) ) {
                     switch (type) {
+                        // select only these types
                         case "Abteilungsbibliothek, Institutsbibliothek, Fachbereichsbibliothek (Universität)":
                         case "Wissenschaftliche Spezialbibliothek":
                         case "Öffentliche Bibliothek":
@@ -120,10 +128,10 @@ public class BibdatLookup {
                             }
                             break;
                         default:
+                            logger.warn("library organization type is {} for {}, skipped", type, key);
                             if (!other.containsKey(key)) {
+                                // save at least region
                                 other.put(key, region);
-                            } else {
-                                logger.warn("other {} already exists in other", key);
                             }
                             break;
                     }

@@ -129,7 +129,7 @@ public class HoldingsLicensesIndexer {
                 statCounter.increase("stat", "manifestations", n);
             }
         }
-        // write holdings and services
+        // holdings and services
         if (!titleRecord.getRelatedHoldings().isEmpty()) {
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
@@ -137,8 +137,9 @@ public class HoldingsLicensesIndexer {
             if (titleRecord.hasLinks()) {
                 builder.field("links", titleRecord.getLinks());
             }
-            builder.startArray("institution");
+            boolean eonly = true;
             int instcount = 0;
+            builder.startArray("institution");
             final MultiMap<String, Holding> holdingsMap = titleRecord.getRelatedHoldings();
             for (String isil : holdingsMap.keySet()) {
                 Collection<Holding> holdings = holdingsMap.get(isil);
@@ -159,6 +160,9 @@ public class HoldingsLicensesIndexer {
                         builder.value(serviceId);
                         priorities.add(holding.getPriority());
                         count++;
+                        if (!holding.carrierType().equals("online resource")) {
+                            eonly = false;
+                        }
                     }
                     builder.endArray()
                             .field("servicecount", count)
@@ -171,6 +175,7 @@ public class HoldingsLicensesIndexer {
             }
             builder.endArray();
             builder.field("institutioncount", instcount);
+            builder.field("eonly", instcount > 0 && eonly);
             builder.endObject();
             // now, build holdings per year
             MultiMap<Integer,Holding> map = titleRecord.getHoldingsByDate();
