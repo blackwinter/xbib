@@ -47,9 +47,6 @@ import org.junit.Test;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.util.KeyValueStreamAdapter;
-import org.xbib.marc.FieldList;
-import org.xbib.marc.Field;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.marc.transformer.StringTransformer;
@@ -78,8 +75,7 @@ public class DNBPicaElementsTest extends Assert {
         queue.execute();
         final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                 .setStringTransformer(new OurTransformer())
-                .addListener(queue)
-                .addListener(new OurAdapter());
+                .addListener(queue);
         final InputStream in = getClass().getResourceAsStream("zdb-oai-bib.xml");
         DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
         reader.setMarcXchangeListener(kv);
@@ -94,33 +90,6 @@ public class DNBPicaElementsTest extends Assert {
         @Override
         public String transform(String value) {
             return Normalizer.normalize(value, Normalizer.Form.NFKC);
-        }
-    }
-
-    class OurAdapter extends KeyValueStreamAdapter<FieldList, String> {
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> begin() {
-            logger.debug("start object");
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("start");
-                for (Field f : key) {
-                    logger.debug("tag={} ind={} subf={} data={}",
-                            f.tag(), f.indicator(), f.subfieldId(), f.data());
-                }
-                logger.debug("end");
-            }
-            return this;
-        }
-
-        @Override
-        public KeyValueStreamAdapter<FieldList, String> end() {
-            logger.debug("end object");
-            return this;
         }
     }
 

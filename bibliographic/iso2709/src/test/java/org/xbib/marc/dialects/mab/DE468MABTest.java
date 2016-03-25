@@ -33,9 +33,6 @@ package org.xbib.marc.dialects.mab;
 
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.util.KeyValueStreamAdapter;
-import org.xbib.marc.FieldList;
-import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.event.FieldEventLogger;
@@ -134,32 +131,7 @@ public class DE468MABTest extends StreamTester {
         String s = "DE-468-keyvalue.";
         File file = File.createTempFile(s, ".txt");
         StringWriter sw = new StringWriter();
-        MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> begin() {
-                        sw.write("begin object\n");
-                        return this;
-                    }
-
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList fields, String value) {
-                        sw.write("begin\n");
-                        for (Field f : fields) {
-                            sw.write(String.format("tag=%s indicator=%s subfield=%s data=%s\n",
-                                    f.tag(), f.indicator(), f.subfieldId(), f.data()));
-                        }
-                        sw.write("end\n");
-                        return this;
-                    }
-
-                    @Override
-                    public KeyValueStreamAdapter<FieldList, String> end() {
-                        sw.write("end object\n");
-                        return this;
-                    }
-
-            });
+        MarcXchange2KeyValue kv = new MarcXchange2KeyValue();
         InputStream in = getClass().getResource("aleph500-subfields.mrc").openStream();
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
         reader.setFormat("MAB");

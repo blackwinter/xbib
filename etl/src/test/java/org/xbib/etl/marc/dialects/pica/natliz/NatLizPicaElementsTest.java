@@ -31,16 +31,11 @@
  */
 package org.xbib.etl.marc.dialects.pica.natliz;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.util.KeyValueStreamAdapter;
-import org.xbib.marc.Field;
-import org.xbib.marc.FieldList;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.transformer.StringTransformer;
 import org.xbib.marc.xml.MarcXchangeReader;

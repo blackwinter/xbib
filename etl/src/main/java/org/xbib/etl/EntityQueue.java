@@ -92,7 +92,7 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
 
     @Override
     public EntityQueue<S, E, K, V> begin() {
-        keyvalues = new LinkedList<KeyValue<K,V>>();
+        keyvalues = new LinkedList<>();
         return this;
     }
 
@@ -135,7 +135,7 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
         return this;
     }
 
-    private final List<KeyValue<K, V>> poison = new LinkedList<KeyValue<K,V>>();
+    private final List<KeyValue<K, V>> poison = new LinkedList<>();
 
     @Override
     protected List<KeyValue<K, V>> poison() {

@@ -33,15 +33,12 @@ package org.xbib.sru.client;
 
 import org.junit.Test;
 import org.xbib.io.Request;
-import org.xbib.marc.Field;
-import org.xbib.marc.FieldList;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
-import org.xbib.util.KeyValueStreamAdapter;
 import org.xbib.xml.stream.SaxEventConsumer;
 import org.xbib.xml.transform.StylesheetTransformer;
 

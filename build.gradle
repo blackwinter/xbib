@@ -18,8 +18,8 @@ ext {
     'netty': '4.0.34.Final',
     'woodstox' : '5.0.2',
     'log4j': '2.5',
-    'gradle-plugin-jflex': '1.0.0',
-    'gradle-plugin-jacc': '1.0.3'
+    'gradle-plugin-jflex': '1.0.1',
+    'gradle-plugin-jacc': '1.0.4'
   ]
 }
 

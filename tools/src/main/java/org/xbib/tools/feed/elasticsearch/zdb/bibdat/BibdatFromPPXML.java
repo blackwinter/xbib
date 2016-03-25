@@ -37,9 +37,6 @@ import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.input.FileInput;
-import org.xbib.util.KeyValueStreamAdapter;
-import org.xbib.marc.FieldList;
-import org.xbib.marc.Field;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.rdf.RdfContentBuilder;
@@ -84,38 +81,7 @@ public final class BibdatFromPPXML extends Feeder {
             queue.execute();
             MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                     .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFKC))
-                    .addListener(queue)
-                    .addListener(new KeyValueStreamAdapter<FieldList, String>() {
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> begin() {
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("start object");
-                            }
-                            return this;
-                        }
-
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> keyValue(FieldList key, String value) {
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("start field");
-                                for (Field f : key) {
-                                    logger.trace("tag={} ind={} subf={} data={}",
-                                            f.tag(), f.indicator(), f.subfieldId(), f.data());
-                                }
-                                logger.trace("end field");
-                            }
-                            return this;
-                        }
-
-                        @Override
-                        public KeyValueStreamAdapter<FieldList, String> end() {
-                            if (logger.isTraceEnabled()) {
-                                logger.trace("end object");
-                            }
-                            return this;
-                        }
-
-                    });
+                    .addListener(queue);
             DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
             reader.setMarcXchangeListener(kv);
             reader.parse();
