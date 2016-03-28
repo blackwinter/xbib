@@ -8,6 +8,8 @@ import org.xbib.time.pretty.units.JustNow;
 import org.xbib.time.pretty.units.Month;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -157,9 +159,11 @@ public class PrettyTimeI18n_CS_Test {
     @Test
     public void testWeeksAgo() throws Exception {
         Date base = new Date();
-        PrettyTime t = new PrettyTime(base.getTime());
 
-        assertEquals("před 1 týdnem", t.format(addTime(base, -1, Calendar.WEEK_OF_MONTH)));
+        LocalDate date = LocalDate.now();
+        PrettyTime t = new PrettyTime();
+
+        assertEquals("před 7 dny", t.format(addTime(base, -1, Calendar.WEEK_OF_MONTH)));
         assertEquals("před 3 týdny", t.format(addTime(base, -3, Calendar.WEEK_OF_MONTH)));
     }
 

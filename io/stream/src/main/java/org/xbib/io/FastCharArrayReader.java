@@ -98,8 +98,9 @@ public class FastCharArrayReader extends Reader {
      * Checks to make sure that the stream has not been closed
      */
     private void ensureOpen() throws IOException {
-        if (buf == null)
+        if (buf == null) {
             throw new IOException("Stream closed");
+        }
     }
 
     /**
@@ -109,10 +110,11 @@ public class FastCharArrayReader extends Reader {
      */
     public int read() throws IOException {
         ensureOpen();
-        if (pos >= count)
+        if (pos >= count) {
             return -1;
-        else
+        } else {
             return buf[pos++];
+        }
     }
 
     /**
@@ -122,7 +124,7 @@ public class FastCharArrayReader extends Reader {
      * @param off Offset at which to start storing characters
      * @param len Maximum number of characters to read
      * @return The actual number of characters read, or -1 if
-     *         the end of the stream has been reached
+     * the end of the stream has been reached
      * @throws java.io.IOException If an I/O error occurs
      */
     public int read(char b[], int off, int len) throws IOException {

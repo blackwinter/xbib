@@ -41,10 +41,6 @@ public class MarcException extends RuntimeException {
         super(message);
     }
 
-    public MarcException(String message,Throwable throwable) {
-        super(message, throwable);
-    }
-
     public MarcException(Field field, Throwable throwable) {
         super(field != null ? field.toKey() : "", throwable);
     }

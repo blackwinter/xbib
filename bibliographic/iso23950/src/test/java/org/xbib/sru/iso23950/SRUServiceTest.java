@@ -43,7 +43,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.junit.Test;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.sru.client.SRUClient;
 import org.xbib.sru.iso23950.service.ZSRUService;
 import org.xbib.sru.iso23950.service.ZSRUServiceFactory;
@@ -69,7 +69,7 @@ public class SRUServiceTest {
                     SRUClient client = service.newClient();
                     SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
                         @Override
-                        public void onConnect(Request request) {
+                        public void onConnect(HttpRequest request) {
                             logger.info("connect, request = " + request);
                         }
 
@@ -124,7 +124,7 @@ public class SRUServiceTest {
                         }
 
                         @Override
-                        public void onDisconnect(Request request) {
+                        public void onDisconnect(HttpRequest request) {
                             logger.info("disconnect, request = " + request);
                         }
                     };

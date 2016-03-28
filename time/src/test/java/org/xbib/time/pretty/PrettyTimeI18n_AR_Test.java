@@ -5,6 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,9 +31,9 @@ public class PrettyTimeI18n_AR_Test {
     @Test
     public void testCeilingInterval() throws Exception {
         Date then = format.parse("5/20/2009");
-        Date ref = format.parse("6/17/2009");
-        PrettyTime t = new PrettyTime(ref.getTime());
-        assertEquals("1 شهر مضت", t.format(then));
+        LocalDateTime localDateTime = LocalDateTime.of(2009, 6, 17, 0, 0);
+        PrettyTime p = new PrettyTime(localDateTime);
+        assertEquals("1 شهر مضت", p.format(then));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -48,97 +51,113 @@ public class PrettyTimeI18n_AR_Test {
 
     @Test
     public void testRightNowVariance() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("بعد لحظات", t.format(new Date(600)));
     }
 
     @Test
     public void testMinutesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("12 دقائق من الآن", t.format(new Date(1000 * 60 * 12)));
     }
 
     @Test
     public void testHoursFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 ساعات من الآن", t.format(new Date(1000 * 60 * 60 * 3)));
     }
 
     @Test
     public void testDaysFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 ايام من الآن", t.format(new Date(1000 * 60 * 60 * 24 * 3)));
     }
 
     @Test
     public void testWeeksFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 أسابيع من الآن", t.format(new Date(1000 * 60 * 60 * 24 * 7 * 3)));
     }
 
     @Test
     public void testMonthsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 أشهر من الآن", t.format(new Date(2629743830L * 3L)));
     }
 
     @Test
     public void testYearsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 سنوات من الآن", t.format(new Date(2629743830L * 12L * 3L)));
     }
 
     @Test
     public void testDecadesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 عقود من الآن", t.format(new Date(315569259747L * 3L)));
     }
 
     @Test
     public void testCenturiesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 قرون من الآن", t.format(new Date(3155692597470L * 3L)));
     }
 
     @Test
     public void testMomentsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(6000);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(6000), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("منذ لحظات", t.format(new Date(0)));
     }
 
     @Test
     public void testMinutesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 12);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 12), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("12 دقائق مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testHoursAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 ساعات مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testDaysAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 ايام مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testWeeksAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 7 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 7 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 أسابيع مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 أشهر مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testCustomFormat() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         TimeUnit unit = new TimeUnit() {
             @Override
             public long getMaxQuantity() {
@@ -159,25 +178,29 @@ public class PrettyTimeI18n_AR_Test {
                         " ago..."));
 
         assertEquals("self destruct in: 5 ticks ... RUN!", t.format(new Date(25000)));
-        t.setReference(25000);
+        localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
+        t.setReference(localDateTime);
         assertEquals("self destruct was: 5 ticks ago...", t.format(new Date(0)));
     }
 
     @Test
     public void testYearsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L * 12L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L * 12L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 سنوات مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(315569259747L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(315569259747L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 عقود مضت", t.format(new Date(0)));
     }
 
     @Test
     public void testCenturiesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(3155692597470L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(3155692597470L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 قرون مضت", t.format(new Date(0)));
     }
 
@@ -211,14 +234,16 @@ public class PrettyTimeI18n_AR_Test {
 
     @Test
     public void testFormattingDurationListInThePast() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         List<Duration> durations = t.calculatePreciseDuration(new Date(0));
         assertEquals("3 ايام 15 ساعات 38 دقائق مضت", t.format(durations));
     }
 
     @Test
     public void testFormattingDurationListInTheFuture() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         List<Duration> durations = t.calculatePreciseDuration(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15
                 + 1000 * 60 * 38));
         assertEquals("3 ايام 15 ساعات 38 دقائق من الآن", t.format(durations));
@@ -226,7 +251,8 @@ public class PrettyTimeI18n_AR_Test {
 
     @Test
     public void testSetLocale() throws Exception {
-        PrettyTime t = new PrettyTime(315569259747L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(315569259747L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("3 عقود مضت", t.format(new Date(0)));
     }
 

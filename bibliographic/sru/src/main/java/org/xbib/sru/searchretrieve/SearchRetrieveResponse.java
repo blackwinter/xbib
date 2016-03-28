@@ -43,7 +43,7 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 import org.xbib.sru.DefaultSRUResponse;
@@ -83,28 +83,28 @@ public class SearchRetrieveResponse extends DefaultSRUResponse
     }
 
     @Override
-    public void onConnect(Request request) throws IOException {
+    public void onConnect(HttpRequest request) throws IOException {
         for (SearchRetrieveListener listener : this.request.getListeners()) {
             listener.onConnect(request);
         }
     }
 
     @Override
-    public void onDisconnect(Request request) throws IOException {
+    public void onDisconnect(HttpRequest request) throws IOException {
         for (SearchRetrieveListener listener : this.request.getListeners()) {
             listener.onDisconnect(request);
         }
     }
 
     @Override
-    public void onError(Request request, Throwable error) throws IOException {
+    public void onError(HttpRequest request, Throwable error) throws IOException {
         for (SearchRetrieveListener listener : this.request.getListeners()) {
             listener.onError(request, error);
         }
     }
 
     @Override
-    public void onReceive(Request request, CharSequence message) throws IOException {
+    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
         sb.append(message);
         for (SearchRetrieveListener listener : this.request.getListeners()) {
             listener.onReceive(request, message);

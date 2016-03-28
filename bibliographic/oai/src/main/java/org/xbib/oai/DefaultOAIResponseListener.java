@@ -33,7 +33,7 @@ package org.xbib.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.io.http.HttpResponse;
 
@@ -82,20 +82,20 @@ public abstract class DefaultOAIResponseListener<Response extends OAIResponse>
     }
 
     @Override
-    public void onConnect(Request request) throws IOException {
+    public void onConnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onDisconnect(Request request) throws IOException {
+    public void onDisconnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onReceive(Request request, CharSequence message) throws IOException {
+    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
        sb.append(message);
     }
 
     @Override
-    public void onError(Request request, Throwable error) throws IOException {
+    public void onError(HttpRequest request, Throwable error) throws IOException {
         logger.error("received error {}", error);
         this.failure = true;
     }

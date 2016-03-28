@@ -47,18 +47,18 @@ public interface FieldSeparator {
     /**
      * FILE SEPARATOR
      */
-    final char FS = '\u001c';
+    char FS = '\u001c';
     /**
      * RECORD TERMINATOR / GROUP SEPARATOR  / Satzende (SE)
      */
-    final char GS = '\u001d';
+    char GS = '\u001d';
     /**
      * FIELD TERMINATOR / RECORD SEPARATOR / Feldende (FE)
      */
-    final char RS = '\u001e';
+    char RS = '\u001e';
     /**
      * SUBFIELD DELIMITER / UNIT SEPARATOR /  Unterfeld (UF)
      */
-    final char US = '\u001f';
+    char US = '\u001f';
 
 }

@@ -31,12 +31,18 @@
  */
 package org.xbib.io.http;
 
-import org.xbib.io.ResponseListener;
-
 import java.io.IOException;
 
-public interface HttpResponseListener extends ResponseListener {
+public interface HttpResponseListener {
 
     void receivedResponse(HttpResponse response) throws IOException;
+
+    void onConnect(HttpRequest request) throws IOException;
+
+    void onDisconnect(HttpRequest request) throws IOException;
+
+    void onReceive(HttpRequest request, CharSequence message) throws IOException;
+
+    void onError(HttpRequest request, Throwable error) throws IOException;
 
 }

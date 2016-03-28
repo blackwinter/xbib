@@ -31,10 +31,10 @@
  */
 package org.xbib.io;
 
+import org.xbib.io.stream.StreamInput;
+
 import java.io.IOException;
 import java.io.OutputStream;
-
-import org.xbib.io.stream.StreamInput;
 
 /**
  * A reference to bytes.

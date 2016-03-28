@@ -39,11 +39,11 @@ import java.io.InputStreamReader;
 
 public class FieldStreamTest extends Assert {
 
-    int dataCount = 0;
-    int unitCount = 0;
-    int recordCount = 0;
-    int groupCount= 0;
-    int fileCount = 0;
+    private int dataCount = 0;
+    private int unitCount = 0;
+    private int recordCount = 0;
+    private int groupCount= 0;
+    private int fileCount = 0;
 
     private void incDataCount() {
         dataCount++;

@@ -4,6 +4,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Locale;
 
@@ -31,7 +35,8 @@ public class PrettyTimeI18n_Test {
     public void testPrettyTimeGerman() {
         // The German resource bundle should be used
         PrettyTime p = new PrettyTime(Locale.GERMAN);
-        p.setReference(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        p.setReference(localDateTime);
         assertEquals("Jetzt", p.format(new Date(1)));
     }
 

@@ -38,8 +38,8 @@ public class ByteOrderMarkInputStream extends InputStream {
      * specified <code>InputStream</code>.
      *
      * @param inputStream an <code>InputStream</code>.
-     * @throws IOException          on reading from the specified <code>InputStream</code>
-     *                              when trying to detect the Unicode BOM.
+     * @throws IOException on reading from the specified <code>InputStream</code>
+     *                     when trying to detect the Unicode BOM.
      */
     public ByteOrderMarkInputStream(final InputStream inputStream) throws IOException {
         if (inputStream == null) {

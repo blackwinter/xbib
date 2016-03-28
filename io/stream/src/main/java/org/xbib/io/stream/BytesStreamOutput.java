@@ -131,7 +131,7 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
      * Returns the current size of the buffer.
      *
      * @return the value of the <code>count</code> field, which is the number
-     *         of valid bytes in this output stream.
+     * of valid bytes in this output stream.
      * @see java.io.ByteArrayOutputStream#count
      */
     public int size() {

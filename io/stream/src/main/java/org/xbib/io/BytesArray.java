@@ -46,19 +46,24 @@ public class BytesArray implements BytesReference {
     public static final BytesArray EMPTY = new BytesArray(EMPTY_ARRAY, 0, 0);
 
     public static final Charset UTF8 = Charset.forName("UTF-8");
+    public static final boolean JRE_IS_64BIT;
+
+    static {
+        String oa_arch = System.getProperty("os.arch");
+        String sun_arch = System.getProperty("sun.arch.data.model");
+        if (sun_arch != null) {
+            JRE_IS_64BIT = sun_arch.contains("64");
+        } else {
+            JRE_IS_64BIT = oa_arch != null && oa_arch.contains("64");
+        }
+    }
 
     protected byte[] bytes;
-
     protected int offset;
-
     protected int length;
 
     public BytesArray(String bytes) {
         this(toBytes(bytes));
-    }
-    
-    private static byte[] toBytes(String bytes) {
-        return bytes.getBytes(UTF8);
     }
 
     public BytesArray(byte[] bytes) {
@@ -67,109 +72,16 @@ public class BytesArray implements BytesReference {
         this.length = bytes.length;
     }
 
+
     public BytesArray(byte[] bytes, int offset, int length) {
         this.bytes = bytes;
         this.offset = offset;
         this.length = length;
     }
 
-    
-    public byte get(int index) {
-        return bytes[offset + index];
+    private static byte[] toBytes(String bytes) {
+        return bytes.getBytes(UTF8);
     }
-
-    
-    public int length() {
-        return length;
-    }
-
-    
-    public BytesReference slice(int from, int length) {
-        if (from < 0 || (from + length) > this.length) {
-            throw new IllegalArgumentException("can't slice a buffer with length [" + this.length + "], with slice parameters from [" + from + "], length [" + length + "]");
-        }
-        return new BytesArray(bytes, offset + from, length);
-    }
-
-    public StreamInput streamInput() {
-        return new BytesStreamInput(bytes, offset, length, false);
-    }
-
-    public void writeTo(OutputStream os) throws IOException {
-        os.write(bytes, offset, length);
-    }
-
-    public byte[] toBytes() {
-        if (offset == 0 && bytes.length == length) {
-            return bytes;
-        }
-        return Arrays.copyOfRange(bytes, offset, offset + length);
-    }
-
-    
-    public BytesArray toBytesArray() {
-        return this;
-    }
-
-    
-    public BytesArray copyBytesArray() {
-        return new BytesArray(Arrays.copyOfRange(bytes, offset, offset + length));
-    }
-
-    
-    public boolean hasArray() {
-        return true;
-    }
-
-    
-    public byte[] array() {
-        return bytes;
-    }
-
-    
-    public int arrayOffset() {
-        return offset;
-    }
-
-    
-    public String toUtf8() {
-        if (length == 0) {
-            return "";
-        }
-        return new String(bytes, offset, length, UTF8);
-    }
-
-    
-    public boolean equals(Object obj) {
-        return bytesEquals((BytesArray) obj);
-    }
-
-    public boolean bytesEquals(BytesArray other) {
-        if (length == other.length) {
-            int otherUpto = other.offset;
-            final byte[] otherBytes = other.bytes;
-            final int end = offset + length;
-            for (int upto = offset; upto < end; upto++, otherUpto++) {
-                if (bytes[upto] != otherBytes[otherUpto]) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    
-    public int hashCode() {
-        int result = 0;
-        final int end = offset + length;
-        for (int i = offset; i < end; i++) {
-            result = 31 * result + bytes[i];
-        }
-        return result;
-    }
-
 
     /**
      * Returns an array size >= minTargetSize, generally
@@ -259,15 +171,90 @@ public class BytesArray implements BytesReference {
         }
     }
 
-    public static final boolean JRE_IS_64BIT;
-    static {
-        String oa_arch = System.getProperty("os.arch");
-        String sun_arch = System.getProperty("sun.arch.data.model");
-        if (sun_arch != null) {
-            JRE_IS_64BIT = sun_arch.contains("64");
-        } else {
-            JRE_IS_64BIT = oa_arch != null && oa_arch.contains("64");
+    public byte get(int index) {
+        return bytes[offset + index];
+    }
+
+    public int length() {
+        return length;
+    }
+
+    public BytesReference slice(int from, int length) {
+        if (from < 0 || (from + length) > this.length) {
+            throw new IllegalArgumentException("can't slice a buffer with length [" + this.length + "], with slice parameters from [" + from + "], length [" + length + "]");
         }
+        return new BytesArray(bytes, offset + from, length);
+    }
+
+    public StreamInput streamInput() {
+        return new BytesStreamInput(bytes, offset, length, false);
+    }
+
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(bytes, offset, length);
+    }
+
+    public byte[] toBytes() {
+        if (offset == 0 && bytes.length == length) {
+            return bytes;
+        }
+        return Arrays.copyOfRange(bytes, offset, offset + length);
+    }
+
+    public BytesArray toBytesArray() {
+        return this;
+    }
+
+    public BytesArray copyBytesArray() {
+        return new BytesArray(Arrays.copyOfRange(bytes, offset, offset + length));
+    }
+
+    public boolean hasArray() {
+        return true;
+    }
+
+    public byte[] array() {
+        return bytes;
+    }
+
+    public int arrayOffset() {
+        return offset;
+    }
+
+    public String toUtf8() {
+        if (length == 0) {
+            return "";
+        }
+        return new String(bytes, offset, length, UTF8);
+    }
+
+    public boolean equals(Object obj) {
+        return bytesEquals((BytesArray) obj);
+    }
+
+    public boolean bytesEquals(BytesArray other) {
+        if (length == other.length) {
+            int otherUpto = other.offset;
+            final byte[] otherBytes = other.bytes;
+            final int end = offset + length;
+            for (int upto = offset; upto < end; upto++, otherUpto++) {
+                if (bytes[upto] != otherBytes[otherUpto]) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public int hashCode() {
+        int result = 0;
+        final int end = offset + length;
+        for (int i = offset; i < end; i++) {
+            result = 31 * result + bytes[i];
+        }
+        return result;
     }
 
 }

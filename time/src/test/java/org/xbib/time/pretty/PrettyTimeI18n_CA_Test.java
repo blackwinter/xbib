@@ -5,6 +5,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -161,7 +165,8 @@ public class PrettyTimeI18n_CA_Test {
                         " ago..."));
 
         assertEquals("self destruct in: 5 ticks ... RUN!", t.format(new Date(25000)));
-        t.setReference(25000);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
+        t.setReference(localDateTime);
         assertEquals("self destruct was: 5 ticks ago...", t.format(new Date(0)));
     }
 

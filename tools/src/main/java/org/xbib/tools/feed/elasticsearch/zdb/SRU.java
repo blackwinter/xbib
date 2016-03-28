@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.rdf.RdfContentBuilder;
@@ -125,7 +125,7 @@ public class SRU extends Feeder {
         final SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
             @Override
-            public void onConnect(Request request) {
+            public void onConnect(HttpRequest request) {
                 logger.info("connect, request = " + request);
             }
 
@@ -181,7 +181,7 @@ public class SRU extends Feeder {
             }
 
             @Override
-            public void onDisconnect(Request request) {
+            public void onDisconnect(HttpRequest request) {
                 logger.info("disconnect, request = " + request);
             }
         };

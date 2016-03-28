@@ -16,6 +16,9 @@ import org.xbib.time.pretty.units.TimeUnitComparator;
 import org.xbib.time.pretty.units.Week;
 import org.xbib.time.pretty.units.Year;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -46,7 +49,7 @@ public class PrettyTime {
      * past tense. If the Date formatted is after the reference timestamp, the format command will produce a string
      * thatis in the future tense.
      */
-    private Date reference;
+    private LocalDateTime localDateTime;
 
     private Locale locale;
 
@@ -58,7 +61,15 @@ public class PrettyTime {
     public PrettyTime() {
         setLocale(Locale.getDefault());
         initTimeUnits();
-        this.reference = new Date();
+        this.localDateTime = LocalDateTime.now();
+    }
+
+    public PrettyTime(long l) {
+        setLocale(Locale.getDefault());
+        initTimeUnits();
+        Instant instant = Instant.ofEpochMilli(l);
+        ZoneId zoneId = ZoneId.systemDefault();
+        this.localDateTime = LocalDateTime.ofInstant(instant, zoneId);
     }
 
     /**
@@ -67,12 +78,12 @@ public class PrettyTime {
      * <p>
      * See {@code PrettyTime.setReference(Date timestamp)}.
      *
-     * @param reference reference
+     * @param localDateTime reference date time
      */
-    public PrettyTime(final long reference) {
+    public PrettyTime(LocalDateTime localDateTime) {
         setLocale(Locale.getDefault());
         initTimeUnits();
-        this.reference = new Date(reference);
+        this.localDateTime = localDateTime;
     }
 
     /**
@@ -81,7 +92,7 @@ public class PrettyTime {
     public PrettyTime(final Locale locale) {
         setLocale(locale);
         initTimeUnits();
-        this.reference = new Date();
+        this.localDateTime = LocalDateTime.now();
     }
 
     /**
@@ -90,10 +101,18 @@ public class PrettyTime {
      * <p>
      * See {@code PrettyTime.setReference(Date timestamp)}.
      */
-    public PrettyTime(final long reference, final Locale locale) {
+    public PrettyTime(final LocalDateTime localDateTime, final Locale locale) {
         setLocale(locale);
         initTimeUnits();
-        this.reference = new Date(reference);
+        this.localDateTime = localDateTime;
+    }
+
+    public PrettyTime(long l, final Locale locale) {
+        setLocale(locale);
+        initTimeUnits();
+        Instant instant = Instant.ofEpochMilli(l);
+        ZoneId zoneId = ZoneId.systemDefault();
+        this.localDateTime = LocalDateTime.ofInstant(instant, zoneId);
     }
 
     /**
@@ -103,10 +122,7 @@ public class PrettyTime {
         if (then == null) {
             throw new IllegalArgumentException("Date to approximate must not be null.");
         }
-        Date ref = reference;
-        if (null == ref) {
-            ref = new Date();
-        }
+        Date ref = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         long difference = then.getTime() - ref.getTime();
         return calculateDuration(difference);
     }
@@ -189,10 +205,7 @@ public class PrettyTime {
         if (then == null) {
             throw new IllegalArgumentException("Date to calculate must not be null.");
         }
-        Date ref = reference;
-        if (null == ref) {
-            ref = new Date();
-        }
+        Date ref = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         List<Duration> result = new ArrayList<>();
         long difference = then.getTime() - ref.getTime();
         Duration duration = calculateDuration(difference);
@@ -353,8 +366,8 @@ public class PrettyTime {
         return null;
     }
 
-    public PrettyTime setReference(final long reference) {
-        this.reference = new Date(reference);
+    public PrettyTime setReference(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
         return this;
     }
 
@@ -464,7 +477,7 @@ public class PrettyTime {
 
     @Override
     public String toString() {
-        return "PrettyTime [reference=" + reference + ", locale=" + locale + "]";
+        return "PrettyTime [date=" + localDateTime + ", locale=" + locale + "]";
     }
 
     /**

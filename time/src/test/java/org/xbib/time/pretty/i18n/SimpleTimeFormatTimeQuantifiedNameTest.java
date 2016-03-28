@@ -6,6 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.xbib.time.pretty.PrettyTime;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 
@@ -20,49 +23,57 @@ public class SimpleTimeFormatTimeQuantifiedNameTest {
 
     @Test
     public void testFuturePluralName() throws Exception {
-        PrettyTime p = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("2 days from now", p.format(new Date(1000 * 60 * 60 * 24 * 2)));
     }
 
     @Test
     public void testPastPluralName() throws Exception {
-        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 24 * 2);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 2), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("2 days ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFutureSingularName() throws Exception {
-        PrettyTime p = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("1 day from now", p.format(new Date(1000 * 60 * 60 * 24)));
     }
 
     @Test
     public void testPastSingularName() throws Exception {
-        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 24);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("1 day ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFuturePluralNameEmpty() throws Exception {
-        PrettyTime p = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("2 hours from now", p.format(new Date(1000 * 60 * 60 * 2)));
     }
 
     @Test
     public void testPastPluralNameMissing() throws Exception {
-        PrettyTime p = new PrettyTime(1000 * 60 * 60 * 2);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 2), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("2 hours ago", p.format(new Date(0)));
     }
 
     @Test
     public void testFutureSingularNameCopy() throws Exception {
-        PrettyTime p = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("1 hour from now", p.format(new Date(1000 * 60 * 60)));
     }
 
     @Test
     public void testPastSingularNameNull() throws Exception {
-        PrettyTime p = new PrettyTime(1000 * 60 * 60);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60), ZoneId.systemDefault());
+        PrettyTime p = new PrettyTime(localDateTime);
         Assert.assertEquals("1 hour ago", p.format(new Date(0)));
     }
 

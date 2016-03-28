@@ -5,6 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -27,73 +30,85 @@ public class PrettyTimeI18n_BG_Test {
 
     @Test
     public void testCenturiesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 века", t.format(new Date(3155692597470L * 3L)));
     }
 
     @Test
     public void testCenturiesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(3155692597470L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(3155692597470L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 века", t.format(new Date(0)));
     }
 
     @Test
     public void testCenturySingular() throws Exception {
-        PrettyTime t = new PrettyTime(3155692597470L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(3155692597470L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 век", t.format(new Date(0)));
     }
 
     @Test
     public void testDaysFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 дни", t.format(new Date(1000 * 60 * 60 * 24 * 3)));
     }
 
     @Test
     public void testDaysAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 дни", t.format(new Date(0)));
     }
 
     @Test
     public void testDaySingular() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 ден", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(315569259747L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(315569259747L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 десетилетия", t.format(new Date(0)));
     }
 
     @Test
     public void testDecadesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 десетилетия", t.format(new Date(315569259747L * 3L)));
     }
 
     @Test
     public void testDecadeSingular() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 1 десетилетие", t.format(new Date(315569259747L)));
     }
 
     @Test
     public void testHoursFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 часа", t.format(new Date(1000 * 60 * 60 * 3)));
     }
 
     @Test
     public void testHoursAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 часа", t.format(new Date(0)));
     }
 
     @Test
     public void testHourSingular() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 час", t.format(new Date(0)));
     }
 
@@ -105,86 +120,100 @@ public class PrettyTimeI18n_BG_Test {
 
     @Test
     public void testMomentsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(6000);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(6000), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("току що", t.format(new Date(0)));
     }
 
     @Test
     public void testMinutesFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 12 минути", t.format(new Date(1000 * 60 * 12)));
     }
 
     @Test
     public void testMinutesAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 12);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 12), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 12 минути", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 месеца", t.format(new Date(2629743830L * 3L)));
     }
 
     @Test
     public void testMonthsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 месеца", t.format(new Date(0)));
     }
 
     @Test
     public void testMonthSingular() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 месец", t.format(new Date(0)));
     }
 
     @Test
     public void testWeeksFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 седмици", t.format(new Date(1000 * 60 * 60 * 24 * 7 * 3)));
     }
 
     @Test
     public void testWeeksAgo() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 7 * 3);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 7 * 3), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 седмици", t.format(new Date(0)));
     }
 
     @Test
     public void testWeekSingular() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 7);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 7), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 седмица", t.format(new Date(0)));
     }
 
     @Test
     public void testYearsFromNow() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("след 3 години", t.format(new Date(2629743830L * 12L * 3L)));
     }
 
     @Test
     public void testYearsAgo() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L * 12L * 3L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L * 12L * 3L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 3 години", t.format(new Date(0)));
     }
 
     @Test
     public void testYearSingular() throws Exception {
-        PrettyTime t = new PrettyTime(2629743830L * 12L);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(2629743830L * 12L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         assertEquals("преди 1 година", t.format(new Date(0)));
     }
 
     @Test
     public void testFormattingDurationListInThePast() throws Exception {
-        PrettyTime t = new PrettyTime(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         List<Duration> durations = t.calculatePreciseDuration(new Date(0));
         assertEquals("преди 3 дни 15 часа 38 минути", t.format(durations));
     }
 
     @Test
     public void testFormattingDurationListInTheFuture() throws Exception {
-        PrettyTime t = new PrettyTime(0);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(localDateTime);
         List<Duration> durations = t.calculatePreciseDuration(new Date(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15
                 + 1000 * 60 * 38));
         assertEquals("след 3 дни 15 часа 38 минути", t.format(durations));

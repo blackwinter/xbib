@@ -5,6 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -184,9 +188,9 @@ public class PrettyTimeI18n_hi_IN_Test {
                         .setPastPrefix("पहले ")
                         .setPastSuffix("थे"));
 
-        assertEquals("भविष्य में 5 खेल होंगे",
-                t.format(new Date(25000)));
-        t.setReference(25000);
+        assertEquals("भविष्य में 5 खेल होंगे", t.format(new Date(25000)));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
+        t.setReference(localDateTime);
         assertEquals("पहले 5 खेल थे", t.format(new Date(0)));
     }
 

@@ -6,6 +6,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -164,7 +167,8 @@ public class PrettyTimeTest {
                         " ago..."));
 
         assertEquals("self destruct in: 5 ticks ... RUN!", t.format(new Date(25000)));
-        t.setReference((25000));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
+        t.setReference(localDateTime);
         assertEquals("self destruct was: 5 ticks ago...", t.format(new Date(0)));
     }
 
@@ -250,7 +254,6 @@ public class PrettyTimeTest {
         Date r = c.getTime();
         PrettyTime t = new PrettyTime();
         t.setLocale(Locale.ENGLISH);
-        t.setReference(r.getTime());
         c.add(Calendar.YEAR, -1);
         assertEquals("1 year ago", t.format(c));
     }

@@ -5,6 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -187,9 +191,9 @@ public class PrettyTimeI18n_in_ID_Test {
                         .setPastPrefix("telah hancur dalam: ")
                         .setPastSuffix(""));
 
-        assertEquals("hancur dalam: 5 hitungan ... LARI!",
-                t.format(new Date(25000)));
-        t.setReference((25000));
+        assertEquals("hancur dalam: 5 hitungan ... LARI!", t.format(new Date(25000)));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
+        t.setReference(localDateTime);
         assertEquals("telah hancur dalam: 5 hitungan", t.format(new Date(0)));
     }
 

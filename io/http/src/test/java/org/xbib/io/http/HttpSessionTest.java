@@ -32,7 +32,6 @@
 package org.xbib.io.http;
 
 import org.junit.Test;
-import org.xbib.io.Request;
 import org.xbib.io.Session;
 import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.io.http.netty.NettyHttpSession;
@@ -62,7 +61,7 @@ public class HttpSessionTest {
                 counter.incrementAndGet();
             }
             @Override
-            public void onError(Request request, Throwable error) throws IOException {
+            public void onError(HttpRequest request, Throwable error) throws IOException {
                 //logger.error(error.getMessage(), error);
             }
         }).waitFor(15L, TimeUnit.SECONDS);

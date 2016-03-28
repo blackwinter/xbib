@@ -31,7 +31,7 @@
  */
 package org.xbib.io.http.netty;
 
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.io.http.HttpResponseListener;
 
@@ -40,19 +40,19 @@ import java.io.IOException;
 public class NettyHttpResponseListener implements HttpResponseListener {
 
     @Override
-    public void onConnect(Request request) throws IOException {
+    public void onConnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onDisconnect(Request request) throws IOException {
+    public void onDisconnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onReceive(Request request, CharSequence message) throws IOException {
+    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
     }
 
     @Override
-    public void onError(Request request, Throwable error) throws IOException {
+    public void onError(HttpRequest request, Throwable error) throws IOException {
     }
 
     @Override

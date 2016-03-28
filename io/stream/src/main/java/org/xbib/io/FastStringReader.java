@@ -57,21 +57,22 @@ public class FastStringReader extends CharSequenceReader {
      * Check to make sure that the stream has not been closed
      */
     private void ensureOpen() throws IOException {
-        if (length == -1)
+        if (length == -1) {
             throw new IOException("Stream closed");
+        }
     }
 
-    
+
     public int length() {
         return length;
     }
 
-    
+
     public char charAt(int index) {
         return str.charAt(index);
     }
 
-    
+
     public CharSequence subSequence(int start, int end) {
         return str.subSequence(start, end);
     }
@@ -80,14 +81,15 @@ public class FastStringReader extends CharSequenceReader {
      * Reads a single character.
      *
      * @return The character read, or -1 if the end of the stream has been
-     *         reached
+     * reached
      * @throws java.io.IOException If an I/O error occurs
      */
-    
+
     public int read() throws IOException {
         ensureOpen();
-        if (next >= length)
+        if (next >= length) {
             return -1;
+        }
         return str.charAt(next++);
     }
 
@@ -98,17 +100,18 @@ public class FastStringReader extends CharSequenceReader {
      * @param off  Offset at which to start writing characters
      * @param len  Maximum number of characters to read
      * @return The number of characters read, or -1 if the end of the
-     *         stream has been reached
+     * stream has been reached
      * @throws java.io.IOException If an I/O error occurs
      */
-    
+
     public int read(char cbuf[], int off, int len) throws IOException {
         ensureOpen();
         if (len == 0) {
             return 0;
         }
-        if (next >= length)
+        if (next >= length) {
             return -1;
+        }
         int n = Math.min(length - next, len);
         str.getChars(next, next + n, cbuf, off);
         next += n;
@@ -131,11 +134,12 @@ public class FastStringReader extends CharSequenceReader {
      *
      * @throws java.io.IOException If an I/O error occurs
      */
-    
+
     public long skip(long ns) throws IOException {
         ensureOpen();
-        if (next >= length)
+        if (next >= length) {
             return 0;
+        }
         // Bound skip by beginning and end of the source
         long n = Math.min(length - next, ns);
         n = Math.max(-next, n);
@@ -149,7 +153,7 @@ public class FastStringReader extends CharSequenceReader {
      * @return True if the next read() is guaranteed not to block for input
      * @throws java.io.IOException If the stream is closed
      */
-    
+
     public boolean ready() throws IOException {
         ensureOpen();
         return true;
@@ -158,7 +162,7 @@ public class FastStringReader extends CharSequenceReader {
     /**
      * Tells whether this stream supports the mark() operation, which it does.
      */
-    
+
     public boolean markSupported() {
         return true;
     }
@@ -173,9 +177,9 @@ public class FastStringReader extends CharSequenceReader {
      *                       is no actual limit, so this argument must not
      *                       be negative, but is otherwise ignored.
      * @throws IllegalArgumentException If readAheadLimit is < 0
-     * @throws java.io.IOException              If an I/O error occurs
+     * @throws java.io.IOException      If an I/O error occurs
      */
-    
+
     public void mark(int readAheadLimit) throws IOException {
         if (readAheadLimit < 0) {
             throw new IllegalArgumentException("Read-ahead limit < 0");
@@ -190,7 +194,7 @@ public class FastStringReader extends CharSequenceReader {
      *
      * @throws java.io.IOException If an I/O error occurs
      */
-    
+
     public void reset() throws IOException {
         ensureOpen();
         next = mark;
@@ -206,7 +210,7 @@ public class FastStringReader extends CharSequenceReader {
         length = -1;
     }
 
-    
+
     public String toString() {
         return str;
     }

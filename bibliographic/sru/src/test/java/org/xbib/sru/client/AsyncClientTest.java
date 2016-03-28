@@ -33,7 +33,7 @@ package org.xbib.sru.client;
 
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.Test;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.sru.SRUResponse;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
@@ -76,7 +76,7 @@ public class AsyncClientTest {
                 SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
                     @Override
-                    public void onConnect(Request request) {
+                    public void onConnect(HttpRequest request) {
                         //logger.info("connect, request = " + request);
                     }
 
@@ -133,7 +133,7 @@ public class AsyncClientTest {
                     }
 
                     @Override
-                    public void onDisconnect(Request request) {
+                    public void onDisconnect(HttpRequest request) {
                         //logger.info("disconnect, request = " + request);
                     }
                 };

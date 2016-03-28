@@ -45,6 +45,8 @@ import java.util.Map;
 
 public abstract class StreamInput extends InputStream {
 
+    public static final String[] EMPTY_ARRAY = new String[0];
+
     /**
      * Reads and returns a single byte.
      */
@@ -105,16 +107,24 @@ public abstract class StreamInput extends InputStream {
     public int readVInt() throws IOException {
         byte b = readByte();
         int i = b & 0x7F;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7F) << 7;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7F) << 14;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7F) << 21;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         assert (b & 0x80) == 0;
         return i | ((b & 0x7F) << 28);
@@ -135,28 +145,44 @@ public abstract class StreamInput extends InputStream {
     public long readVLong() throws IOException {
         byte b = readByte();
         long i = b & 0x7FL;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 7;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 14;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 21;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 28;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 35;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 42;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         i |= (b & 0x7FL) << 49;
-        if ((b & 0x80) == 0) return i;
+        if ((b & 0x80) == 0) {
+            return i;
+        }
         b = readByte();
         assert (b & 0x80) == 0;
         return i | ((b & 0x7FL) << 56);
@@ -198,7 +224,6 @@ public abstract class StreamInput extends InputStream {
         return new String(chars, 0, charCount);
     }
 
-
     public final float readFloat() throws IOException {
         return Float.intBitsToFloat(readInt());
     }
@@ -214,7 +239,6 @@ public abstract class StreamInput extends InputStream {
         return readByte() != 0;
     }
 
-
     /**
      * Resets the stream.
      */
@@ -224,8 +248,6 @@ public abstract class StreamInput extends InputStream {
      * Closes the stream to further operations.
      */
     public abstract void close() throws IOException;
-
-    public static final String[] EMPTY_ARRAY = new String[0];
 
     public String[] readStringArray() throws IOException {
         int size = readVInt();

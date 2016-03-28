@@ -280,10 +280,10 @@ public class ChunkedStream implements Appendable {
 
     public class StreamChunk {
 
+        private final int size;
         private byte[] buffer;
         private int pointer = 0;
         private int used = 0;
-        private final int size;
 
         public StreamChunk(int size) {
             this.size = size;

@@ -140,7 +140,7 @@ public class FastByteArrayOutputStream extends OutputStream implements BytesStre
      * Returns the underlying byte array. Note, use {@link #size()} in order to know
      * the length of it.
      */
-    
+
     public BytesReference bytes() {
         return new BytesArray(buf, 0, count);
     }
@@ -149,7 +149,7 @@ public class FastByteArrayOutputStream extends OutputStream implements BytesStre
      * Returns the current size of the buffer.
      *
      * @return the value of the <code>count</code> field, which is the number
-     *         of valid bytes in this output stream.
+     * of valid bytes in this output stream.
      * @see java.io.ByteArrayOutputStream#count
      */
     public int size() {
@@ -195,8 +195,7 @@ public class FastByteArrayOutputStream extends OutputStream implements BytesStre
      * @param charsetName the name of a supported
      *                    {@linkplain java.nio.charset.Charset </code>charset<code>}
      * @return String decoded from the buffer's contents.
-     * @throws java.io.UnsupportedEncodingException
-     *          If the named charset is not supported
+     * @throws java.io.UnsupportedEncodingException If the named charset is not supported
      */
     public String toString(String charsetName)
             throws UnsupportedEncodingException {

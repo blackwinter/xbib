@@ -40,7 +40,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.oai.OAIResponseListener;
 import org.xbib.oai.util.ResumptionToken;
@@ -94,7 +94,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
     }
 
     @Override
-    public void onError(Request request, Throwable error) throws IOException {
+    public void onError(HttpRequest request, Throwable error) throws IOException {
         logger.error(request.getQuery(), error);
     }
 
@@ -159,15 +159,15 @@ public class ListRecordsListener extends NettyHttpResponseListener
     }
 
     @Override
-    public void onConnect(Request request) throws IOException {
+    public void onConnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onDisconnect(Request request) throws IOException {
+    public void onDisconnect(HttpRequest request) throws IOException {
     }
 
     @Override
-    public void onReceive(Request request, CharSequence message) throws IOException {
+    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
         body.append(message);
     }
 

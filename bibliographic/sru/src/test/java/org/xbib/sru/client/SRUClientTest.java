@@ -32,7 +32,7 @@
 package org.xbib.sru.client;
 
 import org.junit.Test;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
 import org.xbib.marc.xml.MarcXchangeContentHandler;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
@@ -69,7 +69,7 @@ public class SRUClientTest {
             SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
                 @Override
-                public void onConnect(Request request) {
+                public void onConnect(HttpRequest request) {
                     //logger.info("connect, request = " + request);
                 }
 
@@ -126,7 +126,7 @@ public class SRUClientTest {
                 }
 
                 @Override
-                public void onDisconnect(Request request) {
+                public void onDisconnect(HttpRequest request) {
                     //logger.info("disconnect, request = " + request);
                 }
             };
@@ -167,7 +167,7 @@ public class SRUClientTest {
                 SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
 
                     @Override
-                    public void onConnect(Request request) {
+                    public void onConnect(HttpRequest request) {
                        // logger.info("connect, request = " + request);
                     }
 
@@ -222,7 +222,7 @@ public class SRUClientTest {
                     }
 
                     @Override
-                    public void onDisconnect(Request request) {
+                    public void onDisconnect(HttpRequest request) {
                         //logger.info("disconnect, request = " + request);
                     }
                 };

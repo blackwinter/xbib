@@ -65,7 +65,6 @@ public class FastByteArrayInputStream extends InputStream {
      * <p/>
      * If no mark has been set, then the value of mark is the offset
      * passed to the constructor (or 0 if the offset was not supplied).
-     *
      */
     protected int mark = 0;
 
@@ -130,7 +129,7 @@ public class FastByteArrayInputStream extends InputStream {
      * cannot block.
      *
      * @return the next byte of data, or <code>-1</code> if the end of the
-     *         stream has been reached.
+     * stream has been reached.
      */
     public int read() {
         return (pos < count) ? (buf[pos++] & 0xff) : -1;
@@ -158,8 +157,8 @@ public class FastByteArrayInputStream extends InputStream {
      * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read.
      * @return the total number of bytes read into the buffer, or
-     *         <code>-1</code> if there is no more data because the end of
-     *         the stream has been reached.
+     * <code>-1</code> if there is no more data because the end of
+     * the stream has been reached.
      * @throws NullPointerException      If <code>b</code> is <code>null</code>.
      * @throws IndexOutOfBoundsException If <code>off</code> is negative,
      *                                   <code>len</code> is negative, or <code>len</code> is greater than
@@ -216,7 +215,7 @@ public class FastByteArrayInputStream extends InputStream {
      * which is the number of bytes remaining to be read from the input buffer.
      *
      * @return the number of remaining bytes that can be read (or skipped
-     *         over) from this input stream without blocking.
+     * over) from this input stream without blocking.
      */
     public int available() {
         return count - pos;
@@ -230,7 +229,6 @@ public class FastByteArrayInputStream extends InputStream {
      * Tests if this <code>InputStream</code> supports mark/reset. The
      * <code>markSupported</code> method of <code>ByteArrayInputStream</code>
      * always returns <code>true</code>.
-     *
      */
     public boolean markSupported() {
         return true;
@@ -248,7 +246,6 @@ public class FastByteArrayInputStream extends InputStream {
      * <p/>
      * <p> Note: The <code>readAheadLimit</code> for this class
      * has no meaning.
-     *
      */
     public void mark(int readAheadLimit) {
         mark = pos;

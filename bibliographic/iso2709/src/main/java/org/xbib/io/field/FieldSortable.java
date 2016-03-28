@@ -33,7 +33,7 @@ package org.xbib.io.field;
 
 public interface FieldSortable {
 
-    final char NON_SORTABLE_BEGIN = '\u0098';
+    char NON_SORTABLE_BEGIN = '\u0098';
 
-    final char NON_SORTABLE_END = '\u009C';
+    char NON_SORTABLE_END = '\u009C';
 }

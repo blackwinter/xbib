@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentBuilder;
-import org.xbib.io.Request;
 import org.xbib.io.Session;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
@@ -100,21 +99,21 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onConnect(Request request) throws IOException {
+                public void onConnect(HttpRequest request) throws IOException {
 
                 }
 
                 @Override
-                public void onDisconnect(Request request) throws IOException {
+                public void onDisconnect(HttpRequest request) throws IOException {
                     session.close();
                 }
 
                 @Override
-                public void onReceive(Request request, CharSequence message) throws IOException {
+                public void onReceive(HttpRequest request, CharSequence message) throws IOException {
                 }
 
                 @Override
-                public void onError(Request request, Throwable errorMessage) throws IOException {
+                public void onError(HttpRequest request, Throwable errorMessage) throws IOException {
                     logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };
@@ -149,22 +148,22 @@ public class NatLizCrawler extends Feeder {
                     }
 
                     @Override
-                    public void onConnect(Request request) throws IOException {
+                    public void onConnect(HttpRequest request) throws IOException {
 
                     }
 
                     @Override
-                    public void onDisconnect(Request request) throws IOException {
+                    public void onDisconnect(HttpRequest request) throws IOException {
                         session.close();
                     }
 
                     @Override
-                    public void onReceive(Request request, CharSequence message) throws IOException {
+                    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
                         content.append(message);
                     }
 
                     @Override
-                    public void onError(Request request, Throwable errorMessage) throws IOException {
+                    public void onError(HttpRequest request, Throwable errorMessage) throws IOException {
                         logger.error(errorMessage.getMessage(), errorMessage);
 
                     }
@@ -207,22 +206,22 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onConnect(Request request) throws IOException {
+                public void onConnect(HttpRequest request) throws IOException {
 
                 }
 
                 @Override
-                public void onDisconnect(Request request) throws IOException {
+                public void onDisconnect(HttpRequest request) throws IOException {
                     session.close();
                 }
 
                 @Override
-                public void onReceive(Request request, CharSequence message) throws IOException {
+                public void onReceive(HttpRequest request, CharSequence message) throws IOException {
                     content.append(message);
                 }
 
                 @Override
-                public void onError(Request request, Throwable errorMessage) throws IOException {
+                public void onError(HttpRequest request, Throwable errorMessage) throws IOException {
                     logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };
@@ -274,22 +273,22 @@ public class NatLizCrawler extends Feeder {
                     }
 
                     @Override
-                    public void onConnect(Request request) throws IOException {
+                    public void onConnect(HttpRequest request) throws IOException {
 
                     }
 
                     @Override
-                    public void onDisconnect(Request request) throws IOException {
+                    public void onDisconnect(HttpRequest request) throws IOException {
                         session.close();
                     }
 
                     @Override
-                    public void onReceive(Request request, CharSequence message) throws IOException {
+                    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
                         content.append(message);
                     }
 
                     @Override
-                    public void onError(Request request, Throwable errorMessage) throws IOException {
+                    public void onError(HttpRequest request, Throwable errorMessage) throws IOException {
                         logger.error(errorMessage.getMessage(), errorMessage);
                     }
                 };
@@ -396,21 +395,21 @@ public class NatLizCrawler extends Feeder {
                 }
 
                 @Override
-                public void onConnect(Request request) throws IOException {
+                public void onConnect(HttpRequest request) throws IOException {
                 }
 
                 @Override
-                public void onDisconnect(Request request) throws IOException {
+                public void onDisconnect(HttpRequest request) throws IOException {
                     session.close();
                 }
 
                 @Override
-                public void onReceive(Request request, CharSequence message) throws IOException {
+                public void onReceive(HttpRequest request, CharSequence message) throws IOException {
                     // not called, we write to out
                 }
 
                 @Override
-                public void onError(Request request, Throwable errorMessage) throws IOException {
+                public void onError(HttpRequest request, Throwable errorMessage) throws IOException {
                     logger.error(errorMessage.getMessage(), errorMessage);
                 }
             };

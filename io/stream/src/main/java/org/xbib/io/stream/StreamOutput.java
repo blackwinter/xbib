@@ -300,7 +300,7 @@ public abstract class StreamOutput extends OutputStream {
             writeByte((Byte) value);
         } else if (type == Instant.class) {
             writeByte((byte) 12);
-            writeLong(((Instant)value).toEpochMilli());
+            writeLong(((Instant) value).toEpochMilli());
         } else if (value instanceof BytesReference) {
             writeByte((byte) 14);
             writeBytesReference((BytesReference) value);

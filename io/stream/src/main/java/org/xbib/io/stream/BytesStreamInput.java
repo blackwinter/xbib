@@ -39,13 +39,10 @@ import java.io.IOException;
 
 public class BytesStreamInput extends StreamInput {
 
-    protected byte buf[];
-
-    protected int pos;
-
-    protected int count;
-
     private final boolean unsafe;
+    protected byte buf[];
+    protected int pos;
+    protected int count;
 
     public BytesStreamInput(BytesReference bytes) {
         if (!bytes.hasArray()) {

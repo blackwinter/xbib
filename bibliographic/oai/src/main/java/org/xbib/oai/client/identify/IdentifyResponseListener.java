@@ -31,12 +31,10 @@
  */
 package org.xbib.oai.client.identify;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xbib.io.Request;
+import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpResponse;
 import org.xbib.oai.DefaultOAIResponseListener;
 import org.xml.sax.InputSource;
@@ -49,8 +47,6 @@ import java.io.IOException;
 import java.io.StringReader;
 
 public class IdentifyResponseListener extends DefaultOAIResponseListener {
-
-    private final static Logger logger = LogManager.getLogger(IdentifyResponseListener.class.getName());
 
     private final IdentifyRequest request;
 
@@ -69,7 +65,7 @@ public class IdentifyResponseListener extends DefaultOAIResponseListener {
     }
 
     @Override
-    public void onReceive(Request request, CharSequence message) throws IOException {
+    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
         body.append(message);
     }
 
