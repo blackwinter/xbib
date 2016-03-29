@@ -239,8 +239,16 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         missing.removeAll(set);
         builder.array("missingdates", missing);
         builder.array("missingdatescount", missing.size());
-        builder.field("greendate", titleRecord.getGreenDates());
-        builder.field("greendatecount", titleRecord.getGreenDates().size());
+        if (titleRecord.getGreenInfo() != null) {
+            builder.field("green", true);
+            builder.startArray("greeninfo");
+            for (Map<String,Object> info : titleRecord.getGreenInfo()) {
+                builder.map(info);
+            }
+            builder.endArray();
+        } else {
+            builder.field("green", false);
+        }
         Set<String> isils = titleRecord.getRelatedHoldings().keySet();
         builder.array("isil", isils);
         builder.field("isilcount", isils.size());

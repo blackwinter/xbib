@@ -87,7 +87,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     private Set<Integer> dates;
 
-    private Set<Integer> greenDates;
+    private List<Map<String,Object>> greenInfo;
 
     protected Map<String, Object> identifiers;
 
@@ -156,7 +156,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
         Integer lastDate = getInteger("date2");
         this.lastDate = lastDate == null ? null : lastDate == 9999 ? null : lastDate;
         this.dates = getIntegerSet("Dates");
-        this.greenDates = new TreeSet<>();
         findLinks();
         findSupplement();
         this.genre = getString("OtherCodes.genre");
@@ -400,8 +399,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return dates;
     }
 
-    public Set<Integer> getGreenDates() {
-        return greenDates;
+    public List<Map<String,Object>> getGreenInfo() {
+        return greenInfo;
     }
 
     public void addVolume(MonographVolume volume) {
@@ -617,29 +616,20 @@ public class TitleRecord implements Comparable<TitleRecord> {
                 o = Collections.singletonList(o);
             }
             this.links = (List) o;
-            // green dates?
+            // green statements?
+            this.greenInfo = new LinkedList<>();
             for (Map<String, Object> link : links) {
                 if ("kostenfrei".equals(link.get("publicnote"))) {
-                    o = link.get("nonpublicnote");
-                    if (!(o instanceof List)) {
-                        o = Collections.singletonList(o);
-                    }
-                    List l = (List) o;
-                    for (Object obj : l) {
-                        String dateString = (String) obj;
-                        Matcher m = yearPattern.matcher(dateString);
-                        if (m.matches()) {
-                            greenDates.add(Integer.parseInt(m.group()));
-                        }
-                    }
+                    Map<String,Object> map = new HashMap<>();
+                    map.putAll(link);
+                    map.remove("publicnote");
+                    greenInfo.add(map);
                 }
             }
         } else {
             this.links = Collections.EMPTY_LIST;
         }
     }
-
-    private final static Pattern yearPattern = Pattern.compile("(\\d{4})");
 
     private void computeContentTypes() {
         Object o = map.get("physicalDescriptionElectronicResource");
