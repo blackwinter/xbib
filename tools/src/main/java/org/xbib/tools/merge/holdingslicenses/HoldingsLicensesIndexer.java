@@ -130,7 +130,7 @@ public class HoldingsLicensesIndexer {
             }
         }
         // holdings and services
-        boolean eonly = true;
+        boolean eonly = "online resource".equals(titleRecord.carrierType());
         int instcount = 0;
         if (!titleRecord.getRelatedHoldings().isEmpty()) {
             XContentBuilder builder = jsonBuilder();
@@ -160,7 +160,7 @@ public class HoldingsLicensesIndexer {
                         builder.value(serviceId);
                         priorities.add(holding.getPriority());
                         count++;
-                        if (!holding.carrierType().equals("online resource")) {
+                        if (!"online resource".equals(holding.carrierType())) {
                             eonly = false;
                         }
                     }
