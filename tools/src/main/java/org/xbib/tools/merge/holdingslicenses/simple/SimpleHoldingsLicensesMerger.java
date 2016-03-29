@@ -283,51 +283,51 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         return metrics;
     }
 
-    public BibdatLookup bibdatLookup() {
+    BibdatLookup bibdatLookup() {
         return bibdatLookup;
     }
 
-    public ConsortiaLookup consortiaLookup() {
+    ConsortiaLookup consortiaLookup() {
         return consortiaLookup;
     }
 
-    public BlackListedISIL blackListedISIL() {
+    BlackListedISIL blackListedISIL() {
         return isilbl;
     }
 
-    public MappedISIL mappedISIL() {
+    MappedISIL mappedISIL() {
         return isilMapped;
     }
 
-    public StatusCodeMapper statusCodeMapper() {
+    StatusCodeMapper statusCodeMapper() {
         return statusCodeMapper;
     }
 
-    public String getSourceHoldingsIndex() {
+    String getSourceHoldingsIndex() {
         return sourceHoldingsIndex;
     }
 
-    public String getSourceLicenseIndex() {
+    String getSourceLicenseIndex() {
         return sourceLicenseIndex;
     }
 
-    public String getSourceIndicatorIndex() {
+    String getSourceIndicatorIndex() {
         return sourceIndicatorIndex;
     }
 
-    public String getSourceMonographicIndex() {
+    String getSourceMonographicIndex() {
         return sourceMonographicIndex;
     }
 
-    public String getSourceMonographicHoldingsIndex() {
+    String getSourceMonographicHoldingsIndex() {
         return sourceMonographicHoldingsIndex;
     }
 
-    public String getSourceOpenAccessIndex() {
+    String getSourceOpenAccessIndex() {
         return sourceOpenAccessIndex;
     }
 
-    public HoldingsLicensesIndexer getHoldingsLicensesIndexer() {
+    HoldingsLicensesIndexer getHoldingsLicensesIndexer() {
         return holdingsLicensesIndexer;
     }
 }

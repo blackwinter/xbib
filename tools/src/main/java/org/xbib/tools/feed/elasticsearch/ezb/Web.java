@@ -33,6 +33,8 @@ package org.xbib.tools.feed.elasticsearch.ezb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.search.ClearScrollAction;
+import org.elasticsearch.action.search.ClearScrollRequestBuilder;
 import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -42,7 +44,6 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
@@ -113,20 +114,21 @@ public class Web extends Feeder {
             sb.append(zdbid).insert(sb.length() - 1, '-');
             url = new URL(uri + sb.toString());
             InputStream in = null;
-            // EZB API is flaky, retry if "Host is down" is thrown
-            for (int tries = 0; tries < 12; tries++) {
+            // EZB responses are flaky, retry if "Host is down" is thrown
+            for (int tries = 0; tries < 3; tries++) {
                 try {
                     in = url.openStream();
                     if (in != null) {
+                        logger.debug("URL {} open", url);
                         break;
                     }
                 } catch (SocketException e) {
                     logger.warn(e.getMessage());
-                    Thread.sleep(5000L);
+                    Thread.sleep(3000L);
                 }
             }
             if (in == null) {
-                logger.error("can not open URL {}", url);
+                logger.error("can not open URL {}, skipping", url);
                 continue;
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -134,6 +136,7 @@ public class Web extends Feeder {
             br.readLine(); // Treffer: ...
             br.readLine(); // empty line
             String line;
+            int count = 0;
             while ((line = br.readLine()) != null) {
                 String[] s = line.split("\\t");
                 try {
@@ -170,7 +173,7 @@ public class Web extends Feeder {
                     if ("0".equals(lastIssue)) {
                         lastIssue = null;
                     }
-                    // firstdate, lastdate might be empty -> ok
+                    // firstdate, lastdate might be empty string -> ok
                     String key = zdbid + "."
                             + isil + "."
                             + firstDate + "."
@@ -188,6 +191,7 @@ public class Web extends Feeder {
                             .add("xbib:lastIssue", lastIssue)
                             .add("xbib:movingWall", movingWall)
                             .add("xbib:interlibraryloanCode",
+                                    // replace empty value with "x" (unknown)
                                     (code1.isEmpty() ? "x" : code1)
                                             + (code2.isEmpty() ? "x" : code2)
                                             + (code3.isEmpty() ? "x" : code3))
@@ -196,6 +200,7 @@ public class Web extends Feeder {
                             ingest.index(p.getIndex(), p.getType(), key, content));
                     RdfContentBuilder builder = routeRdfXContentBuilder(params);
                     builder.receive(resource);
+                    count++;
                     if (indexDefinitionMap.get("bib").isMock()) {
                         logger.info("{}", builder.string());
                     }
@@ -207,6 +212,9 @@ public class Web extends Feeder {
                 }
             }
             br.close();
+            if (count == 0) {
+                logger.warn("no indicators found for {} ?", zdbid);
+            }
         }
     }
 
@@ -225,22 +233,21 @@ public class Web extends Feeder {
                 .addField("IdentifierZDB.identifierZDB");
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         long total = searchResponse.getHits().getTotalHits();
-        logger.info("zdb identifier hits={}", total);
-        while (searchResponse.getScrollId() != null) {
+        logger.info("EZB hits in ZDB = {}", total);
+        while (searchResponse.getHits().getHits().length > 0) {
+            for (SearchHit hit : searchResponse.getHits()) {
+                String zdbid = hit.getFields().get("IdentifierZDB.identifierZDB").getValue();
+                list.add(zdbid);
+            }
             searchResponse = new SearchScrollRequestBuilder(ingest.client(), SearchScrollAction.INSTANCE)
                     .setScrollId(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueSeconds(5))
                     .execute().actionGet();
-            SearchHits hits = searchResponse.getHits();
-            if (hits.getHits().length == 0) {
-                break;
-            }
-            for (SearchHit hit : hits) {
-                String zdbid = hit.getFields().get("IdentifierZDB.identifierZDB").getValue();
-                list.add(zdbid);
-            }
         }
-        logger.info("search complete");
+        ClearScrollRequestBuilder clearScrollRequestBuilder = new ClearScrollRequestBuilder(ingest.client(), ClearScrollAction.INSTANCE)
+                .addScrollId(searchResponse.getScrollId());
+        clearScrollRequestBuilder.execute().actionGet();
+        logger.info("list of IDs complete, size = {}", list.size());
         return list.iterator();
     }
 

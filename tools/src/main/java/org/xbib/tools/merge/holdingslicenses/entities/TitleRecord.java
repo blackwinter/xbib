@@ -115,7 +115,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     private String license;
 
-
     private String contentType;
 
     private String mediaType;

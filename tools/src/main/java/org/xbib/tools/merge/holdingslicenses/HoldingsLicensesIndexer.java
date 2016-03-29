@@ -41,6 +41,9 @@ import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
+import org.xbib.util.concurrent.Pipeline;
+import org.xbib.util.concurrent.Worker;
+import org.xbib.util.concurrent.WorkerRequest;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -52,13 +55,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class HoldingsLicensesIndexer {
+public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R extends WorkerRequest> {
 
     private final static Logger logger = LogManager.getLogger(HoldingsLicensesIndexer.class);
 
     private final static Integer currentYear = LocalDate.now().getYear();
 
-    private final Merger merger;
+    private final Merger<W, R> merger;
 
     private final String manifestationsIndex;
     private final String manifestationsIndexType;
@@ -71,7 +74,7 @@ public class HoldingsLicensesIndexer {
     private final String servicesIndex;
     private final String servicesIndexType;
 
-    public HoldingsLicensesIndexer(Merger merger) {
+    public HoldingsLicensesIndexer(Merger<W, R> merger) {
         this.merger = merger;
         Map<String,IndexDefinition> outputIndexDefinitionMap = merger.getOutputIndexDefinitionMap();
         String indexName = outputIndexDefinitionMap.get("holdingslicenses").getConcreteIndex();

@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -614,8 +613,9 @@ public class SimpleHoldingsLicensesWorker
                 .setIndices(simpleHoldingsLicensesMerger.getSourceOpenAccessIndex())
                 .setQuery(termsQuery("dc:identifier", issn));
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
-        logger.debug("openaccess: query {}", searchRequestBuilder, searchResponse.getHits().getTotalHits());
-        return searchResponse.getHits().getTotalHits() > 0;
+        long total = searchResponse.getHits().getTotalHits();
+        logger.debug("openaccess: query {}", searchRequestBuilder, total);
+        return total > 0;
     }
 
 }
