@@ -59,6 +59,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -130,82 +133,20 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         super.prepareRequests();
         Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
         this.sourceTitleIndex = indexDefinitionMap.get("zdb").getIndex();
-        if (Strings.isNullOrEmpty(sourceTitleIndex)) {
-            throw new IllegalArgumentException("no zdb index given");
-        }
-        SearchRequestBuilder searchRequest = search.client().prepareSearch()
-                .setIndices(sourceTitleIndex)
-                .setSize(0);
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in zdb index given");
-        }
+        checkIndex("zdb", sourceTitleIndex);
         this.sourceHoldingsIndex = indexDefinitionMap.get("zdbholdings").getIndex();
-        if (Strings.isNullOrEmpty(sourceHoldingsIndex)) {
-            throw new IllegalArgumentException("no zdbholdings index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceHoldingsIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in zdbholdings index given");
-        }
+        checkIndex("zdbholdings", sourceHoldingsIndex);
         this.sourceLicenseIndex = indexDefinitionMap.get("ezbxml").getIndex();
-        if (Strings.isNullOrEmpty(sourceLicenseIndex)) {
-            throw new IllegalArgumentException("no ezbxml index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceLicenseIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in ezbxml index given");
-        }
+        checkIndex("ezbxml", sourceLicenseIndex);
         this.sourceIndicatorIndex = indexDefinitionMap.get("ezbweb").getIndex();
-        if (Strings.isNullOrEmpty(sourceIndicatorIndex)) {
-            throw new IllegalArgumentException("no ezbweb index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceIndicatorIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in ezbxml index given");
-        }
+        checkIndex("ezbweb", sourceIndicatorIndex);
         this.sourceMonographicIndex = indexDefinitionMap.get("hbz").getIndex();
-        if (Strings.isNullOrEmpty(sourceMonographicIndex)) {
-            throw new IllegalArgumentException("no hbz index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceMonographicIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in hbz index given");
-        }
+        checkIndex("hbz", sourceMonographicIndex);
         this.sourceMonographicHoldingsIndex = indexDefinitionMap.get("hbzholdings").getIndex();
-        if (Strings.isNullOrEmpty(sourceMonographicHoldingsIndex)) {
-            throw new IllegalArgumentException("no hbzholdings index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceMonographicHoldingsIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in hbzholdings index given");
-        }
+        checkIndex("hbzholdings", sourceMonographicHoldingsIndex);
         this.sourceOpenAccessIndex = indexDefinitionMap.get("doaj").getIndex();
-        if (Strings.isNullOrEmpty(sourceOpenAccessIndex)) {
-            throw new IllegalArgumentException("no doaj index given");
-        }
-        searchRequest = search.client().prepareSearch()
-                .setIndices(sourceOpenAccessIndex)
-                .setSize(0);
-        searchResponse = searchRequest.execute().actionGet();
-        if (searchResponse.getHits().getTotalHits() == 0L) {
-            throw new IllegalArgumentException("no documents in doaj index given");
-        }
+        checkIndex("doaj", sourceOpenAccessIndex);
+
         logger.info("preparing bibdat lookup...");
         bibdatLookup = new BibdatLookup();
         try {
@@ -258,7 +199,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         int scrollSize = settings.getAsInt("scrollsize", 10);
         long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         boolean failure = false;
-        searchRequest = search.client().prepareSearch()
+        SearchRequestBuilder searchRequest = search.client().prepareSearch()
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
@@ -268,7 +209,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         if (identifier != null) {
             searchRequest.setQuery(termQuery("IdentifierZDB.identifierZDB", identifier));
         }
-        searchResponse = searchRequest.execute().actionGet();
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
         logger.info("merging holdings/licenses for {} title records",
                 searchResponse.getHits().getTotalHits());
         do {
@@ -326,6 +267,26 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     @Override
     protected void disposeResources(int returncode) throws IOException {
         super.disposeResources(returncode);
+    }
+
+    private void checkIndex(String displayName, String index) throws IOException {
+        if (Strings.isNullOrEmpty(index)) {
+            throw new IllegalArgumentException("no index given for " + displayName);
+        }
+        SearchRequestBuilder searchRequest = search.client().prepareSearch()
+                .setIndices(index)
+                .setSize(0);
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        if (searchResponse.getHits().getTotalHits() == 0L) {
+            throw new IllegalArgumentException("no documents given in index " + displayName);
+        }
+        Long l = ingest.mostRecentDocument(index);
+        if (l != null) {
+            logger.info("most recent document of {} is from {}", displayName,
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(l), ZoneId.systemDefault()));
+        } else {
+            throw new IllegalArgumentException("no most recent document given in index " + displayName);
+        }
     }
 
     public Metrics getMetrics() {
