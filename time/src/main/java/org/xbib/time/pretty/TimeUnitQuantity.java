@@ -3,9 +3,12 @@ package org.xbib.time.pretty;
 /**
  * Represents a quantity of any given {@link TimeUnit}
  */
-public class Duration {
+public class TimeUnitQuantity {
+
     private long quantity;
+
     private long delta;
+
     private TimeUnit unit;
 
     public long getQuantity() {
@@ -42,10 +45,8 @@ public class Duration {
 
     public long getQuantityRounded(int tolerance) {
         long quantity = Math.abs(getQuantity());
-
         if (getDelta() != 0) {
-            double threshold = Math
-                    .abs(((double) getDelta() / (double) getUnit().getMillisPerUnit()) * 100);
+            double threshold = Math.abs(((double) getDelta() / (double) getUnit().getMillisPerUnit()) * 100);
             if (threshold > tolerance) {
                 quantity = quantity + 1;
             }

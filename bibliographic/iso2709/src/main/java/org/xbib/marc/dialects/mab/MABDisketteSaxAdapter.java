@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.event.EventListener;
 import org.xbib.marc.event.FieldEvent;
-import org.xbib.marc.xml.MarcXchangeSaxAdapter;
+import org.xbib.marc.xml.sax.MarcXchangeSaxAdapter;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 

@@ -35,7 +35,7 @@ import org.xbib.marc.Field;
 import org.xbib.marc.MarcException;
 import org.xbib.marc.MarcXchangeConstants;
 import org.xbib.marc.MarcXchangeListener;
-import org.xbib.marc.xml.MarcXchangeContentHandler;
+import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
 import org.xbib.xml.stream.IndentingXMLEventWriter;
 
 import javax.xml.XMLConstants;

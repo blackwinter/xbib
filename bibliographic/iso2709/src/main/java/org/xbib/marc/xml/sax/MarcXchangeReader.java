@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.xml;
+package org.xbib.marc.xml.sax;
 
 import org.xbib.marc.FieldReader;
 import org.xbib.marc.MarcXchangeListener;

@@ -3,16 +3,15 @@ package org.xbib.time.pretty;
 import org.junit.Test;
 import org.xbib.time.pretty.units.JustNow;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class PrettyTimeAPIManipulationTest {
-    Date date = null;
-    Duration duration = null;
-    List<Duration> list = null;
+    TimeUnitQuantity timeUnitQuantity = null;
+    List<TimeUnitQuantity> list = null;
     PrettyTime t = new PrettyTime();
 
     @Test(expected = IllegalArgumentException.class)
@@ -32,12 +31,12 @@ public class PrettyTimeAPIManipulationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testApiMisuse4() throws Exception {
-        t.format(date);
+        t.format((LocalDateTime)null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testApiMisuse5() throws Exception {
-        t.format(duration);
+        t.format(timeUnitQuantity);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -47,12 +46,12 @@ public class PrettyTimeAPIManipulationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testApiMisuse7() throws Exception {
-        t.formatUnrounded(date);
+        t.formatUnrounded((LocalDateTime)null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testApiMisuse8() throws Exception {
-        t.formatUnrounded(duration);
+        t.formatUnrounded(timeUnitQuantity);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -97,7 +96,7 @@ public class PrettyTimeAPIManipulationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testApiMisuse19() throws Exception {
-        t.getUnit((Class<TimeUnit>) null);
+        t.getUnit(null);
     }
 
     @Test

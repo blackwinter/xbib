@@ -23,8 +23,8 @@ public class Record {
     private FastByteArrayOutputStream fieldStream;
 
     public Record() {
-        controlfields = new ArrayList<Field>();
-        datafields = new ArrayList<FieldList>();
+        controlfields = new ArrayList<>();
+        datafields = new ArrayList<>();
         directoryStream = new FastByteArrayOutputStream(2048);
         fieldStream = new FastByteArrayOutputStream(8192);
     }

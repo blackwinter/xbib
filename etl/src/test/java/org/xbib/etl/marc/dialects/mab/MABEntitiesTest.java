@@ -1,10 +1,8 @@
 package org.xbib.etl.marc.dialects.mab;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xml.sax.InputSource;
 

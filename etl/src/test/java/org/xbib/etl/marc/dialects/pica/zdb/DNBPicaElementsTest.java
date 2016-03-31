@@ -47,7 +47,7 @@ import org.junit.Test;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.marc.transformer.StringTransformer;
 

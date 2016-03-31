@@ -33,12 +33,12 @@ package org.xbib.marc.keyvalue;
 
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.util.KeyValueStreamAdapter;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.MarcXchangeConstants;
-import org.xbib.marc.xml.MarcXchangeReader;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.marc.xml.stream.mapper.MarcXchangeFieldMapperReader;
 import org.xml.sax.SAXException;
 

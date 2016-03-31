@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.xbib.time.pretty.PrettyTime;
 import org.xbib.time.pretty.TimeFormatProvider;
 
-import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -23,7 +22,7 @@ public class TimeFormatProviderTest {
         Locale locale = new Locale("xx");
         Locale.setDefault(locale);
         PrettyTime prettyTime = new PrettyTime(locale);
-        String result = prettyTime.format(new Date(System.currentTimeMillis() + 1000 * 60 * 6));
+        String result = prettyTime.format(System.currentTimeMillis() + 1000 * 60 * 6);
         Assert.assertEquals("6 minutes from now", result);
     }
 

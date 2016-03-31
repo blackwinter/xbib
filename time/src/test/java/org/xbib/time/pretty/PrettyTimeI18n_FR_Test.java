@@ -4,7 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
@@ -14,12 +16,6 @@ import static org.junit.Assert.assertTrue;
  * All the tests for PrettyTime.
  */
 public class PrettyTimeI18n_FR_Test {
-
-    /*
-     * A note when you want to use the YourKit profiler: To use the YourKit
-     * profiler (http://yourkit.com), run with VM argument for profiling:
-     * -agentlib:yjpagent=onexit=snapshot,tracing
-     */
 
     // Stores current locale so that it can be restored
     private Locale locale;
@@ -34,13 +30,13 @@ public class PrettyTimeI18n_FR_Test {
     public void testPrettyTimeFRENCH() {
         // The FRENCH resource bundle should be used
         PrettyTime p = new PrettyTime(Locale.FRENCH);
-        assertEquals("à l'instant", p.format(new Date()));
+        assertEquals("à l'instant", p.format(LocalDateTime.now()));
     }
 
     @Test
     public void testPrettyTimeFRENCHCenturies() {
         PrettyTime p = new PrettyTime((3155692597470L * 3L), Locale.FRENCH);
-        assertEquals(p.format(new Date(0)), "il y a 3 siècles");
+        assertEquals(p.format(0), "il y a 3 siècles");
     }
 
     @Test
@@ -48,7 +44,7 @@ public class PrettyTimeI18n_FR_Test {
         // The FRENCH resource bundle should be used
         Locale.setDefault(Locale.FRENCH);
         PrettyTime p = new PrettyTime();
-        assertEquals(p.format(new Date()), "à l'instant");
+        assertEquals(p.format(LocalDateTime.now()), "à l'instant");
     }
 
     @Test
@@ -56,7 +52,8 @@ public class PrettyTimeI18n_FR_Test {
         long t = 1L;
         PrettyTime p = new PrettyTime((0), Locale.FRENCH);
         while (1000L * 60L * 60L * 24L * 365L * 1000000L > t) {
-            assertTrue(p.format(new Date(0)).startsWith("dans") || p.format(new Date(0)).startsWith("à l'instant"));
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+            assertTrue(p.format(localDateTime).startsWith("dans") || p.format(localDateTime).startsWith("à l'instant"));
             t *= 2L;
         }
     }

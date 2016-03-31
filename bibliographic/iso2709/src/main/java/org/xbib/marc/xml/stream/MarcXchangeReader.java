@@ -71,11 +71,11 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
 
     private Stack<Field> stack = new Stack<Field>();
 
-    private Map<String,MarcXchangeListener> listeners = new HashMap<String,MarcXchangeListener>();
+    private Map<String,MarcXchangeListener> listeners = new HashMap<>();
 
     private MarcXchangeListener listener;
 
-    private Map<String, StringTransformer> transformers = new HashMap<String, StringTransformer>();
+    private Map<String, StringTransformer> transformers = new HashMap<>();
 
     private EventListener<FieldEvent> fieldEventListener;
 
@@ -89,11 +89,11 @@ public class MarcXchangeReader implements FieldReader, XMLEventConsumer, MarcXch
 
     private String recordIdentifier;
 
-    protected boolean inData;
+    private boolean inData;
 
-    protected boolean inLeader;
+    private boolean inLeader;
 
-    protected boolean inControl;
+    private boolean inControl;
 
     private boolean ignoreNamespace = false;
 

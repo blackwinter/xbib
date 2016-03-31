@@ -31,16 +31,14 @@
  */
 package org.xbib.marc.json;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.marc.xml.MarcXchangeReader;
+import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RdfXContentParams;
 

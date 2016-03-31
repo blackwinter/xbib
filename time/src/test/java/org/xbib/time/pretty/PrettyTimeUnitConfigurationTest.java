@@ -8,14 +8,14 @@ import org.xbib.time.pretty.units.Hour;
 import org.xbib.time.pretty.units.JustNow;
 import org.xbib.time.pretty.units.Minute;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 
 public class PrettyTimeUnitConfigurationTest {
-    SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
 
     // Stores current locale so that it can be restored
     private Locale locale;
@@ -29,10 +29,9 @@ public class PrettyTimeUnitConfigurationTest {
 
     @Test
     public void testRightNow() throws Exception {
-        Date ref = new Date(0);
-        Date then = new Date(2);
-
-        PrettyTime t = new PrettyTime(ref.getTime());
+        LocalDateTime ref = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        LocalDateTime then = LocalDateTime.ofInstant(Instant.ofEpochMilli(2), ZoneId.systemDefault());
+        PrettyTime t = new PrettyTime(ref);
         TimeFormat format = t.removeUnit(JustNow.class);
         Assert.assertNotNull(format);
         assertEquals("2 milliseconds from now", t.format(then));
@@ -43,7 +42,7 @@ public class PrettyTimeUnitConfigurationTest {
         PrettyTime t = new PrettyTime(0);
         TimeFormat format = t.removeUnit(Minute.class);
         Assert.assertNotNull(format);
-        assertEquals("720 seconds from now", t.format(new Date(1000 * 60 * 12)));
+        assertEquals("720 seconds from now", t.format(1000 * 60 * 12));
     }
 
     @Test
@@ -51,7 +50,7 @@ public class PrettyTimeUnitConfigurationTest {
         PrettyTime t = new PrettyTime(0);
         TimeFormat format = t.removeUnit(Hour.class);
         Assert.assertNotNull(format);
-        assertEquals("180 minutes from now", t.format(new Date(1000 * 60 * 60 * 3)));
+        assertEquals("180 minutes from now", t.format(1000 * 60 * 60 * 3));
     }
 
     // Method tearDown() is called automatically after every test method

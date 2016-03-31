@@ -34,7 +34,7 @@ package org.xbib.marc;
 import org.xbib.io.field.BufferedFieldStreamReader;
 import org.xbib.marc.event.EventListener;
 import org.xbib.marc.transformer.StringTransformer;
-import org.xbib.marc.xml.MarcXchangeSaxAdapter;
+import org.xbib.marc.xml.sax.MarcXchangeSaxAdapter;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.EntityResolver;
@@ -127,7 +127,7 @@ public class Iso2709Reader implements FieldReader, XMLReader, MarcXchangeConstan
 
     private ErrorHandler errorHandler;
 
-    private Map<String, Boolean> features = new HashMap<String, Boolean>();
+    private Map<String, Boolean> features = new HashMap<>();
 
     /**
      * Properties for this reader

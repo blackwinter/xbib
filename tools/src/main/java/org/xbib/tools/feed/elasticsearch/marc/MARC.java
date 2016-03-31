@@ -38,7 +38,7 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.direct.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;

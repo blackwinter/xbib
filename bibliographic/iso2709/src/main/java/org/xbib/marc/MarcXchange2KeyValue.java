@@ -29,14 +29,9 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.keyvalue;
+package org.xbib.marc;
 
 import org.xbib.util.KeyValueStreamListener;
-import org.xbib.marc.FieldList;
-import org.xbib.marc.Field;
-import org.xbib.marc.MarcException;
-import org.xbib.marc.MarcXchangeConstants;
-import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.transformer.StringTransformer;
 
 import java.io.IOException;
@@ -54,8 +49,7 @@ public class MarcXchange2KeyValue implements MarcXchangeListener, KeyValueStream
 
     private MarcXchangeListener marcXchangeListener;
 
-    private List<KeyValueStreamListener<FieldList, String>> listeners =
-            new LinkedList<KeyValueStreamListener<FieldList, String>>();
+    private List<KeyValueStreamListener<FieldList, String>> listeners = new LinkedList<>();
 
     public MarcXchange2KeyValue addListener(KeyValueStreamListener<FieldList, String> listener) {
         this.listeners.add(listener);

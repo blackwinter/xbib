@@ -1,9 +1,6 @@
 package org.xbib.time.pretty.units;
 
 import org.junit.Test;
-import org.xbib.time.pretty.units.Day;
-import org.xbib.time.pretty.units.Hour;
-import org.xbib.time.pretty.units.TimeUnitComparator;
 
 import static org.junit.Assert.assertEquals;
 

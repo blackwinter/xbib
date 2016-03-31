@@ -1,11 +1,10 @@
 package bench;
 
-import org.junit.Test;
 import org.xbib.marc.Field;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
 import org.xbib.marc.json.MarcXchangeJSONLinesWriter;
-import org.xbib.marc.xml.MarcXchangeContentHandler;
-import org.xbib.marc.xml.MarcXchangeReader;
+import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

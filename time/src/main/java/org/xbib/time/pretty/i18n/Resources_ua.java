@@ -1,6 +1,6 @@
 package org.xbib.time.pretty.i18n;
 
-import org.xbib.time.pretty.Duration;
+import org.xbib.time.pretty.TimeUnitQuantity;
 import org.xbib.time.pretty.TimeFormat;
 import org.xbib.time.pretty.TimeUnit;
 import org.xbib.time.pretty.TimeFormatProvider;
@@ -36,32 +36,32 @@ public class Resources_ua extends ListResourceBundle implements TimeFormatProvid
         if (t instanceof JustNow) {
             return new TimeFormat() {
                 @Override
-                public String format(Duration duration) {
-                    return performFormat(duration);
+                public String format(TimeUnitQuantity timeUnitQuantity) {
+                    return performFormat(timeUnitQuantity);
                 }
 
                 @Override
-                public String formatUnrounded(Duration duration) {
-                    return performFormat(duration);
+                public String formatUnrounded(TimeUnitQuantity timeUnitQuantity) {
+                    return performFormat(timeUnitQuantity);
                 }
 
-                private String performFormat(Duration duration) {
-                    if (duration.isInFuture()) {
+                private String performFormat(TimeUnitQuantity timeUnitQuantity) {
+                    if (timeUnitQuantity.isInFuture()) {
                         return "зараз";
                     }
-                    if (duration.isInPast()) {
+                    if (timeUnitQuantity.isInPast()) {
                         return "тільки що";
                     }
                     return null;
                 }
 
                 @Override
-                public String decorate(Duration duration, String time) {
+                public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
                     return time;
                 }
 
                 @Override
-                public String decorateUnrounded(Duration duration, String time) {
+                public String decorateUnrounded(TimeUnitQuantity timeUnitQuantity, String time) {
                     return time;
                 }
             };
@@ -102,33 +102,33 @@ public class Resources_ua extends ListResourceBundle implements TimeFormatProvid
         }
 
         @Override
-        public String format(Duration duration) {
-            long quantity = duration.getQuantityRounded(tolerance);
+        public String format(TimeUnitQuantity timeUnitQuantity) {
+            long quantity = timeUnitQuantity.getQuantityRounded(tolerance);
             return String.valueOf(quantity);
         }
 
         @Override
-        public String formatUnrounded(Duration duration) {
-            long quantity = duration.getQuantity();
+        public String formatUnrounded(TimeUnitQuantity timeUnitQuantity) {
+            long quantity = timeUnitQuantity.getQuantity();
             return String.valueOf(quantity);
         }
 
         @Override
-        public String decorate(Duration duration, String time) {
+        public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
             return performDecoration(
-                    duration.isInPast(),
-                    duration.isInFuture(),
-                    duration.getQuantityRounded(tolerance),
+                    timeUnitQuantity.isInPast(),
+                    timeUnitQuantity.isInFuture(),
+                    timeUnitQuantity.getQuantityRounded(tolerance),
                     time
             );
         }
 
         @Override
-        public String decorateUnrounded(Duration duration, String time) {
+        public String decorateUnrounded(TimeUnitQuantity timeUnitQuantity, String time) {
             return performDecoration(
-                    duration.isInPast(),
-                    duration.isInFuture(),
-                    duration.getQuantity(),
+                    timeUnitQuantity.isInPast(),
+                    timeUnitQuantity.isInFuture(),
+                    timeUnitQuantity.getQuantity(),
                     time
             );
         }

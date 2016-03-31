@@ -34,7 +34,7 @@ package org.xbib.marc.dialects.mab;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.xml.MarcXchangeReader;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xml.sax.SAXException;
 

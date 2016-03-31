@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.zdb;
 
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
 import org.xbib.util.concurrent.WorkerProvider;

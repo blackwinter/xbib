@@ -3,6 +3,8 @@ package org.xbib.marc.xml;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
+import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

@@ -3,6 +3,8 @@ package org.xbib.io.field;
 import org.xbib.common.Strings;
 import org.xbib.marc.label.RecordLabel;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,8 +40,31 @@ public class MarcField implements Comparable<MarcField> {
             return this;
         }
 
-        Builder subfield(String subfieldId, String subfield) {
-            this.subfields.add(new Subfield(subfieldId, subfield));
+        Builder value(String value) {
+            this.subfields.add(new Subfield(Strings.EMPTY, value));
+            return this;
+        }
+
+        Builder value(byte[] value) {
+            return value(value, StandardCharsets.US_ASCII);
+        }
+
+        Builder value(byte[] value, int offset, int size) {
+            return value(value, offset, size, StandardCharsets.US_ASCII);
+        }
+
+        Builder value(byte[] value, Charset charset) {
+            this.subfields.add(new Subfield(Strings.EMPTY, new String(value, 0, value.length, charset)));
+            return this;
+        }
+
+        Builder value(byte[] value, int offset, int size, Charset charset) {
+            this.subfields.add(new Subfield(Strings.EMPTY, new String(value, offset, size, charset)));
+            return this;
+        }
+
+        Builder subfield(String subfieldId, String value) {
+            this.subfields.add(new Subfield(subfieldId, value));
             return this;
         }
 
@@ -120,14 +145,18 @@ public class MarcField implements Comparable<MarcField> {
         return subfields;
     }
 
+    public String getValue() {
+        return subfields.isEmpty() ? null : subfields.get(0).getValue();
+    }
+
     public boolean isControl() {
         return control;
     }
 
     public String toKey() {
-        return (tag != null ? tag : Strings.EMPTY)
-                + (indicator != null ? DOLLAR + indicator : Strings.EMPTY)
-                + subfields.stream().map(Subfield::getId).collect(Collectors.joining(""));
+        return (tag == null ? Strings.EMPTY : tag )
+                + DOLLAR + (indicator == null ? Strings.EMPTY : indicator)
+                + DOLLAR + (subfields.isEmpty() ? Strings.EMPTY : subfields.stream().map(Subfield::getId).sorted().collect(Collectors.joining("")));
     }
 
     private final static String DOLLAR = "$";

@@ -2,7 +2,7 @@ package org.xbib.tools.feed.elasticsearch.mab;
 
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 

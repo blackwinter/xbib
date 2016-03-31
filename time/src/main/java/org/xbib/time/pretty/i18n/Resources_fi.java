@@ -1,6 +1,6 @@
 package org.xbib.time.pretty.i18n;
 
-import org.xbib.time.pretty.Duration;
+import org.xbib.time.pretty.TimeUnitQuantity;
 import org.xbib.time.pretty.TimeFormat;
 import org.xbib.time.pretty.TimeUnit;
 import org.xbib.time.pretty.SimpleTimeFormat;
@@ -207,7 +207,7 @@ public class Resources_fi extends ListResourceBundle implements TimeFormatProvid
         }
 
         @Override
-        protected String getGramaticallyCorrectName(Duration d, boolean round) {
+        protected String getGramaticallyCorrectName(TimeUnitQuantity d, boolean round) {
             String result = d.isInPast() ? getPastName() : getFutureName();
             if ((Math.abs(getQuantity(d, round)) == 0) || (Math.abs(getQuantity(d, round)) > 1)) {
                 result = d.isInPast() ? getPastPluralName() : getFuturePluralName();
@@ -225,12 +225,12 @@ public class Resources_fi extends ListResourceBundle implements TimeFormatProvid
         }
 
         @Override
-        public String decorate(Duration duration, String time) {
+        public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
             String result = "";
-            if (duration.getUnit() instanceof Day && Math.abs(duration.getQuantity()) == 1) {
+            if (timeUnitQuantity.getUnit() instanceof Day && Math.abs(timeUnitQuantity.getQuantity()) == 1) {
                 result = time;
             } else {
-                result = super.decorate(duration, time);
+                result = super.decorate(timeUnitQuantity, time);
             }
             return result;
         }

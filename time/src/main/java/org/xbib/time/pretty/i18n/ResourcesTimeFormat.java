@@ -1,6 +1,6 @@
 package org.xbib.time.pretty.i18n;
 
-import org.xbib.time.pretty.Duration;
+import org.xbib.time.pretty.TimeUnitQuantity;
 import org.xbib.time.pretty.LocaleAware;
 import org.xbib.time.pretty.SimpleTimeFormat;
 import org.xbib.time.pretty.TimeFormat;
@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
- * Represents a simple method of formatting a specific {@link Duration} of time
+ * Represents a simple method of formatting a specific {@link TimeUnitQuantity} of time
  */
 public class ResourcesTimeFormat extends SimpleTimeFormat implements TimeFormat, LocaleAware<ResourcesTimeFormat> {
     private final ResourcesTimeUnit unit;
@@ -63,22 +63,22 @@ public class ResourcesTimeFormat extends SimpleTimeFormat implements TimeFormat,
     }
 
     @Override
-    public String decorate(Duration duration, String time) {
-        return override == null ? super.decorate(duration, time) : override.decorate(duration, time);
+    public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
+        return override == null ? super.decorate(timeUnitQuantity, time) : override.decorate(timeUnitQuantity, time);
     }
 
     @Override
-    public String decorateUnrounded(Duration duration, String time) {
-        return override == null ? super.decorateUnrounded(duration, time) : override.decorateUnrounded(duration, time);
+    public String decorateUnrounded(TimeUnitQuantity timeUnitQuantity, String time) {
+        return override == null ? super.decorateUnrounded(timeUnitQuantity, time) : override.decorateUnrounded(timeUnitQuantity, time);
     }
 
     @Override
-    public String format(Duration duration) {
-        return override == null ? super.format(duration) : override.format(duration);
+    public String format(TimeUnitQuantity timeUnitQuantity) {
+        return override == null ? super.format(timeUnitQuantity) : override.format(timeUnitQuantity);
     }
 
     @Override
-    public String formatUnrounded(Duration duration) {
-        return override == null ? super.formatUnrounded(duration) : override.formatUnrounded(duration);
+    public String formatUnrounded(TimeUnitQuantity timeUnitQuantity) {
+        return override == null ? super.formatUnrounded(timeUnitQuantity) : override.formatUnrounded(timeUnitQuantity);
     }
 }

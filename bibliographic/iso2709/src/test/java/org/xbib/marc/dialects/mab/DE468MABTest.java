@@ -34,7 +34,7 @@ package org.xbib.marc.dialects.mab;
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.marc.event.FieldEventLogger;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xml.sax.SAXException;

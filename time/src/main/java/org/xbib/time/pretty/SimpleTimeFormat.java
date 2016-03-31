@@ -1,7 +1,7 @@
 package org.xbib.time.pretty;
 
 /**
- * Represents a simple method of formatting a specific {@link Duration} of time
+ * Represents a simple method of formatting a specific {@link TimeUnitQuantity} of time
  */
 public class SimpleTimeFormat implements TimeFormat {
     public static final String SIGN = "%s";
@@ -23,19 +23,19 @@ public class SimpleTimeFormat implements TimeFormat {
     private int roundingTolerance = 50;
 
     @Override
-    public String format(final Duration duration) {
-        return format(duration, true);
+    public String format(final TimeUnitQuantity timeUnitQuantity) {
+        return format(timeUnitQuantity, true);
     }
 
     @Override
-    public String formatUnrounded(Duration duration) {
-        return format(duration, false);
+    public String formatUnrounded(TimeUnitQuantity timeUnitQuantity) {
+        return format(timeUnitQuantity, false);
     }
 
     @Override
-    public String decorate(Duration duration, String time) {
+    public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
         StringBuilder result = new StringBuilder();
-        if (duration.isInPast()) {
+        if (timeUnitQuantity.isInPast()) {
             result.append(pastPrefix).append(" ").append(time).append(" ").append(pastSuffix);
         } else {
             result.append(futurePrefix).append(" ").append(time).append(" ").append(futureSuffix);
@@ -44,15 +44,15 @@ public class SimpleTimeFormat implements TimeFormat {
     }
 
     @Override
-    public String decorateUnrounded(Duration duration, String time) {
+    public String decorateUnrounded(TimeUnitQuantity timeUnitQuantity, String time) {
         // This format does not need to know about rounding during decoration.
-        return decorate(duration, time);
+        return decorate(timeUnitQuantity, time);
     }
 
-    private String format(final Duration duration, final boolean round) {
-        String sign = getSign(duration);
-        String unit = getGramaticallyCorrectName(duration, round);
-        long quantity = getQuantity(duration, round);
+    private String format(final TimeUnitQuantity timeUnitQuantity, final boolean round) {
+        String sign = getSign(timeUnitQuantity);
+        String unit = getGramaticallyCorrectName(timeUnitQuantity, round);
+        long quantity = getQuantity(timeUnitQuantity, round);
 
         return applyPattern(sign, unit, quantity);
     }
@@ -80,11 +80,11 @@ public class SimpleTimeFormat implements TimeFormat {
         return this;
     }
 
-    protected long getQuantity(Duration duration, boolean round) {
-        return Math.abs(round ? duration.getQuantityRounded(roundingTolerance) : duration.getQuantity());
+    protected long getQuantity(TimeUnitQuantity timeUnitQuantity, boolean round) {
+        return Math.abs(round ? timeUnitQuantity.getQuantityRounded(roundingTolerance) : timeUnitQuantity.getQuantity());
     }
 
-    protected String getGramaticallyCorrectName(final Duration d, boolean round) {
+    protected String getGramaticallyCorrectName(final TimeUnitQuantity d, boolean round) {
         String result = getSingularName(d);
         if ((Math.abs(getQuantity(d, round)) == 0) || (Math.abs(getQuantity(d, round)) > 1)) {
             result = getPluralName(d);
@@ -92,27 +92,27 @@ public class SimpleTimeFormat implements TimeFormat {
         return result;
     }
 
-    private String getSign(final Duration d) {
+    private String getSign(final TimeUnitQuantity d) {
         if (d.getQuantity() < 0) {
             return NEGATIVE;
         }
         return "";
     }
 
-    private String getSingularName(Duration duration) {
-        if (duration.isInFuture() && futureSingularName != null && futureSingularName.length() > 0) {
+    private String getSingularName(TimeUnitQuantity timeUnitQuantity) {
+        if (timeUnitQuantity.isInFuture() && futureSingularName != null && futureSingularName.length() > 0) {
             return futureSingularName;
-        } else if (duration.isInPast() && pastSingularName != null && pastSingularName.length() > 0) {
+        } else if (timeUnitQuantity.isInPast() && pastSingularName != null && pastSingularName.length() > 0) {
             return pastSingularName;
         } else {
             return singularName;
         }
     }
 
-    private String getPluralName(Duration duration) {
-        if (duration.isInFuture() && futurePluralName != null && futureSingularName.length() > 0) {
+    private String getPluralName(TimeUnitQuantity timeUnitQuantity) {
+        if (timeUnitQuantity.isInFuture() && futurePluralName != null && futureSingularName.length() > 0) {
             return futurePluralName;
-        } else if (duration.isInPast() && pastPluralName != null && pastSingularName.length() > 0) {
+        } else if (timeUnitQuantity.isInPast() && pastPluralName != null && pastSingularName.length() > 0) {
             return pastPluralName;
         } else {
             return pluralName;

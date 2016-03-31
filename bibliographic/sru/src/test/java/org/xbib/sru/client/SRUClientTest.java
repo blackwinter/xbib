@@ -33,8 +33,8 @@ package org.xbib.sru.client;
 
 import org.junit.Test;
 import org.xbib.io.http.HttpRequest;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
-import org.xbib.marc.xml.MarcXchangeContentHandler;
+import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;

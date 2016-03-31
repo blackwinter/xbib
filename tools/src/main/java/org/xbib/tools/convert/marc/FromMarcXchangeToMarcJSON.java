@@ -1,7 +1,7 @@
 package org.xbib.tools.convert.marc;
 
 import org.xbib.marc.json.MarcXchangeJSONLinesWriter;
-import org.xbib.marc.xml.MarcXchangeReader;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
 

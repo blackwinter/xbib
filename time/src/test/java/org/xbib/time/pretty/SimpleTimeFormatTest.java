@@ -4,7 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
@@ -23,10 +25,10 @@ public class SimpleTimeFormatTest {
     @Test
     public void testRounding() throws Exception {
         PrettyTime t = new PrettyTime(1000 * 60 * 60 * 3 + 1000 * 60 * 45);
-        Duration duration = t.approximateDuration(new Date(0));
-
-        assertEquals("4 hours ago", t.format(duration));
-        assertEquals("3 hours ago", t.formatUnrounded(duration));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        TimeUnitQuantity timeUnitQuantity = t.approximateDuration(localDateTime);
+        assertEquals("4 hours ago", t.format(timeUnitQuantity));
+        assertEquals("3 hours ago", t.formatUnrounded(timeUnitQuantity));
     }
 
     @Test
@@ -34,11 +36,13 @@ public class SimpleTimeFormatTest {
         PrettyTime t = new PrettyTime();
         TimeFormat format = new SimpleTimeFormat().setFutureSuffix("from now").setPastSuffix("ago");
 
-        Duration duration = t.approximateDuration(new Date(System.currentTimeMillis() + 1000));
-        assertEquals("some time from now", format.decorate(duration, "some time"));
+        LocalDateTime localDateTime = LocalDateTime.now().plusSeconds(1);
+        TimeUnitQuantity timeUnitQuantity = t.approximateDuration(localDateTime);
+        assertEquals("some time from now", format.decorate(timeUnitQuantity, "some time"));
 
-        duration = t.approximateDuration(new Date(System.currentTimeMillis() - 10000));
-        assertEquals("some time ago", format.decorate(duration, "some time"));
+        localDateTime = LocalDateTime.now().minusSeconds(10);
+        timeUnitQuantity = t.approximateDuration(localDateTime);
+        assertEquals("some time ago", format.decorate(timeUnitQuantity, "some time"));
     }
 
     // Method tearDown() is called automatically after every test method

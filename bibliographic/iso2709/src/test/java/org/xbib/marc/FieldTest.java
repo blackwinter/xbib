@@ -33,7 +33,6 @@ package org.xbib.marc;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xbib.io.field.FieldSortable;
 import org.xbib.marc.label.RecordLabel;
 
 public class FieldTest extends Assert {
@@ -42,23 +41,6 @@ public class FieldTest extends Assert {
     public void testFieldData() {
         Field f = new Field().tag("100").indicator("").data("Hello World");
         assertEquals(f.data(), "Hello World");
-    }
-
-    @Test
-    public void testFieldDataSortable() {
-        Field f = new Field().tag("100").indicator("").data("\u0098Hello \u009CWorld");
-        assertEquals(f.data(), "\u0098Hello \u009CWorld");
-        assertEquals(f.dataSortable(), "World");
-    }
-
-    @Test
-    public void sortableTest() {
-        Field f = new Field().tag("331").indicator("")
-                .subfieldId(null)
-                .data('\u0098' + "Der" + '\u009c' + " kleine Prinz");
-
-        assertEquals(f.data(), FieldSortable.NON_SORTABLE_BEGIN + "Der" + FieldSortable.NON_SORTABLE_END + " kleine Prinz");
-        assertEquals(f.dataSortable(), " kleine Prinz");
     }
 
     @Test

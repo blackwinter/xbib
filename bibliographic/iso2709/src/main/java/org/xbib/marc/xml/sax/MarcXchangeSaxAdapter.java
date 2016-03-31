@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.xml;
+package org.xbib.marc.xml.sax;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,11 +94,11 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
 
     private ContentHandler contentHandler;
 
-    private Map<String,MarcXchangeListener> listeners = new HashMap<String,MarcXchangeListener>();
-
     private MarcXchangeListener listener;
 
-    private Map<String, StringTransformer> transformers = new HashMap<String, StringTransformer>();
+    private Map<String,MarcXchangeListener> listeners = new HashMap<>();
+
+    private Map<String, StringTransformer> transformers = new HashMap<>();
 
     private EventListener<FieldEvent> fieldEventListener;
 

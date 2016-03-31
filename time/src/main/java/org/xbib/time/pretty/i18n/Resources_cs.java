@@ -1,6 +1,6 @@
 package org.xbib.time.pretty.i18n;
 
-import org.xbib.time.pretty.Duration;
+import org.xbib.time.pretty.TimeUnitQuantity;
 import org.xbib.time.pretty.TimeFormat;
 import org.xbib.time.pretty.TimeUnit;
 import org.xbib.time.pretty.SimpleTimeFormat;
@@ -274,7 +274,7 @@ public class Resources_cs extends ListResourceBundle implements TimeFormatProvid
         }
 
         @Override
-        protected String getGramaticallyCorrectName(Duration d, boolean round) {
+        protected String getGramaticallyCorrectName(TimeUnitQuantity d, boolean round) {
             long quantity = Math.abs(getQuantity(d, round));
             if (d.isInFuture()) {
                 return getGramaticallyCorrectName(quantity, futureNames);

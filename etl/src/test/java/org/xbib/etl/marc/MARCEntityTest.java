@@ -35,7 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 
 import java.io.File;
 import java.io.FileWriter;

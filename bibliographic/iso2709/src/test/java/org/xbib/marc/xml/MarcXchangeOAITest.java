@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.xbib.helper.StreamTester;
 import org.xbib.marc.Field;
 import org.xbib.marc.MarcXchangeListener;
+import org.xbib.marc.xml.sax.MarcXchangeReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

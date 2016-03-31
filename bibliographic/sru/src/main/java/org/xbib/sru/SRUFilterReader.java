@@ -35,7 +35,7 @@ import org.xbib.marc.Field;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.MarcXchangeConstants;
 import org.xbib.marc.MarcXchangeListener;
-import org.xbib.marc.xml.MarcXchangeSaxAdapter;
+import org.xbib.marc.xml.sax.MarcXchangeSaxAdapter;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

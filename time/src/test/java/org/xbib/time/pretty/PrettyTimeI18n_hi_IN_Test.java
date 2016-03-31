@@ -4,12 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -18,7 +15,6 @@ import static org.junit.Assert.assertTrue;
 
 public class PrettyTimeI18n_hi_IN_Test {
 
-    SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
     private Locale locale;
 
     @Before
@@ -38,91 +34,87 @@ public class PrettyTimeI18n_hi_IN_Test {
     @Test
     public void testNow() {
         PrettyTime prettyTime = new PrettyTime(locale);
-        prettyTime.format(new Date());
-        assertEquals("अभी", prettyTime.format(new Date()));
+        assertEquals("अभी", prettyTime.format(LocalDateTime.now()));
     }
-
-    // -- Duplicate test from PrettyTimeTest.java -- //
 
     @Test
     public void testCeilingInterval() throws Exception {
-        Date then = format.parse("5/20/2009");
-        Date ref = format.parse("6/17/2009");
-        PrettyTime t = new PrettyTime(ref.getTime());
+        LocalDateTime then = LocalDateTime.of(2009, 5, 20, 0, 0);
+        LocalDateTime ref = LocalDateTime.of(2009, 6, 17, 0, 0);
+        PrettyTime t = new PrettyTime(ref);
         assertEquals("1 महीना पहले", t.format(then));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullDate() throws Exception {
         PrettyTime t = new PrettyTime();
-        Date date = null;
-        assertEquals("अभी", t.format(date));
+        assertEquals("अभी", t.format((LocalDateTime)null));
     }
 
     @Test
     public void testRightNow() throws Exception {
         PrettyTime t = new PrettyTime();
-        assertEquals("अभी", t.format(new Date()));
+        assertEquals("अभी", t.format(LocalDateTime.now()));
     }
 
     @Test
     public void testRightNowVariance() throws Exception {
         PrettyTime t = new PrettyTime((0));
-        assertEquals("अभी", t.format(new Date(600)));
+        assertEquals("अभी", t.format((600)));
     }
 
     @Test
     public void testMinutesFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
-        assertEquals("12 मिनट बाद", t.format(new Date(1000 * 60 * 12)));
+        assertEquals("12 मिनट बाद", t.format((1000 * 60 * 12)));
     }
 
     @Test
     public void testHoursFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
-        assertEquals("3 घंटे बाद", t.format(new Date(1000 * 60 * 60 * 3)));
+        assertEquals("3 घंटे बाद", t.format((1000 * 60 * 60 * 3)));
     }
 
     @Test
     public void testDaysFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
         assertEquals("3 दिन बाद",
-                t.format(new Date(1000 * 60 * 60 * 24 * 3)));
+                t.format((1000 * 60 * 60 * 24 * 3)));
     }
 
     @Test
     public void testWeeksFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
         assertEquals("3 सप्ताह बाद",
-                t.format(new Date(1000 * 60 * 60 * 24 * 7 * 3)));
+                t.format((1000 * 60 * 60 * 24 * 7 * 3)));
     }
 
     @Test
     public void testMonthsFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
-        assertEquals("3 महीने बाद", t.format(new Date(2629743830L * 3L)));
-        //assertEquals("अभी से 3 महीने बाद", t.format(new Date(1000 * 60 * 60 * 24 * 365 * 3L)));
+        assertEquals("3 महीने बाद", t.format((2629743830L * 3L)));
+        //assertEquals("अभी से 3 महीने बाद", t.format((1000 * 60 * 60 * 24 * 365 * 3L)));
     }
 
     @Test
     public void testYearsFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
         assertEquals("3 वर्ष बाद",
-                t.format(new Date(2629743830L * 12L * 3L)));
+                t.format((2629743830L * 12L * 3L)));
     }
 
     @Test
     public void testDecadesFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
         assertEquals("3 दशक बाद",
-                t.format(new Date(315569259747L * 3L)));
+                t.format((315569259747L * 3L)));
     }
 
     @Test
     public void testCenturiesFromNow() throws Exception {
         PrettyTime t = new PrettyTime((0));
         assertEquals("3 सदियों बाद",
-                t.format(new Date(3155692597470L * 3L)));
+                t.format((3155692597470L * 3L)));
     }
 
     /*
@@ -131,37 +123,37 @@ public class PrettyTimeI18n_hi_IN_Test {
     @Test
     public void testMomentsAgo() throws Exception {
         PrettyTime t = new PrettyTime((6000));
-        assertEquals("अभी", t.format(new Date(0)));
+        assertEquals("अभी", t.format((0)));
     }
 
     @Test
     public void testMinutesAgo() throws Exception {
         PrettyTime t = new PrettyTime((1000 * 60 * 12));
-        assertEquals("12 मिनट पहले", t.format(new Date(0)));
+        assertEquals("12 मिनट पहले", t.format((0)));
     }
 
     @Test
     public void testHoursAgo() throws Exception {
         PrettyTime t = new PrettyTime((1000 * 60 * 60 * 3));
-        assertEquals("3 घंटे पहले", t.format(new Date(0)));
+        assertEquals("3 घंटे पहले", t.format((0)));
     }
 
     @Test
     public void testDaysAgo() throws Exception {
         PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3));
-        assertEquals("3 दिन पहले", t.format(new Date(0)));
+        assertEquals("3 दिन पहले", t.format((0)));
     }
 
     @Test
     public void testWeeksAgo() throws Exception {
         PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 7 * 3));
-        assertEquals("3 सप्ताह पहले", t.format(new Date(0)));
+        assertEquals("3 सप्ताह पहले", t.format((0)));
     }
 
     @Test
     public void testMonthsAgo() throws Exception {
         PrettyTime t = new PrettyTime((2629743830L * 3L));
-        assertEquals("3 महीने पहले", t.format(new Date(0)));
+        assertEquals("3 महीने पहले", t.format((0)));
     }
 
     @Test
@@ -179,89 +171,81 @@ public class PrettyTimeI18n_hi_IN_Test {
             }
         };
         t.clearUnits();
-        t.registerUnit(
-                unit,
-                new SimpleTimeFormat().setSingularName("खेल")
+        t.registerUnit(unit, new SimpleTimeFormat().setSingularName("खेल")
                         .setPluralName("खेल").setPattern("%n %u")
                         .setRoundingTolerance(20).setFutureSuffix("होंगे ")
                         .setFuturePrefix("भविष्य में ")
                         .setPastPrefix("पहले ")
                         .setPastSuffix("थे"));
 
-        assertEquals("भविष्य में 5 खेल होंगे", t.format(new Date(25000)));
+        assertEquals("भविष्य में 5 खेल होंगे", t.format((25000)));
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(25000), ZoneId.systemDefault());
         t.setReference(localDateTime);
-        assertEquals("पहले 5 खेल थे", t.format(new Date(0)));
+        assertEquals("पहले 5 खेल थे", t.format((0)));
     }
 
     @Test
     public void testYearsAgo() throws Exception {
         PrettyTime t = new PrettyTime((2629743830L * 12L * 3L));
-        assertEquals("3 वर्ष पहले", t.format(new Date(0)));
+        assertEquals("3 वर्ष पहले", t.format((0)));
     }
 
     @Test
     public void testDecadesAgo() throws Exception {
         PrettyTime t = new PrettyTime((315569259747L * 3L));
-        assertEquals("3 दशक पहले", t.format(new Date(0)));
+        assertEquals("3 दशक पहले", t.format((0)));
     }
 
     @Test
     public void testCenturiesAgo() throws Exception {
         PrettyTime t = new PrettyTime((3155692597470L * 3L));
-        assertEquals("3 सदियों पहले", t.format(new Date(0)));
+        assertEquals("3 सदियों पहले", t.format((0)));
     }
 
     @Test
     public void testWithinTwoHoursRounding() throws Exception {
         PrettyTime t = new PrettyTime();
-        assertEquals("2 घंटे पहले",
-                t.format(new Date(new Date().getTime() - 6543990)));
+        LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(6544);
+        assertEquals("2 घंटे पहले", t.format(localDateTime));
     }
 
     @Test
     public void testPreciseInTheFuture() throws Exception {
         PrettyTime t = new PrettyTime();
-        List<Duration> durations = t.calculatePreciseDuration(new Date(
-                new Date().getTime() + 1000 * (10 * 60 + 5 * 60 * 60)));
-        assertTrue(durations.size() >= 2); // might be more because of
-        // milliseconds between date
-        // capturing and result
-        // calculation
-        assertEquals(5, durations.get(0).getQuantity());
-        assertEquals(10, durations.get(1).getQuantity());
+        LocalDateTime localDateTime = LocalDateTime.now().plusSeconds(10 * 60 + 5 * 60 * 60);
+        List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
+        assertTrue(timeUnitQuantities.size() >= 2);
+        assertEquals(5, timeUnitQuantities.get(0).getQuantity());
+        assertEquals(10, timeUnitQuantities.get(1).getQuantity());
     }
 
     @Test
     public void testPreciseInThePast() throws Exception {
         PrettyTime t = new PrettyTime();
-        List<Duration> durations = t.calculatePreciseDuration(new Date(
-                new Date().getTime() - 1000 * (10 * 60 + 5 * 60 * 60)));
-        assertTrue(durations.size() >= 2); // might be more because of
-        // milliseconds between date
-        // capturing and result
-        // calculation
-        assertEquals(-5, durations.get(0).getQuantity());
-        assertEquals(-10, durations.get(1).getQuantity());
+        LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(10 * 60 + 5 * 60 * 60);
+        List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
+        assertTrue(timeUnitQuantities.size() >= 2);
+        assertEquals(-5, timeUnitQuantities.get(0).getQuantity());
+        assertEquals(-10, timeUnitQuantities.get(1).getQuantity());
     }
 
     @Test
     public void testFormattingDurationListInThePast() throws Exception {
         PrettyTime t = new PrettyTime((1000 * 60 * 60 * 24 * 3 + 1000
                 * 60 * 60 * 15 + 1000 * 60 * 38));
-        List<Duration> durations = t.calculatePreciseDuration(new Date(0));
-        assertEquals("3 दिन 15 घंटे 38 मिनट पहले", t.format(durations));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
+        List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
+        assertEquals("3 दिन 15 घंटे 38 मिनट पहले", t.format(timeUnitQuantities));
     }
 
     @Test
     public void testFormattingDurationListInTheFuture() throws Exception {
         PrettyTime t = new PrettyTime((0));
-        List<Duration> durations = t.calculatePreciseDuration(new Date(1000
-                * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15 + 1000 * 60 * 38));
-        assertEquals("3 दिन 15 घंटे 38 मिनट बाद", t.format(durations));
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 60 * 15
+                + 1000 * 60 * 38), ZoneId.systemDefault());
+        List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
+        assertEquals("3 दिन 15 घंटे 38 मिनट बाद", t.format(timeUnitQuantities));
     }
-
-    // End of duplicate test -- //
 
     @After
     public void tearDown() throws Exception {

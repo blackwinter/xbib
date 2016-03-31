@@ -8,7 +8,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.dialects.mab.xml.MabXMLReader;
-import org.xbib.marc.keyvalue.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchange2KeyValue;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;

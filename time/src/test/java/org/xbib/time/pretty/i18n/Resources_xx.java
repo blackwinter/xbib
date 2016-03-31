@@ -1,6 +1,6 @@
 package org.xbib.time.pretty.i18n;
 
-import org.xbib.time.pretty.Duration;
+import org.xbib.time.pretty.TimeUnitQuantity;
 import org.xbib.time.pretty.TimeFormat;
 import org.xbib.time.pretty.TimeUnit;
 import org.xbib.time.pretty.TimeFormatProvider;
@@ -23,27 +23,27 @@ public class Resources_xx extends ListResourceBundle implements TimeFormatProvid
             return new TimeFormat() {
 
                 @Override
-                public String decorate(Duration duration, String time) {
-                    String result = duration.getQuantityRounded(50) > 1 ? time + "es" : "e";
-                    result += duration.isInPast() ? " ago" : " from now";
+                public String decorate(TimeUnitQuantity timeUnitQuantity, String time) {
+                    String result = timeUnitQuantity.getQuantityRounded(50) > 1 ? time + "es" : "e";
+                    result += timeUnitQuantity.isInPast() ? " ago" : " from now";
                     return result;
                 }
 
                 @Override
-                public String decorateUnrounded(Duration duration, String time) {
-                    String result = duration.getQuantity() > 1 ? time + "es" : "e";
-                    result += duration.isInPast() ? " ago" : " from now";
+                public String decorateUnrounded(TimeUnitQuantity timeUnitQuantity, String time) {
+                    String result = timeUnitQuantity.getQuantity() > 1 ? time + "es" : "e";
+                    result += timeUnitQuantity.isInPast() ? " ago" : " from now";
                     return result;
                 }
 
                 @Override
-                public String format(Duration duration) {
-                    return duration.getQuantityRounded(50) + " minut";
+                public String format(TimeUnitQuantity timeUnitQuantity) {
+                    return timeUnitQuantity.getQuantityRounded(50) + " minut";
                 }
 
                 @Override
-                public String formatUnrounded(Duration duration) {
-                    return duration.getQuantity() + " minut";
+                public String formatUnrounded(TimeUnitQuantity timeUnitQuantity) {
+                    return timeUnitQuantity.getQuantity() + " minut";
                 }
             };
         }

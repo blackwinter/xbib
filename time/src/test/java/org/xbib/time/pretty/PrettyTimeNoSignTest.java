@@ -3,19 +3,17 @@ package org.xbib.time.pretty;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
 public class PrettyTimeNoSignTest {
-    SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
 
     @Test
     public void testNoSuffixes() throws Exception {
-        Date then = format.parse("8/20/2009");
-        Date ref = format.parse("5/17/2009");
-        PrettyTime p = new PrettyTime(ref.getTime(), Locale.ENGLISH);
+        LocalDateTime then = LocalDateTime.of(2009, 8, 20, 0, 0);
+        LocalDateTime ref = LocalDateTime.of(2009, 5, 17, 0, 0);
+        PrettyTime p = new PrettyTime(ref, Locale.ENGLISH);
 
         List<TimeUnit> units = p.getUnits();
         for (TimeUnit unit : units) {

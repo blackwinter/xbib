@@ -31,7 +31,6 @@
  */
 package org.xbib.marc;
 
-import org.xbib.io.field.FieldSortable;
 import org.xbib.marc.label.RecordLabel;
 
 /**
@@ -60,8 +59,6 @@ public class Field implements Comparable<Field> {
     private String subfieldId;
 
     private String data;
-
-    private String sortable;
 
     private boolean isControl;
 
@@ -96,7 +93,6 @@ public class Field implements Comparable<Field> {
         this.indicator = indicator;
         this.subfieldId = subfieldId;
         this.data = null;
-        this.sortable = null;
         this.position = -1;
         this.length = -1;
     }
@@ -326,16 +322,6 @@ public class Field implements Comparable<Field> {
      */
     public String data() {
         return data;
-    }
-
-    /**
-     * Get sortable field data
-     * @return the sortable data
-     */
-    public String dataSortable() {
-        this.sortable = data != null && data.indexOf(FieldSortable.NON_SORTABLE_BEGIN) >= 0 ?
-                data.replaceAll(FieldSortable.NON_SORTABLE_BEGIN + ".*?" + FieldSortable.NON_SORTABLE_END, "") : null;
-        return sortable;
     }
 
     public String getDesignator() {
