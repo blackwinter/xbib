@@ -73,7 +73,7 @@ public final class MARCJson extends Feeder {
                 new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
                 new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
         queue.setUnmappedKeyListener((id, key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmapped.add("\"" + key + "\"");
             }
@@ -85,14 +85,14 @@ public final class MARCJson extends Feeder {
             marcXchangeJSONLinesReader.parse();
         }
         queue.close();
-        if (settings.getAsBoolean("detect", false)) {
+        if (settings.getAsBoolean("detect-unknown", false)) {
             logger.info("unknown keys={}", unmapped);
         }
     }
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(String path, int workers) {
+        public MyEntityQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 
@@ -108,7 +108,7 @@ public final class MARCJson extends Feeder {
 
     class MyDirectQueue extends MARCDirectQueue {
 
-        public MyDirectQueue(String path, int workers) {
+        public MyDirectQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 

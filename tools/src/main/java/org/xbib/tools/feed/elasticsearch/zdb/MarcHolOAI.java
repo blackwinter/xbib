@@ -157,13 +157,13 @@ public class MarcHolOAI extends OAIFeeder {
         }
     }
 
-    protected MARCEntityQueue createQueue(Map<String,Object> params) {
+    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
         return new MyQueue(params);
     }
 
     class MyQueue extends MARCEntityQueue {
 
-        public MyQueue(Map<String,Object> params) {
+        public MyQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.hol"),
                     params,
                     settings.getAsInt("pipelines", 1),

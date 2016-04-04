@@ -94,7 +94,7 @@ public final class BibdatFromPPXML extends Feeder {
 
     class MyQueue extends PicaEntityQueue {
 
-        MyQueue(String path, int workers) {
+        MyQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 

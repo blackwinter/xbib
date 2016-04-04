@@ -102,7 +102,7 @@ public final class MarcXML extends Feeder {
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(String path, int workers) {
+        public MyEntityQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 
@@ -118,7 +118,7 @@ public final class MarcXML extends Feeder {
 
     class MyDirectQueue extends MARCDirectQueue {
 
-        public MyDirectQueue(String path, int workers) {
+        public MyDirectQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 

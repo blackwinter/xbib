@@ -87,7 +87,7 @@ public final class PICA extends Converter {
 
     static class MyQueue extends PicaEntityQueue {
 
-        MyQueue(String path, int workers) {
+        MyQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 

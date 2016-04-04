@@ -198,7 +198,7 @@ public class SRU extends Feeder {
 
     class MyBibQueue extends MARCEntityQueue {
 
-        public MyBibQueue(String path, int workers) {
+        public MyBibQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 
@@ -216,7 +216,7 @@ public class SRU extends Feeder {
 
     class MyHolQueue extends MARCEntityQueue {
 
-        public MyHolQueue(String path, int workers) {
+        public MyHolQueue(String path, int workers) throws Exception {
             super(path, workers);
         }
 

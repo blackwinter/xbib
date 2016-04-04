@@ -80,7 +80,7 @@ public class NatLiz extends Feeder {
 
         final RouteRdfXContentParams params;
 
-        public MyEntityQueue(Map<String,Object> map) {
+        public MyEntityQueue(Map<String,Object> map) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
                     map,
                     settings.getAsInt("pipelines", 1),

@@ -77,7 +77,7 @@ public class NatLizMarc extends Feeder {
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(Map<String,Object> params) {
+        public MyEntityQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),
@@ -100,7 +100,7 @@ public class NatLizMarc extends Feeder {
 
     class MyDirectQueue extends MARCDirectQueue {
 
-        public MyDirectQueue(Map<String,Object> params) {
+        public MyDirectQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     settings.getAsInt("pipelines", 1),
                     settings.get("elements")

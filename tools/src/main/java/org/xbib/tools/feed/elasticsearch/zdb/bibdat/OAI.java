@@ -153,13 +153,13 @@ public final class OAI extends OAIFeeder {
         }
     }
 
-    protected PicaEntityQueue createQueue(Map<String,Object> params) {
+    protected PicaEntityQueue createQueue(Map<String,Object> params) throws Exception {
         return new MyQueue(params);
     }
 
     class MyQueue extends PicaEntityQueue {
 
-        public MyQueue(Map<String,Object> params) {
+        public MyQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.pica.zdb.bibdat"),
                     params,
                     settings.getAsInt("pipelines", 1),

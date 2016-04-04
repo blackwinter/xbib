@@ -73,7 +73,7 @@ public class DirectHol extends Feeder {
     }
 
     @Override
-    public void process(URI uri) throws IOException {
+    public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             Reader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
@@ -109,7 +109,7 @@ public class DirectHol extends Feeder {
 
     class MyEntityQueue extends MARCDirectQueue {
 
-        public MyEntityQueue() {
+        public MyEntityQueue() throws Exception {
             super(settings.getAsInt("pipelines", 1));
         }
 

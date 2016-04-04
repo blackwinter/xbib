@@ -66,7 +66,7 @@ public class Unimarc extends Feeder {
     }
 
     @Override
-    public void process(URI uri) throws IOException {
+    public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCDirectQueue queue = new MyEntityQueue();
@@ -97,7 +97,7 @@ public class Unimarc extends Feeder {
 
     class MyEntityQueue extends MARCDirectQueue {
 
-        public MyEntityQueue() {
+        public MyEntityQueue() throws Exception {
             super(settings.get("package", "org.xbib.analyzer.unimarc.bib"),
                     settings.getAsInt("pipelines", 1),
                     settings.get("elements",  "/org/xbib/analyzer/unimarc/bib.json")
