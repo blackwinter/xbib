@@ -107,7 +107,7 @@ public abstract class BibliographicFeeder extends Feeder {
         }
     }
 
-    protected MARCEntityQueue createQueue(Map<String,Object> params) {
+    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
         return new BibQueue(params);
     }
 
@@ -115,7 +115,7 @@ public abstract class BibliographicFeeder extends Feeder {
 
     class BibQueue extends MARCEntityQueue {
 
-        public BibQueue(Map<String,Object> params) {
+        public BibQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),

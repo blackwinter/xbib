@@ -81,7 +81,7 @@ public abstract class HoldingsFeeder extends Feeder {
         elasticsearchOutput.retention(ingest, def);
     }
 
-    protected MARCEntityQueue createQueue(Map<String,Object> params) {
+    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
         return new HolQueue(params);
     }
 
@@ -89,7 +89,7 @@ public abstract class HoldingsFeeder extends Feeder {
 
     class HolQueue extends MARCEntityQueue {
 
-        public HolQueue(Map<String,Object> params) {
+        public HolQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.hol"),
                     params,
                     settings.getAsInt("pipelines", 1),

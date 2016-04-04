@@ -101,7 +101,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         elasticsearchOutput.retention(ingest, def);
     }
 
-    protected MABEntityQueue createQueue(Map<String,Object> params) {
+    protected MABEntityQueue createQueue(Map<String,Object> params) throws Exception {
         return new MyQueue(params);
     }
 
@@ -109,7 +109,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
 
     class MyQueue extends MABEntityQueue {
 
-        public MyQueue(Map<String,Object> params) {
+        public MyQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
                     params,
                     settings.getAsInt("pipelines", 1),
