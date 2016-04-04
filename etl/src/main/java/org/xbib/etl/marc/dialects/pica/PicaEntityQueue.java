@@ -90,7 +90,7 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                 return;
             }
             String key = fields.toKey();
-            PicaEntity entity = (PicaEntity) specification().getEntity(key, map());
+            PicaEntity entity = getSpecification().getEntity(key, getMap());
             if (entity != null) {
                 Map<String, Object> params = entity.getParams();
                 // entity-based processing

@@ -36,7 +36,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.iri.IRI;
@@ -163,8 +165,16 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
     }
 
     protected void build(Resource resource) throws IOException {
+        build(new LinkedHashSet<>(), resource);
+    }
+
+    protected void build(Set<Resource> resourceSet,
+                         Resource resource) throws IOException {
         if (resource == null) {
             return;
+        }
+        if (resourceSet.contains(resource)) {
+            throw new IllegalArgumentException("no recursive resources allowed: resource=" + resource);
         }
         for (IRI predicate : resource.predicates()) {
             // first, the values
@@ -191,30 +201,27 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
             final Collection<Resource> resources = resource.embeddedResources(predicate);
             if (resources.size() == 1) {
                 Resource res = resources.iterator().next();
-                if (res.equals(resource)) {
-                    throw new IllegalArgumentException("no recursive resources allowed: resource=" + res);
-                }
                 if (!res.isEmpty()) {
                     builder.field(params.getNamespaceContext().compact(predicate));
                     builder.startObject();
-                    build(res);
+                    build(resourceSet, res);
                     builder.endObject();
                 }
+                resourceSet.add(res);
             } else if (resources.size() > 1) {
                 builder.field(params.getNamespaceContext().compact(predicate));
                 builder.startArray();
                 for (Resource res : resources) {
-                    if (res.equals(resource)) {
-                        throw new IllegalArgumentException("no recursive resources allowed: resource=" + res);
-                    }
                     if (!res.isEmpty()) {
                         builder.startObject();
-                        build(res);
+                        build(resourceSet, res);
                         builder.endObject();
                     }
+                    resourceSet.add(res);
                 }
                 builder.endArray();
             }
         }
+        resourceSet.add(resource);
     }
 }

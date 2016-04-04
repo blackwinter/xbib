@@ -69,7 +69,6 @@ public final class PICA extends Converter {
                     unmapped.add("\"" + key + "\"");
                 }
             });
-            logger.info("queue is up, {} elements", queue.map().size());
             queue.execute();
             MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                     .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))

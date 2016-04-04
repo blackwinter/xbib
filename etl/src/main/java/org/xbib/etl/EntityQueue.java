@@ -51,25 +51,25 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
 
     private final static Logger logger = LogManager.getLogger(EntityQueue.class.getName());
 
-    private final Specification specification;
+    private final Specification<E> specification;
 
-    private final Map map;
+    private final Map<String,Object> map;
 
     private LinkedList<K> keys;
 
     private boolean closed;
 
-    public EntityQueue(Specification specification, int workers) {
+    public EntityQueue(Specification<E> specification, int workers) {
         super(workers);
         this.specification = specification;
         this.map = specification.getMap();
     }
 
-    public Specification specification() {
+    public Specification<E> getSpecification() {
         return specification;
     }
 
-    public Map map() {
+    public Map<String,Object> getMap() {
         return map;
     }
 

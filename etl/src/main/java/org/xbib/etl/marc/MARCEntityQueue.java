@@ -71,7 +71,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
             throws Exception {
         super(new MARCSpecification(new HashMap<>(), params, MARCEntityQueue.class.getClassLoader(),
                 packageName, paths), workers);
-        logger.info("specification: {} {} entities", specification(), specification().getEntities().size());
+        logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
     }
 
     public MARCEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {
@@ -122,7 +122,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                 fields.add(new Field().tag(f.tag()).data(value));
             }*/
             String key = fields.toKey();
-            MARCEntity entity = (MARCEntity) specification().getEntity(key, map());
+            MARCEntity entity = getSpecification().getEntity(key, getMap());
             if (entity != null) {
                 // entity-based processing
                 boolean done = entity.fields(this, fields);

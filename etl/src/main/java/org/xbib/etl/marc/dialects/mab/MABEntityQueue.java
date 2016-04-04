@@ -91,7 +91,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         this.packageName = packageName;
         this.identifierMapper = setupIdentifierMapper(params);
         this.statusMapper = setupStatusMapper(params);
-        logger.info("specification: {} {} entities", specification(), specification().getEntities().size());
+        logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
         logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
         logger.info("status mapper: {} entries", statusMapper.getMap().size());
     }
@@ -197,7 +197,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
         @Override
         public MABEntityBuilderState newState() {
-            return new MABEntityBuilderState(packageName, specification(),
+            return new MABEntityBuilderState(packageName, getSpecification(),
                     new MemoryRdfGraph(), contentBuilderProviders());
         }
 
@@ -207,12 +207,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 return;
             }
             String key = fields.toKey();
-            MABEntity entity = null;
-            try {
-                entity = (MABEntity) specification().getEntity(key, map());
-            } catch (ClassCastException e) {
-                logger.debug("no MABEntity class found for key: '{}'", key);
-            }
+            MABEntity entity = getSpecification().getEntity(key, getMap());
             if (entity != null) {
                 boolean done = entity.fields(this, fields);
                 if (done) {
@@ -243,7 +238,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             if (defaultSubfields == null) {
                 return resource;
             }
-            Map<Field, String> fieldNames = new HashMap();
+            Map<Field, String> fieldNames = new HashMap<>();
             // create another anoymous resource
             Resource newResource = resource.newResource(tempPredicate);
             // default predicate is the name of the element class
