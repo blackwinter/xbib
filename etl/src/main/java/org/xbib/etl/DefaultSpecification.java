@@ -40,100 +40,68 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.scripting.ScriptEntity;
 
-public class DefaultSpecification implements Specification {
+public class DefaultSpecification<E extends Entity> implements Specification<E> {
 
     private final static Logger logger = LogManager.getLogger(DefaultSpecification.class.getName());
 
-    private final static Map<String, Map> maps = new TreeMap<>();
-
-    private final static Map<String, Entity> entities = new HashMap<>();
-
-    private final static ReentrantLock lock = new ReentrantLock();
-
     private final static int DEFAULT_BUFFER_SIZE = 8192;
+
+    private final Map<String, Object> map;
+
+    private final Map<String, E> entities;
 
     private final Map<String,Object> params;
 
-    public DefaultSpecification() {
-        params = new HashMap<>();
-    }
-
-    public DefaultSpecification addParameters(Map<String,Object> params) {
-        this.params.putAll(params);
-        return this;
-    }
-
-    public Map<String,Map> map() {
-        return maps;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Map getEntityMap(ClassLoader cl, String packageName, String... paths) throws Exception {
+    public DefaultSpecification(Map<String,E> entites, Map<String,Object> params,
+                                ClassLoader cl, String packageName, String... paths) throws Exception {
+        this.entities = entites;
+        this.params = params;
         if (paths == null || paths.length == 0) {
-            throw new IllegalArgumentException("no path");
+            throw new IllegalArgumentException("no path given");
         }
-        String path = paths[0];
-        if (maps.containsKey(path)) {
-            return maps.get(path);
+        this.map = new TreeMap<>();
+        for (String path : paths) {
+            logger.info("initializing from {}", path);
+            init(cl, packageName, path);
         }
-        try {
-            if (lock.isLocked()) {
-                try {
-                    logger.info("waiting for initialized specification");
-                    lock.tryLock(30, TimeUnit.SECONDS);
-                    if (maps.containsKey(path)) {
-                        return maps.get(path);
-                    }
-                } catch (InterruptedException e) {
-                    logger.warn("interrupted");
-                }
-            } else {
-                lock.lock();
-            }
-            final Map elementMap = new TreeMap<>();
-            for (String s : paths) {
-                logger.info("initializing from {}", s);
-                InputStream in = loadResource(cl, s);
-                if (in == null) {
-                    String msg = "not found: " + s;
-                    throw new IOException(msg);
-                }
-                Map<String, Map<String, Object>> defs = new ObjectMapper()
-                        .configure(Feature.ALLOW_COMMENTS, true).readValue(in, Map.class);
-                init(cl, packageName, s, elementMap, defs);
-            }
-            maps.put(path, elementMap);
-            logger.info("initialized {} elements", elementMap.size());
-            return maps.get(path);
-        } finally {
-            lock.unlock();
-        }
+        logger.info("initialized map of {} keys", map.size());
+    }
+
+    @Override
+    public Map<String,Object> getMap() {
+        return map;
+    }
+
+    @Override
+    public Map<String,E> getEntities() {
+        return entities;
     }
 
     @SuppressWarnings("unchecked")
-    private void init(ClassLoader cl, String packageName, String path, Map elementMap, Map<String, Map<String, Object>> defs)
-                throws Exception {
+    private void init(ClassLoader cl, String packageName, String path) throws Exception {
+        InputStream in = loadResource(cl, path);
+        if (in == null) {
+            String msg = "not found: " + path;
+            throw new IOException(msg);
+        }
+        Map<String, Map<String, Object>> defs = new ObjectMapper()
+                .configure(Feature.ALLOW_COMMENTS, true).readValue(in, Map.class);
         for (Map.Entry<String, Map<String,Object>> entry : defs.entrySet()) {
             String key = entry.getKey();
             Map<String,Object> struct = entry.getValue();
             // allow override static struct map from json with given params
             struct.putAll(params);
-            Entity entity = null;
+            E entity = null;
             String type = (String) struct.get("_type");
             if (type != null && type.startsWith("application/x-")) {
                 String language = type.substring("application/x-".length());
@@ -146,43 +114,34 @@ public class DefaultSpecification implements Specification {
                         throw new IOException(path + script + " not found: " + path + script);
                     }
                     InputStreamReader reader = new InputStreamReader(input, "UTF-8");
-                    ScriptEntity scriptElement = new ScriptEntity(language, getString(reader), invocable);
-                    scriptElement.setSettings(struct);
-                    entity = scriptElement.getEntity();
+                    ScriptEntity<E> scriptEntity = new ScriptEntity(language, getString(reader), invocable);
+                    scriptEntity.setSettings(struct);
+                    entity = scriptEntity.getEntity();
                     reader.close();
                 } else if (source != null) {
-                    ScriptEntity scriptElement = new ScriptEntity(language, source, invocable);
-                    scriptElement.setSettings(struct);
-                    entity = scriptElement.getEntity();
+                    ScriptEntity<E> scriptEntity = new ScriptEntity(language, source, invocable);
+                    scriptEntity.setSettings(struct);
+                    entity = scriptEntity.getEntity();
                 }
             } else {
-                // sub resource in classpath?
-                InputStream in = loadResource(cl, path + key);
-                if (in != null) {
-                    Map<String, Map<String, Object>> children =
-                            new ObjectMapper().configure(Feature.ALLOW_COMMENTS, true).readValue(in, Map.class);
-                    // recursive
-                    init(cl, packageName, path + key, elementMap, children);
-                } else {
-                    // load class
-                    Class clazz = loadClass(cl, packageName + "." + key);
-                    if (clazz == null) {
-                        // custom class name, try without package
-                        clazz = loadClass(cl, key);
-                    }
-                    if (clazz != null) {
-                        Method factoryMethod = clazz.getDeclaredMethod("getInstance");
+                // load class
+                Class clazz = loadClass(cl, packageName + "." + key);
+                if (clazz == null) {
+                    // custom class name, try without package
+                    clazz = loadClass(cl, key);
+                }
+                if (clazz != null) {
+                    try {
+                        entity = (E)clazz.getDeclaredConstructor(Map.class).newInstance(struct);
+                    } catch (Throwable t1) {
                         try {
-                            entity = (Entity) factoryMethod.invoke(null);
-                        } catch (NullPointerException e) {
-                            logger.error("'getInstance' method declared not static in {}" + clazz.getName());
-                        } catch (ClassCastException e) {
-                            logger.error("not an Entity class: " + clazz.getName());
+                            entity = (E) clazz.newInstance();
+                        } catch (Throwable t2) {
+                            logger.error("can't instantiate class " + clazz.getName());
                         }
-                        if (entity != null) {
-                            entity.setSettings(struct);
-                            entities.put(packageName + "." + key, entity);
-                        }
+                    }
+                    if (entity != null) {
+                        entities.put(packageName + "." + key, entity);
                     }
                 }
             }
@@ -190,19 +149,19 @@ public class DefaultSpecification implements Specification {
             Collection<String> values = (Collection<String>) struct.get("values");
             if (values != null) {
                 for (String value : values) {
-                    addKey(value, entity, elementMap);
+                    addKey(value, entity, this.map);
                 }
             }
         }
     }
 
-    @Override
-    public Map<String,Entity> getEntities() {
-        return entities;
+    public Map addKey(String value, Entity entity, Map map) {
+        // we do not add anything by default .... have to be overridden
+        return map;
     }
 
     @Override
-    public Entity getEntity(String key, Map map) {
+    public E getEntity(String key, Map map) {
         if (key == null) {
             return null;
         }
@@ -212,30 +171,19 @@ public class DefaultSpecification implements Specification {
         return getEntity(h, t, map);
     }
 
-    @Override
-    public Entity getEntityByKey(String key, Map map) {
-        return getEntity(null, key, map);
-    }
-
-    public Map addKey(String value, Entity entity, Map map) {
-        return map;
-    }
-
     @SuppressWarnings("unchecked")
-    public void dump(String format, Writer writer) throws IOException {
-        Map<String,Object> m = map().get(format);
-        if (m == null) {
-            throw new IOException("format "+ format + " missing");
-        }
+    public void dump(Writer writer) throws IOException {
+        Map<String,Object> m = getMap();
         Map<String,List<String>> elements = new TreeMap<>();
         dump(elements, null, m);
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(writer, elements);
     }
 
-    private Entity getEntity(String head, String tail, Map map) {
+    @SuppressWarnings("unchecked")
+    private E getEntity(String head, String tail, Map map) {
         if (head == null) {
-            return (Entity)map.get(tail);
+            return (E)map.get(tail);
         }
         int pos = tail != null ? tail.indexOf('$') : 0;
         String h = pos > 0 ? tail.substring(0, pos) : null;
@@ -243,7 +191,7 @@ public class DefaultSpecification implements Specification {
         Object o = map.get(head);
         if (o != null) {
             return o instanceof Map ? getEntity(h, t, (Map)o) :
-                   o instanceof Entity ? (Entity)o : null;
+                   o instanceof Entity ? (E)o : null;
         } else {
             return null;
         }

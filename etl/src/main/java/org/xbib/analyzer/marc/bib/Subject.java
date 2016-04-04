@@ -35,10 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class Subject extends MARCEntity {
 
-    private final static Subject instance = new Subject();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
 }

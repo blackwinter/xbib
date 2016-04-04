@@ -34,10 +34,4 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class MeetingName extends MARCEntity {
-    private final static MeetingName instance = new MeetingName();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
 }

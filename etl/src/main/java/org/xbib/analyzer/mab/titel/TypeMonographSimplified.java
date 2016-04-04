@@ -12,12 +12,6 @@ import java.util.Map;
 
 public class TypeMonographSimplified extends MABEntity {
 
-    private final static TypeMonographSimplified element = new TypeMonographSimplified();
-
-    public static TypeMonographSimplified getInstance() {
-        return element;
-    }
-
     public final static String FACET = "dc.type";
 
     private String predicate;
@@ -26,24 +20,19 @@ public class TypeMonographSimplified extends MABEntity {
 
     private Map<String, Object> facetcodes;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TypeMonographSimplified(Map<String,Object> params) {
+        super(params);
         this.predicate = this.getClass().getSimpleName();
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getSettings().get("codes");
-        this.facetcodes = (Map<String, Object>) getSettings().get("facetcodes");
-        return this;
+        this.codes = (Map<String, Object>) getParams().get("codes");
+        this.facetcodes = (Map<String, Object>) getParams().get("facetcodes");
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         if (codes != null) {
             for (int i = 0; i < value.length(); i++) {
                 String code = (String) codes.get(value.substring(i, i + 1));

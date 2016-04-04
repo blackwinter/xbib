@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class SourceIdentifier extends MABEntity {
 
-    private final static SourceIdentifier element = new SourceIdentifier();
-
-    public static SourceIdentifier getInstance() {
-        return element;
-    }
-
 }

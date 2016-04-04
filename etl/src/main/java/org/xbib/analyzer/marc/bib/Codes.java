@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class Codes extends MARCEntity {
-    private final static Codes instance = new Codes();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
 }

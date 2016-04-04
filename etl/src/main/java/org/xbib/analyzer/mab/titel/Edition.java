@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Edition extends MABEntity {
 
-    private final static Edition element = new Edition();
-
-    public static Edition getInstance() {
-        return element;
-    }
-
 }

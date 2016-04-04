@@ -34,10 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class Language extends MARCEntity {
-    private final static Language instance = new Language();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
 }

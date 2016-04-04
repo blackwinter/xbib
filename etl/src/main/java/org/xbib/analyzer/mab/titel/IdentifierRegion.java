@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class IdentifierRegion extends MABEntity {
 
-    private final static IdentifierRegion element = new IdentifierRegion();
-
-    public static IdentifierRegion getInstance() {
-        return element;
-    }
-
 }

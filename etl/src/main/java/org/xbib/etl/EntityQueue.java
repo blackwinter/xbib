@@ -34,7 +34,6 @@ package org.xbib.etl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.iri.IRI;
-import org.xbib.util.KeyValue;
 import org.xbib.util.KeyValueStreamListener;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.memory.MemoryRdfGraph;
@@ -48,38 +47,22 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
-    extends SimpleForkJoinPipeline<List<KeyValue<K,V>>> implements KeyValueStreamListener<K,V> {
+    extends SimpleForkJoinPipeline<List<K>> implements KeyValueStreamListener<K,V> {
 
     private final static Logger logger = LogManager.getLogger(EntityQueue.class.getName());
-
-    private final static ClassLoader classLoader = EntityQueue.class.getClassLoader();
 
     private final Specification specification;
 
     private final Map map;
 
-    private LinkedList<KeyValue<K,V>> keyvalues;
+    private LinkedList<K> keys;
 
     private boolean closed;
 
     public EntityQueue(Specification specification, int workers) {
         super(workers);
         this.specification = specification;
-        this.map = new HashMap<>();
-    }
-
-    public EntityQueue(Specification specification, int workers, String packageName, String... paths) {
-        this(specification, workers, classLoader, packageName, paths);
-    }
-
-    public EntityQueue(Specification specification, int workers, ClassLoader cl, String packageName, String... paths) {
-        super(workers);
-        this.specification = specification;
-        try {
-            this.map = specification.getEntityMap(cl, packageName, paths);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        this.map = specification.getMap();
     }
 
     public Specification specification() {
@@ -92,13 +75,13 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
 
     @Override
     public EntityQueue<S, E, K, V> begin() {
-        keyvalues = new LinkedList<>();
+        keys = new LinkedList<>();
         return this;
     }
 
     @Override
     public EntityQueue<S, E, K, V> keyValue(K key, V value) {
-        keyvalues.add(new KeyValue<K,V>(key, value));
+        keys.add(key);
         return this;
     }
 
@@ -121,8 +104,8 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
             return this;
         }
         try {
-            submit((List<KeyValue<K, V>>) keyvalues.clone());
-            keyvalues.clear();
+            submit((List<K>) keys.clone());
+            keys.clear();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             closed = true;
@@ -135,10 +118,10 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
         return this;
     }
 
-    private final List<KeyValue<K, V>> poison = new LinkedList<>();
+    private final List<K> poison = new LinkedList<>();
 
     @Override
-    protected List<KeyValue<K, V>> poison() {
+    protected List<K> poison() {
         return poison;
     }
 
@@ -157,20 +140,18 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
         return new EntityWorker();
     }
 
-    public class EntityWorker extends DefaultWorker implements Worker<List<KeyValue<K,V>>> {
+    public class EntityWorker extends DefaultWorker implements Worker<List<K>> {
 
         private S state;
 
         @Override
-        public void execute(List<KeyValue<K, V>> request) throws IOException {
+        public void execute(List<K> request) throws IOException {
             this.state = newState();
-            for (KeyValue<K,V> kv : request) {
-                K key = kv.key();
-                V value = kv.value();
+            for (K key : request) {
                 if (key == null) {
                     break;
                 } else {
-                    build(key, value);
+                    build(key);
                 }
             }
             beforeCompletion(state);
@@ -182,7 +163,7 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
             return state;
         }
 
-        public void build(K key, V value) throws IOException {
+        public void build(K key) throws IOException {
         }
 
         @SuppressWarnings("unchecked")

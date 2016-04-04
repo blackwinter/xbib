@@ -13,12 +13,6 @@ import java.util.Map;
 
 public class TypePeriodical extends MABEntity {
 
-    private final static TypePeriodical element = new TypePeriodical();
-
-    public static TypePeriodical getInstance() {
-        return element;
-    }
-
     private String facet = "dc.type";
 
     private String predicate;
@@ -27,9 +21,8 @@ public class TypePeriodical extends MABEntity {
 
     private Map<String, Object> facetcodes;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TypePeriodical(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
@@ -37,17 +30,13 @@ public class TypePeriodical extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getSettings().get("codes");
-        this.facetcodes = (Map<String, Object>) getSettings().get("facetcodes");
-        return this;
+        this.codes = (Map<String, Object>) getParams().get("codes");
+        this.facetcodes = (Map<String, Object>) getParams().get("facetcodes");
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         if (codes != null) {
             for (int i = 0; i < value.length(); i++) {
                 Map<String, Object> q = (Map<String, Object>) codes.get(Integer.toString(i));

@@ -56,7 +56,7 @@ public class MARCEntityTest extends Assert {
         file.deleteOnExit();
         Writer writer = new FileWriter(file);
         MyQueue queue = new MyQueue();
-        queue.specification().dump("org/xbib/analyzer/marc/bib.json", writer);
+        queue.specification().dump(/*"org/xbib/analyzer/marc/bib.json",*/ writer);
         writer.close();
         queue.execute();
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
@@ -87,7 +87,7 @@ public class MARCEntityTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
+        public MyQueue() throws Exception {
             super("org.xbib.analyzer.marc.bib", 1, "org/xbib/analyzer/marc/bib.json");
         }
 

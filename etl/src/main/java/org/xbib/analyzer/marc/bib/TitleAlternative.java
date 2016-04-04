@@ -34,10 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class TitleAlternative extends MARCEntity {
-    
-    private final static MARCEntity element = new TitleAlternative();
 
-    public static MARCEntity getInstance() {
-        return element;
-    }
 }

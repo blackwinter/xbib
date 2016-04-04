@@ -38,12 +38,6 @@ import org.xbib.rdf.Resource;
 
 public class Person extends MABEntity {
 
-    private final static Person element = new Person();
-
-    public static Person getInstance() {
-        return element;
-    }
-
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {
@@ -82,5 +76,4 @@ public class Person extends MABEntity {
                 .replaceAll("¬(.*?)¬", "\u0098$1\u009C");
 
     }
-
 }

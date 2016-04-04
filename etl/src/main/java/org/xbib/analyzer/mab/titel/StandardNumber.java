@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class StandardNumber extends MABEntity {
 
-    private final static StandardNumber element = new StandardNumber();
-
-    public static StandardNumber getInstance() {
-        return element;
-    }
-
 }

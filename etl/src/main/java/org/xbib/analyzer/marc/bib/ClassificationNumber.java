@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class ClassificationNumber extends MARCEntity {
-    private final static ClassificationNumber instance = new ClassificationNumber();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
 }

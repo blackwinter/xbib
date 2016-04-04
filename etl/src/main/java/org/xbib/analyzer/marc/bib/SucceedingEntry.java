@@ -35,10 +35,5 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class SucceedingEntry extends MARCEntity {
 
-    private final static SucceedingEntry instance = new SucceedingEntry();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
 }

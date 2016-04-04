@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Title extends MABEntity {
 
-    private final static Title element = new Title();
-
-    public static Title getInstance() {
-        return element;
-    }
-
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {

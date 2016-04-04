@@ -33,14 +33,20 @@ package org.xbib.etl.dublincore;
 
 import org.xbib.etl.EntityQueue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DublinCoreEntityQueue extends EntityQueue<DublinCoreEntityBuilderState, DublinCoreEntity, String, String> {
 
-    public DublinCoreEntityQueue(String packageName, String... paths) {
-        super(new DublinCoreSpecification(), 1, packageName, paths);
+    public DublinCoreEntityQueue(String packageName, String... paths) throws Exception {
+        this(packageName, new HashMap<>(), 1, paths);
     }
 
-    public DublinCoreEntityQueue(String packageName, int workers, String... paths) {
-        super(new DublinCoreSpecification(), workers, packageName, paths);
+    public DublinCoreEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths)
+            throws Exception {
+        super(new DublinCoreSpecification(new HashMap<>(), params,
+                DublinCoreEntityQueue.class.getClassLoader(), packageName, paths),
+                workers);
     }
 
 }

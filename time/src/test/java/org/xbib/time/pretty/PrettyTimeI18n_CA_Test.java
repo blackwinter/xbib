@@ -196,8 +196,7 @@ public class PrettyTimeI18n_CA_Test {
         PrettyTime t = new PrettyTime();
         LocalDateTime localDateTime = LocalDateTime.now().plusSeconds(10 * 60 + 5 * 60 * 60);
         List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
-        assertTrue(timeUnitQuantities.size() >= 2); // might be more because of milliseconds between date capturing and result
-        // calculation
+        assertTrue(timeUnitQuantities.size() >= 2);
         assertEquals(5, timeUnitQuantities.get(0).getQuantity());
         assertEquals(10, timeUnitQuantities.get(1).getQuantity());
     }
@@ -207,8 +206,7 @@ public class PrettyTimeI18n_CA_Test {
         PrettyTime t = new PrettyTime();
         LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(10 * 60 + 5 * 60 * 60);
         List<TimeUnitQuantity> timeUnitQuantities = t.calculatePreciseDuration(localDateTime);
-        assertTrue(timeUnitQuantities.size() >= 2); // might be more because of milliseconds between date capturing and result
-        // calculation
+        assertTrue(timeUnitQuantities.size() >= 2);
         assertEquals(-5, timeUnitQuantities.get(0).getQuantity());
         assertEquals(-10, timeUnitQuantities.get(1).getQuantity());
     }

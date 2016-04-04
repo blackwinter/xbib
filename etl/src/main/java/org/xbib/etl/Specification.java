@@ -35,17 +35,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
-public interface Specification {
+public interface Specification<E extends Entity> {
 
-    Map getEntityMap(ClassLoader cl, String analyzerPackageName, String... path) throws Exception;
+    Map<String, E> getEntities();
 
-    Map<String, Entity> getEntities();
+    E getEntity(String spec, Map map);
 
-    Entity getEntity(String spec, Map map);
+    Map<String,Object> getMap();
 
-    Entity getEntityByKey(String key, Map map);
-
-    Map<String,Map> map();
-
-    void dump(String format, Writer writer) throws IOException;
+    void dump(Writer writer) throws IOException;
 }

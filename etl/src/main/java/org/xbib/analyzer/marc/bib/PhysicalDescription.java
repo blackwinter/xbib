@@ -34,10 +34,6 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class PhysicalDescription extends MARCEntity {
-    private final static PhysicalDescription instance = new PhysicalDescription();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
     
 }

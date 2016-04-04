@@ -37,15 +37,8 @@ import org.xbib.marc.FieldList;
 
 public class Event extends MARCEntity {
 
-    private final static Event instance = new Event();
-
-    public static Event getInstance() {
-        return instance;
-    }
-
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) {
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) {
         return true;
     }
 

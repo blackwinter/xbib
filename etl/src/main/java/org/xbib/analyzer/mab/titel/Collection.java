@@ -40,23 +40,15 @@ import java.util.Map;
 
 public class Collection extends MABEntity {
 
-    private final static Collection element = new Collection();
-
-    public static Collection getInstance() {
-        return element;
-    }
-
     public final static String FACET = "collection";
 
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public Collection(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("collection")) {
             this.prefix = params.get("collection").toString();
         }
-        return this;
     }
 
     public Facet getDefaultFacet() {

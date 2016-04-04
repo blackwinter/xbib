@@ -42,18 +42,10 @@ import java.util.Map;
 
 public class Date extends MABEntity {
 
-    private final static Date element = new Date();
-
-    public static Date getInstance() {
-        return element;
-    }
-
     public final static String FACET = "dc.date";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
-        return this;
+    public Date(Map<String,Object> params) {
+        super(params);
     }
 
     @Override

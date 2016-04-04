@@ -47,21 +47,14 @@ import java.util.regex.Pattern;
 
 public class TypeMedia extends MABEntity {
 
-    private final static TypeMedia element = new TypeMedia();
-
-    public static TypeMedia getInstance() {
-        return element;
-    }
-
     private String facet = "dc.format";
 
     private String predicate;
 
     private final Map<Pattern,String> patterns = new HashMap<Pattern,String>();
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TypeMedia(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
@@ -69,7 +62,7 @@ public class TypeMedia extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        Map<String, Object> regexes = (Map<String, Object>) getSettings().get("regexes");
+        Map<String, Object> regexes = (Map<String, Object>) getParams().get("regexes");
         if (regexes != null) {
             synchronized (patterns) {
                 for (Map.Entry<String, Object> entry : regexes.entrySet()) {
@@ -78,15 +71,11 @@ public class TypeMedia extends MABEntity {
                 }
             }
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         for (String code : findCodes(value)) {
             worker.state().getResource().add(predicate, code);
             // facetize here, so we have to find codes only once
@@ -101,7 +90,7 @@ public class TypeMedia extends MABEntity {
     private List<String> findCodes(String value) {
         boolean isRAK = false;
         List<String> list = new LinkedList<>();
-        Map<String, Object> rak = (Map<String, Object>) getSettings().get("rak");
+        Map<String, Object> rak = (Map<String, Object>) getParams().get("rak");
         if (rak != null && rak.containsKey(value)) {
             list.add((String) rak.get(value));
             isRAK = true;

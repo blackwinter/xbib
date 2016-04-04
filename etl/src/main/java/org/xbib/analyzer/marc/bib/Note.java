@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class Note extends MARCEntity {
-    private final static Note instance = new Note();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
 }

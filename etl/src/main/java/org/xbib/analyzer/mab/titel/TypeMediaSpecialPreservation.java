@@ -45,24 +45,17 @@ import java.util.regex.Pattern;
 
 public class TypeMediaSpecialPreservation extends MABEntity {
 
-    private final static TypeMediaSpecialPreservation element = new TypeMediaSpecialPreservation();
-
-    public static TypeMediaSpecialPreservation getInstance() {
-        return element;
-    }
-
     private String predicate;
 
     private Map<Pattern,String> patterns;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TypeMediaSpecialPreservation(Map<String,Object> params) {
+        super(params);
         this.predicate = this.getClass().getSimpleName();
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        Map<String, Object> regexes = (Map<String, Object>) getSettings().get("regexes");
+        Map<String, Object> regexes = (Map<String, Object>) getParams().get("regexes");
         if (regexes != null) {
             patterns = new HashMap<>();
             for (Map.Entry<String, Object> entry : regexes.entrySet()) {
@@ -70,15 +63,11 @@ public class TypeMediaSpecialPreservation extends MABEntity {
                 patterns.put(Pattern.compile(Pattern.quote(key), Pattern.CASE_INSENSITIVE), (String) regexes.get(key));
             }
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         for (String code : findCodes(value)) {
             worker.state().getResource().add(predicate, code);
         }
@@ -87,7 +76,7 @@ public class TypeMediaSpecialPreservation extends MABEntity {
 
     private List<String> findCodes(String value) {
         List<String> list = new LinkedList<>();
-        Map<String, Object> rak = (Map<String, Object>) getSettings().get("rak");
+        Map<String, Object> rak = (Map<String, Object>) getParams().get("rak");
         if (rak != null && rak.containsKey(value)) {
             list.add((String) rak.get(value));
         }

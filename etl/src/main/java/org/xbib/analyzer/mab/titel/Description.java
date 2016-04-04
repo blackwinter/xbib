@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Description extends MABEntity {
 
-    private final static Description element = new Description();
-
-    public static Description getInstance() {
-        return element;
-    }
-
 }

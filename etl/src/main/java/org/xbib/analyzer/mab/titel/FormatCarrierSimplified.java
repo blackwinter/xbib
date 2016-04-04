@@ -13,34 +13,22 @@ import java.util.Map;
 
 public class FormatCarrierSimplified extends MABEntity {
 
-    private final static FormatCarrierSimplified element = new FormatCarrierSimplified();
-
-    public static FormatCarrierSimplified getInstance() {
-        return element;
-    }
-
     public final static String FACET = "dc.format";
 
     private String predicate;
 
-
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public FormatCarrierSimplified(Map<String,Object> params) {
+        super(params);
         this.predicate = this.getClass().getSimpleName();
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
-        Map<String, Object> tags = (Map<String, Object>) getSettings().get("tags");
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
+        Map<String, Object> tags = (Map<String, Object>) getParams().get("tags");
         if (tags == null) {
             return true;
         }
@@ -49,7 +37,7 @@ public class FormatCarrierSimplified extends MABEntity {
             if (key == null) {
                 continue;
             }
-            Map<String, Object> values = (Map<String, Object>) getSettings().get(key);
+            Map<String, Object> values = (Map<String, Object>) getParams().get(key);
             if (values == null) {
                 continue;
             }

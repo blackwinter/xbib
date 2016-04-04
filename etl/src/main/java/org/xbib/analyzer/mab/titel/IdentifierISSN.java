@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class IdentifierISSN extends MABEntity {
 
-    private final static IdentifierISSN element = new IdentifierISSN();
-
-    public static IdentifierISSN getInstance() {
-        return element;
-    }
-
 }

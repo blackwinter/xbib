@@ -29,9 +29,8 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.etl.marc.direct;
+package org.xbib.etl.marc;
 
-import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.rdf.Resource;
@@ -40,11 +39,11 @@ import java.io.IOException;
 
 public class MARCDirectQueue extends MARCEntityQueue {
 
-    public MARCDirectQueue(int workers) {
+    public MARCDirectQueue(int workers) throws Exception {
         super(workers);
     }
 
-    public MARCDirectQueue(String packageName, int workers, String... paths) {
+    public MARCDirectQueue(String packageName, int workers, String... paths) throws Exception {
         super(packageName, workers, paths);
     }
 
@@ -56,7 +55,7 @@ public class MARCDirectQueue extends MARCEntityQueue {
     public class MARCDirectWorker extends MARCWorker {
 
         @Override
-        public void build(FieldList fields, String value) throws IOException {
+        public void build(FieldList fields) throws IOException {
             if (fields == null) {
                 return;
             }

@@ -105,7 +105,7 @@ public class ZDBBibTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
+        public MyQueue() throws Exception {
             super("org.xbib.analyzer.marc.zdb.bib",
                     Runtime.getRuntime().availableProcessors(),
                     "org/xbib/analyzer/marc/zdb/bib.json");

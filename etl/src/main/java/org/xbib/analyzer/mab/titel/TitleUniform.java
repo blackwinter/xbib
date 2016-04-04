@@ -33,10 +33,4 @@ package org.xbib.analyzer.mab.titel;
 
 public class TitleUniform extends Title {
 
-    private final static TitleUniform element = new TitleUniform();
-
-    public static TitleUniform getInstance() {
-        return element;
-    }
-
 }

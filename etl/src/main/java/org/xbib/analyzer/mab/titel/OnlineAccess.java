@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class OnlineAccess extends MABEntity {
 
-    private final static OnlineAccess element = new OnlineAccess();
-
-    public static OnlineAccess getInstance() {
-        return element;
-    }
-
 }

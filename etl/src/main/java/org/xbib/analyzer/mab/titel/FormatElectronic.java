@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class FormatElectronic extends MABEntity {
 
-    private final static FormatElectronic element = new FormatElectronic();
-
-    public static FormatElectronic getInstance() {
-        return element;
-    }
-
 }

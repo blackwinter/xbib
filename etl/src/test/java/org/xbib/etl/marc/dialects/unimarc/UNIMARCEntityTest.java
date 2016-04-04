@@ -53,7 +53,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class UNIMARCEntityTest extends Assert {
 
-
     @Test
     public void testSetupOfElements() throws Exception {
         MyQueue queue = new MyQueue();
@@ -61,7 +60,7 @@ public class UNIMARCEntityTest extends Assert {
         File file = File.createTempFile("unimarc-mapping.", ".json");
         file.deleteOnExit();
         Writer writer = new FileWriter(file);
-        queue.specification().dump("org/xbib/analyzer/unimarc/bib.json", writer);
+        queue.specification().dump(/*"org/xbib/analyzer/unimarc/bib.json",*/ writer);
         writer.close();
         // test the mapper in a MarcXchange listener
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
@@ -71,7 +70,7 @@ public class UNIMARCEntityTest extends Assert {
     }
 
     @Test
-    public void testUNIMARC() throws IOException {
+    public void testUNIMARC() throws Exception {
         String s = "serres.mrc";
         InputStream in = getClass().getResourceAsStream(s);
         InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
@@ -100,8 +99,10 @@ public class UNIMARCEntityTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
-            super("org.xbib.analyzer.unimarc.bib", Runtime.getRuntime().availableProcessors(), "org/xbib/analyzer/unimarc/bib.json");
+        public MyQueue() throws Exception {
+            super("org.xbib.analyzer.unimarc.bib",
+                    Runtime.getRuntime().availableProcessors(),
+                    "org/xbib/analyzer/unimarc/bib.json");
         }
 
         @Override

@@ -35,9 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class PublicationStatement extends MARCEntity {
 
-    private final static PublicationStatement instance = new PublicationStatement();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 }

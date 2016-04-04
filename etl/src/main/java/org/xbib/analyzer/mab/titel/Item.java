@@ -60,29 +60,20 @@ public class Item extends MABEntity {
             "e": "status"
      */
 
-    private final static Item element = new Item();
-
     private String identifierFacet = "xbib.identifier";
 
     private final static String taxonomyFacet = "xbib.taxonomy";
 
-    public static Item getInstance() {
-        return element;
-    }
-
-    @Override
-    public MABEntity setSettings(Map<String,Object> params) {
-        super.setSettings(params);
+    public Item(Map<String,Object> params) {
+        super(params);
         // facet name
         if (params.containsKey("_facet")) {
             this.identifierFacet = params.get("_facet").toString();
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         worker.addToResource(worker.state().getNextItemResource(), fields, this);
         return true;
     }

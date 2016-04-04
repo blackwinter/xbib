@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Country extends MABEntity {
 
-    private final static Country element = new Country();
-
-    public static Country getInstance() {
-        return element;
-    }
-
 }

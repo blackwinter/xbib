@@ -45,22 +45,14 @@ import java.util.Map;
 
 public class RecordIdentifier extends MABEntity {
 
-    private final static RecordIdentifier element = new RecordIdentifier();
-
-    public static RecordIdentifier getInstance() {
-        return element;
-    }
-
     private final static String taxonomyFacet = "xbib.taxonomy";
 
     private String prefix = "";
 
     private String catalogid = "";
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public RecordIdentifier(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();
         }
@@ -68,7 +60,6 @@ public class RecordIdentifier extends MABEntity {
             this.catalogid = params.get("catalogid").toString();
             this.prefix = "(" + this.catalogid + ")";
         }
-        return this;
     }
 
     @Override

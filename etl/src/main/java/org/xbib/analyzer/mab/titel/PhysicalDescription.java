@@ -48,12 +48,6 @@ import java.util.Map;
  */
 public class PhysicalDescription extends MABEntity {
 
-    private final static PhysicalDescription element = new PhysicalDescription();
-
-    public static PhysicalDescription getInstance() {
-        return element;
-    }
-
     public final static String FACET = "dc.format";
 
     private String predicate;
@@ -62,26 +56,20 @@ public class PhysicalDescription extends MABEntity {
 
     private Map<String, Object> facetcodes;
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public MABEntity setSettings(Map<String,Object> params) {
-        super.setSettings(params);
+    public PhysicalDescription(Map<String,Object> params) {
+        super(params);
         this.predicate = this.getClass().getSimpleName();
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getSettings().get("codes");
-        this.facetcodes = (Map<String, Object>) getSettings().get("facetcodes");
-        return this;
+        this.codes = (Map<String, Object>) getParams().get("codes");
+        this.facetcodes = (Map<String, Object>) getParams().get("facetcodes");
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         if (codes != null) {
             for (int i = 0; i < value.length(); i++) {
                 Map<String, Object> q = (Map<String, Object>) codes.get(Integer.toString(i));

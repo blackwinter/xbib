@@ -34,11 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class CorporateName extends MARCEntity {
-    private final static CorporateName instance = new CorporateName();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
 
 }

@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class DescriptionMediaTypeElectronic extends MABEntity {
 
-    private final static DescriptionMediaTypeElectronic element = new DescriptionMediaTypeElectronic();
-
-    public static DescriptionMediaTypeElectronic getInstance() {
-        return element;
-    }
-
 }

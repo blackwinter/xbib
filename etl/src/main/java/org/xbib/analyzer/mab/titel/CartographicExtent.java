@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class CartographicExtent extends MABEntity {
 
-    private final static CartographicExtent element = new CartographicExtent();
-
-    public static CartographicExtent getInstance() {
-        return element;
-    }
-
 }

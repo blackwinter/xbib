@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class SubjectRSWK extends MABEntity {
 
-    private final static SubjectRSWK element = new SubjectRSWK();
-
-    public static SubjectRSWK getInstance() {
-        return element;
-    }
-
     /*
          * alt: 9 ID p Personenschlagwort g geographisch-ethnographisches
          * Schlagwort s Sachschlagwort k Koerperschaftsschlagwort: Ansetzung

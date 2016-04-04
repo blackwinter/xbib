@@ -39,11 +39,21 @@ import org.xbib.etl.Entity;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MARCSpecification extends DefaultSpecification {
+public class MARCSpecification extends DefaultSpecification<MARCEntity> {
 
     private final static Logger logger = LogManager.getLogger(MARCSpecification.class.getName());
 
     private String value;
+
+    public MARCSpecification() throws Exception {
+        this(new HashMap<>(), new HashMap<>(), MARCSpecification.class.getClassLoader(),
+                "org.xbib.analyzer.marc.bib", "/org/xbib/analyzer/marc/bib.json");
+    }
+
+    public MARCSpecification(Map<String, MARCEntity> entites, Map<String, Object> params, ClassLoader cl,
+                             String packageName, String... paths) throws Exception {
+        super(entites, params, cl, packageName, paths);
+    }
 
     @Override
     public Map addKey(String value, Entity entity, Map map) {

@@ -40,6 +40,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -47,12 +48,14 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public PicaEntityQueue(String packageName, int workers, String... paths) {
-        super(new PicaSpecification(), workers, packageName, paths);
+    public PicaEntityQueue(String packageName, int workers, String... paths) throws Exception {
+        this(packageName, new HashMap<>(), workers, paths);
     }
 
-    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths) {
-        super(new PicaSpecification().addParameters(params), workers, packageName, paths);
+    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+            throws Exception {
+        super(new PicaSpecification(new HashMap<>(), params,
+                PicaEntityQueue.class.getClassLoader(), packageName, paths), workers);
     }
 
     public PicaEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {
@@ -82,17 +85,18 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
 
         @SuppressWarnings("unchecked")
         @Override
-        public void build(FieldList fields, String value) throws IOException {
+        public void build(FieldList fields) throws IOException {
             if (fields == null) {
                 return;
             }
             String key = fields.toKey();
             PicaEntity entity = (PicaEntity) specification().getEntity(key, map());
             if (entity != null) {
+                Map<String, Object> params = entity.getParams();
                 // entity-based processing
-                entity.fields(this, fields, value);
+                entity.fields(this, fields);
                 // optional subfield configuration
-                Map<String, Object> subfields = (Map<String, Object>) entity.getSettings().get("subfields");
+                Map<String, Object> subfields = (Map<String, Object>) params.get("subfields");
                 if (subfields != null) {
                     // get current resource and create new anoymous resource
                     Resource resource = state().getResource();
@@ -101,8 +105,8 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                     String predicate = entity.getClass().getSimpleName();
 
                     // the _predicate field allows to select a field to name the resource by a coded value
-                    if (entity.getSettings().containsKey("_predicate")) {
-                        predicate = (String)entity.getSettings().get("_predicate");
+                    if (params.containsKey("_predicate")) {
+                        predicate = (String)params.get("_predicate");
                     }
                     // put all found fields with configured subfield names to this resource
                     for (Field field : fields) {
@@ -110,8 +114,8 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                         Map.Entry<String, Object> me = SubfieldValueMapper.map(subfields, field);
                         if (me.getKey() != null) {
                             String v = me.getValue().toString();
-                            if (entity.getSettings().containsKey(me.getKey())) {
-                                Map<String,Object> vm = (Map<String,Object>)entity.getSettings().get(me.getKey());
+                            if (params.containsKey(me.getKey())) {
+                                Map<String,Object> vm = (Map<String,Object>)params.get(me.getKey());
                                 v = vm.containsKey(v) ? vm.get(v).toString() : v;
                             }
                             // is this the "resource type" field or a simple value?

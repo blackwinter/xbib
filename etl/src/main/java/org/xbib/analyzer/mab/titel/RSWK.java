@@ -42,12 +42,6 @@ import java.io.IOException;
 
 public class RSWK extends MABEntity {
 
-    private final static RSWK element = new RSWK();
-
-    public static RSWK getInstance() {
-        return element;
-    }
-
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {
@@ -76,8 +70,7 @@ public class RSWK extends MABEntity {
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         Resource res = worker.addToResource(worker.state().getResource(), fields, this);
         // sequence name is first indicator
         sequence(worker.state(), "SubjectHeadingSequence.number" + fields.getLast().indicator().charAt(0), res);

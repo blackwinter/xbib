@@ -33,25 +33,24 @@ package org.xbib.etl.marc.dialects.pica;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.etl.Entity;
+import org.xbib.etl.DefaultEntity;
 import org.xbib.marc.FieldList;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
-public class PicaEntity implements Entity {
+public abstract class PicaEntity extends DefaultEntity {
 
     protected static final Logger logger = LogManager.getLogger(PicaEntity.class.getName());
 
-    private  Map<String,Object> params;
-    
-    public PicaEntity setSettings(Map<String,Object> params) {
-        this.params = params;
-        return this;
+    @SuppressWarnings("unchecked")
+    public PicaEntity() {
+        this(Collections.EMPTY_MAP);
     }
 
-    public Map<String,Object> getSettings() {
-        return params;
+    public PicaEntity(Map<String,Object> params) {
+        super(params);
     }
 
     /**
@@ -59,10 +58,8 @@ public class PicaEntity implements Entity {
      *
      * @param worker the worker
      * @param fields the fields
-     * @param value the value
      */
-    public void fields(PicaEntityQueue.PicaKeyValueWorker worker,
-                       FieldList fields, String value) throws IOException {
+    public void fields(PicaEntityQueue.PicaKeyValueWorker worker, FieldList fields) throws IOException {
         // should be overridden
     }
 

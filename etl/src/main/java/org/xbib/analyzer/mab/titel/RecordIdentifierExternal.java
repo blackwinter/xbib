@@ -43,26 +43,17 @@ import java.util.Map;
 
 public class RecordIdentifierExternal extends MABEntity {
 
-    private final static RecordIdentifierExternal element = new RecordIdentifierExternal();
-
     private final static Logger logger = LogManager.getLogger(RecordIdentifierExternal.class);
-
-    public static RecordIdentifierExternal getInstance() {
-        return element;
-    }
 
     private Map<String, Object> codes;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
-        this.codes = (Map<String, Object>) getSettings().get("codes");
-        return this;
+    public RecordIdentifierExternal(Map<String,Object> params) {
+        super(params);
+        this.codes = (Map<String, Object>) getParams().get("codes");
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String prefix = "";
         String content = "";
         for (Field field : fields) {

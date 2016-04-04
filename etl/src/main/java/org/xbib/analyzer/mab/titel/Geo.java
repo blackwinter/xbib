@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Geo extends MABEntity {
 
-    private final static Geo element = new Geo();
-
-    public static Geo getInstance() {
-        return element;
-    }
-
     /**
      * g = Geografikum (Gebietskörperschaft) (NW)
      * 9 = GND-Identifikationsnummer

@@ -40,33 +40,23 @@ import java.util.Map;
 
 public class RecordCodes extends MABEntity {
 
-    private final static RecordCodes element = new RecordCodes();
-
-    public static RecordCodes getInstance() {
-        return element;
-    }
-
     private String predicate;
 
     private Map<String, Object> codes;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public RecordCodes(Map<String,Object> params) {
+        super(params);
         this.predicate = this.getClass().getSimpleName();
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getSettings().get("codes");
-        return this;
+        this.codes = (Map<String, Object>) getParams().get("codes");
     }
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+                          FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         for (int i = 0; i < value.length(); i++) {
             Map<String, Object> q = (Map<String, Object>) codes.get(Integer.toString(i));
             if (q != null) {

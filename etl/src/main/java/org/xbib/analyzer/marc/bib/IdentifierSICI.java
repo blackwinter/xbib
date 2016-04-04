@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class IdentifierSICI extends MARCEntity {
-    private final static IdentifierSICI instance = new IdentifierSICI();
-    
-    public static IdentifierSICI getInstance() {
-        return instance;
-    }
+
 }

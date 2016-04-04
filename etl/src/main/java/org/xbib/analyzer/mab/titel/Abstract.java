@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Abstract extends MABEntity {
 
-    private final static Abstract element = new Abstract();
-
-    public static Abstract getInstance() {
-        return element;
-    }
-
 }

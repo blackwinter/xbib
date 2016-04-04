@@ -35,10 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class PrecedingEntry extends MARCEntity {
 
-    private final static PrecedingEntry instance = new PrecedingEntry();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
 }

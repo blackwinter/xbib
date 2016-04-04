@@ -45,32 +45,22 @@ import org.xbib.rdf.Resource;
 import java.io.IOException;
 import java.util.Map;
 
-public class OnlineAccessScopedLink extends OnlineAccessRemote {
-
-    private final static OnlineAccessScopedLink element = new OnlineAccessScopedLink();
-
-    public static OnlineAccessScopedLink getInstance() {
-        return element;
-    }
+public class OnlineAccessScopedLink extends MABEntity {
 
     private final static String taxonomyFacet = "xbib.taxonomy";
 
-
     private String catalogid = "";
 
-    @Override
-    public MABEntity setSettings(Map<String,Object> params) {
-        super.setSettings(params);
+    public OnlineAccessScopedLink(Map<String,Object> params) {
+        super(params);
         // override by "catalogid"
         if (params.containsKey("catalogid")) {
             this.catalogid = params.get("catalogid").toString();
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         worker.addToResource(worker.state().getNextItemResource(), fields, this);
         return true;
     }

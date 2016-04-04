@@ -47,17 +47,10 @@ import java.io.IOException;
 
 public class OnlineAccessRemote extends MABEntity {
 
-    private final static OnlineAccessRemote element = new OnlineAccessRemote();
-
-    public static OnlineAccessRemote getInstance() {
-        return element;
-    }
-
     private final static String taxonomyFacet = "xbib.taxonomy";
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         worker.addToResource(worker.state().getNextItemResource(), fields, this);
         return true;
     }

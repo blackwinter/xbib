@@ -41,29 +41,19 @@ import java.util.Map;
 
 public class GeneralInformation extends MARCEntity {
 
-    private final static GeneralInformation instance = new GeneralInformation();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
     private Map<String,Object> codes;
 
-
-    @Override
-    public MARCEntity setSettings(Map params) {
-        super.setSettings(params);
+    public GeneralInformation(Map<String,Object> params) {
+        super(params);
         this.codes= (Map<String,Object>)params.get("codes");
-        return this;
     }
 
     /**
      * Example "991118d19612006xx z||p|r ||| 0||||0ger c"
      */
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
-
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         if (value.length() != 40) {
             logger.warn("broken GeneralInformation field, length is not 40");
         }

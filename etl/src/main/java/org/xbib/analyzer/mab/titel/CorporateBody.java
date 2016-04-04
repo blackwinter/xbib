@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class CorporateBody extends MABEntity {
 
-    private final static CorporateBody element = new CorporateBody();
-
-    public static CorporateBody getInstance() {
-        return element;
-    }
-
     /**
      * a = Name (alt)
      * k = Name Körperschaft (neu)

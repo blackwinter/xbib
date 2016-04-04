@@ -31,7 +31,9 @@
  */
 package org.xbib.etl.scripting;
 
-public class ScriptEntity extends AbstractScriptEntity {
+import org.xbib.etl.Entity;
+
+public class ScriptEntity<E extends Entity> extends AbstractScriptEntity<E> {
 
     public ScriptEntity(String scriptEngineName, String script, String invocable) {
         super(scriptEngineName, script, invocable);

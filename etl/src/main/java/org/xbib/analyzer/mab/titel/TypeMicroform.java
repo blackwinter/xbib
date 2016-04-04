@@ -12,30 +12,19 @@ import java.util.Map;
 
 public class TypeMicroform extends MABEntity {
 
-    private final static TypeMicroform element = new TypeMicroform();
-
-    public static TypeMicroform getInstance() {
-        return element;
-    }
-
     private String facet = "dc.format";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TypeMicroform(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
-        Map<String, Object> codes = (Map<String, Object>) getSettings().get("codes");
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
+        Map<String, Object> codes = (Map<String, Object>) getParams().get("codes");
         if (codes == null) {
             throw new IllegalStateException("no codes section for " + fields);
         }
@@ -54,7 +43,7 @@ public class TypeMicroform extends MABEntity {
                 worker.state().getResource().add(predicate, code);
             }
         }
-        Map<String, Object> facetcodes = (Map<String, Object>) getSettings().get("facetcodes");
+        Map<String, Object> facetcodes = (Map<String, Object>) getParams().get("facetcodes");
         if (facetcodes != null) {
             for (int i = 0; i < value.length(); i++) {
                 Map<String, Object> q = (Map<String, Object>) facetcodes.get(Integer.toString(i));

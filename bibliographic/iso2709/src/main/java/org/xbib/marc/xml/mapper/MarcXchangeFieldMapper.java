@@ -96,14 +96,10 @@ public abstract class MarcXchangeFieldMapper implements MarcXchangeConstants, Ma
 
     public MarcXchangeFieldMapper addFieldMap(String fieldMapName, Map<String, Object> map) {
         if (maps == null) {
-            maps = new LinkedHashMap<String, Map<String, Object>>();
+            maps = new LinkedHashMap<>();
         }
         maps.put(fieldMapName, map);
         return this;
-    }
-
-    public Map<String, Object> getFieldMap(String fieldMapName) {
-        return maps.get(fieldMapName);
     }
 
     public MarcXchangeFieldMapper setFieldEventListener(EventListener<FieldEvent> eventListener) {

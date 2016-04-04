@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class SecondaryEdition extends MABEntity {
 
-    private final static SecondaryEdition element = new SecondaryEdition();
-
-    public static SecondaryEdition getInstance() {
-        return element;
-    }
-
 }

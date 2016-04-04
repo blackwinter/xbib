@@ -44,7 +44,7 @@ import java.util.TreeMap;
 public class KeyValueEntityMapperTest extends Assert {
 
     @Test
-    public void testMARCSubfields() {
+    public void testMARCSubfields() throws Exception {
         String value = "100$01$abc";
         Entity entity = new NullEntity();
         Map map = new TreeMap(); // for sorted output in assertEquals matching
@@ -67,7 +67,7 @@ public class KeyValueEntityMapperTest extends Assert {
     }
 
     @Test
-    public void testMARCField() {
+    public void testMARCField() throws Exception {
         String value = "100$01$ab";
         Entity entity = new NullEntity();
         Map map = new TreeMap(); // for sorted output in assertEquals matching
@@ -85,7 +85,7 @@ public class KeyValueEntityMapperTest extends Assert {
     }
 
     @Test
-    public void testMARCControlField() {
+    public void testMARCControlField() throws Exception {
         String value = "001";
         Entity entity = new NullEntity();
         Map map = new TreeMap(); // for sorted output in assertEquals matching

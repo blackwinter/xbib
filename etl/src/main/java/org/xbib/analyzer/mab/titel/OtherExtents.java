@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class OtherExtents extends MABEntity {
 
-    private final static OtherExtents element = new OtherExtents();
-
-    public static OtherExtents getInstance() {
-        return element;
-    }
-
 }

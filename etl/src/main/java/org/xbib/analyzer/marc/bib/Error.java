@@ -37,15 +37,8 @@ import org.xbib.marc.FieldList;
 
 public class Error extends MARCEntity {
 
-    private final static Error instance = new Error();
-
-    public static Error getInstance() {
-        return instance;
-    }
-
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) {
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) {
         return true;
     }
 

@@ -83,7 +83,7 @@ public class ZDBHolTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
+        public MyQueue() throws Exception {
             super("org.xbib.analyzer.marc.zdb.hol", 1,
                     "org/xbib/analyzer/marc/zdb/hol.json");
         }

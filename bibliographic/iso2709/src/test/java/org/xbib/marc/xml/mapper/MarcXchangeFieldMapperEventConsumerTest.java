@@ -41,12 +41,10 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
         } catch (Exception e) {
             throw new IOException(e);
         }
-
         writer.endCollection();
         writer.endDocument();
         sw.close();
         assertNull(writer.getException());
-
         assertStream(s, getClass().getResource("HT016424175-clean.xml").openStream(),
                 new FileInputStream(file));
     }
@@ -60,15 +58,13 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
         writer.setFormat("AlephXML").setType("Bibliographic");
         writer.startDocument();
         writer.beginCollection();
-
-        Map<String,Object> subfields = new HashMap();
+        Map<String,Object> subfields = new HashMap<>();
         subfields.put("", "245$01");
         subfields.put("a", "245$01$a");
-        Map<String,Object> indicators = new HashMap();
+        Map<String,Object> indicators = new HashMap<>();
         indicators.put(" 1", subfields);
-        Map<String,Object> fields = new HashMap();
+        Map<String,Object> fields = new HashMap<>();
         fields.put("331", indicators);
-
         try (InputStream in = getClass().getResourceAsStream("HT016424175.xml")) {
             MarcXchangeFieldMapperReader consumer = new org.xbib.marc.xml.stream.mapper.MarcXchangeFieldMapperReader(in)
                     .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd")
@@ -82,12 +78,10 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
         } catch (Exception e) {
             throw new IOException(e);
         }
-
         writer.endCollection();
         writer.endDocument();
         sw.close();
         assertNull(writer.getException());
-
         assertStream(s, getClass().getResource("HT016424175-event-fieldmapper.xml").openStream(),
                 new FileInputStream(file));
     }

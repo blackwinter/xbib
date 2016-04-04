@@ -33,10 +33,4 @@ package org.xbib.analyzer.mab.titel;
 
 public class TitleParallel extends Title {
 
-    private final static TitleParallel element = new TitleParallel();
-
-    public static TitleParallel getInstance() {
-        return element;
-    }
-
 }

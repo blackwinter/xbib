@@ -34,10 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class LinkingEntry extends MARCEntity {
-    private final static LinkingEntry instance = new LinkingEntry();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
 }

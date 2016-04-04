@@ -12,63 +12,73 @@ import java.util.stream.Collectors;
 public class MarcField implements Comparable<MarcField> {
 
     private final String tag;
+
     private final String indicator;
+
     private final List<Subfield> subfields;
+
     private final boolean control;
 
-    @Override
-    public int compareTo(MarcField o) {
-        return 0;
-    }
+    private final Operation operation;
 
-    static class Builder {
-        String tag;
-        String indicator;
-        List<Subfield> subfields;
+    public static class Builder {
+
+        private String tag;
+
+        private String indicator;
+
+        private List<Subfield> subfields;
+
+        private Operation operation;
 
         Builder() {
             this.subfields = new LinkedList<>();
         }
 
-        Builder tag(String tag) {
+        public Builder tag(String tag) {
             this.tag = tag;
             return this;
         }
 
-        Builder indicator(String indicator) {
+        public Builder indicator(String indicator) {
             this.indicator = indicator;
             return this;
         }
 
-        Builder value(String value) {
+        public Builder value(String value) {
             this.subfields.add(new Subfield(Strings.EMPTY, value));
             return this;
         }
 
-        Builder value(byte[] value) {
+        public Builder value(byte[] value) {
             return value(value, StandardCharsets.US_ASCII);
         }
 
-        Builder value(byte[] value, int offset, int size) {
+        public Builder value(byte[] value, int offset, int size) {
             return value(value, offset, size, StandardCharsets.US_ASCII);
         }
 
-        Builder value(byte[] value, Charset charset) {
+        public Builder value(byte[] value, Charset charset) {
             this.subfields.add(new Subfield(Strings.EMPTY, new String(value, 0, value.length, charset)));
             return this;
         }
 
-        Builder value(byte[] value, int offset, int size, Charset charset) {
+        public Builder value(byte[] value, int offset, int size, Charset charset) {
             this.subfields.add(new Subfield(Strings.EMPTY, new String(value, offset, size, charset)));
             return this;
         }
 
-        Builder subfield(String subfieldId, String value) {
+        public Builder subfield(String subfieldId, String value) {
             this.subfields.add(new Subfield(subfieldId, value));
             return this;
         }
 
-        Builder subfield(RecordLabel label, String raw) {
+        public Builder subfield(String subfieldId, String value, Operation operation) {
+            this.subfields.add(new Subfield(subfieldId, value, operation));
+            return this;
+        }
+
+        public Builder subfield(RecordLabel label, String raw) {
             int pos = 0;
             int subfieldidlen = label.getSubfieldIdentifierLength();
             if (raw.length() >= pos + subfieldidlen) {
@@ -78,7 +88,7 @@ public class MarcField implements Comparable<MarcField> {
             return this;
         }
 
-        Builder field(RecordLabel label, String raw) {
+        public Builder field(RecordLabel label, String raw) {
             this.tag = raw.length() > 2 ? raw.substring(0, 3) : "999";
             if (isControl(tag)) {
                 if (raw.length() > 3) {
@@ -96,21 +106,44 @@ public class MarcField implements Comparable<MarcField> {
             return this;
         }
 
+        public Builder marcField(MarcField field) {
+            this.tag = field.getTag();
+            this.indicator = field.getIndicator();
+            this.subfields = field.getSubfields();
+            this.operation = field.getOperation();
+            return this;
+        }
+
+        public Builder operation(Operation operation) {
+            this.operation = operation;
+            return this;
+        }
+
         public boolean isControl(String tag) {
             return tag != null && tag.charAt(0) == '0' && tag.charAt(1) == '0';
         }
 
-        MarcField build() {
-            return new MarcField(tag, indicator, subfields, isControl(tag));
+        public MarcField build() {
+            return new MarcField(tag, indicator, subfields, isControl(tag), operation);
         }
     }
 
-    static class Subfield {
-        String id;
-        String value;
+    public static class Subfield {
+
+        private final String id;
+
+        private final String value;
+
+        private final Operation operation;
+
         Subfield(String id, String value) {
+            this(id, value, Operation.KEEP);
+        }
+
+        Subfield(String id, String value, Operation operation) {
             this.id = id;
             this.value = value;
+            this.operation = operation;
         }
 
         public String getId() {
@@ -120,17 +153,26 @@ public class MarcField implements Comparable<MarcField> {
         public String getValue() {
             return value;
         }
+
+        public Operation getOperation() {
+            return operation;
+        }
+    }
+
+    public enum Operation {
+        KEEP, APPEND, OPEN, CLOSE, SKIP
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    private MarcField(String tag, String indicator, List<Subfield> subfields, boolean control) {
+    private MarcField(String tag, String indicator, List<Subfield> subfields, boolean control, Operation operation) {
         this.tag = tag;
         this.indicator = indicator;
         this.subfields = subfields;
         this.control = control;
+        this.operation = operation;
     }
 
     public String getTag() {
@@ -153,11 +195,27 @@ public class MarcField implements Comparable<MarcField> {
         return control;
     }
 
+    public Operation getOperation() {
+        return operation;
+    }
+
     public String toKey() {
         return (tag == null ? Strings.EMPTY : tag )
                 + DOLLAR + (indicator == null ? Strings.EMPTY : indicator)
-                + DOLLAR + (subfields.isEmpty() ? Strings.EMPTY : subfields.stream().map(Subfield::getId).sorted().collect(Collectors.joining("")));
+                + DOLLAR + (subfields.isEmpty() ? Strings.EMPTY :
+                subfields.stream().map(Subfield::getId).sorted().collect(Collectors.joining("")));
     }
 
     private final static String DOLLAR = "$";
+
+    @Override
+    public int compareTo(MarcField o) {
+        return toKey().compareTo(o.toKey());
+    }
+
+    @Override
+    public String toString() {
+        return toKey();
+    }
+
 }

@@ -33,14 +33,7 @@ package org.xbib.entities;
 
 import org.xbib.etl.Entity;
 
-import java.util.Map;
-
 public class NullEntity implements Entity {
-
-    @Override
-    public Entity setSettings(Map settings) {
-        return this;
-    }
 
     public String toString() {
         return "<null>";

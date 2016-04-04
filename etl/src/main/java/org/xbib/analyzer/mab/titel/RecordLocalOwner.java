@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class RecordLocalOwner extends MABEntity {
 
-    private final static RecordLocalOwner element = new RecordLocalOwner();
-
-    public static RecordLocalOwner getInstance() {
-        return element;
-    }
-
 }

@@ -33,29 +33,27 @@ package org.xbib.etl.marc.dialects.mab;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.etl.Entity;
+import org.xbib.etl.DefaultEntity;
 import org.xbib.etl.faceting.Facet;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
-public abstract class MABEntity implements Entity {
+public abstract class MABEntity extends DefaultEntity {
 
     protected static final Logger logger = LogManager.getLogger(MABEntity.class.getName());
 
-    private Map<String, Object> params;
-
-    @Override
-    public MABEntity setSettings(Map<String,Object> params) {
-        this.params = params;
-        return this;
+    @SuppressWarnings("unchecked")
+    public MABEntity() {
+        this(Collections.EMPTY_MAP);
     }
 
-    public Map<String, Object> getSettings() {
-        return params;
+    public MABEntity(Map<String,Object> params) {
+        super(params);
     }
 
     /**
@@ -63,10 +61,8 @@ public abstract class MABEntity implements Entity {
      *
      * @param worker the worker
      * @param fields  fields
-     * @param value   value
      */
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         // overridden
         return false;
     }

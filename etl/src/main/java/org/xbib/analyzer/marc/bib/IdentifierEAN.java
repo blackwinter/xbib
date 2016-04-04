@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class IdentifierEAN extends MARCEntity {
-    private final static IdentifierEAN instance = new IdentifierEAN();
-    
-    public static IdentifierEAN getInstance() {
-        return instance;
-    }
+
 }

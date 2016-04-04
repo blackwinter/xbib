@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Identifier extends MABEntity {
 
-    private final static Identifier element = new Identifier();
-
-    public static Identifier getInstance() {
-        return element;
-    }
-
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {

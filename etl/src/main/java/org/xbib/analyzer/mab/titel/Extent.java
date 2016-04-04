@@ -47,23 +47,16 @@ import java.util.regex.Pattern;
 
 public class Extent extends MABEntity {
 
-    private final static Extent element = new Extent();
-
-    public static Extent getInstance() {
-        return element;
-    }
-
     private String facet = "dc.format";
 
     private Map<Pattern,String> patterns;
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public Extent(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
-        Map<String, Object> regexes = (Map<String, Object>) getSettings().get("regexes");
+        Map<String, Object> regexes = (Map<String, Object>) getParams().get("regexes");
         if (regexes != null) {
             patterns = new HashMap<Pattern,String>();
             for (Map.Entry<String, Object> entry : regexes.entrySet()) {
@@ -72,15 +65,11 @@ public class Extent extends MABEntity {
             }
         }
         logger.info("Pattern for extent format detection: {}", patterns);
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         for (String code : findCodes(value)) {
             if (worker.state().getFacets().get(facet) == null) {
                 worker.state().getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));

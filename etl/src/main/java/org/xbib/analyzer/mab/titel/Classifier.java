@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Classifier extends MABEntity {
 
-    private final static Classifier element = new Classifier();
-
-    public static Classifier getInstance() {
-        return element;
-    }
-
 }

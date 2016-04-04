@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class SubjectHeadings extends MABEntity {
 
-    private final static SubjectHeadings element = new SubjectHeadings();
-
-    public static SubjectHeadings getInstance() {
-        return element;
-    }
-
 }

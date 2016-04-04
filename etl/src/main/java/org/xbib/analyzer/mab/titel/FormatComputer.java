@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class FormatComputer extends MABEntity {
 
-    private final static FormatComputer element = new FormatComputer();
-
-    public static FormatComputer getInstance() {
-        return element;
-    }
-
 }

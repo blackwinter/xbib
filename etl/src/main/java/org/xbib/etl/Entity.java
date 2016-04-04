@@ -31,9 +31,6 @@
  */
 package org.xbib.etl;
 
-import java.util.Map;
-
 public interface Entity {
 
-    Entity setSettings(Map<String,Object> config);
 }

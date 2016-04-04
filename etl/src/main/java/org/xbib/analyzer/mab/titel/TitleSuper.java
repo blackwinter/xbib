@@ -37,19 +37,12 @@ import org.xbib.rdf.Resource;
 
 import java.util.Map;
 
-public class TitleSuper extends Title {
-
-    private final static TitleSuper element = new TitleSuper();
-
-    public static TitleSuper getInstance() {
-        return element;
-    }
+public class TitleSuper extends MABEntity {
 
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public TitleSuper(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();
         }
@@ -57,7 +50,6 @@ public class TitleSuper extends Title {
         if (params.containsKey("catalogid")) {
             this.prefix = "(" + params.get("catalogid").toString() + ")";
         }
-        return this;
     }
     @Override
     public String data(MABEntityQueue.MABWorker worker,

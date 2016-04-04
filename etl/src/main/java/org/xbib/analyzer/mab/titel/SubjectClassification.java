@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class SubjectClassification extends MABEntity {
 
-    private final static SubjectClassification element = new SubjectClassification();
-
-    public static SubjectClassification getInstance() {
-        return element;
-    }
-
 }

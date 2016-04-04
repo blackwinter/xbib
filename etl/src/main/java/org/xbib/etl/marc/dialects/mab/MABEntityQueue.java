@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.EntityQueue;
 import org.xbib.etl.UnmappedKeyListener;
-import org.xbib.etl.marc.MARCSpecification;
 import org.xbib.etl.marc.SubfieldValueMapper;
 import org.xbib.etl.support.IdentifierMapper;
 import org.xbib.etl.support.StatusCodeMapper;
@@ -68,30 +67,32 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
     private final String packageName;
 
+    private final IdentifierMapper identifierMapper;
+
+    private final StatusCodeMapper statusMapper;
+
     private Map<IRI,RdfContentBuilderProvider> providers;
 
     private UnmappedKeyListener<FieldList> listener;
 
-    private IdentifierMapper identifierMapper;
-
-    private StatusCodeMapper statusMapper;
-
     private ConfigurableClassifier classifier;
 
-    public MABEntityQueue(String packageName, String... paths) {
+    public MABEntityQueue(String packageName, String... paths) throws Exception{
         this(packageName, new HashMap<>(), 1, paths);
     }
 
-    public MABEntityQueue(String packageName, int workers, String... paths) {
+    public MABEntityQueue(String packageName, int workers, String... paths) throws Exception {
         this(packageName, new HashMap<>(), workers, paths);
     }
 
-    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) {
-        super(new MARCSpecification().addParameters(params), workers, packageName, paths);
+    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) throws Exception {
+        super(new MABSpecification(new HashMap<>(), params,
+                MABEntityQueue.class.getClassLoader(), packageName, paths), workers);
         this.packageName = packageName;
         this.identifierMapper = setupIdentifierMapper(params);
-        logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
         this.statusMapper = setupStatusMapper(params);
+        logger.info("specification: {} {} entities", specification(), specification().getEntities().size());
+        logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
         logger.info("status mapper: {} entries", statusMapper.getMap().size());
     }
 
@@ -201,7 +202,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         }
 
         @Override
-        public void build(FieldList fields, String value) throws IOException {
+        public void build(FieldList fields) throws IOException {
             if (fields == null) {
                 return;
             }
@@ -213,12 +214,13 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 logger.debug("no MABEntity class found for key: '{}'", key);
             }
             if (entity != null) {
-                boolean done = entity.fields(this, fields, value);
+                boolean done = entity.fields(this, fields);
                 if (done) {
                     return;
                 }
                 addToResource(state().getResource(), fields, entity);
                 // build facets and classify
+                String value = fields.getLast().data();
                 if (value != null && !value.isEmpty()) {
                     entity.facetize(this, fields.getFirst().data(value));
                 } else {
@@ -235,8 +237,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
         @SuppressWarnings("unchecked")
         public Resource addToResource(Resource resource, FieldList fields, MABEntity entity) throws IOException {
+            Map<String, Object> params = entity.getParams();
             // setup
-            Map<String, Object> defaultSubfields = (Map<String, Object>) entity.getSettings().get("subfields");
+            Map<String, Object> defaultSubfields = (Map<String, Object>) params.get("subfields");
             if (defaultSubfields == null) {
                 return resource;
             }
@@ -246,8 +249,8 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             // default predicate is the name of the element class
             String predicate = entity.getClass().getSimpleName();
             // the _predicate field allows to select a field to name the resource by a coded value
-            if (entity.getSettings().containsKey("_predicate")) {
-                predicate = (String) entity.getSettings().get("_predicate");
+            if (entity.getParams().containsKey("_predicate")) {
+                predicate = (String) params.get("_predicate");
             }
             boolean overridePredicate = false;
             // put all found fields with configured subfield names to this resource
@@ -259,21 +262,21 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 }
                 Map<String, Object> subfields = defaultSubfields;
                 // tag predicates defined?
-                if (entity.getSettings().containsKey("tags")) {
-                    Map<String, Object> tags = (Map<String, Object>) entity.getSettings().get("tags");
+                if (params.containsKey("tags")) {
+                    Map<String, Object> tags = (Map<String, Object>) params.get("tags");
                     if (tags.containsKey(field.tag())) {
                         if (!overridePredicate) {
                             predicate = (String) tags.get(field.tag());
                         }
-                        subfields = (Map<String, Object>) entity.getSettings().get(predicate);
+                        subfields = (Map<String, Object>) params.get(predicate);
                         if (subfields == null) {
                             subfields = defaultSubfields;
                         }
                     }
                 }
                 // indicator-based predicate defined?
-                if (entity.getSettings().containsKey("indicators")) {
-                    Map<String, Object> indicators = (Map<String, Object>) entity.getSettings().get("indicators");
+                if (params.containsKey("indicators")) {
+                    Map<String, Object> indicators = (Map<String, Object>) params.get("indicators");
                     if (indicators.containsKey(field.tag())) {
                         Map<String, Object> indicatorMap = (Map<String, Object>) indicators.get(field.tag());
                         if (indicatorMap.containsKey(field.indicator())) {
@@ -281,7 +284,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                 predicate = (String) indicatorMap.get(field.indicator());
                                 fieldNames.put(field, predicate);
                             }
-                            subfields = (Map<String, Object>) entity.getSettings().get(predicate);
+                            subfields = (Map<String, Object>) params.get(predicate);
                             if (subfields == null) {
                                 subfields = defaultSubfields;
                             }
@@ -295,10 +298,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                     if (fieldNames.containsKey(field)) {
                         // field-specific subfield map
                         String fieldName = fieldNames.get(field);
-                        Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
+                        Map<String, Object> vm = (Map<String, Object>) params.get(fieldName);
                         if (vm == null) {
                             // fallback to "subfields"
-                            vm = (Map<String, Object>) entity.getSettings().get("subfields");
+                            vm = (Map<String, Object>) params.get("subfields");
                         }
                         // is value containing a blank?
                         int pos = v.indexOf(' ');
@@ -313,7 +316,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                             v = (String) vm.get(vv);
                         } else {
                             // relation by pattern?
-                            List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
+                            List<Map<String, String>> patterns = (List<Map<String, String>>) params.get(fieldName + "pattern");
                             if (patterns != null) {
                                 for (Map<String, String> pattern : patterns) {
                                     Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -331,9 +334,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                     } else {
                         // default subfield map
                         String fieldName = me.getKey();
-                        if (entity.getSettings().containsKey(fieldName)) {
+                        if (params.containsKey(fieldName)) {
                             try {
-                                Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
+                                Map<String, Object> vm = (Map<String, Object>) params.get(fieldName);
                                 int pos = v.indexOf(' ');
                                 String vv = pos > 0 ? v.substring(0, pos) : v;
                                 if (vm.containsKey(v)) {
@@ -344,7 +347,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                     v = (String) vm.get(vv);
                                 } else {
                                     // relation by pattern?
-                                    List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
+                                    List<Map<String, String>> patterns = (List<Map<String, String>>) params.get(fieldName + "pattern");
                                     if (patterns != null) {
                                         for (Map<String, String> pattern : patterns) {
                                             Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -362,9 +365,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                             } catch (ClassCastException e) {
                                 logger.warn("entity {}: found {} of class {} in entity settings {} for key {} but must be a map",
                                         entity.getClass(),
-                                        entity.getSettings().get(fieldName),
-                                        entity.getSettings().get(fieldName).getClass(),
-                                        entity.getSettings(),
+                                        params.get(fieldName),
+                                        params.get(fieldName).getClass(),
+                                        params,
                                         fieldName);
                             }
                         }

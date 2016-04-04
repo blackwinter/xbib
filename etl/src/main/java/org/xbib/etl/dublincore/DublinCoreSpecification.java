@@ -43,6 +43,10 @@ public class DublinCoreSpecification extends DefaultSpecification {
 
     private final static Logger logger = LogManager.getLogger(DublinCoreSpecification.class.getName());
 
+    public DublinCoreSpecification(Map entites, Map params, ClassLoader cl, String packageName, String... paths) throws Exception {
+        super(entites, params, cl, packageName, paths);
+    }
+
     @Override
     public Map addKey(String value, Entity entity, Map map) {
         int pos = value.indexOf('$');

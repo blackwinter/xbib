@@ -41,17 +41,10 @@ import java.util.Map;
 
 public class RecordSystemNumber extends MABEntity {
 
-    private final static RecordSystemNumber element = new RecordSystemNumber();
-
-    public static RecordSystemNumber getInstance() {
-        return element;
-    }
-
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public RecordSystemNumber(Map params) {
+        super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();
         }
@@ -59,15 +52,11 @@ public class RecordSystemNumber extends MABEntity {
         if (params.containsKey("catalogid")) {
             this.prefix = "(" + params.get("catalogid").toString() + ")";
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         String v = prefix + value.trim();
         worker.state().setIdentifier(v); // overwrite record identifier
         worker.state().getResource().newResource("xbib").add("uid", v);

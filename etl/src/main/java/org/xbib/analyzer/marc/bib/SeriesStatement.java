@@ -35,9 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class SeriesStatement extends MARCEntity {
 
-    private final static SeriesStatement instance = new SeriesStatement();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 }

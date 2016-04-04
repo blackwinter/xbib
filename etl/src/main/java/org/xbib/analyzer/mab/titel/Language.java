@@ -43,18 +43,10 @@ import java.util.Map;
 
 public class Language extends MABEntity {
 
-    private final static Language element = new Language();
-
     public final static String FACET = "dc.language";
 
-    public static Language getInstance() {
-        return element;
-    }
-
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
-        return this;
+    public Language(Map<String,Object> params) {
+        super(params);
     }
 
     @Override
@@ -64,7 +56,7 @@ public class Language extends MABEntity {
             state.getFacets().put(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
         }
         Facet languageFacet = state.getFacets().get(FACET);
-        Map<String, String> languages = (Map<String, String>) getSettings().get("language");
+        Map<String, String> languages = (Map<String, String>) getParams().get("language");
         if (languages == null) {
             return this;
         }
@@ -76,7 +68,7 @@ public class Language extends MABEntity {
     }
 
     public Facet getDefaultFacet() {
-        Object def = getSettings().get("_default");
+        Object def = getParams().get("_default");
         if (def != null) {
             return new TermFacet().setName(FACET).setType(Literal.STRING).addValue(def);
         } else {

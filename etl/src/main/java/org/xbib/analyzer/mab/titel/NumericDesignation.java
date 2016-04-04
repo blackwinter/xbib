@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class NumericDesignation extends MABEntity {
 
-    private final static NumericDesignation element = new NumericDesignation();
-
-    public static NumericDesignation getInstance() {
-        return element;
-    }
-
 }

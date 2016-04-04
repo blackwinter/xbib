@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class IdentifierUPC extends MARCEntity {
-    private final static IdentifierUPC instance = new IdentifierUPC();
-    
-    public static IdentifierUPC getInstance() {
-        return instance;
-    }
+
 }

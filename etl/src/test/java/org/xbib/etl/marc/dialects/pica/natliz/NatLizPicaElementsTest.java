@@ -94,7 +94,7 @@ public class NatLizPicaElementsTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
+        public MyQueue() throws Exception {
             super("org.xbib.analyzer.pica.natliz.bib",
                     1,
                     "/org/xbib/analyzer/pica/natliz/bib.json");

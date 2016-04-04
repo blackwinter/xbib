@@ -35,9 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class OriginLanguage extends MABEntity {
 
-    private final static OriginLanguage element = new OriginLanguage();
-
-    public static OriginLanguage getInstance() {
-        return element;
-    }
 }

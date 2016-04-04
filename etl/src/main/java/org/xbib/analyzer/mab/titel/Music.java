@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Music extends MABEntity {
 
-    private final static Music element = new Music();
-
-    public static Music getInstance() {
-        return element;
-    }
-
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {

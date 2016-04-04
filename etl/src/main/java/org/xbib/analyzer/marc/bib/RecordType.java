@@ -35,9 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class RecordType extends MARCEntity {
 
-    private final static RecordType instance = new RecordType();
-    
-    public static RecordType getInstance() {
-        return instance;
-    }
 }

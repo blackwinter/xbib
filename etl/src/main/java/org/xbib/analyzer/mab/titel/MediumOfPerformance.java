@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class MediumOfPerformance extends MABEntity {
 
-    private final static MediumOfPerformance element = new MediumOfPerformance();
-
-    public static MediumOfPerformance getInstance() {
-        return element;
-    }
-
 }

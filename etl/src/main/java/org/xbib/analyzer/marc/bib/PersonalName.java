@@ -34,10 +34,6 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class PersonalName extends MARCEntity {
-    private final static PersonalName instance = new PersonalName();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
 
 }

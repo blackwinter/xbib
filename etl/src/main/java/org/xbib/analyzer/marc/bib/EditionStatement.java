@@ -34,9 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class EditionStatement extends MARCEntity {
-    private final static EditionStatement instance = new EditionStatement();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
+
 }

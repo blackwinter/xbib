@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Conference extends MABEntity {
 
-    private final static Conference element = new Conference();
-
-    public static Conference getInstance() {
-        return element;
-    }
-
     /**
      * e = Name Konferenz
      * 9 = GND-ID (neu) / Norm-ID (alt)

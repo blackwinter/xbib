@@ -170,16 +170,8 @@ public class ParserTest extends Assert {
         time = parse_now("2006-08-20 15:30.30");
         assertEquals(construct(2006, 8, 20, 15, 30, 30), time);
 
-        // rdn_rm_rd_rt_rtz_ry
-
         time = parse_now("Mon Apr 02 17:00:00 PDT 2007");
         assertEquals(construct(2007, 4, 2, 17), time);
-
-        //Calendar now = Calendar.getInstance();
-        //time = parse_now(now.to_s)
-        //assertEquals(now.to_s, time.to_s);
-
-        // rm_sd_rt
 
         //time = parse_now("jan 5 13:00");
         //assertEquals(Time.construct(2007, 1, 5, 13), time);
@@ -199,6 +191,14 @@ public class ParserTest extends Assert {
     @Test
     public void test_foo() throws ParseException {
         Chronic.parse("two months ago this friday");
+    }
+
+    @Test
+    public void testMonth() throws ParseException {
+        Span span = Chronic.parse("first day of next month");
+        ZonedDateTime zdt = span.getBeginCalendar();
+        span = Chronic.parse("first day of this month");
+        zdt = span.getBeginCalendar();
     }
 
     @Test

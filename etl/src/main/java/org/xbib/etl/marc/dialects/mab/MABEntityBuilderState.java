@@ -53,14 +53,18 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private final IRI ITEM = IRI.create("item");
 
-    private final Map<String, Facet> facets = new HashMap<>();
+    private final static String LANGUAGE_FACET = "dc.language";
+    private final static String DATE_FACET = "dc.date";
+    private final static String TYPE_FACET = "dc.type";
+    private final static String FORMAT_FACET = "dc.format";
 
-    public final static String LANGUAGE_FACET = "dc.language";
-    public final static String DATE_FACET = "dc.date";
-    public final static String TYPE_FACET = "dc.type";
-    public final static String FORMAT_FACET = "dc.format";
+    private final Map<String, Facet> facets;
 
-    private final Map<String, Sequence> sequences = new HashMap<>();
+    private final Map<String, Sequence> sequences;
+
+    private final String packageName;
+
+    private final Specification specification;
 
     private String systemIdentifier;
 
@@ -78,14 +82,12 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private IRI uid;
 
-    private String packageName;
-
-    private Specification specification;
-
     public MABEntityBuilderState(String packageName, Specification specification, RdfGraph<RdfGraphParams> graph, Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
         this.packageName = packageName;
         this.specification = specification;
+        this.facets = new HashMap<>();
+        this.sequences = new HashMap<>();
     }
 
     public Resource getResource() throws IOException {

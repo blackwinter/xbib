@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class SubjectDDC extends MABEntity {
 
-    private final static SubjectDDC element = new SubjectDDC();
-
-    public static SubjectDDC getInstance() {
-        return element;
-    }
-
 }

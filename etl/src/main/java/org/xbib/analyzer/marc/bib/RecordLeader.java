@@ -39,28 +39,21 @@ import java.io.IOException;
 import java.util.Map;
 
 public class RecordLeader extends MARCEntity {
-    private final static RecordLeader instance = new RecordLeader();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
     private Map<String,Object> codes;
 
     private String predicate;
 
-    @Override
-    public MARCEntity setSettings(Map params) {
-        super.setSettings(params);
+    public RecordLeader(Map<String,Object> params) {
+        super(params);
         this.codes= (Map<String,Object>)params.get("codes");
         this.predicate = params.containsKey("_predicate") ?
                         (String)params.get("_predicate") : "leader";
-        return this;
     }
 
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         worker.state().setLabel(value);
         if (codes == null) {
             return false;

@@ -41,29 +41,20 @@ import org.xbib.rdf.Resource;
 import java.io.IOException;
 import java.util.Map;
 
-public class Shelfmark extends Item {
-
-    private final static Shelfmark element = new Shelfmark();
-
-    public static Shelfmark getInstance() {
-        return element;
-    }
+public class Shelfmark extends MABEntity {
 
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public Shelfmark(Map<String,Object> params) {
+        super(params);
         // override by "identifier"
         if (params.containsKey("identifier")) {
             this.prefix = params.get("identifier").toString();
         }
-        return this;
     }
 
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         worker.addToResource(worker.state().getNextItemResource(), fields, this);
         return true;
     }

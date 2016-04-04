@@ -39,19 +39,9 @@ import java.io.IOException;
 
 public class RecordLabel extends MABEntity {
 
-    private final static RecordLabel element = new RecordLabel();
-
-    public static RecordLabel getInstance() {
-        return element;
-    }
-
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            // get from subfield
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
        worker.state().setLabel(value.trim());
         if (value.length() == 24) {
             char satztyp = value.charAt(23);

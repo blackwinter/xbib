@@ -39,17 +39,10 @@ import java.util.Map;
 
 public class RecordIdentifierLocal extends MABEntity {
 
-    private final static RecordIdentifierLocal element = new RecordIdentifierLocal();
-
-    public static RecordIdentifierLocal getInstance() {
-        return element;
-    }
-
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public RecordIdentifierLocal(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();
         }
@@ -57,7 +50,6 @@ public class RecordIdentifierLocal extends MABEntity {
         if (params.containsKey("catalogid")) {
             this.prefix = "(" + params.get("catalogid").toString() + ")";
         }
-        return this;
     }
 
     @Override

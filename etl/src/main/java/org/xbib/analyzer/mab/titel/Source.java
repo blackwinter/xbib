@@ -42,21 +42,13 @@ import java.util.Map;
 
 public class Source extends MABEntity {
 
-    private final static Source element = new Source();
-
-    public static Source getInstance() {
-        return element;
-    }
-
     private String facet = "dc.date";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public Source(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
-        return this;
     }
 
     @Override

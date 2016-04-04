@@ -35,9 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Time extends MABEntity {
 
-    private final static Time element = new Time();
-
-    public static Time getInstance() {
-        return element;
-    }
 }

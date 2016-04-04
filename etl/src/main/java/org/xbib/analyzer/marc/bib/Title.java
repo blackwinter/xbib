@@ -37,12 +37,6 @@ import org.xbib.rdf.Resource;
 
 public class Title extends MARCEntity {
 
-    private final static Title instance = new Title();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
-
     @Override
     public String data(MARCEntityQueue.MARCWorker worker,
                        String predicate, Resource resource, String property, String value) {

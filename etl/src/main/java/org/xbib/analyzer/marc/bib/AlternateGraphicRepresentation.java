@@ -40,13 +40,9 @@ import java.io.IOException;
 
 public class AlternateGraphicRepresentation extends MARCEntity {
 
-    private final static AlternateGraphicRepresentation instance = new AlternateGraphicRepresentation();
-
-    public static AlternateGraphicRepresentation getInstance() { return instance; }
-
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
+                          FieldList fields) throws IOException {
         // http://www.loc.gov/marc/bibliographic/ecbdcntf.html
         // find linkage: $6 [linking tag]-[occurrence number]/[script identification code]/[field orientation code]
         for (Field field : fields) {
@@ -55,6 +51,6 @@ public class AlternateGraphicRepresentation extends MARCEntity {
                 field.tag(tag);
             }
         }
-        return super.fields(worker, fields, value);
+        return super.fields(worker, fields);
     }
 }

@@ -34,10 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class Country extends MARCEntity {
-    private final static Country instance = new Country();
-    
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
 }

@@ -37,19 +37,12 @@ import org.xbib.rdf.Resource;
 
 import java.util.Map;
 
-public class SeriesAddedEntryUniformTitle extends Title {
-
-    private final static SeriesAddedEntryUniformTitle element = new SeriesAddedEntryUniformTitle();
-
-    public static SeriesAddedEntryUniformTitle getInstance() {
-        return element;
-    }
+public class SeriesAddedEntryUniformTitle extends MABEntity {
 
     private String prefix = "";
 
-    @Override
-    public MABEntity setSettings(Map params) {
-        super.setSettings(params);
+    public SeriesAddedEntryUniformTitle(Map<String,Object> params) {
+        super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();
         }
@@ -57,7 +50,6 @@ public class SeriesAddedEntryUniformTitle extends Title {
         if (params.containsKey("catalogid")) {
             this.prefix = "(" + params.get("catalogid").toString() + ")";
         }
-        return this;
     }
 
     @Override

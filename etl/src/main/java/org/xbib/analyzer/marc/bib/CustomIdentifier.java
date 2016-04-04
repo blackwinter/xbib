@@ -34,10 +34,5 @@ package org.xbib.analyzer.marc.bib;
 import org.xbib.etl.marc.MARCEntity;
 
 public class CustomIdentifier extends MARCEntity {
-    private final static CustomIdentifier instance = new CustomIdentifier();
-
-    public static MARCEntity getInstance() {
-        return instance;
-    }
 
 }

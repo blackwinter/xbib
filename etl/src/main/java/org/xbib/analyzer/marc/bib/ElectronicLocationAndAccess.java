@@ -35,10 +35,4 @@ import org.xbib.etl.marc.MARCEntity;
 
 public class ElectronicLocationAndAccess extends MARCEntity {
 
-    private final static ElectronicLocationAndAccess instance = new ElectronicLocationAndAccess();
-
-    public static ElectronicLocationAndAccess getInstance() {
-        return instance;
-    }
-
 }

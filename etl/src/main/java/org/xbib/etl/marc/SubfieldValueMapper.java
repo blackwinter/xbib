@@ -72,7 +72,7 @@ public class SubfieldValueMapper {
         // create result map entry
         final String newKey = k;
         final Object newValue = v;
-        final Map.Entry<String, Object> entry = new Map.Entry<String, Object>() {
+        return new Map.Entry<String, Object>() {
             @Override
             public String getKey() {
                 return newKey;
@@ -88,6 +88,5 @@ public class SubfieldValueMapper {
                return null;
             }
         };
-        return entry;
     }
 }

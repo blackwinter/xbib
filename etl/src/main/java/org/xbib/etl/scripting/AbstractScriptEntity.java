@@ -31,15 +31,15 @@
  */
 package org.xbib.etl.scripting;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import org.xbib.etl.Entity;
 import org.xbib.etl.EntityQueue;
 
-public abstract class AbstractScriptEntity implements Entity {
+public abstract class AbstractScriptEntity<E extends Entity> implements Entity {
 
     private final ScriptEngine engine;
 
@@ -47,7 +47,7 @@ public abstract class AbstractScriptEntity implements Entity {
 
     private final String script;
 
-    private Entity entity;
+    private E entity;
 
     private Map settings;
 
@@ -57,16 +57,17 @@ public abstract class AbstractScriptEntity implements Entity {
         this.script = script;        
     }
 
-    @Override
     public AbstractScriptEntity setSettings(Map<String,Object> settings) {
         try {
             this.settings = settings;
             engine.eval(script);
-            this.entity = (Entity)engine.get(invocable);
+            this.entity = (E)engine.get(invocable);
             if (entity != null) {
-                entity.setSettings(settings);
+                Method method = entity.getClass().getMethod("setSettings");
+                method.invoke(settings);
+                //entity.setSettings(settings);
             }
-        } catch (ScriptException ex) {
+        } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
         return this;
@@ -76,7 +77,7 @@ public abstract class AbstractScriptEntity implements Entity {
         return settings;
     }
 
-    public Entity getEntity(){
+    public E getEntity(){
         return entity;
     }
 

@@ -34,7 +34,7 @@ public class MABEntitiesTest {
         File file = File.createTempFile("mab-hbz-tit-elements", ".json");
         file.deleteOnExit();
         Writer writer = new FileWriter(file);
-        queue.specification().dump("org/xbib/analyzer/mab/titel.json", writer);
+        queue.specification().dump(/*"org/xbib/analyzer/mab/titel.json",*/ writer);
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
         Iso2709Reader reader = new Iso2709Reader(null).setMarcXchangeListener(kv);
         reader.setProperty(Iso2709Reader.FORMAT, "MAB");
@@ -68,7 +68,7 @@ public class MABEntitiesTest {
 
     class MyQueue extends MABEntityQueue {
 
-        public MyQueue() {
+        public MyQueue() throws Exception{
             super("org.xbib.analyzer.mab.titel",
                   Runtime.getRuntime().availableProcessors(),
                   "org/xbib/analyzer/mab/titel.json");

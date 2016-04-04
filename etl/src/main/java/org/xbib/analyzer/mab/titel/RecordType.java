@@ -39,15 +39,9 @@ import java.io.IOException;
 
 public class RecordType extends MABEntity {
 
-    private final static RecordType element = new RecordType();
-
-    public static RecordType getInstance() {
-        return element;
-    }
-
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         if (value == null) {
             return false;
         }

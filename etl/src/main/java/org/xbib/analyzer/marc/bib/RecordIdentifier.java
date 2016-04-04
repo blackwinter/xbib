@@ -39,17 +39,10 @@ import java.io.IOException;
 
 public class RecordIdentifier extends MARCEntity {
 
-    private final static RecordIdentifier instance = new RecordIdentifier();
-
-    public static RecordIdentifier getInstance() {
-        return instance;
-    }
-
     @Override
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
-        super.fields(worker, fields, value);
-        worker.state().setRecordNumber(value);
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
+        super.fields(worker, fields);
+        worker.state().setRecordNumber(fields.getLast().data());
         return true;
     }
 }

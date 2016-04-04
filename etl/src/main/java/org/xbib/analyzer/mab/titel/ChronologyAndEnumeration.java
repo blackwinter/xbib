@@ -34,11 +34,4 @@ package org.xbib.analyzer.mab.titel;
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class ChronologyAndEnumeration extends MABEntity {
-
-    private final static ChronologyAndEnumeration element = new ChronologyAndEnumeration();
-
-    public static ChronologyAndEnumeration getInstance() {
-        return element;
-    }
-
 }

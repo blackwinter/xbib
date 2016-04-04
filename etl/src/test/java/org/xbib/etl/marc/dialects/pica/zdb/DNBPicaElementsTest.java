@@ -97,7 +97,7 @@ public class DNBPicaElementsTest extends Assert {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
+        public MyQueue() throws Exception{
             super("org.xbib.analyzer.pica.zdb.bibdat",
                     1,
                     "/org/xbib/analyzer/pica/zdb/bibdat.json");

@@ -35,11 +35,6 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class AlternateGraphicRepresentation extends MABEntity {
 
-    private final static AlternateGraphicRepresentation element = new AlternateGraphicRepresentation();
-
-    public static AlternateGraphicRepresentation getInstance() {
-        return element;
-    }
     /*
                    "OtherScript": [
                   {

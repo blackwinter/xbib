@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.etl.marc.direct.MARCDirectQueue;
+import org.xbib.etl.marc.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.marc.Iso2709Reader;
 import org.xbib.marc.MarcXchange2KeyValue;

@@ -43,7 +43,6 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,16 +59,19 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public MARCEntityQueue(int workers) {
-        super(new MARCSpecification(), workers);
+    public MARCEntityQueue(int workers) throws Exception {
+        this("", workers);
     }
 
-    public MARCEntityQueue(String packageName, int workers, String... paths) {
-        super(new MARCSpecification(), workers, packageName, paths);
+    public MARCEntityQueue(String packageName, int workers, String... paths) throws Exception {
+        this(packageName, new HashMap<>(), workers,  paths);
     }
 
-    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths) {
-        super(new MARCSpecification().addParameters(params), workers, packageName, paths);
+    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+            throws Exception {
+        super(new MARCSpecification(new HashMap<>(), params, MARCEntityQueue.class.getClassLoader(),
+                packageName, paths), workers);
+        logger.info("specification: {} {} entities", specification(), specification().getEntities().size());
     }
 
     public MARCEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {
@@ -109,28 +111,21 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
         }
 
         @Override
-        public void build(FieldList fields, String value) throws IOException {
+        public void build(FieldList fields) throws IOException {
             if (fields == null) {
                 return;
             }
-            if (value != null && !value.isEmpty()) {
+            /*if (value != null && !value.isEmpty()) {
                 // we need to fake control field. Looks like a bug!
                 Field f = fields.getFirst();
                 fields = new FieldList();
                 fields.add(new Field().tag(f.tag()).data(value));
-            }
+            }*/
             String key = fields.toKey();
             MARCEntity entity = (MARCEntity) specification().getEntity(key, map());
-            //if (entity == null) {
-                //logger.info("retrying key {}", key);
-                /*entity = (MARCEntity) specification().getEntityByKey(key, map());
-                if (entity == null) {
-                    logger.info("even getEntityByKey gave no entity for {}!", key);
-                }*/
-            //}
             if (entity != null) {
                 // entity-based processing
-                boolean done = entity.fields(this, fields, value);
+                boolean done = entity.fields(this, fields);
                 if (done) {
                     return;
                 }
@@ -148,7 +143,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
         @SuppressWarnings("unchecked")
         public void addToResource(Resource resource, FieldList fields, MARCEntity entity) throws IOException {
             // setup
-            Map<String, Object> defaultSubfields = (Map<String, Object>) entity.getSettings().get("subfields");
+            Map<String, Object> defaultSubfields = (Map<String, Object>) entity.getParams().get("subfields");
             if (defaultSubfields == null) {
                 return;
             }
@@ -158,8 +153,8 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
             // default predicate is the name of the class
             String predicate = entity.getClass().getSimpleName();
             // the _predicate field allows to select a field to name the resource by a coded value
-            if (entity.getSettings().containsKey("_predicate")) {
-                predicate = (String) entity.getSettings().get("_predicate");
+            if (entity.getParams().containsKey("_predicate")) {
+                predicate = (String) entity.getParams().get("_predicate");
             }
             boolean overridePredicate = false;
             // put all found fields with configured subfield names to this resource
@@ -171,21 +166,21 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                 }
                 Map<String, Object> subfields = defaultSubfields;
                 // tag predicates defined?
-                if (entity.getSettings().containsKey("tags")) {
-                    Map<String, Object> tags = (Map<String, Object>) entity.getSettings().get("tags");
+                if (entity.getParams().containsKey("tags")) {
+                    Map<String, Object> tags = (Map<String, Object>) entity.getParams().get("tags");
                     if (tags.containsKey(field.tag())) {
                         if (!overridePredicate) {
                             predicate = (String) tags.get(field.tag());
                         }
-                        subfields = (Map<String, Object>) entity.getSettings().get(predicate);
+                        subfields = (Map<String, Object>) entity.getParams().get(predicate);
                         if (subfields == null) {
                             subfields = defaultSubfields;
                         }
                     }
                 }
                 // indicator-based predicate defined?
-                if (entity.getSettings().containsKey("indicators")) {
-                    Map<String, Object> indicators = (Map<String, Object>) entity.getSettings().get("indicators");
+                if (entity.getParams().containsKey("indicators")) {
+                    Map<String, Object> indicators = (Map<String, Object>) entity.getParams().get("indicators");
                     if (indicators.containsKey(field.tag())) {
                         Map<String, Object> indicatorMap = (Map<String, Object>) indicators.get(field.tag());
                         if (indicatorMap.containsKey(field.indicator())) {
@@ -193,7 +188,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                                 predicate = (String) indicatorMap.get(field.indicator());
                                 fieldNames.put(field, predicate);
                             }
-                            subfields = (Map<String, Object>) entity.getSettings().get(predicate);
+                            subfields = (Map<String, Object>) entity.getParams().get(predicate);
                             if (subfields == null) {
                                 subfields = defaultSubfields;
                             }
@@ -207,10 +202,10 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                     if (fieldNames.containsKey(field)) {
                         // field-specific subfield map
                         String fieldName = fieldNames.get(field);
-                        Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
+                        Map<String, Object> vm = (Map<String, Object>) entity.getParams().get(fieldName);
                         if (vm == null) {
                             // fallback to "subfields"
-                            vm = (Map<String, Object>) entity.getSettings().get("subfields");
+                            vm = (Map<String, Object>) entity.getParams().get("subfields");
                         }
                         // is value containing a blank?
                         int pos = v.indexOf(' ');
@@ -225,7 +220,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                             v = (String) vm.get(vv);
                         } else {
                             // relation by pattern?
-                            List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
+                            List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getParams().get(fieldName + "pattern");
                             if (patterns != null) {
                                 for (Map<String, String> pattern : patterns) {
                                     Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -243,9 +238,9 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                     } else {
                         // default subfield map
                         String fieldName = me.getKey();
-                        if (entity.getSettings().containsKey(fieldName)) {
+                        if (entity.getParams().containsKey(fieldName)) {
                             try {
-                                Map<String, Object> vm = (Map<String, Object>) entity.getSettings().get(fieldName);
+                                Map<String, Object> vm = (Map<String, Object>) entity.getParams().get(fieldName);
                                 int pos = v.indexOf(' ');
                                 String vv = pos > 0 ? v.substring(0, pos) : v;
                                 if (vm.containsKey(v)) {
@@ -256,7 +251,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                                     v = (String) vm.get(vv);
                                 } else {
                                     // relation by pattern?
-                                    List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getSettings().get(fieldName + "pattern");
+                                    List<Map<String, String>> patterns = (List<Map<String, String>>) entity.getParams().get(fieldName + "pattern");
                                     if (patterns != null) {
                                         for (Map<String, String> pattern : patterns) {
                                             Map.Entry<String, String> mme = pattern.entrySet().iterator().next();
@@ -274,9 +269,9 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                             } catch (ClassCastException e) {
                                 logger.warn("entity {}: found {} of class {} in entity settings {} for key {} but must be a map",
                                         entity.getClass(),
-                                        entity.getSettings().get(fieldName),
-                                        entity.getSettings().get(fieldName).getClass(),
-                                        entity.getSettings(),
+                                        entity.getParams().get(fieldName),
+                                        entity.getParams().get(fieldName).getClass(),
+                                        entity.getParams(),
                                         fieldName);
                             }
                         }

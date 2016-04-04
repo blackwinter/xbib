@@ -110,8 +110,9 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
 
         final AtomicInteger counter = new AtomicInteger();
 
-        public MyQueue() {
-            super("org.xbib.analyzer.marc.zdb.bib", 1, "org/xbib/analyzer/marc/zdb/bib.json");
+        public MyQueue() throws Exception{
+            super("org.xbib.analyzer.marc.zdb.bib", 1,
+                    "org/xbib/analyzer/marc/zdb/bib.json");
         }
 
         @Override

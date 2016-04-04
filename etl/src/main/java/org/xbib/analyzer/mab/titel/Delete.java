@@ -39,19 +39,9 @@ import java.io.IOException;
 
 public class Delete extends MABEntity {
 
-    private final static Delete element = new Delete();
-
-    public static Delete getInstance() {
-        return element;
-    }
-
     @Override
-    public boolean fields(MABEntityQueue.MABWorker worker,
-                          FieldList fields, String value) throws IOException {
-        if (value == null || value.isEmpty()) {
-            // get from subfield
-            value = fields.getLast().data();
-        }
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
+        String value = fields.getLast().data();
         // turn deleted records into delete operations
         if ("Y".equals(value)) {
             worker.state().getResource().setDeleted(true);

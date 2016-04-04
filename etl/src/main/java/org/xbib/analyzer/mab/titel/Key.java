@@ -35,10 +35,4 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 
 public class Key extends MABEntity {
 
-    private final static Key element = new Key();
-
-    public static Key getInstance() {
-        return element;
-    }
-
 }

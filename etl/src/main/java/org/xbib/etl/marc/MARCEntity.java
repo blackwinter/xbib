@@ -33,6 +33,7 @@ package org.xbib.etl.marc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.etl.DefaultEntity;
 import org.xbib.etl.Entity;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
@@ -40,25 +41,23 @@ import org.xbib.marc.MarcXchangeConstants;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
  * A MARC entity
  */
-public class MARCEntity implements Entity, MarcXchangeConstants {
+public abstract class MARCEntity extends DefaultEntity implements Entity, MarcXchangeConstants {
 
     protected static final Logger logger = LogManager.getLogger(MARCEntity.class.getName());
 
-    private Map<String,Object> params;
-
-    @Override
-    public MARCEntity setSettings(Map<String,Object> params) {
-        this.params = params;
-        return this;
+    @SuppressWarnings("unchecked")
+    public MARCEntity() {
+        this(Collections.EMPTY_MAP);
     }
 
-    public Map<String,Object> getSettings() {
-        return params;
+    public MARCEntity(Map<String,Object> params) {
+        super(params);
     }
 
     /**
@@ -66,12 +65,10 @@ public class MARCEntity implements Entity, MarcXchangeConstants {
      *
      * @param worker the worker
      * @param fields the fields
-     * @param value the value
      * @return true if processing has been completed and should not continue at this point,
      * false if it should continue
      */
-    public boolean fields(MARCEntityQueue.MARCWorker worker,
-                          FieldList fields, String value) throws IOException {
+    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
         return false;
     }
 
