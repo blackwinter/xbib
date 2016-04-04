@@ -168,7 +168,7 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
         }
         for (IRI predicate : resource.predicates()) {
             // first, the values
-            final List<Object> values = new ArrayList<Object>(32);
+            final List<Object> values = new ArrayList<>(32);
             final Iterator<Node> it = resource.visibleObjects(predicate);
             while (it.hasNext()) {
                 Node node = it.next();
@@ -191,6 +191,9 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
             final Collection<Resource> resources = resource.embeddedResources(predicate);
             if (resources.size() == 1) {
                 Resource res = resources.iterator().next();
+                if (res.equals(resource)) {
+                    throw new IllegalArgumentException("no recursive resources allowed: resource=" + res);
+                }
                 if (!res.isEmpty()) {
                     builder.field(params.getNamespaceContext().compact(predicate));
                     builder.startObject();
@@ -201,6 +204,9 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
                 builder.field(params.getNamespaceContext().compact(predicate));
                 builder.startArray();
                 for (Resource res : resources) {
+                    if (res.equals(resource)) {
+                        throw new IllegalArgumentException("no recursive resources allowed: resource=" + res);
+                    }
                     if (!res.isEmpty()) {
                         builder.startObject();
                         build(res);
