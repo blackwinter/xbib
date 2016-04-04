@@ -59,8 +59,7 @@ public class NTripleTest extends Assert {
         resource.add("http://purl.org/dc/elements/1.1/date",new MemoryLiteral("2010").type(XSDResourceIdentifiers.INTEGER));
         RdfContentBuilder builder = ntripleBuilder();
         builder.receive(resource);
-        assertEquals(builder.string(),
-                "<urn:doc1> <http://purl.org/dc/elements/1.1/date> \"2010\"^^<xsd:integer> .\n");
+        assertEquals("<urn:doc1> <http://purl.org/dc/elements/1.1/date> \"2010\"^^<xsd:integer> .\n", builder.string());
     }
 
     private Resource createResource() {

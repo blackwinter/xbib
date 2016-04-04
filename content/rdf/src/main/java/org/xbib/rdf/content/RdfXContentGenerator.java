@@ -174,7 +174,7 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
             return;
         }
         if (resourceSet.contains(resource)) {
-            throw new IllegalArgumentException("no recursive resources allowed: resource=" + resource);
+            throw new IOException("no recursive resources allowed: resource=" + resource);
         }
         for (IRI predicate : resource.predicates()) {
             // first, the values

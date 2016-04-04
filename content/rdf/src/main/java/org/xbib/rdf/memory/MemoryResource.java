@@ -76,6 +76,7 @@ public class MemoryResource implements Resource, Comparable<Resource>, XSDResour
 
     private boolean deleted;
 
+    // for test
     public static void reset() {
         nodeID.set(0L);
     }
