@@ -12,6 +12,7 @@ import java.io.InputStream;
 public class MarcXchangeJSONLines extends TitleHoldingsFeeder {
 
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return p -> new MarcXchangeJSONLines().setPipeline(p);
     }
@@ -22,6 +23,7 @@ public class MarcXchangeJSONLines extends TitleHoldingsFeeder {
                 .addListener(queue);
         MarcXchangeJSONLinesReader reader = new MarcXchangeJSONLinesReader(in, kv);
         reader.parse();
+        in.close();
     }
 
 }

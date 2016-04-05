@@ -31,6 +31,11 @@
  */
 package org.xbib.analyzer.mab.titel;
 
+import java.util.Map;
+
 public class TitleUniformIdentifier extends Title {
 
+    public TitleUniformIdentifier(Map<String, Object> params) {
+        super(params);
+    }
 }

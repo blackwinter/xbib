@@ -44,10 +44,15 @@ import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class OnlineAccessRemote extends MABEntity {
 
     private final static String taxonomyFacet = "xbib.taxonomy";
+
+    public OnlineAccessRemote(Map<String,Object> params) {
+        super(params);
+    }
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {

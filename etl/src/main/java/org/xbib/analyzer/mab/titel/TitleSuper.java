@@ -31,13 +31,12 @@
  */
 package org.xbib.analyzer.mab.titel;
 
-import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.rdf.Resource;
 
 import java.util.Map;
 
-public class TitleSuper extends MABEntity {
+public class TitleSuper extends Title {
 
     private String prefix = "";
 

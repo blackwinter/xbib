@@ -45,7 +45,7 @@ import org.xbib.rdf.Resource;
 import java.io.IOException;
 import java.util.Map;
 
-public class OnlineAccessScopedLink extends MABEntity {
+public class OnlineAccessScopedLink extends OnlineAccessRemote {
 
     private final static String taxonomyFacet = "xbib.taxonomy";
 

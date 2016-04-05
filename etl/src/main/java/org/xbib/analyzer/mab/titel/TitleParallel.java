@@ -31,6 +31,11 @@
  */
 package org.xbib.analyzer.mab.titel;
 
+import java.util.Map;
+
 public class TitleParallel extends Title {
 
+    public TitleParallel(Map<String, Object> params) {
+        super(params);
+    }
 }

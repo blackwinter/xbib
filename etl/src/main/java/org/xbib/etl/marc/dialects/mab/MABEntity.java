@@ -83,6 +83,21 @@ public abstract class MABEntity extends DefaultEntity {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> getCodes() {
+        return (Map<String, Object>) getParams().get("codes");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> getFacetCodes() {
+        return (Map<String, Object>) getParams().get("facetcodes");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> getRegexes() {
+        return (Map<String, Object>) getParams().get("regexes");
+    }
+
     public Resource getResource(MABEntityQueue.MABWorker worker) throws IOException {
         return worker.state().getResource();
     }
