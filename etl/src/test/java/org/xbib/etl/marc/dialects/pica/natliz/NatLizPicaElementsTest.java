@@ -106,7 +106,7 @@ public class NatLizPicaElementsTest extends Assert {
                     .host("xbib.org")
                     .query("bib")
                     .fragment(Long.toString(counter.getAndIncrement())).build();
-            context.getResource().id(iri);
+            context.getResource().setId(iri);
         }
 
         public long getCounter() {

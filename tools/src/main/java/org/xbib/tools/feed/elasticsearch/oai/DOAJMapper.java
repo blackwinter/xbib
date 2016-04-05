@@ -32,7 +32,7 @@
 package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.xbib.rdf.Resource;
-import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ import java.util.Map;
 public class DOAJMapper implements ArticleVocabulary {
 
     public Resource map(Map<String, Object> map) throws IOException {
-        Resource r = new MemoryResource();
+        Resource r = new BlankMemoryResource();
         map(r, null, map);
         return r;
     }

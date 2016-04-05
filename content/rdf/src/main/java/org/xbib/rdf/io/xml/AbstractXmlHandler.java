@@ -35,6 +35,7 @@ import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -52,9 +53,9 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
 
     protected final RdfContentParams params;
 
-    protected final StringBuilder content = new StringBuilder();
+    protected final StringBuilder content;
 
-    protected final Stack<QName> parents = new Stack<QName>();
+    protected final Stack<QName> parents;
 
     protected Resource resource;
 
@@ -68,7 +69,9 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
 
     public AbstractXmlHandler(RdfContentParams params) {
         this.params = params;
-        this.resource = new MemoryResource();
+        this.content = new StringBuilder();
+        this.parents  = new Stack<>();
+        this.resource = new BlankMemoryResource();
     }
 
     public RdfContentParams getParams() {
@@ -212,7 +215,7 @@ public abstract class AbstractXmlHandler extends DefaultHandler implements XmlHa
     }
 
     protected void openResource() throws IOException {
-        resource = new MemoryResource();
+        resource = new BlankMemoryResource();
     }
 
     protected void closeResource() throws IOException {

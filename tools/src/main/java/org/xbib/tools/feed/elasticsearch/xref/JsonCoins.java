@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.Finder;
@@ -51,7 +52,6 @@ import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.CharacterEntities;
@@ -173,7 +173,7 @@ public class JsonCoins extends Feeder {
             while (token != null) {
                 switch (token) {
                     case START_OBJECT: {
-                        resource = new MemoryResource().blank();
+                        resource = new BlankMemoryResource();
                         break;
                     }
                     case END_OBJECT: {
@@ -325,7 +325,7 @@ public class JsonCoins extends Feeder {
                                     .path("/doi/")
                                     .fragment(doiURI)
                                     .build();
-                            r.id(iri)
+                            r.setId(iri)
                                     .a(FABIO_ARTICLE)
                                     .add(PRISM_DOI, s);
                         } catch (Exception e) {
@@ -353,12 +353,12 @@ public class JsonCoins extends Feeder {
                                 .add(PRISM_PUBLICATION_NAME, v);
                         Resource serial = serialsdb.getMap().get(cleanTitle);
                         if (serial != null) {
-                            issns = serial.objects(PRISM_ISSN);
+                            issns = serial.objects(PRISM_ISSN).iterator();
                             while (issns.hasNext()) {
                                 Node issn  = issns.next();
                                 j.add(PRISM_ISSN, issn.toString());
                             }
-                            Iterator<Node> publishers = serial.objects(DC_PUBLISHER);
+                            Iterator<Node> publishers = serial.objects(DC_PUBLISHER).iterator();
                             while (publishers.hasNext()) {
                                 Node publisher = publishers.next();
                                 j.add(DC_PUBLISHER, publisher.toString());

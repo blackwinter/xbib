@@ -109,7 +109,7 @@ public class DNBPicaElementsTest extends Assert {
                     .host("xbib.org")
                     .query("bibdat")
                     .fragment(Long.toString(counter.getAndIncrement())).build();
-            context.getResource().id(iri);
+            context.getResource().setId(iri);
         }
 
         public long getCounter() {

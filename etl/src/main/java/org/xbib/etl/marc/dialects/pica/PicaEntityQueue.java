@@ -37,6 +37,7 @@ import org.xbib.etl.marc.SubfieldValueMapper;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                 if (subfields != null) {
                     // get current resource and create new anoymous resource
                     Resource resource = state().getResource();
-                    Resource newResource = state().getResource().newResource();
+                    Resource newResource = new BlankMemoryResource(); //state().getResource().newResource();
                     // default predicate is the name of the class
                     String predicate = entity.getClass().getSimpleName();
 

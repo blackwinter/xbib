@@ -60,7 +60,7 @@ public class UNIMARCEntityTest extends Assert {
         File file = File.createTempFile("unimarc-mapping.", ".json");
         file.deleteOnExit();
         Writer writer = new FileWriter(file);
-        queue.specification().dump(/*"org/xbib/analyzer/unimarc/bib.json",*/ writer);
+        queue.getSpecification().dump(/*"org/xbib/analyzer/unimarc/bib.json",*/ writer);
         writer.close();
         // test the mapper in a MarcXchange listener
         MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
@@ -111,7 +111,7 @@ public class UNIMARCEntityTest extends Assert {
                     .host("dummy")
                     .query("dummy")
                     .fragment(Long.toString(counter.getAndIncrement())).build();
-            context.getResource().id(iri);
+            context.getResource().setId(iri);
         }
 
         public long getCounter() {

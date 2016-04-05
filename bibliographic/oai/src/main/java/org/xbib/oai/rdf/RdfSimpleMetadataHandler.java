@@ -39,7 +39,7 @@ import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.io.xml.XmlResourceHandler;
-import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -73,7 +73,7 @@ public class RdfSimpleMetadataHandler extends SimpleMetadataHandler implements O
 
     public RdfSimpleMetadataHandler(RdfContentParams params) {
         this.params = params;
-        this.resource = new MemoryResource();
+        this.resource = new BlankMemoryResource();
         //resourceContext.setNamespaceContext(context);
         //resourceContext.newResource();
         // set up our default handler
@@ -144,7 +144,7 @@ public class RdfSimpleMetadataHandler extends SimpleMetadataHandler implements O
         String id = getHeader().getIdentifier().trim();
         if (handler != null) {
             handler.identify(null, id, null);
-            resource.id(IRI.create(id));
+            resource.setId(IRI.create(id));
             handler.endDocument();
             try {
                 if (builder != null) {

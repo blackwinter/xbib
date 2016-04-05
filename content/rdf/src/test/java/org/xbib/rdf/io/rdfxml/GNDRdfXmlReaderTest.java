@@ -32,9 +32,11 @@
 package org.xbib.rdf.io.rdfxml;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentFactory;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.io.StringReader;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
+@Category(IOTests.class)
 public class GNDRdfXmlReaderTest extends StreamTester {
 
     @Test

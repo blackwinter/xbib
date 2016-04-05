@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Iterator;
 
 /**
  * NTriple content generator
@@ -124,11 +123,13 @@ public class NTripleContentGenerator
 
     @Override
     public NTripleContentGenerator receive(Resource resource) throws IOException {
-        Iterator<Triple> tripleIterator = resource.triples();
-        while (tripleIterator.hasNext()) {
-            Triple t = tripleIterator.next();
-            writer.write(writeStatement(t));
-        }
+        resource.triples().stream().forEach(t -> {
+            try {
+                writer.write(writeStatement(t));
+            } catch (IOException e) {
+                //
+            }
+        });
         return this;
     }
 

@@ -46,7 +46,7 @@ import java.util.Stack;
 public abstract class AbstractXmlResourceHandler
         extends AbstractXmlHandler implements XmlResourceHandler {
 
-    protected final Stack<Resource> stack = new Stack<Resource>();
+    protected final Stack<Resource> stack = new Stack<>();
 
     public AbstractXmlResourceHandler(RdfContentParams params) {
         super(params);

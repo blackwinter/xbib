@@ -37,16 +37,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentFactory;
 import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.memory.MemoryResource;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
+@Category(IOTests.class)
 public class TurtleTest extends StreamTester {
 
     @Test
@@ -117,8 +120,7 @@ public class TurtleTest extends StreamTester {
     }
 
     private Resource createResource() {
-        Resource resource = new MemoryResource();
-        resource.id(IRI.create("urn:doc1"));
+        Resource resource = new MemoryResource(IRI.create("urn:doc1"));
         resource.add("dc:creator", "Smith");
         resource.add("dc:creator", "Jones");
         Resource r = resource.newResource("dcterms:hasPart")
@@ -143,9 +145,8 @@ public class TurtleTest extends StreamTester {
     }
 
     private Resource createResource2() {
-        Resource r = new MemoryResource();
-        r.id(IRI.create("urn:res"))
-                .add("dc:title", "Hello")
+        Resource r = new MemoryResource(IRI.create("urn:res"));
+        r.add("dc:title", "Hello")
                 .add("dc:title", "World")
                 .add("xbib:person", "Jörg Prante")
                 .add("dc:subject", "An")
@@ -177,9 +178,8 @@ public class TurtleTest extends StreamTester {
     }
 
     private Resource createNestedResources() {
-        Resource r = new MemoryResource();
-        r.id(IRI.create("urn:res"))
-                .add("dc:title", "Hello")
+        Resource r = new MemoryResource(IRI.create("urn:res"));
+        r.add("dc:title", "Hello")
                 .add("dc:title", "World")
                 .add("xbib:person", "Jörg Prante")
                 .add("dc:subject", "An")

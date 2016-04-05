@@ -102,12 +102,12 @@ public class EZBXML extends Converter {
 
         @Override
         public void identify(QName name, String value, IRI identifier) {
-            if ("license_entry_id".equals(name.getLocalPart()) && identifier == null) {
+            if ("license_entry_id".equals(name.getLocalPart())) {
                 IRI id = IRI.builder().scheme("iri")
                         .host("localhost")
                         .fragment(value)
                         .build();
-                getResource().id(id);
+                getResource().setId(id);
             }
         }
 

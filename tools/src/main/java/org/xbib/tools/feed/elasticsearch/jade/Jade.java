@@ -34,6 +34,7 @@ package org.xbib.tools.feed.elasticsearch.jade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -130,14 +131,14 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
             }});
             LinkedList<String> lines = new LinkedList<>();
-            Resource resource = new MemoryResource();
+            Resource resource = new BlankMemoryResource();
             Reader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             BufferedReader reader = new BufferedReader(r);
             String line = reader.readLine();
             while (line != null) {
                 if (line.startsWith("*** BRS DOCUMENT BOUNDARY ***")) {
                     complete(resource);
-                    resource = new MemoryResource();
+                    resource = new BlankMemoryResource();
                     authors.clear();
                     title = null;
                     year = null;
@@ -318,7 +319,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
         if (key != null) {
             resource.add(XBIB_KEY, key);
             try {
-                resource.id(IRI.create("http://xbib.info/key/" + key));
+                resource.setId(IRI.create("http://xbib.info/key/" + key));
             } catch (Exception e) {
                 logger.error("wrong key: '{}' citation={}", key, citation);
             }

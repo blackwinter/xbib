@@ -43,7 +43,6 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
-import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
@@ -58,8 +57,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
 public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity, FieldList, String>
         implements Closeable {
@@ -235,7 +232,6 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         @SuppressWarnings("unchecked")
         public Resource addToResource(Resource resource, FieldList fields, MABEntity entity) throws IOException {
             Map<String, Object> params = entity.getParams();
-            logger.debug("addToResource: entity={} params={}", entity, params);
             // setup
             Map<String, Object> defaultSubfields = (Map<String, Object>) params.get("subfields");
             if (defaultSubfields == null) {
@@ -247,7 +243,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             // default predicate is the name of the element class
             String predicate = entity.getClass().getSimpleName();
             // the _predicate field allows to select a field to name the resource by a coded value
-            if (entity.getParams().containsKey("_predicate")) {
+            if (params.containsKey("_predicate")) {
                 predicate = (String) params.get("_predicate");
             }
             boolean overridePredicate = false;
@@ -307,11 +303,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                         String vv = pos > 0 ? v.substring(0, pos) : v;
                         // code table lookup
                         if (vm.containsKey(v)) {
-                            logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                             newResource.add(me.getKey() + "Source", v);
                             v = (String) vm.get(v);
                         } else if (vm.containsKey(vv)) {
-                            logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                             newResource.add(me.getKey() + "Source", v);
                             v = (String) vm.get(vv);
                         } else {
@@ -324,7 +318,6 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                     String rel = mme.getValue();
                                     Matcher m = Pattern.compile(p, Pattern.CASE_INSENSITIVE).matcher(v);
                                     if (m.matches()) {
-                                        logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                                         newResource.add(me.getKey() + "Source", v);
                                         v = rel;
                                         break;
@@ -341,11 +334,9 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                 int pos = v.indexOf(' ');
                                 String vv = pos > 0 ? v.substring(0, pos) : v;
                                 if (vm.containsKey(v)) {
-                                    logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                                     newResource.add(fieldName + "Source", v);
                                     v = (String) vm.get(v);
                                 } else if (vm.containsKey(vv)) {
-                                    logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                                     newResource.add(fieldName + "Source", v);
                                     v = (String) vm.get(vv);
                                 } else {
@@ -358,7 +349,6 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                                             String rel = mme.getValue();
                                             Matcher m = Pattern.compile(p, Pattern.CASE_INSENSITIVE).matcher(v);
                                             if (m.matches()) {
-                                                logger.debug("addToResource: add {} {}", me.getKey() + "Source", v);
                                                 newResource.add(fieldName + "Source", v);
                                                 v = rel;
                                                 break;
@@ -383,7 +373,6 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                         predicate = v;
                         overridePredicate = true;
                     } else {
-                        logger.debug("addToResource: add {} {}", me.getKey(), v);
                         newResource.add(me.getKey(), v);
                     }
                 } else {
@@ -399,17 +388,11 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                         logger.error("cannot use string property of '" + subfieldId + "' for field " + field);
                     }
                     if (property != null) {
-                        logger.debug("addToResource: without decoder, add {} {}", property, field.data());
                         newResource.add(property, entity.data(this, predicate, newResource, property, field.data()));
                     }
                 }
             }
             resource.rename(tempPredicate, IRI.builder().curie(predicate).build());
-            if (logger.isDebugEnabled()) {
-                RdfContentBuilder builder = ntripleBuilder();
-                builder.receive(resource);
-                logger.debug("addToResource: ready, resource={}", builder.string());
-            }
             return newResource;
         }
 

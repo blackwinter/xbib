@@ -92,11 +92,9 @@ public class Item extends MABEntity {
                 String isil = mapper.lookup(value);
                 if (isil != null) {
                     resource.add("identifier", isil);
-                    state.setUID(IRI.builder().curie("uid:" + isil).build());
+                    state.setUID(IRI.builder().curie(isil).build());
                     state.setISIL(isil);
-                    if (state.getFacets().get(identifierFacet) == null) {
-                        state.getFacets().put(identifierFacet, new TermFacet().setName(identifierFacet).setType(Literal.STRING));
-                    }
+                    state.getFacets().putIfAbsent(identifierFacet, new TermFacet().setName(identifierFacet).setType(Literal.STRING));
                     Facet holderFacet = state.getFacets().get(identifierFacet);
                     holderFacet.addValue(isil);
                     // add "main ISIL" if not main ISIL (=two hyphens)
@@ -111,14 +109,10 @@ public class Item extends MABEntity {
                         if (entries != null) {
                             for (Entry entry : entries) {
                                 String facet = taxonomyFacet + "." + isil + ".notation";
-                                if (state.getFacets().get(facet) == null) {
-                                    state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                                }
+                                state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                                 state.getFacets().get(facet).addValue(entry.getCode());
                                 facet = taxonomyFacet + "." + isil + ".text";
-                                if (state.getFacets().get(facet) == null) {
-                                    state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                                }
+                                state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                                 state.getFacets().get(facet).addValue(entry.getText());
                             }
                         }
@@ -128,7 +122,8 @@ public class Item extends MABEntity {
             }
         } else if ("callnumber".equals(property)) {
             // create synthetic local record identifier
-            state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());
+
+            state.setUID(IRI.builder().curie(state.getISIL() + "/" + value).build());
             ConfigurableClassifier classifier = worker.classifier();
             if (classifier != null) {
                 String isil = state.getISIL();
@@ -137,14 +132,10 @@ public class Item extends MABEntity {
                 if (entries != null) {
                     for (Entry entry : entries) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getCode());
                         facet = taxonomyFacet + "." + isil + ".text";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getText());
                     }
                 }

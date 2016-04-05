@@ -36,8 +36,8 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class BioMedCentralMapper implements ArticleVocabulary {
     private String doi;
 
     public Resource map(Map<String, Object> map) throws IOException {
-        Resource r = new MemoryResource();
+        Resource r = new BlankMemoryResource();
         map(r, null, map);
         r.add(DC_TITLE, title.toString());
         String year = date.substring(0,4);

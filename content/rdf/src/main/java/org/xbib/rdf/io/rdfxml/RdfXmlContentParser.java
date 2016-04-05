@@ -46,6 +46,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.StandardRdfContentType;
 import org.xbib.rdf.Triple;
 import org.xbib.rdf.io.xml.XmlHandler;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
@@ -80,7 +81,7 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
 
     private final Reader reader;
 
-    private final Resource resource = new MemoryResource();
+    private final Resource resource = new BlankMemoryResource();
 
     private XmlHandler xmlHandler = new Handler();
 
@@ -268,11 +269,11 @@ public class RdfXmlContentParser implements RdfConstants, RdfContentParser {
     }
 
     private Resource blankNode() {
-        return new MemoryResource().blank("b" + (bn++));
+        return new BlankMemoryResource("b" + (bn++));
     }
 
     private Resource blankNode(String s) {
-        return new MemoryResource().blank(s);
+        return new BlankMemoryResource(s);
     }
 
     /*

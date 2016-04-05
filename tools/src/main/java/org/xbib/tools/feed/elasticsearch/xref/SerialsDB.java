@@ -100,7 +100,6 @@ public class SerialsDB {
                     // skip head line
                     continue;
                 }
-                Resource resource = new MemoryResource();
                 String issn1 = buildISSN(issnArr, 0, true);
                 String issn2 = buildISSN(issnArr, 1, true);
                 if (issn1 != null && issn1.equals(issn2)) {
@@ -114,7 +113,7 @@ public class SerialsDB {
                         .host("xbib.info")
                         .path("/endeavors/" + key + "/")
                         .build();
-                resource.id(id)
+                Resource resource = new MemoryResource(id)
                         .add("dc:identifier", key)
                         .add("dc:publisher", publisher.isEmpty() ? null : publisher)
                         .add("dc:title", journalTitle)

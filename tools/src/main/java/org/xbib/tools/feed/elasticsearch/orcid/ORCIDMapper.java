@@ -38,7 +38,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.io.xml.AbstractXmlHandler;
 import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.util.ArticleVocabulary;
 
 import javax.xml.namespace.QName;
@@ -71,13 +71,13 @@ public class ORCIDMapper implements ArticleVocabulary {
     private String workidtype;
 
     public Resource map(Map<String, Object> map) throws IOException {
-        Resource r = new MemoryResource();
+        Resource r = new BlankMemoryResource();
         map(r, null, map);
         if (work != null) {
             works.add(work);
         }
         if (!works.isEmpty()) {
-            r.id(IRI.create(orcid));
+            r.setId(IRI.create(orcid));
             r.newResource("hasName").a(FOAF_AGENT)
                     .add(FOAF_FAMILYNAME, familyName)
                     .add(FOAF_GIVENNAME, givenName)
@@ -242,8 +242,8 @@ public class ORCIDMapper implements ArticleVocabulary {
 
         @Override
         public void identify(QName name, String value, IRI identifier) {
-            if (resource.id() == null && "uri".equals(name.getLocalPart())) {
-                resource.id(IRI.create(value));
+            if ("uri".equals(name.getLocalPart())) {
+                resource.setId(IRI.create(value));
             }
         }
 

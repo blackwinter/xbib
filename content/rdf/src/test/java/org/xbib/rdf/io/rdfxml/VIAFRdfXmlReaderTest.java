@@ -31,11 +31,12 @@
  */
 package org.xbib.rdf.io.rdfxml;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 
 import java.io.IOException;
@@ -45,9 +46,8 @@ import java.io.StringReader;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
+@Category(IOTests.class)
 public class VIAFRdfXmlReaderTest extends StreamTester {
-
-    private final static Logger logger = LogManager.getLogger(VIAFRdfXmlReaderTest.class);
 
     @Test
     public void testVIAF() throws Exception {

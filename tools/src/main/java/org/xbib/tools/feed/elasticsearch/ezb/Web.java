@@ -50,6 +50,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
@@ -179,7 +180,7 @@ public class Web extends Feeder {
                             + firstDate + "."
                             + lastDate + "."
                             + (movingWall.isEmpty() ? "0" : movingWall);
-                    Resource resource = new MemoryResource().blank();
+                    Resource resource = new BlankMemoryResource();
                     resource.add("dc:identifier", key)
                             .add("xbib:identifier", zdbid)
                             .add("xbib:isil", isil)

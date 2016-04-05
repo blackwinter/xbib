@@ -94,7 +94,7 @@ public class ZDBHolTest extends Assert {
                     .host("zdb")
                     .query("holdings")
                     .fragment(Long.toString(counter.getAndIncrement())).build();
-            state.getResource().id(iri);
+            state.getResource().setId(iri);
         }
 
         public long getCounter() {

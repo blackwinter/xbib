@@ -131,7 +131,7 @@ public class MemoryRdfGraph implements RdfGraph<RdfGraphParams> {
     public MemoryRdfGraph receive(Triple triple) {
         IRI subject = triple.subject().id();
         if (!resources.containsKey(subject)) {
-            resources.put(subject, new MemoryResource().id(subject));
+            resources.put(subject, new MemoryResource(subject));
         }
         resources.get(subject).add(triple);
         return this;
@@ -157,12 +157,12 @@ public class MemoryRdfGraph implements RdfGraph<RdfGraphParams> {
     }
 
     private Resource expand(Resource resource) {
-        Resource expanded = new MemoryResource().id(resource.id());
+        Resource expanded = new MemoryResource(resource.id());
         new GraphTriples(resource).triples.stream().forEach(expanded::add);
         return expanded;
     }
 
-    class GraphTriples {
+    private class GraphTriples {
 
         private final List<Triple> triples;
 
@@ -175,35 +175,25 @@ public class MemoryRdfGraph implements RdfGraph<RdfGraphParams> {
             if (resource == null) {
                 return list;
             }
-            resource.predicates().forEach(new Consumer<IRI>() {
-                @Override
-                public void accept(IRI pred) {
-                    resource.objects(pred)
-                            .forEachRemaining(new Consumer<Node>() {
-                                                  @Override
-                                                  public void accept(Node node) {
-                                                      if (node instanceof Resource) {
-                                                          Resource resource = (Resource)node;
-                                                          if (resource.isEmbedded()) {
-                                                              Resource r = getResource(resource.id());
-                                                              if (r != null) {
-                                                                  list.add(new MemoryTriple(resource, pred, r.id()));
-                                                                  list.addAll(unfold(r));
-                                                              } else {
-                                                                  logger.error("huh? {}", resource.id());
-                                                              }
-                                                          } else {
-                                                              list.addAll(unfold(resource));
-                                                          }
-                                                      } else {
-                                                          list.add(new MemoryTriple(resource, pred, node));
-                                                      }
-                                                  }
-                                              }
-                            );
-
-                }
-            });
+            resource.predicates().forEach(pred -> resource.objects(pred).stream().forEach(node -> {
+                        if (node instanceof Resource) {
+                            Resource resource1 = (Resource)node;
+                            if (resource1.isEmbedded()) {
+                                Resource r = getResource(resource1.id());
+                                if (r != null) {
+                                    list.add(new MemoryTriple(resource1, pred, r.id()));
+                                    list.addAll(unfold(r));
+                                } else {
+                                    logger.error("huh? {}", resource1.id());
+                                }
+                            } else {
+                                list.addAll(unfold(resource1));
+                            }
+                        } else {
+                            list.add(new MemoryTriple(resource, pred, node));
+                        }
+                    }
+                    ));
             return list;
         }
     }

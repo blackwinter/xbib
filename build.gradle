@@ -73,10 +73,10 @@ subprojects {
     }
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     tasks.withType(JavaCompile) {
-        //options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        options.compilerArgs << "-Xlint:deprecation"
     }
     test {
-        classpath += configurations.provided
+        classpath += configurati ons.provided
         testLogging {
             showStandardStreams = false
             exceptionFormat = 'full'

@@ -33,19 +33,23 @@ package org.xbib.rdf.io.xml;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.io.IOTests;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import static org.xbib.rdf.RdfContentFactory.xmlBuilder;
 
+@Category(IOTests.class)
 public class XmlResourceWriterTest extends Assert {
     
     @Test
     public void testXMLResourceWriter() throws Exception {
-        MemoryResource.reset();
-        Resource root = new MemoryResource().id(IRI.create("urn:root"));
+        BlankMemoryResource.reset();
+        Resource root = new MemoryResource(IRI.create("urn:root"));
         Resource resource = root.newResource("urn:res");
         resource.add("urn:property", "value");
         Resource nestedResource = resource.newResource("urn:nestedresource");
@@ -59,9 +63,8 @@ public class XmlResourceWriterTest extends Assert {
     
     @Test
     public void testResourceXml() throws Exception {
-        MemoryResource.reset();
-        Resource parent = new MemoryResource();
-        parent.id(IRI.create("urn:doc3"));
+        BlankMemoryResource.reset();
+        Resource parent = new MemoryResource(IRI.create("urn:doc3"));
         Resource child = parent.newResource("urn:res");
         child.add("urn:property", "value");
         RdfContentBuilder builder = xmlBuilder();

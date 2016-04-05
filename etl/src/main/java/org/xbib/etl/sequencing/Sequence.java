@@ -31,16 +31,14 @@
  */
 package org.xbib.etl.sequencing;
 
-import org.xbib.rdf.Resource;
-
 import java.util.LinkedList;
 import java.util.List;
 
-public class Sequence {
+public class Sequence<R> {
 
     private String name;
 
-    private List<Resource> resources = new LinkedList<>();
+    private List<R> resources = new LinkedList<>();
 
     public Sequence setName(String name) {
         this.name = name;
@@ -51,14 +49,14 @@ public class Sequence {
         return name;
     }
 
-    public Sequence add(Resource resource) {
+    public Sequence add(R resource) {
         if (resource != null) {
             resources.add(resource);
         }
         return this;
     }
 
-    public List<Resource> getResources() {
+    public List<R> getResources() {
         return resources;
     }
 

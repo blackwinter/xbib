@@ -1,11 +1,13 @@
 package org.xbib.rdf.io.sink;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.ntriple.NTripleContent;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.io.source.StreamProcessor;
@@ -18,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+@Category(IOTests.class)
 public class RdfContentBuilderSinkTest {
 
     @Test

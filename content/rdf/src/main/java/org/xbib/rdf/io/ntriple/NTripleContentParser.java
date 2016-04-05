@@ -38,6 +38,7 @@ import org.xbib.rdf.RdfContentParser;
 import org.xbib.rdf.RdfContentType;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.StandardRdfContentType;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
 
@@ -59,7 +60,7 @@ public class NTripleContentParser implements RdfContentParser {
 
     //private final static Logger logger = LogManager.getLogger(NTripleContentParser.class);
 
-    private final static Resource resource = new MemoryResource();
+    private final static Resource resource = new BlankMemoryResource();
 
     private static final String resourceExpression = "(<[^<]+?>)";
     private static final String literalValueExpression = "(\"([^\"]|\\\")*\")";
@@ -156,7 +157,7 @@ public class NTripleContentParser implements RdfContentParser {
         }
         // subject
         if (matcher.group(2) != null) {
-            subject = new MemoryResource().blank(matcher.group(1));
+            subject = new BlankMemoryResource(matcher.group(1));
         } else {
             // resource node
             String subj = matcher.group(1);
@@ -169,7 +170,7 @@ public class NTripleContentParser implements RdfContentParser {
         // object
         if (matcher.group(7) != null) {
             // anonymous node
-            object = new MemoryResource().blank(matcher.group(6));
+            object = new BlankMemoryResource(matcher.group(6));
         } else if (matcher.group(8) != null) {
             // resource node
             String obj = matcher.group(6);

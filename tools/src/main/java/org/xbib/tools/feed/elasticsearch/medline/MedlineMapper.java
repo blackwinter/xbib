@@ -35,8 +35,8 @@ import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
@@ -67,7 +67,7 @@ public class MedlineMapper implements ArticleVocabulary {
     }
 
     public Resource map(Map<String, Object> map) throws IOException {
-        Resource r = new MemoryResource().a(FABIO_ARTICLE);
+        Resource r = new BlankMemoryResource().a(FABIO_ARTICLE);
         author = new Author();
         map(r, null, map);
         String year = null;
@@ -144,7 +144,7 @@ public class MedlineMapper implements ArticleVocabulary {
             case "ml:PMID": {
                 IRI dereferencable = IRI.builder().scheme("http").host("xbib.info")
                         .path("/pmid/").fragment(value).build();
-                r.id(dereferencable);
+                r.setId(dereferencable);
                 r.add(FABIO_HAS_PUBMEDID, value);
                 r.add(DC_IDENTIFIER, "PMID:" + value);
                 break;

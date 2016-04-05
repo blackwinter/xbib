@@ -45,6 +45,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.StandardRdfContentType;
 import org.xbib.rdf.Triple;
 import org.xbib.rdf.XSDResourceIdentifiers;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.rdf.memory.MemoryTriple;
@@ -70,7 +71,7 @@ public class TurtleContentParser implements RdfContentParser {
 
     private final static Logger logger = LogManager.getLogger(TurtleContentParser.class.getName());
 
-    private final Resource resource = new MemoryResource();
+    private final Resource resource = new BlankMemoryResource();
 
     private final HashMap<String, Node> bnodes = new HashMap<>();
 
@@ -369,7 +370,7 @@ public class TurtleContentParser implements RdfContentParser {
     private Node parseValue() throws IOException {
         char ch = peek();
         if (ch == '<') {
-            return new MemoryResource().id(parseURI());
+            return new MemoryResource(parseURI());
         } else if (ch == ':' || isPrefixStartChar(ch)) {
             return parseQNameOrBoolean();
         } else if (ch == '_') {
@@ -462,7 +463,7 @@ public class TurtleContentParser implements RdfContentParser {
         reader.unread(ch);
         // namespace is already resolved
         IRI iri = IRI.builder().curie(ns + sb).build();
-        return new MemoryResource().id(iri);
+        return new MemoryResource(iri);
     }
 
     /**
@@ -477,7 +478,7 @@ public class TurtleContentParser implements RdfContentParser {
             return parseNodeID();
         } else if (ch == '[') {
             reader.read();
-            MemoryResource bnode = new MemoryResource();
+            MemoryResource bnode = new BlankMemoryResource();
             ch = read();
             if (ch != ']') {
                 Resource oldsubject = subject;
@@ -507,20 +508,18 @@ public class TurtleContentParser implements RdfContentParser {
         char ch = skipWhitespace();
         if (ch == ')') {
             reader.read();
-            MemoryResource r = new MemoryResource();
-            r.id(IRI.builder().curie("rdf", "nil").build());
-            return r;
+            return new MemoryResource(IRI.builder().curie("rdf", "nil").build());
         } else {
-            MemoryResource first = new MemoryResource();
+            MemoryResource first = new BlankMemoryResource();
             Resource oldsubject = subject;
             IRI oldpredicate = predicate;
             subject = first;
             predicate = resource.newPredicate("rdf:first");
             parseObject();
             ch = skipWhitespace();
-            MemoryResource blanknode = new MemoryResource().id(first.id());
+            MemoryResource blanknode = new MemoryResource(first.id());
             while (ch != ')') {
-                MemoryResource value = new MemoryResource();
+                MemoryResource value = new BlankMemoryResource();
                 if (builder != null) {
                     builder.receive(new MemoryTriple(blanknode, resource.newPredicate("rdf:rest"), value));
                 }
@@ -531,7 +530,7 @@ public class TurtleContentParser implements RdfContentParser {
             }
             reader.read();
             if (builder != null) {
-                Node value = new MemoryResource().id(IRI.builder().curie("rdf", "null").build());
+                Node value = new MemoryResource(IRI.builder().curie("rdf", "null").build());
                 builder.receive(new MemoryTriple(blanknode, resource.newPredicate("rdf:rest"), value));
             }
             subject = oldsubject;
@@ -565,7 +564,7 @@ public class TurtleContentParser implements RdfContentParser {
         if (bnode != null) {
             return bnode;
         }
-        bnode = new MemoryResource().blank(nodeID);
+        bnode = new BlankMemoryResource(nodeID);
         bnodes.put(nodeID, bnode);
         return bnode;
     }

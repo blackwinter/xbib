@@ -37,12 +37,15 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
+@Category(IOTests.class)
 public class RdfXmlReaderTest extends StreamTester {
 
     @Test

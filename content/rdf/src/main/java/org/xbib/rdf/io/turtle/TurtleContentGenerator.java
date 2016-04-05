@@ -39,6 +39,7 @@ import org.xbib.rdf.RdfContentGenerator;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
 import org.xbib.rdf.io.xml.XmlConstants;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.Flushable;
@@ -93,12 +94,12 @@ public class TurtleContentGenerator
 
     TurtleContentGenerator(Writer writer) throws IOException {
         this.writer = writer;
-        this.resource = new MemoryResource();
+        this.resource = new BlankMemoryResource();
         this.nsWritten = false;
         this.sameResource = false;
         this.sameProperty = false;
-        this.triples = new Stack<Triple>();
-        this.embedded = new Stack<Resource>();
+        this.triples = new Stack<>();
+        this.embedded = new Stack<>();
         this.sb = new StringBuilder();
     }
 
@@ -131,7 +132,7 @@ public class TurtleContentGenerator
     public TurtleContentGenerator receive(IRI iri) throws IOException {
         if (iri != null && !iri.equals(resource.id())) {
             receive(resource);
-            resource = new MemoryResource().id(iri);
+            resource = new MemoryResource(iri);
         }
         return this;
     }
@@ -143,11 +144,13 @@ public class TurtleContentGenerator
 
     @Override
     public RdfContentGenerator receive(Resource resource) throws IOException {
-        Iterator<Triple> tripleIterator = resource.triples();
-        while (tripleIterator.hasNext()) {
-            Triple t = tripleIterator.next();
-            writeTriple(t);
-        }
+        resource.triples().stream().forEach(t -> {
+            try {
+                writeTriple(t);
+            } catch (IOException e) {
+                //
+            }
+        });
         while (!embedded.isEmpty()) {
             closeEmbeddedResource();
         }

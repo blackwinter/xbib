@@ -35,7 +35,6 @@ import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.RdfContentGenerator;
-import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
 import org.xbib.rdf.memory.MemoryResource;
@@ -51,7 +50,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -88,24 +86,15 @@ public class XmlContentGenerator
 
     @Override
     public void close() throws IOException {
-        // write last resource
-        //resource(resource);
         writer.close();
     }
-
-    public XmlContentGenerator setSortLanguageTag(String languageTag) {
-        //this.sortLangTag = languageTag;
-        return this;
-    }
-
 
     @Override
     public XmlContentGenerator receive(IRI iri) throws IOException {
         if (!iri.equals(resource.id())) {
             receive(resource);
-            resource = new MemoryResource();
+            resource = new MemoryResource(iri);
         }
-        resource.id(iri);
         return this;
     }
 
@@ -176,9 +165,8 @@ public class XmlContentGenerator
     private void writeResource(XMLEventConsumer consumer, Resource resource, QName parent)
             throws XMLStreamException {
         boolean startElementWritten = false;
-        Iterator<Triple> triples = resource.properties();
-        while (triples.hasNext()) {
-            Triple triple = triples.next();
+        List<Triple> triples = resource.properties();
+        for (Triple triple : triples) {
             if (!startElementWritten) {
                 if (parent != null) {
                     consumer.add(eventFactory.createStartElement(parent, null, null));

@@ -2,6 +2,7 @@ package org.xbib.tools.feed.elasticsearch.medline;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -12,7 +13,6 @@ import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.xml.XmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -70,7 +70,7 @@ public final class Mesh extends Feeder {
 
         public Handler(RdfContentParams params) {
             this.params = params;
-            this.resource = new MemoryResource();
+            this.resource = new BlankMemoryResource();
         }
 
         public RdfContentParams getParams() {
@@ -150,7 +150,7 @@ public final class Mesh extends Feeder {
             }
             parents.pop();
             if ("DescriptorUI".equals(name.getLocalPart())) {
-                resource.id(IRI.create(content()));
+                resource.setId(IRI.create(content()));
             }
             if (!isResourceDelimiter(name) && !parents.isEmpty()) {
                 if ("String".equals(name.getLocalPart()) && "DescriptorName".equals(parents.peek().getLocalPart())) {
@@ -195,7 +195,7 @@ public final class Mesh extends Feeder {
         }
 
         protected void openResource() throws IOException {
-            resource = new MemoryResource();
+            resource = new BlankMemoryResource();
         }
 
         protected void closeResource() throws IOException {

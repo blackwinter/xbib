@@ -51,7 +51,7 @@ public class ResourceTest extends Assert {
 
     @Test
     public void deleted() throws Exception {
-        Resource r = new MemoryResource();
+        Resource r = new BlankMemoryResource();
         assertEquals(r.isDeleted(), false);
         r.setDeleted(true);
         assertEquals(r.isDeleted(), true);
@@ -62,7 +62,7 @@ public class ResourceTest extends Assert {
     @Test
     public void testResourceId() throws Exception {
         IRI iri = IRI.create("http://index?type#id");
-        Resource r = new MemoryResource().id(iri);
+        Resource r = new MemoryResource(iri);
         assertEquals("http", r.id().getScheme());
         assertEquals("index", r.id().getHost());
         assertEquals("type", r.id().getQuery());
@@ -71,38 +71,38 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testEmptyResources() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:root"));
+        Resource r = new MemoryResource(IRI.create("urn:root"));
         assertEquals(r.isEmpty(), true);
         assertEquals(r.toString(), "urn:root");
     }
 
     @Test
     public void testEmptyProperty() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:root"));
+        Resource r = new MemoryResource(IRI.create("urn:root"));
         r.add("urn:property", (String) null);
         assertEquals(r.isEmpty(), true);
     }
 
     @Test
     public void testStringLiteral() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:root"));
+        Resource r = new MemoryResource(IRI.create("urn:root"));
         r.add("urn:property", "Hello World");
         assertEquals(r.isEmpty(), false);
-        assertEquals(r.triples().next().object().toString(), "Hello World");
+        assertEquals(r.triples().get(0).object().toString(), "Hello World");
     }
 
     @Test
     public void testIntegerLiteral() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:root"));
+        Resource r = new MemoryResource(IRI.create("urn:root"));
         MemoryLiteral literal = new MemoryLiteral(123).type(Literal.INT);
         r.add("urn:property", literal);
         assertEquals(r.isEmpty(), false);
-        assertEquals(r.triples().next().object().toString(), "123^^xsd:int");
+        assertEquals(r.triples().get(0).object().toString(), "123^^xsd:int");
     }
 
     @Test
     public void testPredicateSet() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:doc1"))
+        Resource r = new MemoryResource(IRI.create("urn:doc1"))
                 .add("urn:valueURI", "Hello World")
                 .add("urn:creator", "Smith")
                 .add("urn:creator", "Jones");
@@ -114,25 +114,23 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testUniqueObjects() throws Exception {
-        Resource r = new MemoryResource().id(IRI.create("urn:doc4"));
+        Resource r = new MemoryResource(IRI.create("urn:doc4"));
         r.add("urn:hasAttribute", "a")
                 .add("urn:hasAttribute", "b")
                 .add("urn:hasAttribute", "a") // another a, must be suppressed
                 .add("urn:hasAttribute", "c");
         StringBuilder sb = new StringBuilder();
-        r.objects("urn:hasAttribute").forEachRemaining(sb::append);
+        r.objects("urn:hasAttribute").stream().forEach(sb::append);
         assertEquals(sb.toString(), "abc");
     }
 
     @Test
     public void testPropertyIterator() throws Exception {
-        Resource r = new MemoryResource();
-        String id = "urn:doc2";
-        r.id(IRI.create(id))
-                .add("urn:valueURI", "Hello World")
+        Resource r = new MemoryResource(IRI.create("urn:doc2"));
+        r.add("urn:valueURI", "Hello World")
                 .add("urn:name", "Smith")
                 .add("urn:name", "Jones");
-        Iterator<Triple> it = r.properties();
+        Iterator<Triple> it = r.properties().iterator();
         assertEquals("urn:doc2 urn:valueURI Hello World", it.next().toString());
         assertEquals("urn:doc2 urn:name Smith", it.next().toString());
         assertEquals("urn:doc2 urn:name Jones", it.next().toString());
@@ -140,10 +138,9 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testIterator() throws Exception {
-        MemoryResource.reset(); // for blank node counter
-        Resource r = new MemoryResource();
-        r.id(IRI.create("urn:doc1"))
-                .add("urn:valueURI", "Hello World")
+        BlankMemoryResource.reset(); // for blank node counter
+        Resource r = new MemoryResource(IRI.create("urn:doc1"));
+        r.add("urn:valueURI", "Hello World")
                 .add("urn:name", "Smith")
                 .add("urn:name", "Jones");
         // the first resource adds a resource value
@@ -152,10 +149,8 @@ public class ResourceTest extends Assert {
         // the second resource adds another resource value
         Resource r2 = r.newResource("urn:res1");
         r2.add("urn:has", "a second res value");
-
         assertEquals(r.predicates().size(), 3);
-        
-        Iterator<Triple> it = r.triples();
+        Iterator<Triple> it = r.triples().iterator();
         assertEquals("urn:doc1 urn:valueURI Hello World", it.next().toString());
         assertEquals("urn:doc1 urn:name Smith", it.next().toString());
         assertEquals("urn:doc1 urn:name Jones", it.next().toString());
@@ -168,18 +163,18 @@ public class ResourceTest extends Assert {
         Iterator<IRI> itp = r.predicates().iterator();
         IRI pred = itp.next();
         assertEquals("urn:valueURI", pred.toString());
-        Iterator<Node> values = r.objects(pred);
+        Iterator<Node> values = r.objects(pred).iterator();
         assertEquals("Hello World", values.next().toString());
         assertFalse(values.hasNext());
         pred = itp.next();
         assertEquals("urn:name", pred.toString());
-        values = r.objects(pred);
+        values = r.objects(pred).iterator();
         assertEquals("Smith", values.next().toString());
         assertEquals("Jones", values.next().toString());
         assertFalse(values.hasNext());
         pred = itp.next();
         assertEquals("urn:res1", pred.toString());
-        values = r.objects(pred);
+        values = r.objects(pred).iterator();
         assertEquals("_:b1", values.next().toString());
         assertEquals("_:b2", values.next().toString());
         assertFalse(values.hasNext());
@@ -188,61 +183,62 @@ public class ResourceTest extends Assert {
 
     @Test
     public void testCompactPredicate() throws Exception {
-        Resource r = new MemoryResource();
-        r.id(IRI.create("urn:doc"))
-                .add("urn:value1", "Hello World");
+        Resource r = new MemoryResource(IRI.create("urn:doc"));
+        r.add("urn:value1", "Hello World");
         IRI predicate = IRI.create("urn:pred");
         Resource r1 = r.newResource(predicate);
         r1.add(predicate, "a value");
-        Iterator<Triple> it = r.triples();
+        Iterator<Triple> it = r.triples().iterator();
         int cnt = 0;
         while (it.hasNext()) {
             it.next();
             cnt++;
         }
-        assertEquals(cnt, 3);        
-  
+        assertEquals(cnt, 3);
         r.compactPredicate(predicate);
-        it = r.triples();
+        it = r.triples().iterator();
         assertEquals("urn:doc urn:value1 Hello World", it.next().toString());
         assertEquals("urn:doc urn:pred a value", it.next().toString());
         assertFalse(it.hasNext());
     }
 
     @Test
+    public void testAddResource() throws Exception {
+        BlankMemoryResource.reset(); // for blank node counter
+        Resource r = new MemoryResource(IRI.create("urn:res1"));
+        r.add("urn:value", "Foo bar");
+        Resource s = new MemoryResource(IRI.create("urn:res2"));
+        s.add("urn:value", "Baz bar");
+        r.add("urn:myres", s);
+        assertEquals("[urn:res1 urn:value Foo bar, urn:res1 urn:myres urn:res2, urn:res2 urn:value Baz bar]",
+                r.triples().toString());
+    }
+
+    @Test
     public void testAddingResources() throws Exception {
-        MemoryResource.reset(); // for blank node counter
-        Resource r = new MemoryResource();
-        r.id(IRI.create("urn:r"))
-                .add("urn:value", "Hello R");
-
+        BlankMemoryResource.reset(); // for blank node counter
+        Resource r = new MemoryResource(IRI.create("urn:r"));
+        r.add("urn:value", "Hello R");
         // named ID
-        Resource s = new MemoryResource();
-        s.id(IRI.create("urn:s"))
-                .add("urn:value", "Hello S");
-
+        Resource s = new MemoryResource(IRI.create("urn:s"));
+        s.add("urn:value", "Hello S");
         // another named ID
-        Resource t = new MemoryResource();
-        t.id(IRI.create("urn:t"))
-                .add("urn:value", "Hello T");
-
+        Resource t = new MemoryResource(IRI.create("urn:t"));
+        t.add("urn:value", "Hello T");
         // a blank node resource ID
-        IRI blank1 = new MemoryResource().blank().id();
-        Resource u = new MemoryResource();
-        u.id(blank1).add("urn:value", "Hello U");
-
+        IRI blank1 = new BlankMemoryResource().id();
+        Resource u = new MemoryResource(blank1);
+        u.add("urn:value", "Hello U");
         // another blank node resource ID
-        IRI blank2 = new MemoryResource().blank().id();
-        Resource v = new MemoryResource();
-        v.id(blank2).add("urn:value", "Hello V");
-
+        IRI blank2 = new BlankMemoryResource().id();
+        Resource v = new MemoryResource(blank2);
+        v.add("urn:value", "Hello V");
         IRI predicate = IRI.create("dc:subject");
         r.add(predicate, s);
         r.add(predicate, t);
         r.add(predicate, u);
         r.add(predicate, v);
-
-        Iterator<Triple> it = r.triples();
+        Iterator<Triple> it = r.triples().iterator();
         assertEquals("urn:r urn:value Hello R", it.next().toString());
         assertEquals("urn:r dc:subject urn:s", it.next().toString());
         assertEquals("urn:s urn:value Hello S", it.next().toString());
@@ -255,13 +251,11 @@ public class ResourceTest extends Assert {
         assertFalse(it.hasNext());
     }
 
-
     @Test
     public void testTripleAdder() throws IOException {
         IRINamespaceContext context = IRINamespaceContext.newInstance();
         context.addNamespace("vcard", "http://www.w3.org/2006/vcard/ns#");
         context.addNamespace("owl", "http://www.w3.org/2002/07/owl#");
-
         // ID with compact IRI, will be expanded
         Resource r = MemoryResource.create(context, "vcard:value");
         // triples with expanded IRIs

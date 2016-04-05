@@ -1,10 +1,12 @@
 package org.xbib.rdf.io.xml;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfContentBuilder;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.text.CharUtils;
 import org.xbib.text.UrlEncoding;
@@ -18,6 +20,7 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 public class OAITest extends StreamTester {
 
     @Test
+    @Category(IOTests.class)
     public void testOAIListRecords() throws Exception {
         String filename = "/org/xbib/rdf/io/xml/oai-listrecords.xml";
         InputStream in = getClass().getResourceAsStream(filename);
@@ -36,10 +39,10 @@ public class OAITest extends StreamTester {
 
             @Override
             public void identify(QName name, String value, IRI identifier) {
-                if ("identifier".equals(name.getLocalPart()) && identifier == null) {
+                if ("identifier".equals(name.getLocalPart())) {
                     // make sure we can build an opaque IRI, whatever is out there
                     String s = UrlEncoding.encode(value, CharUtils.Profile.SCHEMESPECIFICPART.filter());
-                    getResource().id(IRI.create("id:" + s));
+                    getResource().setId(IRI.create("id:" + s));
                 }
             }
 

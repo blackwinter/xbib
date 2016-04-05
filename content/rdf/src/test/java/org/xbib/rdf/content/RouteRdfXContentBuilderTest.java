@@ -51,11 +51,10 @@ public class RouteRdfXContentBuilderTest extends StreamTester {
 
     @Test
     public void testRoute() throws Exception {
-        Resource resource = new MemoryResource();
+        Resource resource = new MemoryResource(IRI.create("urn:res"));
         MemoryLiteral l = new MemoryLiteral("2013")
                 .type(IRI.create("xsd:gYear"));
-        resource.id(IRI.create("urn:res"))
-                .add("urn:property", "Hello World")
+        resource.add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("urn:link", IRI.create("urn:pointer"));
         RouteRdfXContentParams params = new RouteRdfXContentParams("index", "type");

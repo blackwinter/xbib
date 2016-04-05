@@ -54,8 +54,7 @@ public class NTripleTest extends Assert {
 
     @Test
     public void testNTripleWriteInt() throws Exception {
-        Resource resource = new MemoryResource();
-        resource.id(IRI.create("urn:doc1"));
+        Resource resource = new MemoryResource(IRI.create("urn:doc1"));
         resource.add("http://purl.org/dc/elements/1.1/date",new MemoryLiteral("2010").type(XSDResourceIdentifiers.INTEGER));
         RdfContentBuilder builder = ntripleBuilder();
         builder.receive(resource);
@@ -63,9 +62,7 @@ public class NTripleTest extends Assert {
     }
 
     private Resource createResource() {
-        Resource resource = new MemoryResource();
-        String id = "urn:doc1";
-        resource.id(IRI.create(id));
+        Resource resource = new MemoryResource(IRI.create("urn:doc1"));
         resource.add("http://purl.org/dc/elements/1.1/creator", "Smith");
         resource.add("http://purl.org/dc/elements/1.1/creator", "Jones");
         Resource r = resource.newResource("dcterms:hasPart");

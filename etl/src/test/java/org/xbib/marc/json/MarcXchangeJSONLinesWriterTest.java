@@ -121,7 +121,7 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
                     .host("zdb")
                     .query("title")
                     .fragment(Long.toString(counter.getAndIncrement())).build();
-            state.getResource().id(iri);
+            state.getResource().setId(iri);
 
             RdfXContentParams params = new RdfXContentParams();
             RdfContentBuilder builder = rdfXContentBuilder(params);

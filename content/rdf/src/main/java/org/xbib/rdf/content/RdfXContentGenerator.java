@@ -35,10 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.iri.IRI;
@@ -47,6 +44,7 @@ import org.xbib.rdf.Node;
 import org.xbib.rdf.RdfContentGenerator;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import static org.xbib.common.xcontent.XContentService.jsonBuilder;
@@ -80,7 +78,7 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
 
     @Override
     public RdfXContentGenerator startStream() {
-        this.resource = new MemoryResource();
+        this.resource = new BlankMemoryResource();
         flushed = false;
         return this;
     }
@@ -104,7 +102,7 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
 
     @Override
     public RdfXContentGenerator receive(IRI identifier) throws IOException {
-        this.resource = new MemoryResource().id(identifier);
+        this.resource = new MemoryResource(identifier);
         flushed = false;
         return this;
     }
@@ -165,23 +163,14 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
     }
 
     protected void build(Resource resource) throws IOException {
-        build(new LinkedHashSet<>(), resource);
-    }
-
-    protected void build(Set<Resource> resourceSet,
-                         Resource resource) throws IOException {
         if (resource == null) {
             return;
-        }
-        if (resourceSet.contains(resource)) {
-            throw new IOException("no recursive resources allowed: resource=" + resource);
         }
         for (IRI predicate : resource.predicates()) {
             // first, the values
             final List<Object> values = new ArrayList<>(32);
-            final Iterator<Node> it = resource.visibleObjects(predicate);
-            while (it.hasNext()) {
-                Node node = it.next();
+            final List<Node> nodes = resource.visibleObjects(predicate);
+            for (Node node : nodes) {
                 if (node instanceof Resource) {
                     values.add(((Resource) node).id().toString()); // URLs
                 } else if (node instanceof Literal) {
@@ -204,24 +193,21 @@ public class RdfXContentGenerator<R extends RdfXContentParams> implements RdfCon
                 if (!res.isEmpty()) {
                     builder.field(params.getNamespaceContext().compact(predicate));
                     builder.startObject();
-                    build(resourceSet, res);
+                    build(res);
                     builder.endObject();
                 }
-                resourceSet.add(res);
             } else if (resources.size() > 1) {
                 builder.field(params.getNamespaceContext().compact(predicate));
                 builder.startArray();
                 for (Resource res : resources) {
                     if (!res.isEmpty()) {
                         builder.startObject();
-                        build(resourceSet, res);
+                        build(res);
                         builder.endObject();
                     }
-                    resourceSet.add(res);
                 }
                 builder.endArray();
             }
         }
-        resourceSet.add(resource);
     }
 }

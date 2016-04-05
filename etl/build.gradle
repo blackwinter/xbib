@@ -1,4 +1,15 @@
 
+dependencies {
+    compile project(':datastructures:keyvalue')
+    compile project(':datastructures:forkjoin')
+    compile project(':bibliographic:iso2709')
+    compile project(':content:rdf')
+    testCompile project(':io:archive')
+    testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
+    testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
+    provided project(':io:charset') // for bibliographic charsets
+}
+
 configurations {
     provided
     testCompile.extendsFrom(provided)
@@ -11,15 +22,3 @@ test {
         exceptionFormat = 'full'
     }
 }
-
-dependencies {
-    compile project(':datastructures:keyvalue')
-    compile project(':datastructures:forkjoin')
-    compile project(':bibliographic:iso2709')
-    compile project(':content:rdf')
-    testCompile project(':io:archive')
-    testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
-    testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
-    provided project(':io:charset') // for bibliographic charsets
-}
-

@@ -37,6 +37,7 @@ import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class MARCEntityBuilderState extends DefaultEntityBuilderState {
 
     public Resource getResource() throws IOException {
         if (!graph().getResources().hasNext()) {
-            root = new MemoryResource().blank();
+            root = new BlankMemoryResource();
             graph().receive(root);
         }
         return root;
@@ -88,7 +89,7 @@ public class MARCEntityBuilderState extends DefaultEntityBuilderState {
         while (it.hasNext()) {
             Resource resource = it.next();
             if (recordNumber != null) {
-                resource.id(IRI.builder().fragment(recordNumber).build());
+                resource.setId(IRI.builder().fragment(recordNumber).build());
             }
         }
         super.complete();

@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 
@@ -45,11 +46,10 @@ public class RdfXContentGeneratorTest extends Assert {
 
     @Test
     public void testContentBuilder() throws Exception {
-        Resource resource = new MemoryResource();
+        Resource resource = new MemoryResource(IRI.create("urn:res"));
         MemoryLiteral l = new MemoryLiteral("2013")
                 .type(IRI.create("xsd:gYear"));
-        resource.id(IRI.create("urn:res"))
-                .add("urn:property", "Hello World")
+        resource.add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("urn:link", IRI.create("urn:pointer"));
         RdfXContentParams params = new RdfXContentParams();
@@ -62,11 +62,10 @@ public class RdfXContentGeneratorTest extends Assert {
 
     @Test
     public void testContentBuilderSingleEmbedded() throws Exception {
-        Resource resource = new MemoryResource();
+        Resource resource = new MemoryResource(IRI.create("urn:res"));
         MemoryLiteral l = new MemoryLiteral("2013")
                 .type(IRI.create("xsd:gYear"));
-        resource.id(IRI.create("urn:res"))
-                .add("urn:property", "Hello World")
+        resource.add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("rdf:type", IRI.create("urn:type1"))
                 .newResource("urn:embedded")
@@ -81,11 +80,10 @@ public class RdfXContentGeneratorTest extends Assert {
 
     @Test
     public void testContentBuilderDoubleEmbedded() throws Exception {
-        Resource resource = new MemoryResource();
+        Resource resource = new MemoryResource(IRI.create("urn:res"));
         MemoryLiteral l = new MemoryLiteral("2013")
                 .type(IRI.create("xsd:gYear"));
-        resource.id(IRI.create("urn:res"))
-                .add("urn:property", "Hello World")
+        resource.add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("rdf:type", IRI.create("urn:type1"))
                 .newResource("urn:embedded")
@@ -102,11 +100,10 @@ public class RdfXContentGeneratorTest extends Assert {
 
     @Test
     public void testContentBuilderEmptyEmbedded() throws Exception {
-        Resource resource = new MemoryResource();
+        Resource resource = new MemoryResource(IRI.create("urn:res"));
         MemoryLiteral l = new MemoryLiteral("2013")
                 .type(IRI.create("xsd:gYear"));
-        resource.id(IRI.create("urn:res"))
-                .add("urn:property", "Hello World")
+        resource.add("urn:property", "Hello World")
                 .add("urn:date", l)
                 .add("rdf:type", IRI.create("urn:type1"))
                 .newResource("urn:embedded"); // empty resource, do not copy

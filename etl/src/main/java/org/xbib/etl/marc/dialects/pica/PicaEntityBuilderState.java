@@ -37,6 +37,7 @@ import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class PicaEntityBuilderState extends DefaultEntityBuilderState {
 
     public Resource getResource() throws IOException {
         if (!graph().getResources().hasNext()) {
-            root = new MemoryResource().blank();
+            root = new BlankMemoryResource();
             graph().receive(root);
         }
         return root;

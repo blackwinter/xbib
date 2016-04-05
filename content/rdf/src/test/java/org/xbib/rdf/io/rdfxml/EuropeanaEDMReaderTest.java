@@ -32,6 +32,7 @@
 package org.xbib.rdf.io.rdfxml;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Node;
@@ -40,6 +41,7 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.ntriple.NTripleContent;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.rdf.memory.MemoryRdfGraph;
@@ -52,6 +54,7 @@ import java.util.Iterator;
 
 import static org.xbib.rdf.RdfContentFactory.ntripleBuilder;
 
+@Category(IOTests.class)
 public class EuropeanaEDMReaderTest extends StreamTester {
 
     @Test

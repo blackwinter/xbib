@@ -33,6 +33,7 @@ dependencies {
 test {
     useJUnit {
         excludeCategories 'org.xbib.RuntimeTests'
+        systemProperty 'RESOURCES_DIR', "${buildDir}/resources/test"
         testLogging {
             showStandardStreams = false
             exceptionFormat = 'full'

@@ -12,6 +12,7 @@ import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.IndexDefinition;
+import org.xbib.util.MockIndexDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +77,9 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     @Override
     protected void performIndexSwitch() throws IOException {
         IndexDefinition def = indexDefinitionMap.get("title");
+        if (def == null) {
+            return;
+        }
         String catalogId = settings.get(CATALOG_ID, "DE-605");
         // simple index alias to the value in "identifier"
         elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
@@ -120,21 +124,33 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         @Override
         public void afterCompletion(MABEntityBuilderState state) throws IOException {
             // write title resource
-            String titleIndex = indexDefinitionMap.get("title").getConcreteIndex();
-            String titleType = indexDefinitionMap.get("title").getType();
+            IndexDefinition indexDefinition = indexDefinitionMap.get("title");
+            if (indexDefinition == null) {
+                indexDefinition = new MockIndexDefinition();
+            }
+            String titleIndex = indexDefinition.getConcreteIndex();
+            String titleType = indexDefinition.getType();
             RouteRdfXContentParams params = new RouteRdfXContentParams(titleIndex, titleType);
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getIdentifier(), content));
-            RdfContentBuilder builder = routeRdfXContentBuilder(params);
+            params.setHandler((content, p) -> {
+                if (ingest != null) {
+                    ingest.index(p.getIndex(), p.getType(), state.getIdentifier(), content);
+                }
+            } ) ;
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));
             }
+            RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {
-                logger.info("main id={} {}", state.getResource().id(), builder.string());
+                logger.info("title: id={} builder={}", state.getIdentifier(), builder.string());
             }
             // write holdings resources
-            String holdingsIndex = indexDefinitionMap.get("holdings").getConcreteIndex();
-            String holdingsType = indexDefinitionMap.get("holdings").getType();
+            indexDefinition = indexDefinitionMap.get("holdings");
+            if (indexDefinition == null) {
+                indexDefinition = new MockIndexDefinition();
+            }
+            String holdingsIndex = indexDefinition.getConcreteIndex();
+            String holdingsType = indexDefinition.getType();
             Iterator<Resource> it = state.graph().getResources();
             while (it.hasNext()) {
                 Resource resource  = it.next();
@@ -143,12 +159,19 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                     continue;
                 }
                 params = new RouteRdfXContentParams(holdingsIndex, holdingsType);
-                params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(),
-                        state.getIdentifier() + "." + resource.id(), content));
+                params.setHandler((content, p) -> {
+                    if (ingest != null) {
+                        ingest.index(p.getIndex(), p.getType(),
+                                state.getIdentifier() + "." + resource.id(), content);
+                    }
+                });
                 builder = routeRdfXContentBuilder(params);
                 resource.newResource("xbib").add("uid", state.getIdentifier());
                 resource.newResource("xbib").add("uid", state.getRecordIdentifier());
                 builder.receive(resource);
+                if (settings.getAsBoolean("mock", false)) {
+                    logger.info("holdings: id={} builder={}", state.getIdentifier() + "." + resource.id(), builder.string());
+                }
             }
         }
     }

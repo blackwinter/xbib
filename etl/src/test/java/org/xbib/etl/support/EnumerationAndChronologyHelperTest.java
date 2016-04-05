@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.Resource;
 
 public class EnumerationAndChronologyHelperTest extends Assert {
@@ -118,7 +118,7 @@ public class EnumerationAndChronologyHelperTest extends Assert {
         EnumerationAndChronologyHelper eac = new EnumerationAndChronologyHelper();
         List<Pattern> p = Collections.singletonList(Pattern.compile("Letzte (\\d+) Jg"));
         String s = "Letzte 10 Jg.";
-        Resource r = eac.parse(s, new MemoryResource(), p);
+        Resource r = eac.parse(s, new BlankMemoryResource(), p);
         Set<Integer> d = eac.dates(r.id(), r);
         // yeah, moving wall
         Set<Integer> set = new TreeSet<>();

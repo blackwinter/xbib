@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Node;
-import org.xbib.rdf.memory.MemoryResource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.Resource;
 
 import java.time.LocalDate;
@@ -222,17 +222,13 @@ public class EnumerationAndChronologyHelper {
             Pattern.compile("(\\d{4}/?\\d{0,4})\\((\\d{4}/?\\d{0,4})\\)")
     };
 
-    final Set<Integer> dates = new TreeSet<>();
-
-    //final Set<Integer> reportDates = newTreeSet();
-
-    //final Set<Integer> publicationDates = newTreeSet();
+    private final Set<Integer> dates = new TreeSet<>();
 
     public EnumerationAndChronologyHelper() {
     }
 
     public Resource parse(String values) {
-        return parse(values, new MemoryResource(), null);
+        return parse(values, new BlankMemoryResource(), null);
     }
 
     public Resource parse(String values, Resource resource, List<Pattern> movingwalls) {
@@ -985,21 +981,21 @@ public class EnumerationAndChronologyHelper {
 
     public Set<Integer> dates(IRI id, Resource resource) {
         for (IRI iri : resource.predicates()) {
-            resource.resources(iri).forEachRemaining(group -> {
-                Iterator<Node> begindateCollection = group.objects("begindate");
-                Object begindate = begindateCollection != null && begindateCollection.hasNext() ?
+            resource.resources(iri).stream().forEach(group -> {
+                Iterator<Node> begindateCollection = group.objects("begindate").iterator();
+                Object begindate = begindateCollection.hasNext() ?
                         begindateCollection.next() : null;
-                Iterator<Node> enddateCollection = group.objects("enddate");
-                Object enddate = enddateCollection != null && enddateCollection.hasNext() ?
+                Iterator<Node> enddateCollection = group.objects("enddate").iterator();
+                Object enddate = enddateCollection.hasNext() ?
                         enddateCollection.next() : null;
-                Iterator<Node> beginpubdateCollection = group.objects("beginpubdate");
-                Object beginpubdate = beginpubdateCollection != null && beginpubdateCollection.hasNext() ?
+                Iterator<Node> beginpubdateCollection = group.objects("beginpubdate").iterator();
+                Object beginpubdate = beginpubdateCollection.hasNext() ?
                         beginpubdateCollection.next() : null;
-                Iterator<Node> endpubdateCollection = group.objects("endpubdate");
-                Object endpubdate = endpubdateCollection != null && endpubdateCollection.hasNext() ?
+                Iterator<Node> endpubdateCollection = group.objects("endpubdate").iterator();
+                Object endpubdate = endpubdateCollection.hasNext() ?
                         endpubdateCollection.next() : null;
-                Iterator<Node> openCollection = group.objects("open");
-                Object open = openCollection != null && openCollection.hasNext() ?
+                Iterator<Node> openCollection = group.objects("open").iterator();
+                Object open = openCollection.hasNext() ?
                         openCollection.next() : null;
                 List<Integer> starts;
                 int start = -1;

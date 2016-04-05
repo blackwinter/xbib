@@ -41,7 +41,7 @@ public class TripleTest extends Assert {
 
     @Test
     public void testSimpleTriple() {
-        Resource s = new MemoryResource().id(IRI.create("urn:1"));
+        Resource s = new MemoryResource(IRI.create("urn:1"));
         IRI p = IRI.create("urn:2");
         Node o = new MemoryLiteral("Hello World");
         MemoryTriple triple = new MemoryTriple(s, p, o);

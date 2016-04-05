@@ -47,7 +47,7 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
 public class JsonReaderTest extends StreamTester {
 
-    @Test
+
     public void testGenericJsonReader() throws Exception {
         String filename = "dc.json";
         InputStream in = getClass().getResourceAsStream(filename);
@@ -78,7 +78,7 @@ public class JsonReaderTest extends StreamTester {
             @Override
             public void identify(QName name, String value, IRI identifier) {
                 if (identifier == null) {
-                    getResource().id(IRI.create("id:doc1"));
+                    getResource().setId(IRI.create("id:doc1"));
                 }
             }
 

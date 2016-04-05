@@ -35,8 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.util.ArticleVocabulary;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class DOAJArticleMapper implements ArticleVocabulary {
     private final static Logger logger = LogManager.getLogger(DOAJArticleMapper.class);
 
     public Resource map(Map<String, Object> map) throws IOException {
-        Resource r = new MemoryResource();
+        Resource r = new BlankMemoryResource();
         map(r, null, map);
         return r;
     }

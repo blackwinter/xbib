@@ -44,8 +44,7 @@ public class Title extends MABEntity {
     }
 
     @Override
-    public String data(MABEntityQueue.MABWorker worker,
-                       String predicate, Resource resource, String property, String value) {
+    public String data(MABEntityQueue.MABWorker worker, String predicate, Resource resource, String property, String value) {
         if (value == null) {
             return null;
         }

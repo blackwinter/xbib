@@ -2,3 +2,14 @@ dependencies {
     compile project(':datastructures:collection')
     compile project(':content:json')
 }
+
+
+test {
+    useJUnit {
+        //excludeCategories 'org.xbib.rdf.io.IOTests'
+        testLogging {
+            showStandardStreams = false
+            exceptionFormat = 'full'
+        }
+    }
+}

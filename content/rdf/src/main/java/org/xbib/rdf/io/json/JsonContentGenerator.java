@@ -37,6 +37,7 @@ import org.xbib.rdf.RdfContentGenerator;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.Flushable;
@@ -64,7 +65,7 @@ public class JsonContentGenerator
     JsonContentGenerator(Writer writer) throws IOException {
         this.writer = writer;
         this.nsWritten = false;
-        this.resource = new MemoryResource();
+        this.resource = new BlankMemoryResource();
     }
 
     public JsonContentParams getParams() {
@@ -85,12 +86,11 @@ public class JsonContentGenerator
                     writeNamespaces();
                 }
                 // TODO
-                resource = new MemoryResource();
+                resource = new MemoryResource(iri);
             } catch (IOException e) {
                 //
             }
         }
-        resource.id(iri);
         return this;
     }
 

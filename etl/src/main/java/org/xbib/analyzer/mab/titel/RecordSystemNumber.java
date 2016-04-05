@@ -43,7 +43,7 @@ public class RecordSystemNumber extends MABEntity {
 
     private String prefix = "";
 
-    public RecordSystemNumber(Map params) {
+    public RecordSystemNumber(Map<String,Object> params) {
         super(params);
         if (params.containsKey("_prefix")) {
             this.prefix = params.get("_prefix").toString();

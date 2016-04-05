@@ -22,7 +22,7 @@ public class CustomIdentifier extends MARCEntity {
     public String data(MARCEntityQueue.MARCWorker worker,
                        String predicate, Resource resource, String property, String value) {
         if ("IdentifierZDB".equals(value) && "type".equals(property)) {
-            String v = resource.objects("value").next().toString();
+            String v = resource.objects("value").get(0).toString();
             resource.add("identifierZDB", v.replaceAll("\\-", "").toLowerCase());
             return value;
         }

@@ -38,19 +38,23 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xbib.helper.StreamTester;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
 import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.io.IOTests;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.text.CharUtils.Profile;
 import org.xbib.text.UrlEncoding;
 
 import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 
+@Category(IOTests.class)
 public class XmlReaderTest extends StreamTester {
 
     @Test
@@ -75,10 +79,10 @@ public class XmlReaderTest extends StreamTester {
 
             @Override
             public void identify(QName name, String value, IRI identifier) {
-                if ("identifier".equals(name.getLocalPart()) && identifier == null) {
+                if ("identifier".equals(name.getLocalPart()) && MemoryResource.isBlank(getResource())) {
                     // make sure we can build an opaque IRI, whatever is out there
                     String s = UrlEncoding.encode(value, Profile.SCHEMESPECIFICPART.filter());
-                    getResource().id(IRI.create("id:" + s));
+                    getResource().setId(IRI.create("id:" + s));
                 }
             }
             
@@ -126,9 +130,7 @@ public class XmlReaderTest extends StreamTester {
 
             @Override
             public void identify(QName name, String value, IRI identifier) {
-                if (identifier == null) {
-                    getResource().id(IRI.create("id:1"));
-                }
+                getResource().setId(IRI.create("id:1"));
             }
 
             @Override
@@ -150,12 +152,12 @@ public class XmlReaderTest extends StreamTester {
         MyBuilder builder = new MyBuilder();
         xmlHandler.setDefaultNamespace("xml", "http://xmltest")
                 .setBuilder(builder);
-        MemoryResource.reset();
+        BlankMemoryResource.reset();
         new XmlContentParser(in)
                 .setHandler(xmlHandler)
                 .parse();
-        assertEquals(builder.getTriples().toString(),
-                "[id:1 xml:dates _:b1, _:b1 xml:date 2001, _:b1 xml:date 2002, _:b1 xml:date 2003]"
+        assertEquals( "[id:1 xml:dates _:b2, _:b2 xml:date 2001, _:b2 xml:date 2002, _:b2 xml:date 2003]",
+                builder.getTriples().toString()
         );
     }
 
@@ -176,9 +178,7 @@ public class XmlReaderTest extends StreamTester {
 
             @Override
             public void identify(QName name, String value, IRI identifier) {
-                if (identifier ==null) {
-                    getResource().id(IRI.create("id:1"));
-                }
+                getResource().setId(IRI.create("id:1"));
             }
 
             @Override
@@ -201,20 +201,20 @@ public class XmlReaderTest extends StreamTester {
 
         xmlHandler.setDefaultNamespace("xml", "http://localhost")
                 .setBuilder(builder);
-        MemoryResource.reset();
+        BlankMemoryResource.reset();
         new XmlContentParser(in)
                 .setHandler(xmlHandler)
                 .parse();
-        assertEquals(builder.getTriples().toString(),
-                "[id:1 xml:dates _:b1, _:b1 xml:date _:b2, _:b2 xml:@href 1, _:b1 xml:date _:b4, _:b4 xml:@href 2, _:b1 xml:date _:b6, _:b6 xml:@href 3, _:b1 xml:date _:b8, _:b8 xml:hello World]");
-
+        assertEquals("[id:1 xml:dates _:b2, _:b2 xml:date _:b3, _:b3 xml:@href 1, _:b2 xml:date _:b5, _:b5 xml:@href 2, _:b2 xml:date _:b7, _:b7 xml:@href 3, _:b2 xml:date _:b9, _:b9 xml:hello World]",
+                builder.getTriples().toString()
+        );
     }
 
-    class MyBuilder extends RdfContentBuilder {
+    private class MyBuilder extends RdfContentBuilder {
 
-        final List<Triple> triples = new LinkedList<Triple>();
+        final List<Triple> triples = new LinkedList<>();
 
-        public MyBuilder() throws IOException {
+        MyBuilder() throws IOException {
         }
 
         @Override
@@ -225,7 +225,7 @@ public class XmlReaderTest extends StreamTester {
 
         @Override
         public MyBuilder receive(Resource resource) throws IOException {
-            resource.triples().forEachRemaining(triples::add);
+            resource.triples().stream().forEach(triples::add);
             return this;
         }
 

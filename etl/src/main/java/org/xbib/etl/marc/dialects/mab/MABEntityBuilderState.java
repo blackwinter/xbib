@@ -42,6 +42,7 @@ import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 
@@ -54,13 +55,16 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
     private final IRI ITEM = IRI.create("item");
 
     private final static String LANGUAGE_FACET = "dc.language";
+
     private final static String DATE_FACET = "dc.date";
+
     private final static String TYPE_FACET = "dc.type";
+
     private final static String FORMAT_FACET = "dc.format";
 
     private final Map<String, Facet> facets;
 
-    private final Map<String, Sequence> sequences;
+    private final Map<String, Sequence<Resource>> sequences;
 
     private final String packageName;
 
@@ -92,7 +96,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     public Resource getResource() throws IOException {
         if (!graph().getResources().hasNext()) {
-            this.root = new MemoryResource().blank();
+            this.root = new BlankMemoryResource();
             graph().receive(root);
         }
         return this.root;
@@ -100,7 +104,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     public Resource getResource(IRI predicate) throws IOException {
         if (!graph().hasResource(predicate)) {
-            MemoryResource resource = new MemoryResource().blank();
+            MemoryResource resource = new BlankMemoryResource();
             graph().putResource(predicate, resource);
         }
         return graph().getResource(predicate);
@@ -109,11 +113,11 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
     public Resource getNextItemResource() {
         if (graph().hasResource(ITEM)) {
             Resource resource = graph().removeResource(ITEM);
-            resource.id(uid != null ? uid : resource.id());
+            resource.setId(uid != null ? uid : resource.id());
             graph().putResource(resource.id(), resource);
         }
         uid = null;
-        MemoryResource item = new MemoryResource().blank();
+        MemoryResource item = new BlankMemoryResource();
         graph().putResource(ITEM, item);
         return item;
     }
@@ -185,7 +189,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         return facets;
     }
 
-    public Map<String, Sequence> getSequences() {
+    public Map<String, Sequence<Resource>> getSequences() {
         return sequences;
     }
 
@@ -199,7 +203,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         // last item
         if (graph().hasResource(ITEM)) {
             Resource resource = graph().removeResource(ITEM);
-            resource.id(uid != null ? uid : resource.id());
+            resource.setId(uid != null ? uid : resource.id());
             graph().putResource(resource.id(), resource);
         }
 
@@ -265,7 +269,7 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
         facets.clear();
 
         // create sequences
-        for (Sequence sequence : sequences.values()) {
+        for (Sequence<Resource> sequence : sequences.values()) {
             String sequenceName = sequence.getName();
             if (sequenceName == null) {
                 continue;

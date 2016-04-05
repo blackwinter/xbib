@@ -35,7 +35,7 @@ import org.xbib.iri.IRI;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,13 +44,7 @@ import java.util.Set;
  */
 public interface Resource extends Node {
 
-    /**
-     * Set the identifier of this resource
-     *
-     * @param id the IRI for this resource
-     * @return this resource
-     */
-    Resource id(IRI id);
+    Resource setId(IRI id);
 
     IRI id();
 
@@ -115,7 +109,7 @@ public interface Resource extends Node {
      * @param list      a list of objects
      * @return the new resource with the property added
      */
-    Resource add(IRI predicate, Iterator list);
+    Resource add(IRI predicate, List<Object> list);
 
     Resource add(IRI predicate, Map<Object,Object> map);
 
@@ -173,7 +167,7 @@ public interface Resource extends Node {
      * @param list      a list of objects
      * @return the new resource with the property added
      */
-    Resource add(String predicate, Iterator list);
+    Resource add(String predicate, List<Object> list);
 
     Resource add(String predicate, Map<Object,Object> map);
 
@@ -207,13 +201,7 @@ public interface Resource extends Node {
      * @param predicate the predicate
      * @return list of resources
      */
-    Iterator<Resource> resources(IRI predicate);
-
-    /**
-     * Create an anonymous resource and do not associate it with this resource.
-     * @return a new anonymous resource
-     */
-    Resource newResource();
+    List<Resource> resources(IRI predicate);
 
     /**
      * Create an anonymous resource and associate it with this resource. If the
@@ -256,11 +244,9 @@ public interface Resource extends Node {
      * @param predicate predicate
      * @return set of objects
      */
-    Iterator<Node> objects(IRI predicate);
+    List<Node> objects(IRI predicate);
 
-    Iterator<Node> objects(String predicate);
-
-    Iterator<Literal> literals(IRI predicate);
+    List<Node> objects(String predicate);
 
     /**
      * Return collection of embedded resources.
@@ -272,7 +258,7 @@ public interface Resource extends Node {
      */
     Collection<Resource> embeddedResources(IRI predicate);
 
-    Iterator<Node> visibleObjects(IRI predicate);
+    List<Node> visibleObjects(IRI predicate);
 
     /**
      * Add a triple to this resource
@@ -286,14 +272,14 @@ public interface Resource extends Node {
      *
      * @return statements
      */
-    Iterator<Triple> triples();
+    List<Triple> triples();
 
     /**
      * Get iterator over triples thats are properties of this resource
      *
      * @return iterator over triple
      */
-    Iterator<Triple> properties();
+    List<Triple> properties();
 
     /**
      * Compact a predicate. Under the predicate, there is a single blank node

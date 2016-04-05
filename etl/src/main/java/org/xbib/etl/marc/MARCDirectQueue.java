@@ -34,6 +34,7 @@ package org.xbib.etl.marc;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 import org.xbib.rdf.Resource;
+import org.xbib.rdf.memory.BlankMemoryResource;
 
 import java.io.IOException;
 
@@ -60,7 +61,7 @@ public class MARCDirectQueue extends MARCEntityQueue {
                 return;
             }
             String tag = fields.iterator().next().tag();
-            Resource tagResource = state().getResource().newResource();
+            Resource tagResource = new BlankMemoryResource(); //state().getResource().newResource();
             for (Field field : fields) {
                 String data = field.data();
                 if (data == null || data.isEmpty()) {

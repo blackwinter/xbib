@@ -161,8 +161,7 @@ public class SpringerCitations extends Feeder {
         }
         IRI dereferencable = IRI.builder().scheme("http").host("xbib.info")
                 .path("/doi/").fragment(doi).build();
-        Resource r = new MemoryResource()
-                .id(dereferencable)
+        Resource r = new MemoryResource(dereferencable)
                 .a(FABIO_ARTICLE)
                 .add(PRISM_DOI, doi)
                 .add(DC_TITLE, title);

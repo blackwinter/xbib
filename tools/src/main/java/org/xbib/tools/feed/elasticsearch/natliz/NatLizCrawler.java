@@ -329,7 +329,7 @@ public class NatLizCrawler extends Feeder {
                             list.add(map);
                             licenses.put(zdbisil, list);
                             // generate triples
-                            Resource subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil));
+                            Resource subject = new MemoryResource(IRI.create("http://xbib.info/isil/" + zdbisil));
                             triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
                             triples.add(new MemoryTriple(subject, IRI.create("xbib:name"), new MemoryLiteral(name)));
                             IRI predicate = IRI.create("xbib:member");
@@ -337,7 +337,7 @@ public class NatLizCrawler extends Feeder {
                                 MemoryTriple triple = new MemoryTriple(subject, predicate, new MemoryLiteral(isil));
                                 triples.add(triple);
                             }
-                            subject = new MemoryResource().id(IRI.create("http://xbib.info/isil/" + zdbisil + "#" + timestamp));
+                            subject = new MemoryResource(IRI.create("http://xbib.info/isil/" + zdbisil + "#" + timestamp));
                             triples.add(new MemoryTriple(subject, IRI.create("xbib:topic"), new MemoryLiteral(zdbisil)));
                             triples.add(new MemoryTriple(subject, IRI.create("xbib:timestamp"), new MemoryLiteral(timestamp)));
                             if (url != null && !url.isEmpty()) {

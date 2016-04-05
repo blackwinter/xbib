@@ -32,13 +32,8 @@
 package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
-import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
-import org.xbib.etl.sequencing.Sequence;
-import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
-
-import java.io.IOException;
 
 public class RSWK extends MABEntity {
 
@@ -69,7 +64,7 @@ public class RSWK extends MABEntity {
                 .replaceAll("¬(.*?)¬", "\u0098$1\u009C");
     }
 
-    @Override
+    /*@Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         Resource res = worker.addToResource(worker.state().getResource(), fields, this);
         // sequence name is first indicator
@@ -78,11 +73,9 @@ public class RSWK extends MABEntity {
     }
 
     private MABEntity sequence(MABEntityBuilderState state, String sequence, Resource res) {
-        if (state.getSequences().get(sequence) == null) {
-            state.getSequences().put(sequence, new Sequence().setName(sequence));
-        }
+        state.getSequences().putIfAbsent(sequence, new Sequence().setName(sequence));
         state.getSequences().get(sequence).add(res);
         return this;
-    }
+    }*/
 
 }

@@ -38,6 +38,7 @@ import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentGenerator;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.Triple;
+import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.xml.XMLUtil;
 
@@ -73,7 +74,7 @@ public class RdfXmlContentGenerator
 
     public RdfXmlContentGenerator(Writer writer) throws IOException {
         this.writer = writer;
-        this.resource = new MemoryResource();
+        this.resource = new BlankMemoryResource();
     }
 
     @Override
@@ -86,9 +87,8 @@ public class RdfXmlContentGenerator
     public RdfXmlContentGenerator receive(IRI iri) throws IOException {
         if (!iri.equals(resource.id())) {
             receive(resource);
-            resource = new MemoryResource();
+            resource = new MemoryResource(iri);
         }
-        resource.id(iri);
         return this;
     }
 
@@ -147,11 +147,7 @@ public class RdfXmlContentGenerator
         }
         startRDF();
         writeHeader();
-        Iterator<Triple> tripleIterator = resource.triples();
-        while (tripleIterator.hasNext()) {
-            Triple t = tripleIterator.next();
-            writeTriple(t);
-        }
+        resource.triples().stream().forEach(this::writeTriple);
         endRDF();
         return this;
     }
