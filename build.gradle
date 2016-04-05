@@ -76,7 +76,7 @@ subprojects {
         options.compilerArgs << "-Xlint:deprecation"
     }
     test {
-        classpath += configurati ons.provided
+        classpath += configurations.provided
         testLogging {
             showStandardStreams = false
             exceptionFormat = 'full'

@@ -87,16 +87,12 @@ public class RecordIdentifier extends MABEntity {
                 for (Entry entry : entries) {
                     if (entry.getCode() != null && !entry.getCode().trim().isEmpty()) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getCode());
                     }
                     if (entry.getText() != null && !entry.getText().trim().isEmpty()) {
                         String facet = taxonomyFacet + "." + isil + ".text";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getText());
                     }
                 }

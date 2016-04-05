@@ -90,14 +90,10 @@ public class OnlineAccessRemote extends MABEntity {
                 if (entries != null) {
                     for (Entry entry : entries) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getCode());
                         facet = taxonomyFacet + "." + isil + ".text";
-                        if (state.getFacets().get(facet) == null) {
-                            state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        }
+                        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
                         state.getFacets().get(facet).addValue(entry.getText());
                     }
                 }
