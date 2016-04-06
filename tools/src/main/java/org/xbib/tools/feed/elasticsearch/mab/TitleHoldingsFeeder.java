@@ -80,16 +80,16 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         if (def == null) {
             return;
         }
-        String catalogId = settings.get(CATALOG_ID, "DE-605");
+        String catalogId = settings.get(CATALOG_ID);
         // simple index alias to the value in "identifier"
-        elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
-        elasticsearchOutput.retention(ingest, def);
+        if (catalogId != null) {
+            elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
+        }
         if ("DE-605".equals(catalogId)) {
             // for union catalog, create additional aliases for "main ISILs" using xbib.identifier
             List<String> aliases = new LinkedList<>();
             ValueMaps valueMaps = new ValueMaps();
-            Map<String, String> sigel2isil =
-                    valueMaps.getAssocStringMap(settings.get("sigel2isil",
+            Map<String, String> sigel2isil = valueMaps.getAssocStringMap(settings.get("sigel2isil",
                             "org/xbib/analyzer/mab/sigel2isil.json"), "sigel2isil");
             // "main ISIL" = only one (or none) hyphen
             aliases.addAll(sigel2isil.values().stream()
@@ -97,8 +97,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             elasticsearchOutput.switchIndex(ingest, def, aliases,
                     (builder, index1, alias) -> builder.addAlias(index1, alias,
                             QueryBuilders.termsQuery("xbib.identifier", alias)));
-            elasticsearchOutput.retention(ingest, def);
         }
+        elasticsearchOutput.retention(ingest, def);
         // holdings
         def = indexDefinitionMap.get("holdings");
         elasticsearchOutput.switchIndex(ingest, def, Collections.singletonList(def.getIndex()));
@@ -132,6 +132,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             String titleType = indexDefinition.getType();
             RouteRdfXContentParams params = new RouteRdfXContentParams(titleIndex, titleType);
             params.setHandler((content, p) -> {
+                logger.info("content={}",content);
                 if (ingest != null) {
                     ingest.index(p.getIndex(), p.getType(), state.getIdentifier(), content);
                 }
@@ -160,6 +161,7 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 }
                 params = new RouteRdfXContentParams(holdingsIndex, holdingsType);
                 params.setHandler((content, p) -> {
+                    logger.info("content={}",content);
                     if (ingest != null) {
                         ingest.index(p.getIndex(), p.getType(),
                                 state.getIdentifier() + "." + resource.id(), content);

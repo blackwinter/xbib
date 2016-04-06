@@ -91,6 +91,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         this.packageName = packageName;
         this.identifierMapper = setupIdentifierMapper(params);
         this.statusMapper = setupStatusMapper(params);
+        logger.info("package: {}", packageName);
         logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
         logger.info("identifier mapper: {} entries", identifierMapper.getMap().size());
         logger.info("status mapper: {} entries", statusMapper.getMap().size());
@@ -206,7 +207,13 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             if (fields == null) {
                 return;
             }
-            MABEntity entity = getSpecification().getEntity(fields.toKey(), getMap());
+            MABEntity entity = null;
+            try {
+                entity = getSpecification().getEntity(fields.toKey(), getMap());
+            } catch (ClassCastException e) {
+                logger.error("can't convert fields {}, entity map problem", fields);
+                return;
+            }
             if (entity != null) {
                 boolean done = entity.fields(this, fields);
                 if (done) {

@@ -75,6 +75,7 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
 
     protected Metrics metrics;
 
+    @Override
     public int run(Settings settings) throws Exception {
         this.elasticsearchInput = new ElasticsearchInput();
         this.elasticsearchOutput = new ElasticsearchOutput();
@@ -99,10 +100,26 @@ public abstract class Merger<W extends Worker<Pipeline<W,R>, R>, R extends Worke
             logger.error(t.getMessage(), t);
             returncode = 1;
         } finally {
-            disposeRequests(returncode);
-            disposeResources(returncode);
-            disposeMetrics();
-            pipeline.shutdown();
+            try {
+                disposeRequests(returncode);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+            try {
+                disposeResources(returncode);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+            try {
+                pipeline.shutdown();
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+            try {
+                disposeMetrics();
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
             Map<W, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {
                 logger.error("found {} worker exceptions", throwables.size());

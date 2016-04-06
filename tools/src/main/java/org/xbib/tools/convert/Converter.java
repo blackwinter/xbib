@@ -104,13 +104,29 @@ public class Converter
         } finally {
             // attention, order is important
             // close the request source, do not create more input for workers
-            disposeRequests(returncode);
+            try {
+                disposeRequests(returncode);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
             // bring all workers to close down, let worker threads finish, global resources turn into a consistent state
-            pipeline.shutdown();
+            try {
+                pipeline.shutdown();
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
             // close global resources, also the resources that were shared by the workers
-            disposeResources(returncode);
+            try {
+                disposeResources(returncode);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
             // shut down metric threads
-            disposeMetrics();
+            try {
+                disposeMetrics();
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
             // evaluate error conditions
             Map<Converter, Throwable> throwables = pipeline.getWorkerErrors().getThrowables();
             if (!throwables.isEmpty()) {

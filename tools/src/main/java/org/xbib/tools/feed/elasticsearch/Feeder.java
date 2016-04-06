@@ -72,12 +72,12 @@ public class Feeder extends Converter {
         for (Map.Entry<String,Settings> entry : outputMap.entrySet()) {
             if ("elasticsearch".equals(entry.getKey())) {
                 logger.info("preparing Elasticsearch for output");
-                prepareElasticsearch(entry.getValue());
+                prepareElasticsearchForOutput(entry.getValue());
             }
         }
     }
 
-    protected void prepareElasticsearch(Settings elasticsearchSettings) throws IOException {
+    protected void prepareElasticsearchForOutput(Settings elasticsearchSettings) throws IOException {
         ingest = elasticsearchOutput.createIngest(elasticsearchSettings);
         if (ingest != null) {
             metrics.scheduleIngestMetrics(settings, ingest.getMetric());
