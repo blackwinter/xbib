@@ -37,8 +37,13 @@ import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class AlternateGraphicRepresentation extends MARCEntity {
+
+    public AlternateGraphicRepresentation(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker,

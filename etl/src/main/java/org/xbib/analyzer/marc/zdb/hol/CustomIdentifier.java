@@ -4,7 +4,13 @@ import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class CustomIdentifier extends MARCEntity {
+
+    public CustomIdentifier(Map<String, Object> params) {
+        super(params);
+    }
 
     /**
      * Construct purified ZDB-ID for fast term search.

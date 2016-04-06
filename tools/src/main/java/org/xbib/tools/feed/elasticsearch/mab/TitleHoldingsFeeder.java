@@ -9,6 +9,8 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.rdf.io.ntriple.NTripleContentGenerator;
+import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.IndexDefinition;
@@ -28,6 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static org.xbib.rdf.content.RdfXContentFactory.ntripleBuilder;
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
 /**
@@ -140,6 +143,12 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));
             }
+            if (logger.isDebugEnabled()) {
+                RdfContentBuilder builder = ntripleBuilder();
+                builder.receive(state.getResource());
+                logger.info("{}", builder.string());
+            }
+
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {

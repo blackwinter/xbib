@@ -36,8 +36,13 @@ import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.marc.FieldList;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class Delete extends MABEntity {
+
+    public Delete(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {

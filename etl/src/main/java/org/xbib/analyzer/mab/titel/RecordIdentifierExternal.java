@@ -49,7 +49,7 @@ public class RecordIdentifierExternal extends MABEntity {
 
     public RecordIdentifierExternal(Map<String,Object> params) {
         super(params);
-        this.codes = (Map<String, Object>) getParams().get("codes");
+        this.codes = getCodes();
     }
 
     @Override

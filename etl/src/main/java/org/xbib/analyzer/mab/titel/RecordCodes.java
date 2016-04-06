@@ -50,7 +50,7 @@ public class RecordCodes extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getParams().get("codes");
+        this.codes = getCodes();
     }
 
     @Override

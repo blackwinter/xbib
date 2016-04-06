@@ -215,6 +215,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 return;
             }
             if (entity != null) {
+                logger.debug("processing entity {} for {}", entity, fields.toKey());
                 boolean done = entity.fields(this, fields);
                 if (done) {
                     return;

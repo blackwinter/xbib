@@ -51,11 +51,6 @@ public abstract class MARCEntity extends DefaultEntity implements Entity, MarcXc
 
     protected static final Logger logger = LogManager.getLogger(MARCEntity.class.getName());
 
-    @SuppressWarnings("unchecked")
-    public MARCEntity() {
-        this(Collections.EMPTY_MAP);
-    }
-
     public MARCEntity(Map<String,Object> params) {
         super(params);
     }

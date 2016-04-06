@@ -26,8 +26,8 @@ public class TypeMonographSimplified extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getParams().get("codes");
-        this.facetcodes = (Map<String, Object>) getParams().get("facetcodes");
+        this.codes = getCodes();
+        this.facetcodes = getFacetCodes();
     }
 
     @Override
@@ -58,9 +58,7 @@ public class TypeMonographSimplified extends MABEntity {
 
     private MABEntity facetize(MABEntityBuilderState state, String value) {
         if (value != null && !value.isEmpty()) {
-            if (state.getFacets().get(FACET) == null) {
-                state.getFacets().put(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
-            }
+            state.getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
             state.getFacets().get(FACET).addValue(value);
         }
         return this;

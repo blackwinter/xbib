@@ -10,6 +10,10 @@ import java.util.Map;
 
 public class PhysicalDescriptionCode extends MARCEntity {
 
+    public PhysicalDescriptionCode(Map<String, Object> params) {
+        super(params);
+    }
+
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
         Map<String,Object> codes = (Map<String,Object>) getParams().get("codes");

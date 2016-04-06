@@ -4,8 +4,13 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.FieldList;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ParentRecordIdentifier extends org.xbib.analyzer.marc.bib.Identifier {
+
+    public ParentRecordIdentifier(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker,

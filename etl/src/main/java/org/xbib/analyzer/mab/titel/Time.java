@@ -33,6 +33,11 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
+import java.util.Map;
+
 public class Time extends MABEntity {
 
+    public Time(Map<String, Object> params) {
+        super(params);
+    }
 }

@@ -26,11 +26,12 @@ public class FormatCarrier extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        this.codes = (Map<String, Object>) getParams().get("codes");
-        this.facetcodes = (Map<String, Object>) getParams().get("facetcodes");
+        this.codes = getCodes();
+        this.facetcodes = getFacetCodes();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
         if (codes != null) {
@@ -64,9 +65,7 @@ public class FormatCarrier extends MABEntity {
 
     private MABEntity facetize(MABEntityQueue.MABWorker worker, String value) {
         if (value != null && !value.isEmpty()) {
-            if (worker.state().getFacets().get(FACET) == null) {
-                worker.state().getFacets().put(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
-            }
+            worker.state().getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
             worker.state().getFacets().get(FACET).addValue(value);
         }
         return this;

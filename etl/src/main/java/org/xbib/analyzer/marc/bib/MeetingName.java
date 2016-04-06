@@ -33,5 +33,11 @@ package org.xbib.analyzer.marc.bib;
 
 import org.xbib.etl.marc.MARCEntity;
 
+import java.util.Map;
+
 public class MeetingName extends MARCEntity {
+
+    public MeetingName(Map<String, Object> params) {
+        super(params);
+    }
 }

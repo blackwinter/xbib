@@ -69,9 +69,7 @@ public class FormatCarrierSimplified extends MABEntity {
 
     private MABEntity facetize(MABEntityBuilderState state, String value) {
         if (value != null && !value.isEmpty()) {
-            if (state.getFacets().get(FACET) == null) {
-                state.getFacets().put(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
-            }
+            state.getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
             state.getFacets().get(FACET).addValue(value);
         }
         return this;

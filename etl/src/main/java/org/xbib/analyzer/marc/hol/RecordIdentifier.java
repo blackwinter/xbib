@@ -5,8 +5,13 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.FieldList;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class RecordIdentifier extends MARCEntity {
+
+    public RecordIdentifier(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {

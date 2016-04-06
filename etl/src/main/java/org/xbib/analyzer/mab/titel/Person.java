@@ -36,7 +36,13 @@ import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.IdentifierMapper;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class Person extends MABEntity {
+
+    public Person(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public String data(MABEntityQueue.MABWorker worker,

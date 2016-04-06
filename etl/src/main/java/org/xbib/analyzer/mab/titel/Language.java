@@ -52,9 +52,7 @@ public class Language extends MABEntity {
     @Override
     public MABEntity facetize(MABEntityQueue.MABWorker worker, Field field) {
         MABEntityBuilderState state = worker.state();
-        if (state.getFacets().get(FACET) == null) {
-            state.getFacets().put(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
-        }
+        state.getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
         Facet languageFacet = state.getFacets().get(FACET);
         Map<String, String> languages = (Map<String, String>) getParams().get("language");
         if (languages == null) {

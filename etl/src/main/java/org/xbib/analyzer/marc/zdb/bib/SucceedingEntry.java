@@ -4,7 +4,13 @@ import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class SucceedingEntry extends MARCEntity {
+
+    public SucceedingEntry(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public String data(MARCEntityQueue.MARCWorker worker,

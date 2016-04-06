@@ -59,9 +59,7 @@ public class Source extends MABEntity {
             return this;
         }
         // MAB 595 only
-        if (state.getFacets().get(facet) == null) {
-            state.getFacets().put(facet, new GregorianYearFacet().setName(facet).setType(Literal.GYEAR));
-        }
+        state.getFacets().putIfAbsent(facet, new GregorianYearFacet().setName(facet).setType(Literal.GYEAR));
         state.getFacets().get(facet).addValue(field.data());
         return this;
     }

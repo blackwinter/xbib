@@ -4,7 +4,13 @@ import org.xbib.etl.marc.MARCEntity;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class CorporateName extends MARCEntity {
+
+    public CorporateName(Map<String, Object> params) {
+        super(params);
+    }
 
     @Override
     public String data(MARCEntityQueue.MARCWorker worker,

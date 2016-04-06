@@ -33,12 +33,11 @@ package org.xbib.analyzer.marc.zdb.hol;
 
 import org.xbib.etl.marc.MARCEntity;
 
+import java.util.Map;
+
 public class ElectronicLocationAndAccess extends MARCEntity {
 
-    private final static ElectronicLocationAndAccess instance = new ElectronicLocationAndAccess();
-
-    public static ElectronicLocationAndAccess getInstance() {
-        return instance;
+    public ElectronicLocationAndAccess(Map<String, Object> params) {
+        super(params);
     }
-
 }

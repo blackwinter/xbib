@@ -33,5 +33,10 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
+import java.util.Map;
+
 public class ChronologyAndEnumeration extends MABEntity {
+    public ChronologyAndEnumeration(Map<String, Object> params) {
+        super(params);
+    }
 }

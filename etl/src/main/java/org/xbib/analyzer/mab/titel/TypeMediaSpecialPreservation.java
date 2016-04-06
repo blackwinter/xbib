@@ -55,7 +55,7 @@ public class TypeMediaSpecialPreservation extends MABEntity {
         if (params.containsKey("_predicate")) {
             this.predicate = params.get("_predicate").toString();
         }
-        Map<String, Object> regexes = (Map<String, Object>) getParams().get("regexes");
+        Map<String, Object> regexes = getRegexes();
         if (regexes != null) {
             patterns = new HashMap<>();
             for (Map.Entry<String, Object> entry : regexes.entrySet()) {

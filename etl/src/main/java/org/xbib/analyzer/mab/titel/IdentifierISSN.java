@@ -33,6 +33,11 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
+import java.util.Map;
+
 public class IdentifierISSN extends MABEntity {
 
+    public IdentifierISSN(Map<String, Object> params) {
+        super(params);
+    }
 }

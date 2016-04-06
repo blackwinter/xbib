@@ -44,11 +44,6 @@ public abstract class PicaEntity extends DefaultEntity {
 
     protected static final Logger logger = LogManager.getLogger(PicaEntity.class.getName());
 
-    @SuppressWarnings("unchecked")
-    public PicaEntity() {
-        this(Collections.EMPTY_MAP);
-    }
-
     public PicaEntity(Map<String,Object> params) {
         super(params);
     }

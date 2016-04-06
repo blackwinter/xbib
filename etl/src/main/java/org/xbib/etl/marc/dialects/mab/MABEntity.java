@@ -47,11 +47,6 @@ public abstract class MABEntity extends DefaultEntity {
 
     protected static final Logger logger = LogManager.getLogger(MABEntity.class.getName());
 
-    @SuppressWarnings("unchecked")
-    public MABEntity() {
-        this(Collections.EMPTY_MAP);
-    }
-
     public MABEntity(Map<String,Object> params) {
         super(params);
     }

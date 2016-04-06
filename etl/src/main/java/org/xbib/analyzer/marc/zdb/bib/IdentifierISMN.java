@@ -33,10 +33,11 @@ package org.xbib.analyzer.marc.zdb.bib;
 
 import org.xbib.etl.marc.MARCEntity;
 
+import java.util.Map;
+
 public class IdentifierISMN extends MARCEntity {
-    private final static IdentifierISMN instance = new IdentifierISMN();
-    
-    public static IdentifierISMN getInstance() {
-        return instance;
+
+    public IdentifierISMN(Map<String, Object> params) {
+        super(params);
     }
 }

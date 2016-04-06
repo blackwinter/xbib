@@ -35,7 +35,13 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class CorporateBody extends MABEntity {
+
+    public CorporateBody(Map<String, Object> params) {
+        super(params);
+    }
 
     /**
      * a = Name (alt)

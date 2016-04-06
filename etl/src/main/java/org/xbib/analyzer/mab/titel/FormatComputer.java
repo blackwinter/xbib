@@ -33,6 +33,11 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
+import java.util.Map;
+
 public class FormatComputer extends MABEntity {
 
+    public FormatComputer(Map<String, Object> params) {
+        super(params);
+    }
 }

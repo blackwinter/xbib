@@ -33,6 +33,11 @@ package org.xbib.analyzer.mab.titel;
 
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 
+import java.util.Map;
+
 public class NumericDesignation extends MABEntity {
 
+    public NumericDesignation(Map<String, Object> params) {
+        super(params);
+    }
 }

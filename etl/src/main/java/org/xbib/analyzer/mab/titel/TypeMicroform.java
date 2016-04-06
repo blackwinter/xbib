@@ -14,17 +14,23 @@ public class TypeMicroform extends MABEntity {
 
     private String facet = "dc.format";
 
+    private final Map<String, Object> codes;
+
+    private final Map<String, Object> facetcodes;
+
     public TypeMicroform(Map<String,Object> params) {
         super(params);
         if (params.containsKey("_facet")) {
             this.facet = params.get("_facet").toString();
         }
+        codes = getCodes();
+        facetcodes =getFacetCodes();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
-        Map<String, Object> codes = (Map<String, Object>) getParams().get("codes");
         if (codes == null) {
             throw new IllegalStateException("no codes section for " + fields);
         }
@@ -43,7 +49,6 @@ public class TypeMicroform extends MABEntity {
                 worker.state().getResource().add(predicate, code);
             }
         }
-        Map<String, Object> facetcodes = (Map<String, Object>) getParams().get("facetcodes");
         if (facetcodes != null) {
             for (int i = 0; i < value.length(); i++) {
                 Map<String, Object> q = (Map<String, Object>) facetcodes.get(Integer.toString(i));
@@ -63,9 +68,7 @@ public class TypeMicroform extends MABEntity {
     }
 
     private MABEntity facetize(MABEntityBuilderState state, String value) {
-        if (state.getFacets().get(facet) == null) {
-           state.getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-        }
+        state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
         state.getFacets().get(facet).addValue(value);
         return this;
     }

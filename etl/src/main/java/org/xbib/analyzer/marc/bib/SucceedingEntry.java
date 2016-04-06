@@ -33,7 +33,11 @@ package org.xbib.analyzer.marc.bib;
 
 import org.xbib.etl.marc.MARCEntity;
 
+import java.util.Map;
+
 public class SucceedingEntry extends MARCEntity {
 
-
+    public SucceedingEntry(Map<String, Object> params) {
+        super(params);
+    }
 }

@@ -35,7 +35,13 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.rdf.Resource;
 
+import java.util.Map;
+
 public class SubjectRSWK extends MABEntity {
+
+    public SubjectRSWK(Map<String, Object> params) {
+        super(params);
+    }
 
     /*
          * alt: 9 ID p Personenschlagwort g geographisch-ethnographisches
