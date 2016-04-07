@@ -32,6 +32,7 @@
 package org.xbib.tools.feed.elasticsearch.xref;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.apache.logging.log4j.LogManager;
@@ -246,8 +247,14 @@ public class JsonCoins extends Feeder {
                     case VALUE_NULL:
                     case VALUE_TRUE:
                     case VALUE_FALSE: {
-                        value = parser.getText();
-                        if ("coins".equals(key)) {
+                        try {
+                            value = parser.getText();
+                        } catch (JsonParseException e) {
+                            // Unexpected end-of-input: was expecting closing quote for a string value
+                            value = null;
+                            logger.warn("parse error: URI " + uri + " key " + key);
+                        }
+                        if (value != null && "coins".equals(key)) {
                             result = parseCoinsInto(resource, value);
                         }
                         break;

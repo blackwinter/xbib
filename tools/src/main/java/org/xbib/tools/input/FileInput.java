@@ -105,7 +105,8 @@ public class FileInput {
                         .sortBy(inputSettings.get("sort_by", "lastmodified"))
                         .order(inputSettings.get("order", "asc"))
                         .getURIs(inputSettings.getAsInt("max", -1));
-                logger.info("{} URIs = {}", uris.size(), uris);
+                List<URI> top10 = uris.stream().limit(10).collect(Collectors.toList());
+                logger.info("number of URIS found = {}, first = {} ", uris.size(), top10);
                 if (inputKey.startsWith("queue")) {
                     for (URI uri : uris) {
                         URIWorkerRequest element = new URIWorkerRequest();
