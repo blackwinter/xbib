@@ -80,6 +80,8 @@ public class SerialsDB {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             CSVParser parser = new CSVParser(reader);
             int i = 0;
+            // Columns:
+            // Title, Publisher, ISSN1|ISSN2
             while (true) {
                 String journalTitle = parser.nextToken().trim();
                 journalTitle = journalTitle
@@ -87,10 +89,7 @@ public class SerialsDB {
                         .replaceAll("\\p{Space}", "")
                         .replaceAll("\\p{Punct}", "");
                 String publisher = parser.nextToken().trim();
-                String subjects = parser.nextToken();
                 String issn = parser.nextToken().trim();
-                String doi = parser.nextToken().trim();
-                String publicationStructure = parser.nextToken();
                 String[] issnArr = issn.split("\\|");
                 // skip fake titles
                 if ("xxxx".equals(journalTitle)) {
@@ -118,8 +117,7 @@ public class SerialsDB {
                         .add("dc:publisher", publisher.isEmpty() ? null : publisher)
                         .add("dc:title", journalTitle)
                         .add("prism:issn", issn1)
-                        .add("prism:issn", issn2)
-                        .add("prism:doi", doi.isEmpty() ? null : doi);
+                        .add("prism:issn", issn2);
 
                 if (!serials.containsKey(journalTitle)) {
                     TurtleContentParams params = new TurtleContentParams(namespaceContext, false);
@@ -134,6 +132,7 @@ public class SerialsDB {
             // ignore
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
+            return;
         }
         if (settings.get("output") != null) {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(settings.get("output") + ".txt"), Charset.forName("UTF-8")))) {

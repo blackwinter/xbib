@@ -121,8 +121,9 @@ public class JsonCoins extends Feeder {
     }
 
     @Override
-    public void prepareRequests() throws IOException, InterruptedException {
-        super.prepareRequests();
+    public void prepareResources() throws IOException {
+        super.prepareResources();
+        // serials file
         Map<String,Settings> inputMap = settings.getGroups("input");
         Settings settings = inputMap.get("serials");
         Queue<URI> input = new Finder()
@@ -133,16 +134,12 @@ public class JsonCoins extends Feeder {
             serialsdb.process(settings, input.poll());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw e;
         }
         logger.info("serials done, size={}", serialsdb.getMap().size());
         if (serialsdb.getMap().isEmpty()) {
-            throw new IllegalArgumentException("no serials?");
+            throw new IOException("no serials???");
         }
-    }
-
-    @Override
-    public void prepareResources() throws IOException {
-        super.prepareResources();
         // extra turtle output
         TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
         if (fileOutput.getMap().containsKey("turtle")) {
