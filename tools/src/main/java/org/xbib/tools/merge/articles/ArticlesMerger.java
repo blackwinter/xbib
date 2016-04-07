@@ -150,6 +150,7 @@ public class ArticlesMerger extends Merger {
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(queryBuilder);
         SearchResponse searchResponse = searchRequest.execute().actionGet();
+        logger.debug("prepareRequests: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
         while (!failure && !complete && searchResponse.getHits().getHits().length > 0) {
             for (SearchHit hit : searchResponse.getHits()) {
                 try {
@@ -193,7 +194,7 @@ public class ArticlesMerger extends Merger {
                                 TitleRecord m = expandZdbId(indexDefinitionMap, relid);
                                 if (m != null) {
                                     titleRecords.add(m);
-                                    logger.info("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
+                                    logger.debug("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
                                     manifestationDates = m.getDates();
                                     if (manifestationDates != null) {
                                         dates.addAll(manifestationDates);
