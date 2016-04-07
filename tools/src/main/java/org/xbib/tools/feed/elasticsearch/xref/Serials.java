@@ -115,7 +115,6 @@ public class Serials {
                         .add("dc:title", journalTitle)
                         .add("prism:issn", issn1)
                         .add("prism:issn", issn2);
-
                 if (!serials.containsKey(journalTitle)) {
                     TurtleContentParams params = new TurtleContentParams(namespaceContext, false);
                     RdfContentBuilder builder = turtleBuilder(params);

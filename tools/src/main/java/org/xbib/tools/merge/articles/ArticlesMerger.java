@@ -107,25 +107,10 @@ public class ArticlesMerger extends Merger {
     }
 
     @Override
-    protected void waitFor() throws IOException {
-        getPipeline().waitFor(new SerialItemRequest());
-        long total = 0L;
-        for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
-            logger.info("worker {}, count {}, took {}",
-                    worker,
-                    worker.getMetric().getCount(),
-                    TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
-            total += worker.getMetric().getCount();
-        }
-        logger.info("total={}", total);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     protected void prepareRequests() throws Exception {
         super.prepareRequests();
         Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
-
 
         boolean failure = false;
         boolean complete = false;
@@ -157,9 +142,10 @@ public class ArticlesMerger extends Merger {
         }
         queryBuilder = filterBuilder != null ?
                 boolQuery().must(queryBuilder).filter(filterBuilder) : queryBuilder;
+        IndexDefinition indexDefinition = indexDefinitionMap.get("ezdb");
         SearchRequestBuilder searchRequest = search.client().prepareSearch()
-                .setIndices(indexDefinitionMap.get("ezdb").getIndex())
-                .setTypes(indexDefinitionMap.get("ezdb").getType())
+                .setIndices(indexDefinition.getIndex())
+                .setTypes(indexDefinition.getType())
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(queryBuilder);
@@ -179,14 +165,14 @@ public class ArticlesMerger extends Merger {
                     docs.add(id);
                     Set<Integer> dates = new LinkedHashSet<>();
                     List<TitleRecord> titleRecords = new LinkedList<>();
-                    TitleRecord titleRecord = expand(id);
+                    TitleRecord titleRecord = expand(indexDefinitionMap, id);
                     if (titleRecord == null) {
                         continue;
                     }
                     Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("formattedissn");
                     if (issns != null) {
                         for (String issn : issns) {
-                            expandOA(titleRecord, issn);
+                            expandOA(indexDefinitionMap, titleRecord, issn);
                         }
                     }
                     titleRecords.add(titleRecord);
@@ -204,7 +190,7 @@ public class ArticlesMerger extends Merger {
                                     continue;
                                 }
                                 docs.add(relid);
-                                TitleRecord m = expand(relid);
+                                TitleRecord m = expand(indexDefinitionMap, relid);
                                 if (m != null) {
                                     titleRecords.add(m);
                                     logger.info("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
@@ -245,6 +231,8 @@ public class ArticlesMerger extends Merger {
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
         }
+        search().client().prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
     }
 
     @Override
@@ -255,10 +243,25 @@ public class ArticlesMerger extends Merger {
     protected void disposeResources(int returncode) throws IOException {
     }
 
+    @Override
+    protected void waitFor() throws IOException {
+        getPipeline().waitFor(new SerialItemRequest());
+        long total = 0L;
+        for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
+            logger.info("worker {}, count {}, took {}",
+                    worker,
+                    worker.getMetric().getCount(),
+                    TimeValue.timeValueMillis(worker.getMetric().elapsed()).format());
+            total += worker.getMetric().getCount();
+        }
+        logger.info("total={}", total);
+    }
 
-    private TitleRecord expand(String zdbId) throws IOException {
+    private TitleRecord expand(Map<String,IndexDefinition> indexDefinitionMap, String zdbId)
+            throws IOException {
+        IndexDefinition indexDefinition = indexDefinitionMap.get("zdb");
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
-                .setIndices(settings().get("zdb-index", "zdb"))
+                .setIndices(indexDefinition.getIndex())
                 .setQuery(termQuery("IdentifierZDB.identifierZDB", zdbId))
                 .setSize(1);
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
@@ -270,11 +273,12 @@ public class ArticlesMerger extends Merger {
         return new TitleRecord(hits.getAt(0).getSource());
     }
 
-    private TitleRecord expandOA(TitleRecord titleRecord, String issn) throws IOException {
-        QueryBuilder queryBuilder = termQuery("dc:identifier", issn);
+    private TitleRecord expandOA(Map<String,IndexDefinition> indexDefinitionMap, TitleRecord titleRecord, String issn)
+            throws IOException {
+        IndexDefinition indexDefinition = indexDefinitionMap.get("doaj");
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
-                .setIndices(settings().get("doaj-index", "doaj"))
-                .setQuery(queryBuilder)
+                .setIndices(indexDefinition.getIndex())
+                .setQuery(termQuery("dc:identifier", issn))
                 .setSize(1);
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         SearchHits hits = searchResponse.getHits();
@@ -288,4 +292,18 @@ public class ArticlesMerger extends Merger {
         return titleRecord;
     }
 
+    IndexDefinition getMedlineIndex() {
+        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        return indexDefinitionMap.get("medline");
+    }
+
+    IndexDefinition getXrefIndex() {
+        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        return indexDefinitionMap.get("xref");
+    }
+
+    IndexDefinition getArticlesIndex() {
+        Map<String,IndexDefinition> indexDefinitionMap = getOutputIndexDefinitionMap();
+        return indexDefinitionMap.get("articles");
+    }
 }

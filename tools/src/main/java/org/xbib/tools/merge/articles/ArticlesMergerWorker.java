@@ -41,6 +41,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.iri.IRI;
 import org.xbib.metrics.Meter;
@@ -80,7 +81,6 @@ public class ArticlesMergerWorker
     private final Logger logger;
     private final int scrollSize;
     private final long scrollMillis;
-    private final long timeoutSeconds;
 
     private SerialItem serialItem;
 
@@ -92,8 +92,6 @@ public class ArticlesMergerWorker
         this.logger = LogManager.getLogger(toString());
         this.scrollSize = settings.getAsInt("worker.scrollsize", 10); // per shard!
         this.scrollMillis = settings.getAsTime("worker.scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(360)).millis();
-        this.timeoutSeconds = settings.getAsTime("worker.timeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
-
     }
 
     @Override
@@ -126,7 +124,6 @@ public class ArticlesMergerWorker
 
     @Override
     public SerialItemRequest call() throws Exception {
-        logger.info("pipeline starting");
         if (metric == null) {
             this.metric = new Meter();
             metric.spawn(5L);
@@ -146,17 +143,17 @@ public class ArticlesMergerWorker
             logger.error(ExceptionFormatter.format(e));
             logger.error("exiting, exception while processing {}", serialItem.getDate());
         } finally {
-            //getPipeline().countDown();
             metric.stop();
         }
-        logger.info("pipeline terminating");
+        logger.info("medline dups = {}", medlineDuplicates);
+        logger.info("xref dups = {}", xrefDuplicates);
         return element;
     }
 
     @Override
     public void close() throws IOException {
         if (!getPipeline().getQueue().isEmpty()) {
-            logger.error("service queue not empty?");
+            logger.error("queue not empty?");
         }
     }
 
@@ -182,13 +179,13 @@ public class ArticlesMergerWorker
         QueryBuilder existsKey = existsQuery("xbib:key");
         QueryBuilder filteredQueryBuilder = boolQuery().must(queryBuilder).filter(existsKey);
         Map<String,Map<String,Object>> docs = new HashMap<>();
-        if (articlesMerger.settings().get("medline-index") != null) {
+        if (articlesMerger.getMedlineIndex() != null) {
             fetchMedline(filteredQueryBuilder, docs);
         }
-        if (articlesMerger.settings().get("xref-index") != null) {
+        if (articlesMerger.getXrefIndex() != null) {
             fetchXref(filteredQueryBuilder, docs);
         }
-        process(serialItem, docs);
+        postProcess(serialItem, docs);
     }
 
     private void fetchMedline(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
@@ -214,16 +211,16 @@ public class ArticlesMergerWorker
             queryBuilder.must(titleQuery).must(dateQuery).should(abbrevQuery);
         */
         SearchRequestBuilder searchRequest = articlesMerger.search().client().prepareSearch()
-                .setIndices(articlesMerger.settings().get("medline-index"))
-                .setTypes(articlesMerger.settings().get("medline-type"))
+                .setIndices(articlesMerger.getMedlineIndex().getIndex())
+                .setTypes(articlesMerger.getMedlineIndex().getType())
                 .setQuery(queryBuilder)
                 .setSize(scrollSize) // size() is per shard!
-                .setScroll(TimeValue.timeValueMillis(scrollMillis));
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        do {
-            SearchHits hits = searchResponse.getHits();
-            for (int i = 0; i < hits.getHits().length; i++) {
-                SearchHit hit = hits.getAt(i);
+        while (searchResponse.getHits().getHits().length > 0) {
+            for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
+                SearchHit hit = searchResponse.getHits().getAt(i);
                 String key = (String)hit.getSource().get("xbib:key");
                 if (key == null) {
                     continue;
@@ -251,7 +248,9 @@ public class ArticlesMergerWorker
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
-        } while (searchResponse.getHits().getHits().length > 0);
+        }
+        articlesMerger.search().client().prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
     }
 
     private void fetchXref(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
@@ -292,7 +291,7 @@ public class ArticlesMergerWorker
         if (hits.getHits().length == 0) {
             return;
         }
-        do {
+        while (hits.getHits().length > 0) {
             hits = searchResponse.getHits();
             for (int i = 0; i < hits.getHits().length; i++) {
                 SearchHit hit = hits.getAt(i);
@@ -316,10 +315,12 @@ public class ArticlesMergerWorker
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
             hits = searchResponse.getHits();
-        } while (hits.getHits().length > 0);
+        }
+        articlesMerger.search().client().prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
     }
 
-    private void process(SerialItem serialItem, Map<String,Map<String,Object>> docs) throws IOException {
+    private void postProcess(SerialItem serialItem, Map<String,Map<String,Object>> docs) throws IOException {
         if (docs == null || docs.isEmpty()) {
             return;
         }
@@ -333,8 +334,8 @@ public class ArticlesMergerWorker
             }
             XContentBuilder builder = jsonBuilder();
             builder.value(doc);
-            String index = articlesMerger.settings().get("target-index");
-            String type = articlesMerger.settings().get("target-type");
+            String index = articlesMerger.getArticlesIndex().getIndex();
+            String type = articlesMerger.getArticlesIndex().getType();
             String id = entry.getKey();
             articlesMerger.ingest().index(index, type, id, builder.string());
         }

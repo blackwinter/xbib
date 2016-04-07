@@ -110,7 +110,7 @@ public class JsonCoins extends Feeder {
 
     private final static JsonFactory jsonFactory = new JsonFactory();
 
-    private final static Serials serialsdb = new Serials();
+    private final static Serials serials = new Serials();
 
     private final static Lock lock = new ReentrantLock();
 
@@ -131,13 +131,13 @@ public class JsonCoins extends Feeder {
                 .getURIs();
         logger.info("parsing initial set of serials...");
         try {
-            serialsdb.process(settings, input.poll());
+            serials.process(settings, input.poll());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw e;
         }
-        logger.info("serials done, size={}", serialsdb.getMap().size());
-        if (serialsdb.getMap().isEmpty()) {
+        logger.info("serials done, size={}", serials.getMap().size());
+        if (serials.getMap().isEmpty()) {
             throw new IOException("no serials???");
         }
         // extra turtle output
@@ -364,7 +364,7 @@ public class JsonCoins extends Feeder {
                         j = r.newResource(FRBR_PARTOF)
                                 .a(FABIO_JOURNAL)
                                 .add(PRISM_PUBLICATION_NAME, v);
-                        Resource serial = serialsdb.getMap().get(cleanTitle);
+                        Resource serial = serials.getMap().get(cleanTitle);
                         if (serial != null) {
                             issns = serial.objects(PRISM_ISSN).iterator();
                             while (issns.hasNext()) {
