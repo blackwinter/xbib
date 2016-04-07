@@ -55,6 +55,7 @@ import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.text.InvalidCharacterException;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.CharacterEntities;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.URIBuilder;
 import org.xbib.util.URIFormatter;
 import org.xbib.util.concurrent.ForkJoinPipeline;
@@ -161,6 +162,7 @@ public class JsonCoins extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
+            IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
             RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext);
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -170,8 +172,8 @@ public class JsonCoins extends Feeder {
             String key = null;
             String value;
             Result result = Result.OK;
-            String index = indexDefinitionMap.get("bib").getConcreteIndex();
-            String type = indexDefinitionMap.get("bib").getType();
+            String index = indexDefinition.getConcreteIndex();
+            String type = indexDefinition.getType();
             while (token != null) {
                 switch (token) {
                     case START_OBJECT: {
