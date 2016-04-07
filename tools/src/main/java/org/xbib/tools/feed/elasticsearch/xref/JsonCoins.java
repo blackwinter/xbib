@@ -110,7 +110,7 @@ public class JsonCoins extends Feeder {
 
     private final static JsonFactory jsonFactory = new JsonFactory();
 
-    private final static SerialsDB serialsdb = new SerialsDB();
+    private final static Serials serialsdb = new Serials();
 
     private final static Lock lock = new ReentrantLock();
 

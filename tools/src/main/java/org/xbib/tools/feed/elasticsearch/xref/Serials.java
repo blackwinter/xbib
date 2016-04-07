@@ -46,7 +46,6 @@ import org.xbib.tools.input.FileInput;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.EOFException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +53,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,9 +64,9 @@ import static org.xbib.rdf.RdfContentFactory.turtleBuilder;
 /**
  * Import serials list
  */
-public class SerialsDB {
+public class Serials {
 
-    private final static Logger logger = LogManager.getLogger(SerialsDB.class);
+    private final static Logger logger = LogManager.getLogger(Serials.class);
 
     private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
@@ -77,30 +79,25 @@ public class SerialsDB {
 
     public void process(Settings settings, URI uri) throws IOException {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-            CSVParser parser = new CSVParser(reader);
-            int i = 0;
-            // Columns:
-            // Title, Publisher, ISSN1|ISSN2
-            while (true) {
-                String journalTitle = parser.nextToken().trim();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            CSVParser csvParser = new CSVParser(reader);
+            Iterator<List<String>> it = csvParser.iterator();
+            while (it.hasNext()) {
+                List<String> row = it.next();
+                String journalTitle = row.get(0).trim();
                 journalTitle = journalTitle
                         .replaceAll("\\p{C}", "")
                         .replaceAll("\\p{Space}", "")
                         .replaceAll("\\p{Punct}", "");
-                String publisher = parser.nextToken().trim();
-                String issn = parser.nextToken().trim();
+                String publisher = row.get(1).trim();
+                String issn = row.get(2).trim();
                 String[] issnArr = issn.split("\\|");
                 // skip fake titles
                 if ("xxxx".equals(journalTitle)) {
                     continue;
                 }
-                if (i++ == 0) {
-                    // skip head line
-                    continue;
-                }
-                String issn1 = buildISSN(issnArr, 0, true);
-                String issn2 = buildISSN(issnArr, 1, true);
+                String issn1 = formatISSN(issnArr, 0, true);
+                String issn2 = formatISSN(issnArr, 1, true);
                 if (issn1 != null && issn1.equals(issn2)) {
                     issn2 = null;
                 }
@@ -128,11 +125,6 @@ public class SerialsDB {
                     logger.info("ignoring double serial title: {}", journalTitle);
                 }
             }
-        } catch (EOFException e) {
-            // ignore
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            return;
         }
         if (settings.get("output") != null) {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(settings.get("output") + ".txt"), Charset.forName("UTF-8")))) {
@@ -149,7 +141,7 @@ public class SerialsDB {
         return serials;
     }
 
-    private String buildISSN(String[] issnArr, int i, boolean hyphen) {
+    private String formatISSN(String[] issnArr, int i, boolean hyphen) {
         return issnArr.length > i && !issnArr[i].isEmpty() ?
                 (hyphen ? new StringBuilder(issnArr[i].toLowerCase()).insert(4, '-').toString() : issnArr[i].toLowerCase()) :
                 null;
