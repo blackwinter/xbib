@@ -262,7 +262,12 @@ public class JsonCoins extends Feeder {
                     default:
                         throw new IOException("unknown token: " + token);
                 }
-                token = parser.nextToken();
+                try {
+                    token = parser.nextToken();
+                } catch (JsonParseException e) {
+                    logger.error("parse error " + e.getMessage() + ", terminating early: URI " + uri, e);
+                    token = null;
+                }
             }
         }
     }
