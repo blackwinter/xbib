@@ -220,6 +220,7 @@ public class ArticlesMergerWorker
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
+        logger.debug("fetchMedline: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
         while (searchResponse.getHits().getHits().length > 0) {
             for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
                 SearchHit hit = searchResponse.getHits().getAt(i);
@@ -280,23 +281,17 @@ public class ArticlesMergerWorker
             }
         */
         SearchRequestBuilder searchRequest = articlesMerger.search().client().prepareSearch()
-                .setIndices(articlesMerger.settings().get("xref-index"))
-                .setTypes(articlesMerger.settings().get("xref-type"))
+                .setIndices(articlesMerger.getXrefIndex().getIndex())
+                .setTypes(articlesMerger.getXrefIndex().getType())
                 .setQuery(queryBuilder)
                 .setSize(scrollSize) // size() is per shard
-                .setScroll(TimeValue.timeValueMillis(scrollMillis));
-        SearchResponse searchResponse = searchRequest.execute().actionGet();
-        searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                .execute().actionGet();
-        SearchHits hits = searchResponse.getHits();
-        if (hits.getHits().length == 0) {
-            return;
-        }
-        while (hits.getHits().length > 0) {
-            hits = searchResponse.getHits();
-            for (int i = 0; i < hits.getHits().length; i++) {
-                SearchHit hit = hits.getAt(i);
+                .addSort(SortBuilders.fieldSort("_doc"));
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        logger.debug("fetchXRef: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        while (searchResponse.getHits().getHits().length > 0) {
+            for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
+                SearchHit hit = searchResponse.getHits().getAt(i);
                 String key = (String)hit.getSource().get("xbib:key");
                 if (key == null) {
                     continue;
@@ -316,7 +311,6 @@ public class ArticlesMergerWorker
             searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
-            hits = searchResponse.getHits();
         }
         articlesMerger.search().client().prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet();
