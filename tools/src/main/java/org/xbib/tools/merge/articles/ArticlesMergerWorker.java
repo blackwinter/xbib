@@ -163,18 +163,20 @@ public class ArticlesMergerWorker
     }
 
     private void process(SerialItem serialItem) throws IOException {
-        BoolQueryBuilder queryBuilder = boolQuery();
-        QueryBuilder dateQuery = termQuery("dc:date", serialItem.getDate());
         Set<String> issns = new HashSet<>();
         for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
-            Collection<String> l = (Collection<String>) titleRecord.getIdentifiers().get("issn");
-            issns.addAll(l);
+            Collection<String> l = titleRecord.getISSNs();
+            if (l != null) {
+                issns.addAll(l);
+            }
         }
         BoolQueryBuilder issnQuery = boolQuery();
         for (String issn : issns) {
             String s = issn.indexOf('-') > 0 ? issn : new StringBuilder(issn.toUpperCase()).insert(4, '-').toString();
             issnQuery.should(matchPhraseQuery("prism:issn", s));
         }
+        QueryBuilder dateQuery = termQuery("dc:date", serialItem.getDate());
+        BoolQueryBuilder queryBuilder = boolQuery();
         queryBuilder.must(dateQuery).must(issnQuery);
         QueryBuilder existsKey = existsQuery("xbib:key");
         QueryBuilder filteredQueryBuilder = boolQuery().must(queryBuilder).filter(existsKey);

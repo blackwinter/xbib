@@ -165,7 +165,7 @@ public class ArticlesMerger extends Merger {
                     docs.add(id);
                     Set<Integer> dates = new LinkedHashSet<>();
                     List<TitleRecord> titleRecords = new LinkedList<>();
-                    TitleRecord titleRecord = expand(indexDefinitionMap, id);
+                    TitleRecord titleRecord = expandZdbId(indexDefinitionMap, id);
                     if (titleRecord == null) {
                         continue;
                     }
@@ -190,7 +190,7 @@ public class ArticlesMerger extends Merger {
                                     continue;
                                 }
                                 docs.add(relid);
-                                TitleRecord m = expand(indexDefinitionMap, relid);
+                                TitleRecord m = expandZdbId(indexDefinitionMap, relid);
                                 if (m != null) {
                                     titleRecords.add(m);
                                     logger.info("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
@@ -257,7 +257,7 @@ public class ArticlesMerger extends Merger {
         logger.info("total={}", total);
     }
 
-    private TitleRecord expand(Map<String,IndexDefinition> indexDefinitionMap, String zdbId)
+    private TitleRecord expandZdbId(Map<String,IndexDefinition> indexDefinitionMap, String zdbId)
             throws IOException {
         IndexDefinition indexDefinition = indexDefinitionMap.get("zdb");
         SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
