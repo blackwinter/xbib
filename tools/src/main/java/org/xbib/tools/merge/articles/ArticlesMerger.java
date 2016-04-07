@@ -130,12 +130,12 @@ public class ArticlesMerger extends Merger {
             queryBuilder = termQuery("_id", identifier);
         }
         // filter ISSN
-        if (settings().getAsBoolean("issnonly", false)) {
+        if (settings().getAsBoolean("issnonly", true)) {
             filterBuilder = boolQuery()
                     .must(existsQuery("dates"))
                     .must(existsQuery("identifiers.issn"));
         }
-        if (settings().getAsBoolean("eonly", false)) {
+        if (settings().getAsBoolean("computeronly", false)) {
             filterBuilder = boolQuery()
                     .must(existsQuery("dates"))
                     .must(termQuery("mediatype", "computer"));
@@ -150,7 +150,9 @@ public class ArticlesMerger extends Merger {
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .setQuery(queryBuilder);
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        logger.debug("prepareRequests: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        logger.debug("prepareRequests: {}/{} hits={} query={}",
+                indexDefinition.getIndex(), indexDefinition.getType(),
+                searchResponse.getHits().getTotalHits(), searchRequest);
         while (!failure && !complete && searchResponse.getHits().getHits().length > 0) {
             for (SearchHit hit : searchResponse.getHits()) {
                 try {

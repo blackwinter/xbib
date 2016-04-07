@@ -40,7 +40,6 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.iri.IRI;
@@ -169,6 +168,10 @@ public class ArticlesMergerWorker
             if (l != null) {
                 issns.addAll(l);
             }
+        }
+        if (issns.isEmpty()) {
+            logger.warn("no issn in {}", serialItem.getTitleRecords());
+            return;
         }
         BoolQueryBuilder issnQuery = boolQuery();
         for (String issn : issns) {

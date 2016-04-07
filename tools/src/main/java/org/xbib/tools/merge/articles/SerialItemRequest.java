@@ -48,13 +48,4 @@ public class SerialItemRequest implements WorkerRequest<SerialItem> {
         return serialItem;
     }
 
-    public SerialItemRequest setForced(boolean forced) {
-        this.forced = forced;
-        return this;
-    }
-
-    public boolean getForced() {
-        return forced;
-    }
-
 }

@@ -33,14 +33,14 @@ package org.xbib.tools.merge.articles;
 
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class SerialItem {
 
     private Integer date;
 
-    private Collection<TitleRecord> titleRecords = new HashSet<>();
+    private List<TitleRecord> titleRecords = new LinkedList<>();
 
     public SerialItem() {
     }
@@ -57,7 +57,7 @@ public class SerialItem {
         this.titleRecords.add(titleRecord);
     }
 
-    public Collection<TitleRecord> getTitleRecords() {
+    public List<TitleRecord> getTitleRecords() {
         return titleRecords;
     }
 
