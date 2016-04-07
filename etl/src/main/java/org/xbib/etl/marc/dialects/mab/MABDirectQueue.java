@@ -29,27 +29,27 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.etl.marc;
+package org.xbib.etl.marc.dialects.mab;
 
-import org.xbib.marc.FieldList;
 import org.xbib.marc.Field;
+import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.BlankMemoryResource;
 
 import java.io.IOException;
 
-public class MARCDirectQueue extends MARCEntityQueue {
+public class MABDirectQueue extends MABEntityQueue {
 
-    public MARCDirectQueue(String packageName, int workers, String... paths) throws Exception {
+    public MABDirectQueue(String packageName, int workers, String... paths) throws Exception {
         super(packageName, workers, paths);
     }
 
     @Override
-    public MARCDirectWorker newWorker() {
-        return new MARCDirectWorker();
+    public MABDirectWorker newWorker() {
+        return new MABDirectWorker();
     }
 
-    private class MARCDirectWorker extends MARCWorker {
+    private class MABDirectWorker extends MABWorker {
 
         @Override
         public void build(FieldList fields) throws IOException {

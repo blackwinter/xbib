@@ -113,6 +113,7 @@ public class JsonCoins extends Feeder {
     private final static Lock lock = new ReentrantLock();
 
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return p -> new JsonCoins().setPipeline(p);
     }
@@ -140,6 +141,7 @@ public class JsonCoins extends Feeder {
     @Override
     public void prepareResources() throws IOException {
         super.prepareResources();
+        // extra turtle output
         TurtleContentParams params = new TurtleContentParams(namespaceContext, true);
         if (fileOutput.getMap().containsKey("turtle")) {
             setRdfContentBuilder(turtleBuilder(fileOutput.getMap().get("turtle").getOut(), params));
@@ -256,7 +258,7 @@ public class JsonCoins extends Feeder {
         }
     }
 
-    protected interface URIListener extends URIBuilder.ParameterListener {
+    private interface URIListener extends URIBuilder.ParameterListener {
 
         void close();
 
@@ -275,7 +277,7 @@ public class JsonCoins extends Feeder {
             Pattern.compile("^http://doi.org/")
     };
 
-    protected Result parseCoinsInto(Resource resource, String value) {
+    private Result parseCoinsInto(Resource resource, String value) {
         IRI coins = IRI.builder()
                 .scheme("http")
                 .host("localhost")
@@ -358,9 +360,7 @@ public class JsonCoins extends Feeder {
                                 Node issn  = issns.next();
                                 j.add(PRISM_ISSN, issn.toString());
                             }
-                            Iterator<Node> publishers = serial.objects(DC_PUBLISHER).iterator();
-                            while (publishers.hasNext()) {
-                                Node publisher = publishers.next();
+                            for (Node publisher : serial.objects(DC_PUBLISHER)) {
                                 j.add(DC_PUBLISHER, publisher.toString());
                             }
                         } else {
@@ -611,19 +611,19 @@ public class JsonCoins extends Feeder {
     private RdfContentBuilder missingRdfContentBuilder;
     private Writer missingSerialsWriter;
 
-    public void setRdfContentBuilder(RdfContentBuilder rdfContentBuilder) {
+    private void setRdfContentBuilder(RdfContentBuilder rdfContentBuilder) {
         this.rdfContentBuilder = rdfContentBuilder;
     }
 
-    public void setErrorRdfContentBuilder(RdfContentBuilder errorRdfContentBuilder) {
+    private void setErrorRdfContentBuilder(RdfContentBuilder errorRdfContentBuilder) {
         this.errorRdfContentBuilder = errorRdfContentBuilder;
     }
 
-    public void setMissingRdfContentBuilder(RdfContentBuilder missingRdfContentBuilder) {
+    private void setMissingRdfContentBuilder(RdfContentBuilder missingRdfContentBuilder) {
         this.missingRdfContentBuilder = missingRdfContentBuilder;
     }
 
-    public void setMissingSerialsWriter(Writer writer) {
+    private void setMissingSerialsWriter(Writer writer) {
         this.missingSerialsWriter = writer;
     }
 
@@ -640,21 +640,21 @@ public class JsonCoins extends Feeder {
         return this;
     }
 
-    public class BuilderPipeline extends FeederPipeline {
+    private class BuilderPipeline extends FeederPipeline {
 
-        public RdfContentBuilder getRdfContentBuilder() {
+        private RdfContentBuilder getRdfContentBuilder() {
             return rdfContentBuilder;
         }
 
-        public RdfContentBuilder getErrorRdfContentBuilder() {
+        private RdfContentBuilder getErrorRdfContentBuilder() {
             return errorRdfContentBuilder;
         }
 
-        public RdfContentBuilder getMissingRdfContentBuilder() {
+        private RdfContentBuilder getMissingRdfContentBuilder() {
             return missingRdfContentBuilder;
         }
 
-        public Writer getMissingSerialsWriter() {
+        private Writer getMissingSerialsWriter() {
             return missingSerialsWriter;
         }
     }

@@ -86,7 +86,9 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
 
     private IRI uid;
 
-    public MABEntityBuilderState(String packageName, Specification specification, RdfGraph<RdfGraphParams> graph, Map<IRI,RdfContentBuilderProvider> providers) {
+    public MABEntityBuilderState(String packageName, Specification specification,
+                                 RdfGraph<RdfGraphParams> graph,
+                                 Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
         this.packageName = packageName;
         this.specification = specification;
@@ -207,6 +209,28 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
             graph().putResource(resource.id(), resource);
         }
 
+        // create sequences
+        for (Sequence<Resource> sequence : sequences.values()) {
+            String sequenceName = sequence.getName();
+            if (sequenceName == null) {
+                continue;
+            }
+            // split sequence name e.g. "dc.subject" --> "dc", "subject"
+            String[] sequencePath = sequenceName.split("\\.");
+            Resource resource = getResource();
+            if (sequencePath.length > 1) {
+                for (int i = 0; i < sequencePath.length - 1; i++) {
+                    resource = resource.newResource(IRI.builder().path(sequencePath[i]).build());
+                }
+            }
+            sequenceName = sequencePath[sequencePath.length-1];
+            IRI predicate = IRI.builder().path(sequenceName).build();
+            for (Resource res : sequence.getResources()) {
+                resource.add(predicate, res);
+            }
+        }
+        sequences.clear();
+
         // create default facets
         Facet languageFacet = facets.get(LANGUAGE_FACET);
         if (languageFacet == null) {
@@ -267,28 +291,6 @@ public class MABEntityBuilderState extends DefaultEntityBuilderState {
             }
         }
         facets.clear();
-
-        // create sequences
-        for (Sequence<Resource> sequence : sequences.values()) {
-            String sequenceName = sequence.getName();
-            if (sequenceName == null) {
-                continue;
-            }
-            // split sequence name e.g. "dc.subject" --> "dc", "subject"
-            String[] sequencePath = sequenceName.split("\\.");
-            Resource resource = getResource();
-            if (sequencePath.length > 1) {
-                for (int i = 0; i < sequencePath.length - 1; i++) {
-                    resource = resource.newResource(IRI.builder().path(sequencePath[i]).build());
-                }
-            }
-            sequenceName = sequencePath[sequencePath.length-1];
-            IRI predicate = IRI.builder().path(sequenceName).build();
-            for (Resource res : sequence.getResources()) {
-                resource.add(predicate, res);
-            }
-        }
-        sequences.clear();
 
         // continue with completion in parent
         super.complete();

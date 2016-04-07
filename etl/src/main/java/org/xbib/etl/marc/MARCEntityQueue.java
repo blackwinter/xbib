@@ -59,9 +59,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public MARCEntityQueue(int workers) throws Exception {
-        this("", workers);
-    }
+    private final String packageName;
 
     public MARCEntityQueue(String packageName, int workers, String... paths) throws Exception {
         this(packageName, new HashMap<>(), workers,  paths);
@@ -71,6 +69,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
             throws Exception {
         super(new MARCSpecification(new HashMap<>(), params, MARCEntityQueue.class.getClassLoader(),
                 packageName, paths), workers);
+        this.packageName = packageName;
         logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
     }
 
@@ -107,7 +106,7 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
 
         @Override
         public MARCEntityBuilderState newState() {
-            return new MARCEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders());
+            return new MARCEntityBuilderState(packageName, getSpecification(), new MemoryRdfGraph(), contentBuilderProviders());
         }
 
         @Override
@@ -115,33 +114,23 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
             if (fields == null) {
                 return;
             }
-            /*if (value != null && !value.isEmpty()) {
-                // we need to fake control field. Looks like a bug!
-                Field f = fields.getFirst();
-                fields = new FieldList();
-                fields.add(new Field().tag(f.tag()).data(value));
-            }*/
             String key = fields.toKey();
             MARCEntity entity = getSpecification().getEntity(key, getMap());
             if (entity != null) {
-                // entity-based processing
                 boolean done = entity.fields(this, fields);
                 if (done) {
                     return;
                 }
-                // add entity to resource
                 addToResource(state().getResource(), fields, entity);
-                // add faceting etc. here
-                //builder().build(state(), entity, fields, value);
             } else {
                 if (listener != null) {
-                    listener.unknown(state().getRecordNumber(), fields);
+                    listener.unknown(state().getRecordIdentifier(), fields);
                 }
             }
         }
 
         @SuppressWarnings("unchecked")
-        public void addToResource(Resource resource, FieldList fields, MARCEntity entity) throws IOException {
+        void addToResource(Resource resource, FieldList fields, MARCEntity entity) throws IOException {
             // setup
             Map<String, Object> defaultSubfields = (Map<String, Object>) entity.getParams().get("subfields");
             if (defaultSubfields == null) {

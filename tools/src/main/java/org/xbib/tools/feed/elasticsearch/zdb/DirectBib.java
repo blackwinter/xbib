@@ -42,6 +42,8 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
+import org.xbib.util.IndexDefinition;
+import org.xbib.util.MockIndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -68,6 +70,7 @@ public class DirectBib extends Feeder {
     private final static Logger logger = LogManager.getLogger(DirectBib.class);
 
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return pipeline -> new DirectBib().setPipeline(pipeline);
     }
@@ -77,7 +80,7 @@ public class DirectBib extends Feeder {
         try (InputStream in = FileInput.getInputStream(uri)) {
             Reader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            final MARCDirectQueue queue = new MyEntityQueue();
+            final MARCDirectQueue queue = new MyDirectEntityQueue(settings.get("package"), settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("record {} unmapped field {}", id, key);
@@ -85,7 +88,6 @@ public class DirectBib extends Feeder {
                 }
             });
             queue.execute();
-
             final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
                     .setStringTransformer(value ->
                             Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
@@ -109,24 +111,28 @@ public class DirectBib extends Feeder {
         }
     }
 
-    class MyEntityQueue extends MARCDirectQueue {
+    private class MyDirectEntityQueue extends MARCDirectQueue {
 
-        public MyEntityQueue() throws Exception {
-            super(settings.getAsInt("pipelines", 1));
+        private MyDirectEntityQueue(String path, int workers) throws Exception {
+            super(path, workers);
         }
 
         @Override
         public void afterCompletion(MARCEntityBuilderState state) throws IOException {
-            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
-                    indexDefinitionMap.get("bib").getType());
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
+            IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
+            if (indexDefinition == null) {
+                indexDefinition = new MockIndexDefinition();
+            }
+            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
+                    indexDefinition.getType());
+            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordIdentifier(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));
             }
             builder.receive(state.getResource());
             if (settings.getAsBoolean("mock", false)) {
-                logger.debug("{}", builder.string());
+                logger.info("{}", builder.string());
             }
         }
     }

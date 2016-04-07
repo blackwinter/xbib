@@ -74,8 +74,8 @@ public final class MARC extends Feeder {
         try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                    new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                    new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+                    new MyDirectEntityQueue(settings.get("package"), settings.getAsInt("pipelines", 1)) :
+                    new MyEntityQueue(settings.get("package"), settings.getAsInt("pipelines", 1));
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("unmapped field {}", key);
@@ -106,8 +106,8 @@ public final class MARC extends Feeder {
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        public MyEntityQueue(String packageName, int workers) throws Exception {
+            super(packageName, workers);
         }
 
         @Override
@@ -120,10 +120,10 @@ public final class MARC extends Feeder {
         }
     }
 
-    class MyDirectQueue extends MARCDirectQueue {
+    class MyDirectEntityQueue extends MARCDirectQueue {
 
-        public MyDirectQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        public MyDirectEntityQueue(String packageName, int workers) throws Exception {
+            super(packageName, workers);
         }
 
         @Override

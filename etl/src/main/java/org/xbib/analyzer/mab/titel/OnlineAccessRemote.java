@@ -36,7 +36,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ConfigurableClassifier;
-import org.xbib.etl.support.Entry;
+import org.xbib.etl.support.ClassifierEntry;
 import org.xbib.etl.support.IdentifierMapper;
 import org.xbib.iri.IRI;
 import org.xbib.marc.FieldList;
@@ -86,15 +86,15 @@ public class OnlineAccessRemote extends MABEntity {
             ConfigurableClassifier classifier = worker.classifier();
             if (classifier != null) {
                 String key = isil + "." + state.getRecordIdentifier() + ".";
-                java.util.Collection<Entry> entries = classifier.lookup(key);
+                java.util.Collection<ClassifierEntry> entries = classifier.lookup(key);
                 if (entries != null) {
-                    for (Entry entry : entries) {
+                    for (ClassifierEntry classifierEntry : entries) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getCode());
+                        state.getFacets().get(facet).addValue(classifierEntry.getCode());
                         facet = taxonomyFacet + "." + isil + ".text";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getText());
+                        state.getFacets().get(facet).addValue(classifierEntry.getText());
                     }
                 }
             }

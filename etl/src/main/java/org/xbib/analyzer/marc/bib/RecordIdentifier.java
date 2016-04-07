@@ -47,7 +47,7 @@ public class RecordIdentifier extends MARCEntity {
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
         super.fields(worker, fields);
-        worker.state().setRecordNumber(fields.getLast().data());
+        worker.state().setRecordIdentifier(fields.getLast().data());
         return true;
     }
 }

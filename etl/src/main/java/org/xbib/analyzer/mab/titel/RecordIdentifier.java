@@ -36,7 +36,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ConfigurableClassifier;
-import org.xbib.etl.support.Entry;
+import org.xbib.etl.support.ClassifierEntry;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 
@@ -82,18 +82,18 @@ public class RecordIdentifier extends MABEntity {
         if (classifier != null) {
             String isil = catalogid;
             String key = catalogid + "." + state.getRecordIdentifier() + ".";
-            java.util.Collection<Entry> entries = classifier.lookup(key);
+            java.util.Collection<ClassifierEntry> entries = classifier.lookup(key);
             if (entries != null) {
-                for (Entry entry : entries) {
-                    if (entry.getCode() != null && !entry.getCode().trim().isEmpty()) {
+                for (ClassifierEntry classifierEntry : entries) {
+                    if (classifierEntry.getCode() != null && !classifierEntry.getCode().trim().isEmpty()) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getCode());
+                        state.getFacets().get(facet).addValue(classifierEntry.getCode());
                     }
-                    if (entry.getText() != null && !entry.getText().trim().isEmpty()) {
+                    if (classifierEntry.getText() != null && !classifierEntry.getText().trim().isEmpty()) {
                         String facet = taxonomyFacet + "." + isil + ".text";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getText());
+                        state.getFacets().get(facet).addValue(classifierEntry.getText());
                     }
                 }
             }

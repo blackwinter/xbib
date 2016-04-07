@@ -33,5 +33,5 @@ package org.xbib.etl;
 
 public interface UnmappedKeyListener<K> {
 
-    void unknown(String documentIdentifier, K key);
+    void unknown(String identifier, K key);
 }

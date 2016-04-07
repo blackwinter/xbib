@@ -176,7 +176,7 @@ public class MarcBibOAI extends OAIFeeder {
             // write bib resource
             RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinitionMap.get("bib").getConcreteIndex(),
                     indexDefinitionMap.get("bib").getType());
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
+            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordIdentifier(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));

@@ -31,11 +31,11 @@
  */
 package org.xbib.etl.support;
 
-public class Entry {
+public class ClassifierEntry {
     String doc;
     String code;
     String text;
-    Entry(String doc, String code, String text) {
+    ClassifierEntry(String doc, String code, String text) {
         this.doc = doc;
         this.code = code;
         this.text = text;

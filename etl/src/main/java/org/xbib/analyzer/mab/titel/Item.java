@@ -36,7 +36,7 @@ import org.xbib.etl.faceting.TermFacet;
 import org.xbib.etl.marc.dialects.mab.MABEntity;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
-import org.xbib.etl.support.Entry;
+import org.xbib.etl.support.ClassifierEntry;
 import org.xbib.etl.support.IdentifierMapper;
 import org.xbib.etl.support.StatusCodeMapper;
 import org.xbib.etl.support.ConfigurableClassifier;
@@ -105,15 +105,15 @@ public class Item extends MABEntity {
                     ConfigurableClassifier classifier = worker.classifier();
                     if (classifier != null) {
                         String doc = state.getRecordIdentifier();
-                        java.util.Collection<Entry> entries = classifier.lookup(isil, doc, value, null);
+                        java.util.Collection<ClassifierEntry> entries = classifier.lookup(isil, doc, value, null);
                         if (entries != null) {
-                            for (Entry entry : entries) {
+                            for (ClassifierEntry classifierEntry : entries) {
                                 String facet = taxonomyFacet + "." + isil + ".notation";
                                 state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                                state.getFacets().get(facet).addValue(entry.getCode());
+                                state.getFacets().get(facet).addValue(classifierEntry.getCode());
                                 facet = taxonomyFacet + "." + isil + ".text";
                                 state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                                state.getFacets().get(facet).addValue(entry.getText());
+                                state.getFacets().get(facet).addValue(classifierEntry.getText());
                             }
                         }
                     }
@@ -128,15 +128,15 @@ public class Item extends MABEntity {
             if (classifier != null) {
                 String isil = state.getISIL();
                 String doc = state.getRecordIdentifier();
-                java.util.Collection<Entry> entries = classifier.lookup(isil, doc, value, null);
+                java.util.Collection<ClassifierEntry> entries = classifier.lookup(isil, doc, value, null);
                 if (entries != null) {
-                    for (Entry entry : entries) {
+                    for (ClassifierEntry classifierEntry : entries) {
                         String facet = taxonomyFacet + "." + isil + ".notation";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getCode());
+                        state.getFacets().get(facet).addValue(classifierEntry.getCode());
                         facet = taxonomyFacet + "." + isil + ".text";
                         state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                        state.getFacets().get(facet).addValue(entry.getText());
+                        state.getFacets().get(facet).addValue(classifierEntry.getText());
                     }
                 }
             }

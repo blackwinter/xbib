@@ -32,13 +32,13 @@
 package org.xbib.etl.marc;
 
 import org.xbib.etl.DefaultEntityBuilderState;
+import org.xbib.etl.Specification;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.BlankMemoryResource;
-import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -46,15 +46,22 @@ import java.util.Map;
 
 public class MARCEntityBuilderState extends DefaultEntityBuilderState {
 
-    private Resource root;
+    private final String packageName;
+
+    private final Specification specification;
+
+    private Resource resource;
 
     private String label;
 
-    private String recordNumber;
+    private String recordIdentifier;
 
-    public MARCEntityBuilderState(RdfGraph<RdfGraphParams> graph,
+    public MARCEntityBuilderState(String packageName, Specification specification,
+                                  RdfGraph<RdfGraphParams> graph,
                                   Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
+        this.packageName = packageName;
+        this.specification = specification;
     }
 
     public MARCEntityBuilderState setLabel(String label) {
@@ -66,21 +73,21 @@ public class MARCEntityBuilderState extends DefaultEntityBuilderState {
         return label;
     }
 
-    public MARCEntityBuilderState setRecordNumber(String recordNumber) {
-        this.recordNumber = recordNumber;
+    public MARCEntityBuilderState setRecordIdentifier(String recordIdentifier) {
+        this.recordIdentifier = recordIdentifier;
         return this;
     }
 
-    public String getRecordNumber() {
-        return recordNumber;
+    public String getRecordIdentifier() {
+        return recordIdentifier;
     }
 
     public Resource getResource() throws IOException {
         if (!graph().getResources().hasNext()) {
-            root = new BlankMemoryResource();
-            graph().receive(root);
+            resource = new BlankMemoryResource();
+            graph().receive(resource);
         }
-        return root;
+        return resource;
     }
 
     @Override
@@ -88,8 +95,8 @@ public class MARCEntityBuilderState extends DefaultEntityBuilderState {
         Iterator<Resource> it = graph().getResources();
         while (it.hasNext()) {
             Resource resource = it.next();
-            if (recordNumber != null) {
-                resource.setId(IRI.builder().fragment(recordNumber).build());
+            if (recordIdentifier != null) {
+                resource.setId(IRI.builder().fragment(recordIdentifier).build());
             }
         }
         super.complete();

@@ -41,7 +41,6 @@ import org.xbib.marc.MarcXchangeConstants;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 /**

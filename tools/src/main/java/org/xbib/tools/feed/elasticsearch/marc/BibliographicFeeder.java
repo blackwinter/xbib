@@ -131,7 +131,7 @@ public abstract class BibliographicFeeder extends Feeder {
             }
             RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
                     indexDefinition.getType());
-            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordNumber(), content));
+            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordIdentifier(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             if (settings.get("collection") != null) {
                 state.getResource().add("collection", settings.get("collection"));

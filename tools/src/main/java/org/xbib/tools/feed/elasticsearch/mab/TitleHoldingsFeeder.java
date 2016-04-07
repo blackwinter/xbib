@@ -3,14 +3,13 @@ package org.xbib.tools.feed.elasticsearch.mab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.xbib.etl.marc.dialects.mab.MABDirectQueue;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.ValueMaps;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
-import org.xbib.rdf.io.ntriple.NTripleContentGenerator;
-import org.xbib.rdf.io.ntriple.NTripleContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.IndexDefinition;
@@ -42,11 +41,13 @@ public abstract class TitleHoldingsFeeder extends Feeder {
 
     private final static String CATALOG_ID = "catalogid";
 
+    private String catalogId;
+
     @Override
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
-            String catalogId = settings.get(CATALOG_ID, "DE-605");
-            // set identifier prefix (ISIL)
+            // here settings can be passed as parameters to the entity mapper
+            catalogId = settings.get(CATALOG_ID);
             Map<String, Object> params = new HashMap<>();
             params.put("catalogid", catalogId);
             params.put("_prefix", "(" + catalogId + ")");
@@ -83,13 +84,14 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         if (def == null) {
             return;
         }
-        String catalogId = settings.get(CATALOG_ID);
         // simple index alias to the value in "identifier"
         if (catalogId != null) {
             elasticsearchOutput.switchIndex(ingest, def, Arrays.asList(def.getIndex(), catalogId));
         }
+        // union catalog?
         if ("DE-605".equals(catalogId)) {
-            // for union catalog, create additional aliases for "main ISILs" using xbib.identifier
+            logger.info("special index aliasing for union catalog {}", catalogId);
+            // for union catalog, create additional aliases for ISILs using xbib.identifier
             List<String> aliases = new LinkedList<>();
             ValueMaps valueMaps = new ValueMaps();
             Map<String, String> sigel2isil = valueMaps.getAssocStringMap(settings.get("sigel2isil",
@@ -100,6 +102,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             elasticsearchOutput.switchIndex(ingest, def, aliases,
                     (builder, index1, alias) -> builder.addAlias(index1, alias,
                             QueryBuilders.termsQuery("xbib.identifier", alias)));
+        } else {
+            logger.info("no special index aliasing");
         }
         elasticsearchOutput.retention(ingest, def);
         // holdings
@@ -109,14 +113,14 @@ public abstract class TitleHoldingsFeeder extends Feeder {
     }
 
     protected MABEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new MyQueue(params);
+        return settings.getAsBoolean("direct", false) ? new MyDirectMABQueue() : new MyMABQueue(params);
     }
 
     protected abstract void process(InputStream in, MABEntityQueue queue) throws IOException;
 
-    class MyQueue extends MABEntityQueue {
+    class MyMABQueue extends MABEntityQueue {
 
-        public MyQueue(Map<String,Object> params) throws Exception {
+        public MyMABQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
                     params,
                     settings.getAsInt("pipelines", 1),
@@ -135,7 +139,6 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             String titleType = indexDefinition.getType();
             RouteRdfXContentParams params = new RouteRdfXContentParams(titleIndex, titleType);
             params.setHandler((content, p) -> {
-                logger.info("content={}",content);
                 if (ingest != null) {
                     ingest.index(p.getIndex(), p.getType(), state.getIdentifier(), content);
                 }
@@ -170,7 +173,6 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                 }
                 params = new RouteRdfXContentParams(holdingsIndex, holdingsType);
                 params.setHandler((content, p) -> {
-                    logger.info("content={}",content);
                     if (ingest != null) {
                         ingest.index(p.getIndex(), p.getType(),
                                 state.getIdentifier() + "." + resource.id(), content);
@@ -184,6 +186,29 @@ public abstract class TitleHoldingsFeeder extends Feeder {
                     logger.info("holdings: id={} builder={}", state.getIdentifier() + "." + resource.id(), builder.string());
                 }
             }
+        }
+    }
+
+    class MyDirectMABQueue extends MABDirectQueue {
+
+        public MyDirectMABQueue() throws Exception {
+            super(settings.get("package", "org.xbib.analyzer.mab.titel"),
+                    settings.getAsInt("pipelines", 1)
+            );
+        }
+
+        @Override
+        public void afterCompletion(MABEntityBuilderState state) throws IOException {
+            IndexDefinition indexDefinition = indexDefinitionMap.get("title");
+            if (indexDefinition == null) {
+                indexDefinition = new MockIndexDefinition();
+            }
+            String titleIndex = indexDefinition.getConcreteIndex();
+            String titleType = indexDefinition.getType();
+            RouteRdfXContentParams params = new RouteRdfXContentParams(titleIndex, titleType);
+            params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), p.getId(), content));
+            RdfContentBuilder builder = routeRdfXContentBuilder(params);
+            builder.receive(state.getResource());
         }
     }
 }
