@@ -176,7 +176,7 @@ public class ArticlesMergerWorker
         BoolQueryBuilder issnQuery = boolQuery();
         for (String issn : issns) {
             String s = issn.indexOf('-') > 0 ? issn : new StringBuilder(issn.toUpperCase()).insert(4, '-').toString();
-            issnQuery.should(matchPhraseQuery("prism:issn", s));
+            issnQuery.should(matchPhraseQuery("frbr:partOf.prism:issn", s));
         }
         QueryBuilder dateQuery = termQuery("dc:date", serialItem.getDate());
         BoolQueryBuilder queryBuilder = boolQuery();
@@ -345,10 +345,10 @@ public class ArticlesMergerWorker
         for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
             Map<String, Object> publication = new HashMap<>();
             String zdbid = titleRecord.externalID();
-            // hyphenated form of ZDB ID for linking to ld.zdb-services.de
-            String zdborig = new StringBuilder(zdbid).insert(zdbid.length() - 1, "-").toString();
-            IRI zdbserviceid = IRI.builder().scheme("http").host("ld.zdb-services.de").path("/resource/" + zdborig).build();
             publication.put("xbib:zdbid", zdbid);
+            // hyphenated form of ZDB ID for linking to ld.zdb-services.de
+            String zdbIdWithHyphen = new StringBuilder(zdbid).insert(zdbid.length() - 1, "-").toString();
+            IRI zdbserviceid = IRI.builder().scheme("http").host("ld.zdb-services.de").path("/resource/" + zdbIdWithHyphen).build();
             publication.put("rdfs:seeAlso", zdbserviceid.toString());
             publication.put("rdf:type", "fabio:Journal");
             publication.put("prism:publicationName", titleRecord.getTitle());

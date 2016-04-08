@@ -131,12 +131,12 @@ public class ArticlesMerger extends Merger {
             queryBuilder = termQuery("_id", identifier);
         }
         // filter ISSN
-        if (settings().getAsBoolean("issnonly", true)) {
+        if (settings().getAsBoolean("issn", true)) {
             filterBuilder = boolQuery()
                     .must(existsQuery("dates"))
                     .must(existsQuery("identifiers.issn"));
         }
-        if (settings().getAsBoolean("computeronly", false)) {
+        if (settings().getAsBoolean("computer", false)) {
             filterBuilder = boolQuery()
                     .must(existsQuery("dates"))
                     .must(termQuery("mediatype", "computer"));
