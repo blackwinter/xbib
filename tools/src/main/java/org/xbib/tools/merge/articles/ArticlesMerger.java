@@ -39,6 +39,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
@@ -146,9 +147,10 @@ public class ArticlesMerger extends Merger {
         SearchRequestBuilder searchRequest = search.client().prepareSearch()
                 .setIndices(indexDefinition.getIndex())
                 .setTypes(indexDefinition.getType())
+                .setQuery(queryBuilder)
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                .setQuery(queryBuilder);
+                .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         logger.debug("prepareRequests: {}/{} hits={} query={}",
                 indexDefinition.getIndex(), indexDefinition.getType(),
