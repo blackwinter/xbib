@@ -333,7 +333,7 @@ public class ArticlesMergerWorker
             }
             XContentBuilder builder = jsonBuilder();
             builder.value(doc);
-            String index = articlesMerger.getArticlesIndex().getIndex();
+            String index = articlesMerger.getArticlesIndex().getConcreteIndex();
             String type = articlesMerger.getArticlesIndex().getType();
             String id = entry.getKey();
             articlesMerger.ingest().index(index, type, id, builder.string());
