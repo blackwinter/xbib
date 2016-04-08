@@ -4,34 +4,37 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
+import org.xbib.io.archive.StreamUtil;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.ElasticsearchInput;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
-import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
-public class SpringerCoverImages extends Feeder {
+public class CoverImages extends Feeder {
 
-    private final static Logger logger = LogManager.getLogger(SpringerCoverImages.class);
+    private final static Logger logger = LogManager.getLogger(CoverImages.class);
 
     protected SearchTransportClient search;
 
@@ -42,7 +45,7 @@ public class SpringerCoverImages extends Feeder {
     @Override
     @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
-        return p -> new SpringerCoverImages().setPipeline(p);
+        return p -> new CoverImages().setPipeline(p);
     }
 
     @Override
@@ -70,31 +73,20 @@ public class SpringerCoverImages extends Feeder {
     @Override
     @SuppressWarnings("unchecked")
     public void process(URI uri) throws Exception {
-        SearchTransportClient search = new SearchTransportClient();
         try {
-            Set<String> issns = new TreeSet<>();
-            search = search.init(Settings.settingsBuilder()
-                    .put("cluster.name", settings.get("elasticsearch.cluster"))
-                    .put("host", settings.get("elasticsearch.host"))
-                    .put("port", settings.getAsInt("elasticsearch.port", 9300))
-                    .put("sniff", settings.getAsBoolean("elasticsearch.sniff", false))
-                    .put("autodiscover", settings.getAsBoolean("elasticsearch.autodiscover", false))
-                    .build().getAsMap());
-            Client client = search.client();
-            SearchRequestBuilder searchRequestBuilder = client.prepareSearch()
-                    .setIndices(settings.get("ezdb-index", "ezdb"))
-                    .setTypes(settings.get("ezdb-type", "Manifestation"))
+            SearchRequestBuilder searchRequestBuilder = search.client().prepareSearch()
+                    .setIndices(inputIndexDefinitionMap.get("ezdb").getIndex())
+                    .setTypes(inputIndexDefinitionMap.get("ezdb").getType())
                     .setSize(1000) // per shard
-                    .setScroll(TimeValue.timeValueMillis(1000));
-
+                    .setScroll(TimeValue.timeValueMillis(1000))
+                    .addSort(SortBuilders.fieldSort("_doc"));
             QueryBuilder queryBuilder =
                     boolQuery().must(matchAllQuery()).filter(existsQuery("identifiers.issn"));
             searchRequestBuilder.setQuery(queryBuilder)
                     .addFields("identifiers.issn");
-
             SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
             while (searchResponse.getScrollId() != null) {
-                searchResponse = client.prepareSearchScroll(searchResponse.getScrollId())
+                searchResponse = search.client().prepareSearchScroll(searchResponse.getScrollId())
                         .setScroll(TimeValue.timeValueMillis(1000))
                         .execute().actionGet();
                 SearchHits hits = searchResponse.getHits();
@@ -105,16 +97,40 @@ public class SpringerCoverImages extends Feeder {
                     if (hit.getFields().containsKey("identifiers.issn")) {
                         List<Object> l = hit.getFields().get("identifiers.issn").getValues();
                         for (Object o : l) {
-                            issns.add(o.toString());
+                            lookupISSN(o.toString());
                         }
                     }
                 }
             }
-
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         } finally {
             search.shutdown();
+        }
+    }
+
+    private void lookupISSN(String issn) throws Exception {
+        retrieveFromDeGruyter(issn);
+    }
+
+    private void retrieveFromDeGruyter(String issn) throws Exception {
+        String urlStr = String.format("http://www.degruyter.com/doc/cover/s%s.jpg", issn);
+        fetchURL(new URL(urlStr), issn);
+    }
+
+    private void retrieveFromElsevierr(String issn) throws Exception {
+        String urlStr = String.format("http://ars.els-cdn.com/content/image/S%s.gif", issn);
+        fetchURL(new URL(urlStr), issn);
+    }
+
+    // ISSN
+    // https://static-content.springer.com/cover/journal/236/53/3.jpg
+
+    private void fetchURL(URL url, String issn) throws Exception {
+        try (InputStream in = url.openStream()) {
+            FileOutputStream out = new FileOutputStream(new File(issn));
+            StreamUtil.copy(in, out);
+            out.close();
         }
     }
 }

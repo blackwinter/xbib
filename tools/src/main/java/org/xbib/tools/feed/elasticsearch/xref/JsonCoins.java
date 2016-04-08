@@ -317,7 +317,7 @@ public class JsonCoins extends Feeder {
                 if (v.isEmpty()) {
                     return;
                 }
-                if (v.indexOf('\uFFFD') >= 0) { // Unicode replacement character
+                if (v.indexOf('\uFFFD') >= 0) { // Unicode replacement character?
                     error = true;
                 }
                 switch (k) {
@@ -440,11 +440,7 @@ public class JsonCoins extends Feeder {
                     }
                     case "rft.au": {
                         // fix author strings
-                        if ("&NA;".equals(v)) {
-                            v = null;
-                        } else {
-                            v = CharacterEntities.HTML40.unescape(v);
-                        }
+                        v = "&NA;".equals(v) ? null : CharacterEntities.HTML40.unescape(v);
                         // dubious author names contain question marks e.g. 10.1007/s101820500188
                         if (v != null && v.indexOf('?') >= 0) {
                             error = true;
@@ -455,6 +451,7 @@ public class JsonCoins extends Feeder {
                                 .a(FOAF_AGENT)
                                 .add(FOAF_NAME, v);
                         authors.add(author);
+                        author = null;
                         break;
                     }
                     case "rft.date": {

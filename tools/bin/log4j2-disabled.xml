@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration status="OFF">
-    <Loggers>
-        <Root level="off">
-        </Root>
-    </Loggers>
-</configuration>

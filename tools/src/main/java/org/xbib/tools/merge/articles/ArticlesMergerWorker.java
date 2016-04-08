@@ -71,10 +71,6 @@ public class ArticlesMergerWorker
 
     private final ArticlesMerger articlesMerger;
 
-    private final static AtomicInteger medlineDuplicates = new AtomicInteger();
-
-    private final static AtomicInteger xrefDuplicates = new AtomicInteger();
-
     private final int threadId;
 
     private final Logger logger;
@@ -113,14 +109,6 @@ public class ArticlesMergerWorker
         return metric;
     }
 
-    public AtomicInteger getMedlineDuplicates() {
-        return medlineDuplicates;
-    }
-
-    public AtomicInteger getXrefDuplicates() {
-        return xrefDuplicates;
-    }
-
     @Override
     public SerialItemRequest call() throws Exception {
         if (metric == null) {
@@ -144,8 +132,6 @@ public class ArticlesMergerWorker
         } finally {
             metric.stop();
         }
-        logger.info("medline dups = {}", medlineDuplicates);
-        logger.info("xref dups = {}", xrefDuplicates);
         return element;
     }
 
@@ -185,15 +171,18 @@ public class ArticlesMergerWorker
         QueryBuilder filteredQueryBuilder = boolQuery().must(queryBuilder).filter(existsKey);
         Map<String,Map<String,Object>> docs = new HashMap<>();
         if (articlesMerger.getMedlineIndex() != null) {
-            fetchMedline(filteredQueryBuilder, docs);
+            collectFromMedline(filteredQueryBuilder, docs);
         }
         if (articlesMerger.getXrefIndex() != null) {
-            fetchXref(filteredQueryBuilder, docs);
+            collectFromXref(filteredQueryBuilder, docs);
+        }
+        if (articlesMerger.getJadeIndex() != null) {
+            collectFromJade(filteredQueryBuilder, docs);
         }
         postProcess(serialItem, docs);
     }
 
-    private void fetchMedline(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
+    private void collectFromMedline(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
         /*
             // no ISSN, so we derive matching from title plus year
             // shorten title (series statement after '/' or ':') to raise probability of matching
@@ -223,7 +212,9 @@ public class ArticlesMergerWorker
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        logger.debug("fetchMedline: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        if (logger.isDebugEnabled()) {
+            logger.debug("fetchMedline: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        }
         while (searchResponse.getHits().getHits().length > 0) {
             for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
                 SearchHit hit = searchResponse.getHits().getAt(i);
@@ -234,7 +225,6 @@ public class ArticlesMergerWorker
                 Map<String,Object> map = new HashMap<>();
                 map.putAll(hit.getSource());
                 if (docs.containsKey(key)) {
-                    medlineDuplicates.incrementAndGet();
                     Map<String,Object> doc = docs.get(key);
                     List<String> pmids = new LinkedList<>();
                     pmids.add((String) map.get("fabio:hasPubMedId"));
@@ -259,7 +249,7 @@ public class ArticlesMergerWorker
                 .execute().actionGet();
     }
 
-    private void fetchXref(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
+    private void collectFromXref(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
         /*
             // title matching, shorten title (series statement after '/' or ':') to raise probability of matching
             String t = serialItem.getManifestation().getTitle();
@@ -291,7 +281,9 @@ public class ArticlesMergerWorker
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        logger.debug("fetchXRef: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        if (logger.isDebugEnabled()) {
+            logger.debug("fetchXRef: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        }
         while (searchResponse.getHits().getHits().length > 0) {
             for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
                 SearchHit hit = searchResponse.getHits().getAt(i);
@@ -300,7 +292,44 @@ public class ArticlesMergerWorker
                     continue;
                 }
                 if (docs.containsKey(key)) {
-                    xrefDuplicates.incrementAndGet();
+                    Map<String,Object> old = docs.get(key); // immutable
+                    Map<String,Object> map = new HashMap<>();
+                    map.putAll(old); // immutable -> mutable
+                    merge(map, hit.getSource()); // merge new entries or append
+                    docs.put(key, map);
+                } else {
+                    // new document
+                    docs.put(key, hit.getSource());
+                }
+            }
+            searchResponse = articlesMerger.search().client().prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                    .execute().actionGet();
+        }
+        articlesMerger.search().client().prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
+    }
+
+    private void collectFromJade(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
+        SearchRequestBuilder searchRequest = articlesMerger.search().client().prepareSearch()
+                .setIndices(articlesMerger.getJadeIndex().getIndex())
+                .setTypes(articlesMerger.getJadeIndex().getType())
+                .setQuery(queryBuilder)
+                .setSize(scrollSize) // size() is per shard
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                .addSort(SortBuilders.fieldSort("_doc"));
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        if (logger.isDebugEnabled()) {
+            logger.debug("fetchJade: hits={} query={}", searchResponse.getHits().getTotalHits(), searchRequest);
+        }
+        while (searchResponse.getHits().getHits().length > 0) {
+            for (int i = 0; i < searchResponse.getHits().getHits().length; i++) {
+                SearchHit hit = searchResponse.getHits().getAt(i);
+                String key = (String)hit.getSource().get("xbib:key");
+                if (key == null) {
+                    continue;
+                }
+                if (docs.containsKey(key)) {
                     Map<String,Object> old = docs.get(key); // immutable
                     Map<String,Object> map = new HashMap<>();
                     map.putAll(old); // immutable -> mutable

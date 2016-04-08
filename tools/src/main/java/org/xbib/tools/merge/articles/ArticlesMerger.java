@@ -307,6 +307,10 @@ public class ArticlesMerger extends Merger {
         return indexDefinitionMap.get("xref");
     }
 
+    IndexDefinition getJadeIndex() {
+        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        return indexDefinitionMap.get("jade");
+    }
     IndexDefinition getArticlesIndex() {
         Map<String,IndexDefinition> indexDefinitionMap = getOutputIndexDefinitionMap();
         return indexDefinitionMap.get("articles");
