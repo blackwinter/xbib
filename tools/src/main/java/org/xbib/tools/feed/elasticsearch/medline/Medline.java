@@ -103,7 +103,7 @@ public final class Medline extends Feeder {
 
         private String id;
 
-        private List<String> author = new LinkedList<>();
+        private List<String> authors = new LinkedList<>();
 
         private String work;
 
@@ -128,8 +128,8 @@ public final class Medline extends Feeder {
             // there are works with "no authors listed" (e.g. PMID 5236443)
             if (work != null) {
                 String key = new WorkAuthor()
-                        .authorName(author)
                         .workName(work)
+                        .authorName(authors)
                         .chronology(date)
                         .chronology(volume)
                         .chronology(issue)
@@ -146,7 +146,7 @@ public final class Medline extends Feeder {
                 logger.info("result = {}", params.getGenerator().get());
             }
             id = null;
-            author.clear();
+            authors.clear();
             work = null;
             date = null;
             volume = null;
@@ -186,7 +186,7 @@ public final class Medline extends Feeder {
             } else if ("ForeName".equals(name.getLocalPart())) {
                 this.forename = value;
                 if (forename != null && lastname != null) {
-                    author.add(lastname + " " + forename);
+                    authors.add(lastname + ", " + forename);
                     forename = null;
                     lastname = null;
                 }

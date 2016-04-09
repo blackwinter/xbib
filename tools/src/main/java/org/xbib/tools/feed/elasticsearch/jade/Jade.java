@@ -311,8 +311,8 @@ public class Jade extends Feeder implements ArticleVocabulary {
                     .add(PRISM_ISSN, issn);
         }
         WorkAuthor wa = new WorkAuthor()
-                .authorName(authors.stream().map(Author::name).collect(Collectors.toList()))
                 .workName(title)
+                .authorName(authors.stream().map(Author::name).collect(Collectors.toList()))
                 .chronology(year)
                 .chronology(volume)
                 .chronology(issue);
