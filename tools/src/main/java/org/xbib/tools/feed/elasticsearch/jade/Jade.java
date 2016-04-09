@@ -199,8 +199,11 @@ public class Jade extends Feeder implements ArticleVocabulary {
                     value = value.substring(0, value.length()-1);
                 }
                 value = clean(value);
-                if (value != null && value.endsWith("(Book Review)")) {
-                    value = value.substring(0, value.length()-14);
+                if (value.endsWith("(Book Review)")) {
+                    value = value.substring(0, value.length()-13);
+                    if (value.isEmpty()) {
+                        value = "Review";
+                    }
                     resource.a(FABIO_REVIEW);
                 } else {
                     resource.a(FABIO_ARTICLE);
