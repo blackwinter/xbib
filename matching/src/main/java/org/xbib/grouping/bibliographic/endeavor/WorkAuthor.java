@@ -62,7 +62,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
 
     private final WordBoundaryEntropyEncoder encoder = new WordBoundaryEntropyEncoder();
 
-    /* These work titles can not be work titles */
+    /* These work titles can not be work titles and are blacklisted */
     private final static Set<String> blacklist = readResource("org/xbib/grouping/bibliographic/endeavor/work-blacklist.txt");
 
     public WorkAuthor() {
@@ -75,6 +75,18 @@ public class WorkAuthor implements IdentifiableEndeavor {
         return this;
     }
 
+
+    public WorkAuthor authorName(Collection<String> authorNames) {
+        authorNames.forEach(this::authorName);
+        return this;
+    }
+
+    /**
+     * "Forename Givenname" or "Givenname, Forname"
+     *
+     * @param authorName author name
+     * @return this
+     */
     public WorkAuthor authorName(String authorName) {
         if (authorName == null) {
             return this;
@@ -82,6 +94,11 @@ public class WorkAuthor implements IdentifiableEndeavor {
         // check if this is the work name
         if (workName != null && !authorName.isEmpty() && authorName.equals(workName.toString())) {
             logger.warn("work name is equal to author name: {}", authorName);
+            return this;
+        }
+        // check if there is a comma, then it's "Givenname, Forname"
+        if (authorName.indexOf(',') > 0) {
+            this.authorName = new StringBuilder(authorName.replaceAll("[.,]",""));
             return this;
         }
         // get last author name part first
@@ -103,6 +120,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
         }
         return this;
     }
+
 
     public WorkAuthor authorNameWithForeNames(String lastName, String foreName) {
         if (foreName == null) {
@@ -156,11 +174,6 @@ public class WorkAuthor implements IdentifiableEndeavor {
         return this;
     }
 
-    public WorkAuthor authorName(Collection<String> authorNames) {
-        authorNames.forEach(this::authorName);
-        return this;
-    }
-
     public WorkAuthor chronology(String chronology) {
         if (chronology != null) {
             if (this.chronology == null) {
@@ -189,9 +202,8 @@ public class WorkAuthor implements IdentifiableEndeavor {
             return null;
         }
         StringBuilder sb = new StringBuilder();
+        sb.append("w").append(wName);
         if (authorName != null) {
-            sb.append("wa");
-            sb.append(wName);
             String aName = BaseformEncoder.normalizedFromUTF8(authorName.toString())
                     .replaceAll("aeiou", ""); // TODO Unicode vocal category?
             try {
@@ -199,10 +211,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
             } catch (EncoderException e) {
                 //ignore
             }
-            sb.append(aName);
-        } else {
-            sb.append("w");
-            sb.append(wName);
+            sb.append(".a").append(aName);
         }
         if (chronology != null) {
             sb.append(chronology);

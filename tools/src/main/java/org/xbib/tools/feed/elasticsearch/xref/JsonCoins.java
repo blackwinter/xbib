@@ -536,10 +536,9 @@ public class JsonCoins extends Feeder {
                     // create bibliographic key
                     WorkAuthor wa = new WorkAuthor();
                     if (wa.isBlacklisted(work)) {
-                        logger.warn("blacklisted: {} title={}", doiURI, work);
+                        logger.debug("blacklisted: {} title={}", doiURI, work);
                     }
-                    wa.workName(work)
-                            .chronology(year);
+                    wa.workName(work).chronology(year);
                     for (Author author : authors) {
                         wa.authorNameWithForeNames(author.lastName, author.foreName);
                     }

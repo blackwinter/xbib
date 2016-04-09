@@ -44,7 +44,6 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.rdf.memory.MemoryLiteral;
-import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.ArticleVocabulary;
@@ -66,6 +65,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.xbib.rdf.content.RdfXContentFactory.rdfXContentBuilder;
 
@@ -199,6 +199,12 @@ public class Jade extends Feeder implements ArticleVocabulary {
                     value = value.substring(0, value.length()-1);
                 }
                 value = clean(value);
+                if (value != null && value.endsWith("(Book Review)")) {
+                    value = value.substring(0, value.length()-14);
+                    resource.a(FABIO_REVIEW);
+                } else {
+                    resource.a(FABIO_ARTICLE);
+                }
                 resource.add(DC_TITLE, value);
                 title = value;
                 break;
@@ -305,15 +311,15 @@ public class Jade extends Feeder implements ArticleVocabulary {
                     .add(PRISM_ISSN, issn);
         }
         WorkAuthor wa = new WorkAuthor()
+                .authorName(authors.stream().map(Author::name).collect(Collectors.toList()))
                 .workName(title)
                 .chronology(year)
                 .chronology(volume)
                 .chronology(issue);
         for (Author author : authors) {
-            wa.authorName(author.lastName);
             resource.newResource(DC_CREATOR)
                     .a(FOAF_AGENT)
-                    .add(FOAF_NAME, author.lastName);
+                    .add(FOAF_NAME, author.name);
         }
         String key = wa.createIdentifier();
         if (key != null) {
@@ -336,9 +342,6 @@ public class Jade extends Feeder implements ArticleVocabulary {
             if (settings.getAsBoolean("mock", false)) {
                 if (resource.id() != null) {
                     logger.info("{} {}", resource.id(), params.getGenerator().get());
-                    if (counter.get() % 100000 == 0) {
-                        logger.info("{}", counter.get());
-                    }
                 }
             } else if (!resource.isEmpty()) {
                 if (resource.id() != null) {
@@ -382,6 +385,13 @@ public class Jade extends Feeder implements ArticleVocabulary {
         v = v.replaceAll("\\[non\\-\\s*Roman script word\\]", "");
         v = v.replaceAll("\\(non\\-\\s*Roman script word\\)", "");
         v = v.replaceAll("\\s{2,}", " ");
+        v = v.replaceAll("Ã„", "Ä");
+        v = v.replaceAll("Ã¤", "ä");
+        v = v.replaceAll("Ã–", "Ö");
+        v = v.replaceAll("Ã¶", "ö");
+        v = v.replaceAll("Ãœ", "Ü");
+        v = v.replaceAll("Ã¼", "ü");
+        v = v.replaceAll("ÃŸ", "ß");
         return v;
     }
 
@@ -436,36 +446,29 @@ public class Jade extends Feeder implements ArticleVocabulary {
     }
 
     static class Author implements Comparable<Author> {
-        private String lastName;
-
-        private String normalized;
+        private String name;
 
         Author(String name) {
-            this.lastName = name;
-            StringBuilder sb = new StringBuilder();
-            if (lastName != null) {
-                sb.append(lastName);
-            }
-            this.normalized = sb.toString();
+            this.name = name;
         }
 
-        String normalize() {
-            return normalized;
+        String name() {
+            return name;
         }
 
         @Override
         public int compareTo(Author o) {
-            return normalize().compareTo(o.normalize());
+            return name().compareTo(o.name());
         }
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Author && normalized.equals(((Author)o).normalized);
+            return o instanceof Author && name.equals(((Author)o).name);
         }
 
         @Override
         public int hashCode() {
-            return normalized.hashCode();
+            return name.hashCode();
         }
     }
 }

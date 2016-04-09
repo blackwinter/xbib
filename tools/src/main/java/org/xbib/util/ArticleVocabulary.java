@@ -8,6 +8,8 @@ public interface ArticleVocabulary {
 
     IRI FABIO_JOURNAL = IRI.create("fabio:Journal");
 
+    IRI FABIO_REVIEW = IRI.create("fabio:Review");
+
     IRI FABIO_PERIODICAL_VOLUME = IRI.create("fabio:PeriodicalVolume");
 
     IRI FABIO_PERIODICAL_ISSUE = IRI.create("fabio:PeriodicalIssue");
