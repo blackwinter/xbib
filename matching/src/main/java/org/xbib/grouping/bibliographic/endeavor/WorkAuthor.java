@@ -96,25 +96,34 @@ public class WorkAuthor implements IdentifiableEndeavor {
             logger.warn("work name is equal to author name: {}", authorName);
             return this;
         }
-        // check if there is a comma, then it's "Givenname, Forname"
-        if (authorName.indexOf(',') > 0) {
-            this.authorName = new StringBuilder(authorName.replaceAll("[.,]",""));
-            return this;
+        if (this.authorName == null) {
+            this.authorName = new StringBuilder();
         }
-        // get last author name part first
         String[] s = authorName.split("\\s+");
         if (s.length > 0) {
-            String lastName = s[s.length - 1];
-            if (this.authorName == null) {
-                this.authorName = new StringBuilder();
-            }
-            this.authorName.append(lastName);
-            if (s.length > 1) {
-                this.authorName.append(' ');
-            }
-            for (int i = 0; i < s.length - 1; i++) {
-                if (s[i].length() > 0) {
-                    this.authorName.append(s[i].charAt(0));
+            // check if there is a comma, then it's "Givenname, Forname"
+            if (s[0].indexOf(',') > 0) {
+                String lastname = s[0];
+                this.authorName.append(lastname);
+                if (s.length > 1) {
+                    this.authorName.append(' ');
+                }
+                for (int i = 1; i < s.length; i++) {
+                    if (s[i].length() > 0) {
+                        this.authorName.append(s[i].charAt(0));
+                    }
+                }
+            } else {
+                // get last author name part first
+                String lastName = s[s.length - 1];
+                this.authorName.append(lastName);
+                if (s.length > 1) {
+                    this.authorName.append(' ');
+                }
+                for (int i = 0; i < s.length - 1; i++) {
+                    if (s[i].length() > 0) {
+                        this.authorName.append(s[i].charAt(0));
+                    }
                 }
             }
         }

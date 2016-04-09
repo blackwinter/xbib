@@ -13,19 +13,19 @@ public class WorkAuthorTest extends Assert {
     @Test
     public void testAuthor() throws Exception {
         String workAuthor = new WorkAuthor().authorName("Jörg Prante").workName("Hello World").createIdentifier();
-        assertEquals(workAuthor, "waHeoWrDPranteJ");
+        assertEquals(workAuthor, "wHeoWrD.aPranteJ");
     }
 
     @Test
     public void testAuthorForeName() throws Exception {
         String workAuthor = new WorkAuthor().authorNameWithForeNames("Prante", "Jörg").workName("Hello World").createIdentifier();
-        assertEquals(workAuthor, "waHeoWrDPranteJ");
+        assertEquals(workAuthor, "wHeoWrD.aPranteJ");
     }
 
     @Test
     public void testAuthorInitials() throws Exception {
         String workAuthor = new WorkAuthor().authorNameWithInitials("Prante", "J").workName("Hello World").createIdentifier();
-        assertEquals(workAuthor, "waHeoWrDPranteJ");
+        assertEquals(workAuthor, "wHeoWrD.aPranteJ");
     }
 
     @Test
@@ -43,7 +43,7 @@ public class WorkAuthorTest extends Assert {
                 .authorNameWithForeNames("McNamara", "Nancy A")
                 .chronology("2012")
                 .createIdentifier();
-        assertEquals(workAuthor, "waCOMphgTDSjdEZuDYFgpMvjsTrAfLRN.2012");
+        assertEquals(workAuthor, "wCOMphgTDSjdE.aZuDYFgpMvjsTrAfLRN.2012");
     }
 
     @Test
@@ -56,16 +56,8 @@ public class WorkAuthorTest extends Assert {
                 .authorNameWithForeNames("Panush", "Richard S")
                 .chronology("2013")
                 .createIdentifier();
-        assertEquals(workAuthor, "waEthcPrfenalmAdRugYomiPldfEjbhypusS.2013");
-        workAuthor = new WorkAuthor()
-                .workName("Ethics, Professionalism, and Rheumatology")
-                .authorName("Paul L. Romain")
-                .authorName("Elliot Dorff")
-                .authorName("Rosy Rajbhandary")
-                .authorName("Richard S. Panush")
-                .chronology("2013")
-                .createIdentifier();
-        assertEquals(workAuthor, "waEthcPrfenalmAdRugYomiPldfEjbhypusS.2013");
+        assertEquals(workAuthor, "wEthcPrfenalmAdRugY.aomiPldfEjbhypusS.2013");
+
         workAuthor = new WorkAuthor()
                 .workName("Ethics, Professionalism, and Rheumatology")
                 .authorNameWithForeNames("Paul L. Romain", null)
@@ -74,6 +66,36 @@ public class WorkAuthorTest extends Assert {
                 .authorNameWithForeNames("Richard S. Panush", null)
                 .chronology("2013")
                 .createIdentifier();
-        assertEquals(workAuthor, "waEthcPrfenalmAdRugYomiPldfEjbhypusS.2013");
+        assertEquals(workAuthor, "wEthcPrfenalmAdRugY.aomiPldfEjbhypusS.2013");
+
+        workAuthor = new WorkAuthor()
+                .workName("Ethics, Professionalism, and Rheumatology")
+                .authorName("Paul L. Romain")
+                .authorName("Elliot Dorff")
+                .authorName("Rosy Rajbhandary")
+                .authorName("Richard S. Panush")
+                .chronology("2013")
+                .createIdentifier();
+        assertEquals(workAuthor, "wEthcPrfenalmAdRugY.aomiPldfEjbhypusS.2013");
+
+        workAuthor = new WorkAuthor()
+                .workName("Ethics, Professionalism, and Rheumatology")
+                .authorName("Romain, Paul L.")
+                .authorName("Dorff, Elliot")
+                .authorName("Rajbhandary, Rosy")
+                .authorName("Panush, Richard S.")
+                .chronology("2013")
+                .createIdentifier();
+        assertEquals(workAuthor, "wEthcPrfenalmAdRugY.aomiPldfEjbhypusS.2013");
+
+        workAuthor = new WorkAuthor()
+                .workName("Ethics, Professionalism, and Rheumatology")
+                .authorName("Romain, P L")
+                .authorName("Dorff, E")
+                .authorName("Rajbhandary, R")
+                .authorName("Panush, R S")
+                .chronology("2013")
+                .createIdentifier();
+        assertEquals(workAuthor, "wEthcPrfenalmAdRugY.aomiPldfEjbhypusS.2013");
     }
 }
