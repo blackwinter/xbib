@@ -359,6 +359,18 @@
       "f": "libraryServiceInternational",
       "g": "libraryServiceScope"
     },
+    "libraryServiceRegion": {
+      "BAW" : "BAW",
+      "BAY" : "BAY",
+      "BER" : "BER",
+      "HES" : "HES"
+      "NIE" : "GBV",
+      "NRW" : "NRW",
+      "THU" : "GBV",
+      "SAA" : "GBV",
+      "HAM" : "GBV",
+      "SAX" : "SAX"
+    },
     "libraryServiceMode": {
       "l": "Fernleihe",
       "n": "keine Fernleihe",
@@ -381,7 +393,6 @@
       "035$J$b"
     ],
     "subfields": {
-      "a": "libraryServiceDescription",
       "a": "libraryServiceDescription"
     }
   },

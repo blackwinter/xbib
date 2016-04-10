@@ -301,7 +301,9 @@ public class JsonCoins extends Feeder {
             String spage = null;
             String epage = null;
             Resource j = null;
-            String year = null;
+            String date = null;
+            String volume = null;
+            String issue = null;
             Set<Author> authors = new LinkedHashSet<>();
             Author author = null;
             String work = null;
@@ -455,18 +457,20 @@ public class JsonCoins extends Feeder {
                         break;
                     }
                     case "rft.date": {
-                        year = v;
+                        date = v;
                         r.add(DC_DATE, new MemoryLiteral(v).type(Literal.GYEAR));
                         r.add(PRISM_PUBLICATION_DATE, v);
                         break;
                     }
                     case "rft.volume": {
+                        volume = v;
                         r.newResource(FRBR_EMBODIMENT)
                                 .a(FABIO_PERIODICAL_VOLUME)
                                 .add(PRISM_VOLUME, v);
                         break;
                     }
                     case "rft.issue": {
+                        issue = v;
                         r.newResource(FRBR_EMBODIMENT)
                                 .a(FABIO_PERIODICAL_ISSUE)
                                 .add(PRISM_NUMBER, v);
@@ -538,7 +542,10 @@ public class JsonCoins extends Feeder {
                     if (wa.isBlacklisted(work)) {
                         logger.debug("blacklisted: {} title={}", doiURI, work);
                     }
-                    wa.workName(work).chronology(year);
+                    wa.workName(work)
+                            .chronology(date)
+                            .chronology(volume)
+                            .chronology(issue);
                     for (Author author : authors) {
                         wa.authorNameWithForeNames(author.lastName, author.foreName);
                     }

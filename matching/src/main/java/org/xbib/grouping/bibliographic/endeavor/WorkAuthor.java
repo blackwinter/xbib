@@ -188,7 +188,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
             if (this.chronology == null) {
                 this.chronology = new StringBuilder();
             }
-            this.chronology.append(".").append(chronology);
+            this.chronology.append(".").append(chronology.replaceAll("\\s+", ""));
         }
         return this;
     }
