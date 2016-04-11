@@ -148,7 +148,7 @@ public class PrettyTime {
 
     public TimeUnitQuantity calculateDuration(final long difference) {
         long absoluteDifference = Math.abs(difference);
-        List<TimeUnit> units = new ArrayList<>(getUnits().size());
+        List<TimeUnit> units = new ArrayList<>();
         units.addAll(getUnits());
         TimeUnitQuantity result = new TimeUnitQuantity();
         for (int i = 0; i < units.size(); i++) {
@@ -156,7 +156,7 @@ public class PrettyTime {
             long millisPerUnit = Math.abs(unit.getMillisPerUnit());
             long quantity = Math.abs(unit.getMaxQuantity());
             boolean isLastUnit = (i == units.size() - 1);
-            if ((0 == quantity) && !isLastUnit) {
+            if ((quantity == 0L) && !isLastUnit) {
                 quantity = units.get(i + 1).getMillisPerUnit() / unit.getMillisPerUnit();
             }
             // does our unit encompass the time duration?
@@ -164,7 +164,7 @@ public class PrettyTime {
                 result.setUnit(unit);
                 if (millisPerUnit > absoluteDifference) {
                     // we are rounding up: get 1 or -1 for past or future
-                    result.setQuantity(getSign(difference));
+                    result.setQuantity(difference < 0L ? -1L : 1L);
                 } else {
                     result.setQuantity(difference / millisPerUnit);
                 }
@@ -173,14 +173,6 @@ public class PrettyTime {
             }
         }
         return result;
-    }
-
-    private long getSign(final long difference) {
-        if (0 > difference) {
-            return -1;
-        } else {
-            return 1;
-        }
     }
 
     /**
@@ -205,7 +197,7 @@ public class PrettyTime {
         long difference = ChronoUnit.MILLIS.between(localDateTime, then);
         TimeUnitQuantity timeUnitQuantity = calculateDuration(difference);
         result.add(timeUnitQuantity);
-        while (0 != timeUnitQuantity.getDelta()) {
+        while (timeUnitQuantity.getDelta() != 0L) {
             timeUnitQuantity = calculateDuration(timeUnitQuantity.getDelta());
             result.add(timeUnitQuantity);
         }
