@@ -363,7 +363,7 @@
       "BAW" : "BAW",
       "BAY" : "BAY",
       "BER" : "BER",
-      "HES" : "HES"
+      "HES" : "HES",
       "NIE" : "GBV",
       "NRW" : "NRW",
       "THU" : "GBV",
@@ -389,7 +389,6 @@
   "LibraryServiceDescription": {
     "values": [
       "035$J$a",
-      /* Anmerkungen zur Fernleihe */
       "035$J$b"
     ],
     "subfields": {
