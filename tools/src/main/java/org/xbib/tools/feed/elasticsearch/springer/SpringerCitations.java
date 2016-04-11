@@ -205,7 +205,10 @@ public class SpringerCitations extends Feeder {
             r.add(XBIB_KEY, key);
         }
         for (String a : author) {
-            r.add(DC_CREATOR, a);
+            r.newResource(DC_CREATOR)
+                    .a(FOAF_AGENT)
+                    .add(FOAF_NAME, a);
+
         }
         r.add(PRISM_PUBLICATIONDATE, new MemoryLiteral(year).type(Literal.GYEAR));
         r.newResource(FRBR_EMBODIMENT)
@@ -251,6 +254,10 @@ public class SpringerCitations extends Feeder {
     private final static IRI FRBR_PARTOF = IRI.create("frbr:partOf");
 
     private final static IRI FRBR_EMBODIMENT = IRI.create("frbr:embodiment");
+
+    private final static IRI FOAF_AGENT = IRI.create("foaf:agent");
+
+    private final static IRI FOAF_NAME = IRI.create("foaf:name");
 
     private final static IRI DC_CREATOR = IRI.create("dc:creator");
 
