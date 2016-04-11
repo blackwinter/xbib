@@ -182,6 +182,7 @@ public class SpringerCitations extends Feeder {
                 }
             }
         }
+        doi = doi.toLowerCase();
         IRI dereferencable = IRI.builder().scheme("http").host("xbib.info")
                 .path("/doi/").fragment(doi).build();
         Resource r = new MemoryResource(dereferencable)
