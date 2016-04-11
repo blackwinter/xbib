@@ -51,8 +51,6 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,8 +68,6 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 public class ArticlesMerger extends Merger {
 
     private final static Logger logger = LogManager.getLogger(ArticlesMerger.class.getSimpleName());
-
-    private final static Set<String> docs = Collections.synchronizedSet(new HashSet<>());
 
     private ArticlesMerger merger;
 
@@ -162,11 +158,8 @@ public class ArticlesMerger extends Merger {
                         complete = true;
                         break;
                     }
+                    queryMetric.mark();
                     String id = hit.getId();
-                    if (docs.contains(id)) {
-                        continue;
-                    }
-                    docs.add(id);
                     Set<Integer> dates = new LinkedHashSet<>();
                     List<TitleRecord> titleRecords = new LinkedList<>();
                     TitleRecord titleRecord = expandZdbId(indexDefinitionMap, id);
@@ -190,10 +183,6 @@ public class ArticlesMerger extends Merger {
                             String label = (String) relation.get("@label");
                             if ("hasOnlineEdition".equals(label) || "hasPrintEdition".equals(label)) {
                                 String relid = (String) relation.get("@id");
-                                if (docs.contains(relid)) {
-                                    continue;
-                                }
-                                docs.add(relid);
                                 TitleRecord m = expandZdbId(indexDefinitionMap, relid);
                                 if (m != null) {
                                     titleRecords.add(m);
