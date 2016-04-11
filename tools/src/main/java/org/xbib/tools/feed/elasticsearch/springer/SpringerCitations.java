@@ -31,6 +31,8 @@
  */
 package org.xbib.tools.feed.elasticsearch.springer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
@@ -64,7 +66,10 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
  */
 public class SpringerCitations extends Feeder {
 
+    private final static Logger logger = LogManager.getLogger(SpringerCitations.class);
+
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return p -> new SpringerCitations().setPipeline(p);
     }
@@ -197,7 +202,13 @@ public class SpringerCitations extends Feeder {
         IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
         RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
                 indexDefinition.getType());
-        params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), r.id().toString(), content));
+        params.setHandler((content, p) -> {
+            if (indexDefinition.isMock()) {
+                logger.debug("{}", content);
+            } else {
+                ingest.index(p.getIndex(), p.getType(), r.id().toString(), content);
+            }
+        });
         RdfContentBuilder builder = routeRdfXContentBuilder(params);
         builder.receive(r);
     }
