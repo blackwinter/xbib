@@ -95,11 +95,11 @@ public class SpringerCitations extends Feeder {
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-            process(reader);
+            process(uri, reader);
         }
     }
 
-    private void process(BufferedReader reader) throws IOException {
+    private void process(URI uri, BufferedReader reader) throws IOException {
         String title = null;
         List<String> author = new LinkedList<>();
         String year = null;
@@ -182,7 +182,11 @@ public class SpringerCitations extends Feeder {
                 }
             }
         }
-        doi = doi.toLowerCase();
+        if (doi == null) {
+            logger.warn("does not contain DOI: {}", uri);
+        } else {
+            doi = doi.toLowerCase();
+        }
         IRI dereferencable = IRI.builder().scheme("http").host("xbib.info")
                 .path("/doi/").fragment(doi).build();
         Resource r = new MemoryResource(dereferencable)
