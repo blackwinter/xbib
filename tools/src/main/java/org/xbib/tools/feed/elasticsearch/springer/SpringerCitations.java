@@ -34,6 +34,8 @@ package org.xbib.tools.feed.elasticsearch.springer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.iri.namespace.IRINamespaceContext;
+import org.xbib.rdf.RdfConstants;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
@@ -53,6 +55,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,6 +70,20 @@ import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 public class SpringerCitations extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(SpringerCitations.class);
+
+    private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+
+    static {
+        namespaceContext.add(new HashMap<String, String>() {{
+            put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
+            put("dc", "http://purl.org/dc/elements/1.1/");
+            put("dcterms", "http://purl.org/dc/terms/");
+            put("foaf", "http://xmlns.com/foaf/0.1/");
+            put("frbr", "http://purl.org/vocab/frbr/core#");
+            put("fabio", "http://purl.org/spar/fabio/");
+            put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
+        }});
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -200,7 +217,8 @@ public class SpringerCitations extends Feeder {
                 .add(DC_PUBLISHER, publisher);
 
         IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
-        RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
+        RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
+                indexDefinition.getConcreteIndex(),
                 indexDefinition.getType());
         params.setHandler((content, p) -> {
             if (indexDefinition.isMock()) {
