@@ -199,6 +199,8 @@ public class SpringerCitations extends Feeder {
                     .authorName(s)
                     .workName(title)
                     .chronology(year)
+                    .chronology(volume)
+                    .chronology(issue)
                     .createIdentifier();
             r.add(XBIB_KEY, key);
         }
