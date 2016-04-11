@@ -48,6 +48,7 @@ import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.ArticleVocabulary;
 import org.xbib.util.CharacterEntities;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -348,9 +349,9 @@ public class Jade extends Feeder implements ArticleVocabulary {
                 }
             } else if (!resource.isEmpty()) {
                 if (resource.id() != null) {
-                    ingest.index(
-                            indexDefinitionMap.get("bib").getConcreteIndex(),
-                            indexDefinitionMap.get("bib").getType(),
+                    IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
+                    ingest.index(indexDefinition.getConcreteIndex(),
+                            indexDefinition.getType(),
                             resource.id().toString(), params.getGenerator().get());
                 }
             }

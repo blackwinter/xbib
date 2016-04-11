@@ -42,6 +42,7 @@ import org.xbib.rdf.memory.MemoryLiteral;
 import org.xbib.rdf.memory.MemoryResource;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -193,7 +194,9 @@ public class SpringerCitations extends Feeder {
                 .add(PRISM_ISSN, issn)
                 .add(DC_PUBLISHER, publisher);
 
-        RouteRdfXContentParams params = new RouteRdfXContentParams(settings.get("index"), settings.get("type"));
+        IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
+        RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
+                indexDefinition.getType());
         params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), r.id().toString(), content));
         RdfContentBuilder builder = routeRdfXContentBuilder(params);
         builder.receive(r);

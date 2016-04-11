@@ -49,6 +49,7 @@ import org.xbib.rdf.io.xml.AbstractXmlResourceHandler;
 import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import javax.xml.namespace.QName;
@@ -136,9 +137,10 @@ public final class Medline extends Feeder {
                         .createIdentifier();
                 getResource().add("xbib:key", key);
             }
+            IndexDefinition indexDefinition = indexDefinitionMap.get("bib");
             RouteRdfXContentParams params = new RouteRdfXContentParams(getNamespaceContext(),
-                    indexDefinitionMap.get("bib").getConcreteIndex(),
-                    indexDefinitionMap.get("bib").getType());
+                    indexDefinition.getConcreteIndex(),
+                    indexDefinition.getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), id, convert2fabio(content)));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
             builder.receive(getResource());
