@@ -45,7 +45,6 @@ import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.metrics.Metrics;
-import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -227,7 +226,6 @@ public class ArticlesMerger extends Merger {
                     }
                 } catch (Throwable e) {
                     logger.error("error passing data to worker, exiting", e);
-                    logger.error(ExceptionFormatter.format(e));
                     failure = true;
                     break;
                 }

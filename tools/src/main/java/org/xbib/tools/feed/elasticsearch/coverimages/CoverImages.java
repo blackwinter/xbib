@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -114,17 +113,25 @@ public class CoverImages extends Feeder {
     }
 
     private void retrieveFromDeGruyter(String issn) throws Exception {
+        // http://www.degruyter.com/doc/cover/s21921482.jpg
         String urlStr = String.format("http://www.degruyter.com/doc/cover/s%s.jpg", issn);
         fetchURL(new URL(urlStr), issn);
     }
 
-    private void retrieveFromElsevierr(String issn) throws Exception {
+    private void retrieveFromElsevier(String issn) throws Exception {
         String urlStr = String.format("http://ars.els-cdn.com/content/image/S%s.gif", issn);
         fetchURL(new URL(urlStr), issn);
     }
 
     // ISSN
+    // http://cdn.elsevier.com/cover_img/505606.gif (ISSN 1389-1286)
+    // http://www.elsevier.com/wps/find/journaldescription.cws_home/505606/description#description
+    // http://ars.els-cdn.com/content/image/S09205489.gif (ISSN
     // https://static-content.springer.com/cover/journal/236/53/3.jpg
+    // https://images.springer.com/sgw/journals/medium/00376.jpg
+
+    // https://covers.openlibrary.org/b/id/7321542-M.jpg (ISSN 2409-2770)
+
 
     private void fetchURL(URL url, String issn) throws Exception {
         try (InputStream in = url.openStream()) {

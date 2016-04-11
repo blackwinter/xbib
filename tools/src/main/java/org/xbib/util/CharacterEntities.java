@@ -57,7 +57,7 @@ public class CharacterEntities {
     };
 
     // package scoped for testing
-    static final String[][] ISO8859_1_ARRAY = {
+    private static final String[][] ISO8859_1_ARRAY = {
             {"nbsp", "160"}, // non-breaking space
             {"iexcl", "161"}, //inverted exclamation mark
             {"cent", "162"}, //cent sign
@@ -158,10 +158,10 @@ public class CharacterEntities {
 
     // http://www.w3.org/TR/REC-html40/sgml/entities.html
     // package scoped for testing
-    static final String[][] HTML40_ARRAY = {
-// <!-- Latin Extended-B -->
+    private static final String[][] HTML40_ARRAY = {
+            // <!-- Latin Extended-B -->
             {"fnof", "402"}, //latin small f with hook = function= florin, U+0192 ISOtech -->
-// <!-- Greek -->
+            // <!-- Greek -->
             {"Alpha", "913"}, //greek capital letter alpha, U+0391 -->
             {"Beta", "914"}, //greek capital letter beta, U+0392 -->
             {"Gamma", "915"}, //greek capital letter gamma,U+0393 ISOgrk3 -->
@@ -179,7 +179,7 @@ public class CharacterEntities {
             {"Omicron", "927"}, //greek capital letter omicron, U+039F -->
             {"Pi", "928"}, //greek capital letter pi, U+03A0 ISOgrk3 -->
             {"Rho", "929"}, //greek capital letter rho, U+03A1 -->
-// <!-- there is no Sigmaf, and no U+03A2 character either -->
+            // <!-- there is no Sigmaf, and no U+03A2 character either -->
             {"Sigma", "931"}, //greek capital letter sigma,U+03A3 ISOgrk3 -->
             {"Tau", "932"}, //greek capital letter tau, U+03A4 -->
             {"Upsilon", "933"}, //greek capital letter upsilon,U+03A5 ISOgrk3 -->
@@ -345,12 +345,12 @@ public class CharacterEntities {
     /**
      * <p>The set of entities supported by standard XML.</p>
      */
-    public static final CharacterEntities XML;
+    private static final CharacterEntities XML;
 
     /**
      * <p>The set of entities supported by HTML 3.2.</p>
      */
-    public static final CharacterEntities HTML32;
+    private static final CharacterEntities HTML32;
 
     /**
      * <p>The set of entities supported by HTML 4.0.</p>
@@ -374,7 +374,7 @@ public class CharacterEntities {
         fillWithHtml40Entities(HTML40);
     }
 
-    static void fillWithHtml40Entities(CharacterEntities characterEntities) {
+    private static void fillWithHtml40Entities(CharacterEntities characterEntities) {
         characterEntities.addEntities(BASIC_ARRAY);
         characterEntities.addEntities(ISO8859_1_ARRAY);
         characterEntities.addEntities(HTML40_ARRAY);
@@ -410,7 +410,7 @@ public class CharacterEntities {
         }
     }
 
-    static class LookupEntityMap extends PrimitiveEntityMap {
+    private static class LookupEntityMap extends PrimitiveEntityMap {
         private String[] lookupTable;
         private int LOOKUP_TABLE_SIZE = 256;
 
@@ -436,25 +436,23 @@ public class CharacterEntities {
         }
     }
 
-    // package scoped for testing
-    EntityMap map = new LookupEntityMap();
+    private EntityMap map = new LookupEntityMap();
 
-    public void addEntities(String[][] entityArray) {
+    private void addEntities(String[][] entityArray) {
         for (String[] anEntityArray : entityArray) {
             addEntity(anEntityArray[0], Integer.parseInt(anEntityArray[1]));
         }
     }
 
-    public void addEntity(String name, int value) {
+    private void addEntity(String name, int value) {
         map.add(name, value);
     }
 
-    public String entityName(int value) {
+    private String entityName(int value) {
         return map.name(value);
     }
 
-
-    public int entityValue(String name) {
+    private int entityValue(String name) {
         return map.value(name);
     }
 

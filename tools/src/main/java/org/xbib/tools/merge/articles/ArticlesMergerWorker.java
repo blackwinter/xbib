@@ -45,7 +45,6 @@ import org.xbib.common.settings.Settings;
 import org.xbib.iri.IRI;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
-import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
@@ -58,7 +57,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -127,7 +125,6 @@ public class ArticlesMergerWorker
             }
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            logger.error(ExceptionFormatter.format(e));
             logger.error("exiting, exception while processing {}", serialItem.getDate());
         } finally {
             metric.stop();
