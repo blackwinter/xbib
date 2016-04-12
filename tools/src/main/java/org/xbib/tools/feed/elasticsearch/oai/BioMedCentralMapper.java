@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.BlankMemoryResource;
@@ -90,7 +90,7 @@ public class BioMedCentralMapper implements ArticleVocabulary {
                 .a(FABIO_JOURNAL)
                 .add(PRISM_PUBLICATIONNAME, journal)
                 .add(PRISM_ISSN, issn);
-        WorkAuthor wa = new WorkAuthor()
+        WorkAuthorKey wa = new WorkAuthorKey()
                 .workName(title)
                 .chronology(year);
         for (Author author : authors) {

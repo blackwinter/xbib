@@ -38,7 +38,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.tools.convert.Converter;
@@ -538,7 +538,7 @@ public class JsonCoins extends Feeder {
                 }
                 if (work != null) {
                     // create bibliographic key
-                    WorkAuthor wa = new WorkAuthor();
+                    WorkAuthorKey wa = new WorkAuthorKey();
                     if (wa.isBlacklisted(work)) {
                         logger.debug("blacklisted: {} title={}", doiURI, work);
                     }
@@ -576,18 +576,18 @@ public class JsonCoins extends Feeder {
     }
 
     static class Author implements Comparable<Author> {
-        private String lastName, foreName, normalized;
+        private String lastName, foreName, name;
 
         void setLastName(String lastName) {
             this.lastName = lastName;
-            this.normalized = normalize();
+            this.name = build();
         }
         void setForeName(String foreName) {
             this.foreName = foreName;
-            this.normalized = normalize();
+            this.name = build();
         }
 
-        private String normalize() {
+        private String build() {
             StringBuilder sb = new StringBuilder();
             if (lastName != null) {
                 sb.append(lastName);
@@ -600,17 +600,17 @@ public class JsonCoins extends Feeder {
 
         @Override
         public int compareTo(Author o) {
-            return normalized.compareTo(o.normalized);
+            return name.compareTo(o.name);
         }
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Author && normalized.equals(((Author)o).normalized);
+            return o instanceof Author && name.equals(((Author)o).name);
         }
 
         @Override
         public int hashCode() {
-            return normalized.hashCode();
+            return name.hashCode();
         }
     }
 

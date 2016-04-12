@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.medline;
 
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
@@ -106,7 +106,7 @@ public class MedlineMapper implements ArticleVocabulary {
                 .add(PRISM_PUBLICATIONNAME, journal)
                 .add(PRISM_ISSN, issn)
                 .add(FABIO_HAS_SHORT_TITLE, shortTitle);
-        WorkAuthor wa = new WorkAuthor()
+        WorkAuthorKey wa = new WorkAuthorKey()
                 .workName(title)
                 .chronology(year);
         for (Author author : authors) {

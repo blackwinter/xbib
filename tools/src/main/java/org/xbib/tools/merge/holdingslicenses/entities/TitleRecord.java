@@ -122,10 +122,15 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private List<Map<String, Object>> links;
 
     private final MultiMap<String, String> relations = new TreeMultiMap<>();
+
     private final MultiMap<String, String> externalRelations = new TreeMultiMap();
+
     private final MultiMap<String, TitleRecord> relatedRecords = new LinkedHashMultiMap<>();
+
     private final MultiMap<String, Holding> relatedHoldings = new LinkedHashMultiMap<>();
+
     private final MultiMap<Integer, Holding> holdingsByDate =  new LinkedHashMultiMap<>();
+
     private final Collection<MonographVolume> monographVolumes = new TreeSet(new NaturalOrderComparator<MonographVolume>());
 
     public TitleRecord(Map<String, Object> map) {

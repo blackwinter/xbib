@@ -85,19 +85,19 @@ public class ArticlesMerger extends Merger {
     }
 
     @SuppressWarnings("unchecked")
-    public Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
+    public Pipeline<ArticlesWorker, SerialItemRequest> getPipeline() {
         return pipeline;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected WorkerProvider provider() {
-        return new WorkerProvider<ArticlesMergerWorker>() {
+        return new WorkerProvider<ArticlesWorker>() {
             int i = 0;
 
             @Override
-            public ArticlesMergerWorker get(Pipeline pipeline) {
-                return new ArticlesMergerWorker(settings, merger, i++).setPipeline(pipeline);
+            public ArticlesWorker get(Pipeline pipeline) {
+                return new ArticlesWorker(settings, merger, i++).setPipeline(pipeline);
             }
         };
     }
@@ -239,7 +239,7 @@ public class ArticlesMerger extends Merger {
     protected void waitFor() throws IOException {
         getPipeline().waitFor(new SerialItemRequest());
         long total = 0L;
-        for (ArticlesMergerWorker worker : getPipeline().getWorkers()) {
+        for (ArticlesWorker worker : getPipeline().getWorkers()) {
             logger.info("worker {}, count {}, took {}",
                     worker,
                     worker.getMetric().getCount(),

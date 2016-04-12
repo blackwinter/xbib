@@ -31,52 +31,25 @@
  */
 package org.xbib.grouping.bibliographic.endeavor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.strings.encode.BaseformEncoder;
 import org.xbib.strings.encode.EncoderException;
 import org.xbib.strings.encode.WordBoundaryEntropyEncoder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
- * An identifiable endeavor for a work created by an author
+ * An identifiable endeavor for an author
  */
-public class WorkAuthor implements IdentifiableEndeavor {
-
-    private final static Logger logger = LogManager.getLogger(WorkAuthor.class);
-
-    private StringBuilder workName;
+public class AuthorKey implements IdentifiableEndeavor {
 
     private StringBuilder authorName;
 
-    private StringBuilder chronology;
-
     private final WordBoundaryEntropyEncoder encoder = new WordBoundaryEntropyEncoder();
 
-    /* These work titles can not be work titles and are blacklisted */
-    private final static Set<String> blacklist = readResource("org/xbib/grouping/bibliographic/endeavor/work-blacklist.txt");
-
-    public WorkAuthor() {
+    public AuthorKey() {
     }
 
-    public WorkAuthor workName(CharSequence workName) {
-        if (workName != null) {
-            this.workName = new StringBuilder(workName);
-        }
-        return this;
-    }
-
-
-    public WorkAuthor authorName(Collection<String> authorNames) {
+    public AuthorKey authorName(Collection<String> authorNames) {
         authorNames.forEach(this::authorName);
         return this;
     }
@@ -87,13 +60,8 @@ public class WorkAuthor implements IdentifiableEndeavor {
      * @param authorName author name
      * @return this
      */
-    public WorkAuthor authorName(String authorName) {
+    public AuthorKey authorName(String authorName) {
         if (authorName == null) {
-            return this;
-        }
-        // check if this is the work name
-        if (workName != null && !authorName.isEmpty() && authorName.equals(workName.toString())) {
-            logger.warn("work name is equal to author name: {}", authorName);
             return this;
         }
         if (this.authorName == null) {
@@ -130,8 +98,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
         return this;
     }
 
-
-    public WorkAuthor authorNameWithForeNames(String lastName, String foreName) {
+    public AuthorKey authorNameWithForeNames(String lastName, String foreName) {
         if (foreName == null) {
             return authorName(lastName);
         }
@@ -163,7 +130,7 @@ public class WorkAuthor implements IdentifiableEndeavor {
      * @param initials initials
      * @return work author key
      */
-    public WorkAuthor authorNameWithInitials(String lastName, String initials) {
+    public AuthorKey authorNameWithInitials(String lastName, String initials) {
         if (initials != null) {
             initials = initials.replaceAll("\\s+", "");
         }
@@ -183,35 +150,8 @@ public class WorkAuthor implements IdentifiableEndeavor {
         return this;
     }
 
-    public WorkAuthor chronology(String chronology) {
-        if (chronology != null) {
-            if (this.chronology == null) {
-                this.chronology = new StringBuilder();
-            }
-            this.chronology.append(".").append(chronology.replaceAll("\\s+", ""));
-        }
-        return this;
-    }
-
     public String createIdentifier() {
-        if (workName == null || workName.length() == 0) {
-            return null;
-        }
-        if (!isValidWork()) {
-            return null;
-        }
-        String wName = BaseformEncoder.normalizedFromUTF8(workName.toString())
-                .replaceAll("aeiou", ""); // TODO Unicode vocal category?
-        try {
-            wName = encoder.encode(wName);
-        } catch (EncoderException e) {
-            // ignore
-        }
-        if (isBlacklisted(workName)) {
-            return null;
-        }
         StringBuilder sb = new StringBuilder();
-        sb.append("w").append(wName);
         if (authorName != null) {
             String aName = BaseformEncoder.normalizedFromUTF8(authorName.toString())
                     .replaceAll("aeiou", ""); // TODO Unicode vocal category?
@@ -220,45 +160,8 @@ public class WorkAuthor implements IdentifiableEndeavor {
             } catch (EncoderException e) {
                 //ignore
             }
-            sb.append(".a").append(aName);
-        }
-        if (chronology != null) {
-            sb.append(chronology);
+            sb.append(aName);
         }
         return sb.toString();
-    }
-
-    public boolean isValidWork() {
-        // only a single word in work name and no author name is not valid
-        if (authorName == null) {
-            int pos = workName.toString().indexOf(' ');
-            if (pos < 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private final static Pattern p1 = Pattern.compile(".*Cover and Back matter.*", Pattern.CASE_INSENSITIVE);
-
-    public Set<String> blacklist() {
-        return blacklist;
-    }
-
-    public boolean isBlacklisted(CharSequence work) {
-        return blacklist.contains(work.toString()) || p1.matcher(work).matches();
-    }
-
-    private static Set<String> readResource(String resource) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
-        Set<String> set = new HashSet<>();
-        if (url != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), Charset.forName("UTF-8")))) {
-                reader.lines().filter(line -> !line.startsWith("#")).forEach(set::add);
-            } catch (IOException e) {
-                // do nothing
-            }
-        }
-        return set;
     }
 }

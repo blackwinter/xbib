@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.springer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.tools.convert.Converter;
@@ -195,7 +195,7 @@ public class SpringerCitations extends Feeder {
                 .add(DC_TITLE, title);
         if (title != null) {
             String s = author.isEmpty() ? null : author.get(0);
-            String key = new WorkAuthor()
+            String key = new WorkAuthorKey()
                     .authorName(s)
                     .workName(title)
                     .chronology(year)

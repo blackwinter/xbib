@@ -34,7 +34,7 @@ package org.xbib.tools.feed.elasticsearch.medline;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentHelper;
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
 import org.xbib.iri.namespace.IRINamespaceContext;
@@ -128,7 +128,7 @@ public final class Medline extends Feeder {
             // create bibliographic key
             // there are works with "no authors listed" (e.g. PMID 5236443)
             if (work != null) {
-                String key = new WorkAuthor()
+                String key = new WorkAuthorKey()
                         .workName(work)
                         .authorName(authors)
                         .chronology(date)

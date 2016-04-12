@@ -42,6 +42,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.xbib.common.settings.Settings;
+import org.xbib.grouping.bibliographic.endeavor.AuthorKey;
 import org.xbib.iri.IRI;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
@@ -49,10 +50,12 @@ import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,22 +67,24 @@ import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-public class ArticlesMergerWorker
-        implements Worker<Pipeline<ArticlesMergerWorker, SerialItemRequest>, SerialItemRequest> {
+public class ArticlesWorker
+        implements Worker<Pipeline<ArticlesWorker, SerialItemRequest>, SerialItemRequest> {
 
     private final ArticlesMerger articlesMerger;
 
     private final int threadId;
 
     private final Logger logger;
+
     private final int scrollSize;
+
     private final long scrollMillis;
 
     private SerialItem serialItem;
 
     private Meter metric;
 
-    public ArticlesMergerWorker(Settings settings, ArticlesMerger articlesMerger, int number) {
+    public ArticlesWorker(Settings settings, ArticlesMerger articlesMerger, int number) {
         this.threadId = number;
         this.articlesMerger = articlesMerger;
         this.logger = LogManager.getLogger(toString());
@@ -88,17 +93,17 @@ public class ArticlesMergerWorker
     }
 
     @Override
-    public ArticlesMergerWorker setPipeline(Pipeline<ArticlesMergerWorker, SerialItemRequest> pipeline) {
+    public ArticlesWorker setPipeline(Pipeline<ArticlesWorker, SerialItemRequest> pipeline) {
         // unused
         return this;
     }
 
     @Override
-    public Pipeline<ArticlesMergerWorker, SerialItemRequest> getPipeline() {
+    public Pipeline<ArticlesWorker, SerialItemRequest> getPipeline() {
         return articlesMerger.getPipeline();
     }
 
-    public ArticlesMergerWorker setMetric(Meter metric) {
+    public ArticlesWorker setMetric(Meter metric) {
         this.metric = metric;
         return this;
     }
@@ -141,7 +146,7 @@ public class ArticlesMergerWorker
 
     @Override
     public String toString() {
-        return ArticlesMergerWorker.class.getSimpleName() + "." + threadId;
+        return ArticlesWorker.class.getSimpleName() + "." + threadId;
     }
 
     private void process(SerialItem serialItem) throws IOException {
@@ -181,7 +186,7 @@ public class ArticlesMergerWorker
 
     private void collectFromMedline(QueryBuilder queryBuilder, Map<String,Map<String,Object>> docs) throws IOException {
         /*
-            // no ISSN, so we derive matching from title plus year
+            // if no ISSN, we derive matching from title plus year
             // shorten title (series statement after '/' or ':') to raise probability of matching
             String t = serialItem.getManifestation().getTitle();
             // must include at least one space (= two words)
@@ -346,7 +351,7 @@ public class ArticlesMergerWorker
     }
 
     private void postProcess(SerialItem serialItem, Map<String,Map<String,Object>> docs) throws IOException {
-        if (docs == null || docs.isEmpty()) {
+        if (docs.isEmpty()) {
             return;
         }
         Collection<Map<String,Object>> publications =  makePublications(serialItem);
@@ -508,6 +513,10 @@ public class ArticlesMergerWorker
                 map1.put(e.getKey(), e.getValue());
             }
         }
+        // coolapse multiple authors
+        collapseAuthorList(map1);
+        // cleanup of unwanted fields
+        map1.remove("dc:source");
     }
 
     private void setPagination(Map<String,Object> map, Integer begin, Integer end) {
@@ -575,6 +584,26 @@ public class ArticlesMergerWorker
         return subjects;
     }
 
+    private void collapseAuthorList(Map<String,Object> map) {
+        Set<Author> authors = new LinkedHashSet<>();
+        List<Map<String, Object>> dcCreator = new ArrayList<>();
+        Object o = map.get("dc:creator");
+        if (o != null) {
+            if (!(o instanceof Collection)) {
+                o = Collections.singletonList(o);
+            }
+            for (Map<String, Object> m : (Collection<Map<String, Object>>) o) {
+                Author author = new Author((String)m.get("foaf:familyName"),
+                        (String)m.get("foaf:givenName"), (String)m.get("foaf:name"));
+                authors.add(author);
+            }
+            for (Author author : authors) {
+                dcCreator.add(author.asMap());
+            }
+            map.put("dc:creator", dcCreator);
+        }
+    }
+
     private Set<String> getAbbrev(TitleRecord titleRecord) {
         // Title abbrev
         Set<String> abbrevs = new HashSet<>();
@@ -588,6 +617,62 @@ public class ArticlesMergerWorker
             }
         }
         return abbrevs;
+    }
+
+    static class Author implements Comparable<Author> {
+        private AuthorKey wa = new AuthorKey();
+        private String lastName, foreName, name, key;
+
+        Author(String lastName, String foreName, String name) {
+            this.lastName = lastName;
+            this.foreName = foreName;
+            if (name == null) {
+                this.name = build();
+            } else {
+                this.name = name;
+            }
+            wa.authorName(this.name);
+            this.key = wa.createIdentifier();
+        }
+
+        private String build() {
+            StringBuilder sb = new StringBuilder();
+            if (lastName != null) {
+                sb.append(lastName);
+            }
+            if (foreName != null) {
+                sb.append(' ').append(foreName);
+            }
+            return sb.toString();
+        }
+
+        Map<String,Object> asMap() {
+            Map<String,Object> map = new HashMap<>();
+            map.put("rdf:type", "foaf:agent");
+            map.put("foaf:name", name);
+            map.put("foaf:familyName", lastName);
+            map.put("foaf:givenName", foreName);
+            return map;
+        }
+
+        public String key() {
+            return key;
+        }
+
+        @Override
+        public int compareTo(Author o) {
+            return key.compareTo(o.key);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Author && key.equals(((Author)o).key);
+        }
+
+        @Override
+        public int hashCode() {
+            return key.hashCode();
+        }
     }
 
 }

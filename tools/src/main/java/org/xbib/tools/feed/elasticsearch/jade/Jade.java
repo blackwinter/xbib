@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.jade;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.IRI;
@@ -314,7 +314,7 @@ public class Jade extends Feeder implements ArticleVocabulary {
                     .add(PRISM_PUBLICATIONNAME, journal)
                     .add(PRISM_ISSN, issn);
         }
-        WorkAuthor wa = new WorkAuthor()
+        WorkAuthorKey wa = new WorkAuthorKey()
                 .workName(title)
                 .authorName(authors.stream().map(Author::name).collect(Collectors.toList()))
                 .chronology(year)

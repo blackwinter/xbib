@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.natliz;
 
-import org.xbib.grouping.bibliographic.endeavor.WorkAuthor;
+import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.Literal;
 import org.xbib.rdf.Resource;
@@ -59,7 +59,7 @@ public class NatLizMapper implements ArticleVocabulary {
         Resource r = new BlankMemoryResource();
         journal = r.newResource("frbr:isPartOf");
         map(r, null, map);
-        WorkAuthor wa = new WorkAuthor()
+        WorkAuthorKey wa = new WorkAuthorKey()
                 .workName(title)
                 .chronology(year);
         for (Author author : authors) {
