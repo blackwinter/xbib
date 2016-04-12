@@ -631,6 +631,11 @@ public class ArticlesWorker
             }
             for (String s : (Collection<String>)o) {
                 String clean = clean(s);
+                if (titles.isEmpty()) {
+                    titles.add(s);
+                    titleCodes.add(clean);
+                    continue;
+                }
                 for (String t : titleCodes) {
                     double d = distance(clean, t);
                     if (d > 2.0d) {
