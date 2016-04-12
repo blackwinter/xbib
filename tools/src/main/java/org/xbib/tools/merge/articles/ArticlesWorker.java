@@ -298,6 +298,13 @@ public class ArticlesWorker
                     Map<String,Object> map = new HashMap<>();
                     map.putAll(old); // immutable -> mutable
                     merge(map, hit.getSource()); // merge new entries or append
+                    Long mergeCount = (Long)map.get("xbib:merge");
+                    if (mergeCount == null) {
+                        mergeCount = 0L;
+                    } else {
+                        mergeCount++;
+                    }
+                    map.put("xbib:merge", mergeCount);
                     docs.put(key, map);
                 } else {
                     // new document
@@ -336,6 +343,13 @@ public class ArticlesWorker
                     Map<String,Object> map = new HashMap<>();
                     map.putAll(old); // immutable -> mutable
                     merge(map, hit.getSource()); // merge new entries or append
+                    Long mergeCount = (Long)map.get("xbib:merge");
+                    if (mergeCount == null) {
+                        mergeCount = 0L;
+                    } else {
+                        mergeCount++;
+                    }
+                    map.put("xbib:merge", mergeCount);
                     docs.put(key, map);
                 } else {
                     // new document
@@ -362,6 +376,8 @@ public class ArticlesWorker
             if (!subjects.isEmpty()) {
                 doc.put("dc:subject", subjects.size() > 1 ? subjects : subjects.iterator().next());
             }
+            // cleanup of unwanted fields
+            doc.remove("dc:source");
             XContentBuilder builder = jsonBuilder();
             builder.value(doc);
             String index = articlesMerger.getArticlesIndex().getConcreteIndex();
@@ -513,10 +529,8 @@ public class ArticlesWorker
                 map1.put(e.getKey(), e.getValue());
             }
         }
-        // coolapse multiple authors
+        // collapse multiple authors
         collapseAuthorList(map1);
-        // cleanup of unwanted fields
-        map1.remove("dc:source");
     }
 
     private void setPagination(Map<String,Object> map, Integer begin, Integer end) {
