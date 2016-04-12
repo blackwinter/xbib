@@ -623,28 +623,28 @@ public class ArticlesWorker
 
     private void collapseTitleList(Map<String,Object> map) {
         List<String> titles = new ArrayList<>();
+        Set<String> titleCodes = new HashSet<>();
         Object o = map.get("dc:title");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);
             }
             for (String s : (Collection<String>)o) {
-                if (titles.isEmpty()) {
+                String clean = clean(s);
+                if (!titleCodes.contains(clean)) {
                     titles.add(s);
-                    continue;
-                }
-                boolean found = false;
-                for (String t : titles) {
-                    if (t.toLowerCase(Locale.US).equals(s.toLowerCase(Locale.US))) {
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    titles.add(s);
+                    titleCodes.add(clean);
                 }
             }
         }
         map.put("dc:title", titles);
+    }
+
+    private String clean(String s) {
+        return s.replaceAll("\\p{C}","")
+                .replaceAll("\\p{Space}","")
+                .replaceAll("\\p{Punct}","")
+                .toLowerCase(Locale.ROOT);
     }
 
     private Set<String> getAbbrev(TitleRecord titleRecord) {
