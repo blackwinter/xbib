@@ -631,9 +631,13 @@ public class ArticlesWorker
             }
             for (String s : (Collection<String>)o) {
                 String clean = clean(s);
-                if (!titleCodes.contains(clean)) {
-                    titles.add(s);
-                    titleCodes.add(clean);
+                for (String t : titleCodes) {
+                    double d = distance(clean, t);
+                    if (d > 2.0d) {
+                        titles.add(s);
+                        titleCodes.add(clean);
+                        break;
+                    }
                 }
             }
         }
@@ -660,6 +664,59 @@ public class ArticlesWorker
             }
         }
         return abbrevs;
+    }
+
+    /**
+     * The Levenshtein distance, or edit distance, between two words is the
+     * minimum number of single-character edits (insertions, deletions or
+     * substitutions) required to change one word into the other.
+     *
+     * http://en.wikipedia.org/wiki/Levenshtein_distance
+     *
+     * It is always at least the difference of the sizes of the two strings.
+     * It is at most the length of the longer string.
+     * It is zero if and only if the strings are equal.
+     * If the strings are the same size, the Hamming distance is an upper bound
+     * on the Levenshtein distance.
+     * The Levenshtein distance verifies the triangle inequality (the distance
+     * between two strings is no greater than the sum Levenshtein distances from
+     * a third string).
+     *
+     * Implementation uses dynamic programming (Wagner–Fischer algorithm), with
+     * only 2 rows of data. The space requirement is thus O(m) and the algorithm
+     * runs in O(mn).
+     *
+     * @param s1 string 1
+     * @param s2 string 2
+     * @return distance
+     */
+    public double distance(String s1, String s2) {
+        if (s1.equals(s2)){
+            return 0;
+        }
+        if (s1.length() == 0) {
+            return s2.length();
+        }
+        if (s2.length() == 0) {
+            return s1.length();
+        }
+        int[] v0 = new int[s2.length() + 1];
+        int[] v1 = new int[s2.length() + 1];
+        int[] vtemp;
+        for (int i = 0; i < v0.length; i++) {
+            v0[i] = i;
+        }
+        for (int i = 0; i < s1.length(); i++) {
+            v1[0] = i + 1;
+            for (int j = 0; j < s2.length(); j++) {
+                int cost = (s1.charAt(i) == s2.charAt(j)) ? 0 : 1;
+                v1[j + 1] = Math.min(v1[j] + 1, Math.min(v0[j + 1] + 1, v0[j] + cost));
+            }
+            vtemp = v0;
+            v0 = v1;
+            v1 = vtemp;
+        }
+        return v0[s2.length()];
     }
 
     static class Author implements Comparable<Author> {
