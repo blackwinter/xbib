@@ -41,6 +41,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
+import org.xbib.util.Strings;
 import org.xbib.common.settings.Settings;
 import org.xbib.grouping.bibliographic.endeavor.AuthorKey;
 import org.xbib.iri.IRI;
@@ -300,7 +301,7 @@ public class ArticlesWorker
                     merge(map, hit.getSource()); // merge new entries or append
                     Long mergeCount = (Long)map.get("xbib:merge");
                     if (mergeCount == null) {
-                        mergeCount = 0L;
+                        mergeCount = 1L;
                     } else {
                         mergeCount++;
                     }
@@ -345,7 +346,7 @@ public class ArticlesWorker
                     merge(map, hit.getSource()); // merge new entries or append
                     Long mergeCount = (Long)map.get("xbib:merge");
                     if (mergeCount == null) {
-                        mergeCount = 0L;
+                        mergeCount = 1L;
                     } else {
                         mergeCount++;
                     }
@@ -644,6 +645,11 @@ public class ArticlesWorker
                 this.name = build();
             } else {
                 this.name = name;
+                int pos = name.indexOf(',');
+                if (pos > 0) {
+                    this.lastName = name.substring(0, pos);
+                    this.foreName = name.substring(pos + 1).trim();
+                }
             }
             wa.authorName(this.name);
             this.key = wa.createIdentifier();
@@ -663,9 +669,15 @@ public class ArticlesWorker
         Map<String,Object> asMap() {
             Map<String,Object> map = new HashMap<>();
             map.put("rdf:type", "foaf:agent");
-            map.put("foaf:name", name);
-            map.put("foaf:familyName", lastName);
-            map.put("foaf:givenName", foreName);
+            if (!Strings.isNullOrEmpty(name)) {
+                map.put("foaf:name", name);
+            }
+            if (!Strings.isNullOrEmpty(lastName)) {
+                map.put("foaf:familyName", lastName);
+            }
+            if (!Strings.isNullOrEmpty(foreName)) {
+                map.put("foaf:givenName", foreName);
+            }
             return map;
         }
 
