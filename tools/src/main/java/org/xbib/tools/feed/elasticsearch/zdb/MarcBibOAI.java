@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.client.OAIClient;
@@ -126,9 +126,8 @@ public class MarcBibOAI extends OAIFeeder {
                     .setUntil(until);
             do {
                 try {
-                    final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                            .addListener(queue);
-                    MarcMetadataHandler handler = new MarcMetadataHandler(kv);
+                    final MarcXchangeStream marcXchangeStream = new MarcXchangeStream().add(queue);
+                    MarcMetadataHandler handler = new MarcMetadataHandler(marcXchangeStream);
                     request.addHandler(handler);
                     ListRecordsListener listener = new ListRecordsListener(request);
                     request.prepare().execute(listener).waitFor();
@@ -195,7 +194,7 @@ public class MarcBibOAI extends OAIFeeder {
 
         RecordHeader header;
 
-        MarcMetadataHandler(MarcXchange2KeyValue kv) {
+        MarcMetadataHandler(MarcXchangeStream kv) {
             this.reader = new MarcXchangeReader((Reader)null);
             reader.addListener("Bibliographic", kv);
         }

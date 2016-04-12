@@ -1,0 +1,23 @@
+
+dependencies {
+    compile project(':datastructures:forkjoin')
+    compile project(':iso2709')
+    compile project(':content:rdf')
+    testCompile project(':io:archive')
+    testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
+    testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
+    provided project(':io:charset') // for bibliographic charsets
+}
+
+configurations {
+    provided
+    testCompile.extendsFrom(provided)
+}
+
+test {
+    classpath += configurations.provided
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
+}

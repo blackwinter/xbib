@@ -34,6 +34,7 @@ package org.xbib.tools.feed.elasticsearch.openlibrary;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.BufferedReader;
@@ -58,13 +59,14 @@ public class OpenLibrary extends Feeder {
     @Override
     @SuppressWarnings("unchecked")
     public void process(URI uri) throws Exception {
+        IndexDefinition indexDefinition = indexDefinitionMap.get("openlibrary");
         try (InputStream in = FileInput.getInputStream(uri)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
             try (Stream<String> stream = reader.lines()) {
                 stream.forEach(line -> {
                     // type, unique key, revision, last modified, JSON
                     String[] l = line.split("\t");
-                        ingest.index("openlibrary", "openlibrary", l[1], l[4]);
+                        ingest.index(indexDefinition.getIndex(), indexDefinition.getType(), l[1], l[4]);
                 });
             }
         }

@@ -38,7 +38,7 @@ import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.marc.json.MarcXchangeJSONLinesReader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
@@ -79,9 +79,9 @@ public final class MARCJson extends Feeder {
             }
         });
         queue.execute();
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue().addListener(queue);
+        final MarcXchangeStream marcXchangeStream = new MarcXchangeStream().add(queue);
         try (InputStream in = FileInput.getInputStream(uri)) {
-            MarcXchangeJSONLinesReader marcXchangeJSONLinesReader = new MarcXchangeJSONLinesReader(in, kv);
+            MarcXchangeJSONLinesReader marcXchangeJSONLinesReader = new MarcXchangeJSONLinesReader(in, marcXchangeStream);
             marcXchangeJSONLinesReader.parse();
         }
         queue.close();

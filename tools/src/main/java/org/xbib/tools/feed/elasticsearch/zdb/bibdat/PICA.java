@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.tools.input.FileInput;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.tools.convert.Converter;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -70,11 +70,11 @@ public final class PICA extends Converter {
                 }
             });
             queue.execute();
-            MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+            MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                     .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))
-                    .addListener(queue);
+                    .add(queue);
             DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
-            reader.setMarcXchangeListener(kv);
+            reader.setMarcXchangeListener(marcXchangeStream);
             reader.parse();
             in.close();
             queue.close();

@@ -37,7 +37,7 @@ import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.input.FileInput;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -79,11 +79,11 @@ public final class BibdatFromPPXML extends Feeder {
                 }
             });
             queue.execute();
-            MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+            MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                     .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFKC))
-                    .addListener(queue);
+                    .add(queue);
             DNBPicaXmlReader reader = new DNBPicaXmlReader(new InputStreamReader(in, "UTF-8"));
-            reader.setMarcXchangeListener(kv);
+            reader.setMarcXchangeListener(marcXchangeStream);
             reader.parse();
             queue.close();
             if (settings.getAsBoolean("detect-unknown", false)) {

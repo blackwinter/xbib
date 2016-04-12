@@ -37,7 +37,7 @@ import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
@@ -89,14 +89,14 @@ public class DirectHol extends Feeder {
             });
             queue.execute();
 
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+            final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                     .setStringTransformer(value ->
                             Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
                             Normalizer.Form.NFKC))
-                    .addListener(queue);
+                    .add(queue);
             try {
                 final Iso2709Reader reader = new Iso2709Reader(r)
-                        .setMarcXchangeListener("Holdings", kv);
+                        .setMarcXchangeListener("Holdings", marcXchangeStream);
                 reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
                 reader.setProperty(Iso2709Reader.TYPE, "Holdings");
                 reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);

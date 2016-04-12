@@ -59,6 +59,7 @@ public class VIAF extends Feeder {
     private final static Logger logger = LogManager.getLogger(VIAF.class);
 
     @Override
+    @SuppressWarnings("unchecked")
     protected WorkerProvider<Converter> provider() {
         return p -> new VIAF().setPipeline(p);
     }

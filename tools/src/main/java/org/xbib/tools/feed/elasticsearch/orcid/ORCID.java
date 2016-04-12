@@ -44,6 +44,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RdfXContentParams;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
@@ -59,15 +60,9 @@ public class ORCID extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(ORCID.class);
 
-    private final IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
+    private final static IRINamespaceContext namespaceContext = IRINamespaceContext.newInstance();
 
-    @Override
-    protected WorkerProvider<Converter> provider() {
-        return p -> new ORCID().setPipeline(p);
-    }
-
-    @Override
-    public void process(URI uri) throws Exception {
+    static {
         namespaceContext.add(new HashMap<String, String>() {{
             put(RdfConstants.NS_PREFIX, RdfConstants.NS_URI);
             put("dc", "http://purl.org/dc/elements/1.1/");
@@ -77,7 +72,18 @@ public class ORCID extends Feeder {
             put("fabio", "http://purl.org/spar/fabio/");
             put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
         }});
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected WorkerProvider<Converter> provider() {
+        return p -> new ORCID().setPipeline(p);
+    }
+
+    @Override
+    public void process(URI uri) throws Exception {
         // public_profiles.tar(.gz)
+        IndexDefinition indexDefinition = indexDefinitionMap.get("orcid");
         TarConnection connection = new TarConnection();
         connection.setPath(Paths.get(uri.getSchemeSpecificPart()), StandardOpenOption.READ);
         Session<StringPacket> session = connection.createSession();
@@ -101,7 +107,7 @@ public class ORCID extends Feeder {
                         }
                     } else if (!resource.isEmpty()){
                         if (resource.id() != null) {
-                            ingest.index(settings.get("index", "orcid"), settings.get("type", "orcid"),
+                            ingest.index(indexDefinition.getConcreteIndex(), indexDefinition.getType(),
                                     resource.id().toString(), params.getGenerator().get());
                         }
                     }

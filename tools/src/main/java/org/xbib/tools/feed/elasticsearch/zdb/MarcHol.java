@@ -33,7 +33,7 @@ package org.xbib.tools.feed.elasticsearch.zdb;
 
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -58,15 +58,15 @@ public class MarcHol extends HoldingsFeeder {
 
     @Override
     protected void process(InputStream in, MARCEntityQueue queue) throws IOException {
-        final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+        final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                 .setStringTransformer(value ->
                         Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
                                 Normalizer.Form.NFKC))
-                .addListener(queue);
+                .add(queue);
         try {
             InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Iso2709Reader reader = new Iso2709Reader(r)
-                    .setMarcXchangeListener("Holdings", kv);
+                    .setMarcXchangeListener("Holdings", marcXchangeStream);
             reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
             reader.setProperty(Iso2709Reader.TYPE, "Holdings");
             reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);

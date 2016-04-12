@@ -37,7 +37,7 @@ import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.marc.Iso2709Reader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
@@ -78,13 +78,12 @@ public class Unimarc extends Feeder {
             });
             queue.execute();
 
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .addListener(queue);
+            final MarcXchangeStream marcXchangeStream = new MarcXchangeStream().add(queue);
             InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
             final Iso2709Reader reader = new Iso2709Reader(r)
                     .setStringTransformer(value ->
                             XMLUtil.sanitizeXml10(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)))
-                    .setMarcXchangeListener(kv);
+                    .setMarcXchangeListener(marcXchangeStream);
             reader.setFormat("UNIMARC").setType("Bibliographic");
             reader.parse();
             r.close();

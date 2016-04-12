@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.io.http.HttpRequest;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -110,13 +110,13 @@ public class SRU extends Feeder {
         });
 
 
-        final MarcXchange2KeyValue bib = new MarcXchange2KeyValue()
+        final MarcXchangeStream bib = new MarcXchangeStream()
                 .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))
-                .addListener(bibqueue);
+                .add(bibqueue);
 
-        final MarcXchange2KeyValue hol = new MarcXchange2KeyValue()
+        final MarcXchangeStream hol = new MarcXchangeStream()
                 .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFC))
-                .addListener(holqueue);
+                .add(holqueue);
 
         final MarcXchangeContentHandler handler = new MarcXchangeContentHandler()
                 .addListener("Bibliographic", bib)

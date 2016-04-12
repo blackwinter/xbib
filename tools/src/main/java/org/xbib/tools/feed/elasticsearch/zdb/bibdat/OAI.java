@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.dialects.pica.PicaEntityBuilderState;
 import org.xbib.etl.marc.dialects.pica.PicaEntityQueue;
 import org.xbib.marc.dialects.pica.DNBPicaXmlReader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.client.OAIClient;
 import org.xbib.oai.client.OAIClientFactory;
@@ -119,12 +119,12 @@ public final class OAI extends OAIFeeder {
                     .setSet(set)
                     .setFrom(from)
                     .setUntil(until);
-            do {
+            while (request != null) {
                 try {
-                    final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+                    final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                             .setStringTransformer(value -> Normalizer.normalize(value, Normalizer.Form.NFKC))
-                            .addListener(queue);
-                    PicaMetadataHandler handler = new PicaMetadataHandler(kv);
+                            .add(queue);
+                    PicaMetadataHandler handler = new PicaMetadataHandler(marcXchangeStream);
                     request.addHandler(handler);
                     ListRecordsListener listener = new ListRecordsListener(request);
                     request.prepare().execute(listener).waitFor();
@@ -139,7 +139,7 @@ public final class OAI extends OAIFeeder {
                     logger.error(e.getMessage(), e);
                     request = null;
                 }
-            } while (request != null);
+            }
             client.close();
             // switch to next request
             LocalDateTime ldt = LocalDateTime.ofInstant(from, ZoneOffset.UTC).plusDays(-interval);
@@ -189,7 +189,7 @@ public final class OAI extends OAIFeeder {
 
         RecordHeader header;
 
-        PicaMetadataHandler(MarcXchange2KeyValue kv) {
+        PicaMetadataHandler(MarcXchangeStream kv) {
             this.reader = new DNBPicaXmlReader((Reader)null);
             reader.setMarcXchangeListener(kv);
         }

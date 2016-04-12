@@ -8,7 +8,7 @@ import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.tools.convert.Converter;
 import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.marc.dialects.mab.xml.MabXMLReader;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.rdf.RdfConstants;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
@@ -52,7 +52,7 @@ public class NatLiz extends Feeder {
                 put("prism", "http://prismstandard.org/namespaces/basic/3.0/");
             }});
 
-            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<String>());
+            final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             Map<String, Object> params = new HashMap<>();
             params.put("identifier", settings.get("identifier", "DE-NLZ"));
             params.put("_prefix", "(" + settings.get("identifier", "DE-NLZ") + ")");
@@ -64,10 +64,9 @@ public class NatLiz extends Feeder {
                 }
             });
             queue.execute();
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
-                    .addListener(queue);
+            final MarcXchangeStream marcXchangeStream = new MarcXchangeStream().add(queue);
             MabXMLReader reader = new MabXMLReader(in)
-                    .setMarcXchangeListener(kv);
+                    .setMarcXchangeListener(marcXchangeStream);
             reader.parse();
             queue.close();
             if (settings.getAsBoolean("detect-unknown", false)) {
@@ -76,7 +75,7 @@ public class NatLiz extends Feeder {
         }
     }
 
-    class MyEntityQueue extends MABEntityQueue {
+    private class MyEntityQueue extends MABEntityQueue {
 
         final RouteRdfXContentParams params;
 

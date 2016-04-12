@@ -37,7 +37,7 @@ import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
 import org.xbib.etl.marc.MARCDirectQueue;
 import org.xbib.tools.convert.Converter;
-import org.xbib.marc.MarcXchange2KeyValue;
+import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.xml.sax.MarcXchangeReader;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
@@ -84,13 +84,13 @@ public final class MarcXML extends Feeder {
                 }
             });
             queue.execute();
-            final MarcXchange2KeyValue kv = new MarcXchange2KeyValue()
+            final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
                     .setStringTransformer(value ->
                             Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
                                     Normalizer.Form.NFKC))
-                    .addListener(queue);
+                    .add(queue);
             MarcXchangeReader reader = new MarcXchangeReader(r)
-                    .setMarcXchangeListener(kv);
+                    .setMarcXchangeListener(marcXchangeStream);
             reader.parse();
             r.close();
             queue.close();
