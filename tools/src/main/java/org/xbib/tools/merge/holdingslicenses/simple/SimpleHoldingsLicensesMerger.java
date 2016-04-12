@@ -44,6 +44,7 @@ import org.xbib.etl.support.ValueMaps;
 import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.HoldingsLicensesIndexer;
+import org.xbib.tools.merge.holdingslicenses.entities.Monograph;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
@@ -51,7 +52,6 @@ import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
 import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.tools.metrics.Metrics;
-import org.xbib.util.ExceptionFormatter;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.Strings;
 import org.xbib.util.concurrent.Pipeline;
@@ -64,6 +64,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
 
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 public class SimpleHoldingsLicensesMerger extends Merger {
@@ -93,6 +94,8 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     private String sourceMonographicIndex;
     private String sourceMonographicHoldingsIndex;
     private String sourceOpenAccessIndex;
+    private String sourceMonographTitleIndex;
+    private String sourceMonographHoldingsIndex;
 
     private HoldingsLicensesIndexer holdingsLicensesIndexer;
 
@@ -131,7 +134,7 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     @SuppressWarnings("unchecked")
     protected void prepareRequests() throws Exception {
         super.prepareRequests();
-        Map<String,IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        Map<String, IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
         this.sourceTitleIndex = indexDefinitionMap.get("zdb").getIndex();
         checkIndex("zdb", sourceTitleIndex);
         this.sourceHoldingsIndex = indexDefinitionMap.get("zdbholdings").getIndex();
@@ -188,14 +191,23 @@ public class SimpleHoldingsLicensesMerger extends Merger {
 
         logger.info("preparing status code mapper...");
         ValueMaps valueMaps = new ValueMaps();
-        Map<String,Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
+        Map<String, Object> statuscodes = valueMaps.getMap("org/xbib/analyzer/mab/status.json", "status");
         statusCodeMapper = new StatusCodeMapper();
         statusCodeMapper.add(statuscodes);
         logger.info("status code mapper prepared, size = {}", statusCodeMapper.getMap().size());
 
         this.holdingsLicensesIndexer = new HoldingsLicensesIndexer(this);
 
-        // all prepared. Enter loop over all title records
+        if (settings.getAsBoolean("withserials", true)) {
+            processSerialTitles();
+        }
+        if (settings.getAsBoolean("withmonographs", true)) {
+            processMonographTitles();
+        }
+    }
+
+    private void processSerialTitles() {
+        Map<String, IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
         int scrollSize = settings.getAsInt("scrollsize", 10);
         long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
         boolean failure = false;
@@ -210,22 +222,21 @@ public class SimpleHoldingsLicensesMerger extends Merger {
             searchRequest.setQuery(termQuery("IdentifierZDB.identifierZDB", identifier));
         }
         SearchResponse searchResponse = searchRequest.execute().actionGet();
-        logger.info("merging holdings/licenses for {} title records",
-                searchResponse.getHits().getTotalHits());
-        do {
+        long total =  searchResponse.getHits().getTotalHits();
+        logger.info("merging holdings/licenses for {} serial title records", total);
+        while (!failure && searchResponse.getHits().getHits().length > 0) {
             queryMetric.mark();
             for (SearchHit hit : searchResponse.getHits()) {
                 try {
                     if (getPipeline().getWorkers().isEmpty()) {
-                        logger.error("no more workers left to receive, aborting feed");
+                        logger.error("no more workers left to receive, aborting");
                         return;
                     }
                     TitleRecord titleRecord = new TitleRecord(hit.getSource());
                     TitleRecordRequest titleRecordRequest = new TitleRecordRequest().set(titleRecord);
                     getPipeline().putQueue(titleRecordRequest);
                 } catch (Throwable e) {
-                    logger.error("error passing data to workers, exiting", e);
-                    logger.error(ExceptionFormatter.format(e));
+                    logger.error(e.getMessage(), e);
                     failure = true;
                     break;
                 }
@@ -234,12 +245,65 @@ public class SimpleHoldingsLicensesMerger extends Merger {
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
-        } while (!failure && searchResponse.getHits().getHits().length > 0);
-        simpleHoldingsLicensesMerger.search().client()
+        }
+        search.client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet();
-        logger.info("all title records processed");
+        logger.info("{} serial title records processed", total);
     }
+
+    private void processMonographTitles() {
+        Map<String, IndexDefinition> indexDefinitionMap = getInputIndexDefinitionMap();
+        IndexDefinition indexDefinition = indexDefinitionMap.get("hbz");
+        if (indexDefinition == null) {
+            return;
+        }
+        int scrollSize = settings.getAsInt("scrollsize", 10);
+        long scrollMillis = settings.getAsTime("scrolltimeout", org.xbib.common.unit.TimeValue.timeValueSeconds(60)).millis();
+        boolean failure = false;
+        // only ISBN (for now)
+        SearchRequestBuilder searchRequest = search.client().prepareSearch()
+                .setIndices(indexDefinition.getIndex())
+                .setQuery(existsQuery("IdentifierISBN.identifierISBN"))
+                .setSize(scrollSize)
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                .addSort(SortBuilders.fieldSort("_doc"));
+        // single identifier?
+        String identifier = settings.get("identifier");
+        if (identifier != null) {
+            searchRequest.setQuery(termQuery("RecordIdentifier.identifierForTheRecord", identifier));
+        }
+        SearchResponse searchResponse = searchRequest.execute().actionGet();
+        long total =  searchResponse.getHits().getTotalHits();
+        logger.info("iterating over {} monograph records", total);
+        while (!failure && searchResponse.getHits().getHits().length > 0) {
+            queryMetric.mark();
+            for (SearchHit hit : searchResponse.getHits()) {
+                try {
+                    if (getPipeline().getWorkers().isEmpty()) {
+                        logger.error("no more workers left to receive, aborting");
+                        return;
+                    }
+                    Monograph monograph = new Monograph(hit.getSource());
+                    TitleRecordRequest titleRecordRequest = new TitleRecordRequest().set(monograph);
+                    getPipeline().putQueue(titleRecordRequest);
+                } catch (Throwable e) {
+                    logger.error(e.getMessage(), e);
+                    failure = true;
+                    break;
+                }
+            }
+            searchResponse = search.client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                    .execute().actionGet();
+        }
+        search.client()
+                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet();
+        logger.info("{} monograph records processed", total);
+    }
+
 
     protected void waitFor() throws IOException {
         try {

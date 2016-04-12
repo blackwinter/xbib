@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.common.xcontent.XContentBuilder;
 import org.xbib.tools.merge.Merger;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
+import org.xbib.tools.merge.holdingslicenses.entities.Monograph;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.StatCounter;
@@ -103,9 +104,9 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 boolean isManifestation = buildMonographVolume(builder, volume, statCounter);
                 // if ISBN, index to manifestations for top level search
                 if (isManifestation) {
-                    validateIndex(manifestationsIndex, manifestationsIndexType, volume.externalID(), builder);
+                    validateIndex(manifestationsIndex, manifestationsIndexType, volume.getExternalID(), builder);
                 } else {
-                    validateIndex(volumesIndex, volumesIndexType, volume.externalID(), builder);
+                    validateIndex(volumesIndex, volumesIndexType, volume.getExternalID(), builder);
                 }
                 MultiMap<String,Holding> mm = volume.getRelatedHoldings();
                 for (String key : mm.keySet()) {
@@ -113,12 +114,12 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                         builder = jsonBuilder();
                         buildMonographHolding(builder, volumeHolding);
                         // to holding index
-                        String hid = volume.externalID();
+                        String hid = volume.getExternalID();
                         validateIndex(holdingsIndex, holdingsIndexType, hid, builder);
                         if (statCounter != null) {
                             statCounter.increase("stat", "holdings", 1);
                         }
-                        String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.externalID()
+                        String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.getExternalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
                         validateIndex(shelfIndex, shelfIndexType, vhid, builder);
                         if (statCounter != null) {
@@ -133,12 +134,12 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             }
         }
         // holdings and services
-        boolean eonly = "online resource".equals(titleRecord.carrierType());
+        boolean eonly = "online resource".equals(titleRecord.getCarrierType());
         int instcount = 0;
         if (!titleRecord.getRelatedHoldings().isEmpty()) {
             XContentBuilder builder = jsonBuilder();
             builder.startObject()
-                    .field("parent", titleRecord.externalID());
+                    .field("parent", titleRecord.getExternalID());
             if (titleRecord.hasLinks()) {
                 builder.field("links", titleRecord.getLinks());
             }
@@ -183,7 +184,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             MultiMap<Integer,Holding> map = titleRecord.getHoldingsByDate();
             for (Integer date : map.keySet()) {
                 Collection<Holding> holdings = map.get(date);
-                String shelfId = titleRecord.externalID() + (date != -1 ? "." + date : "");
+                String shelfId = titleRecord.getExternalID() + (date != -1 ? "." + date : "");
                 XContentBuilder shelfBuilder = jsonBuilder();
                 buildShelf(shelfBuilder, titleRecord, date, holdings);
                 validateIndex(shelfIndex, shelfIndexType, shelfId, shelfBuilder);
@@ -192,7 +193,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 statCounter.increase("stat", "shelf", map.size());
             }
             // finally, add one holding per manifestation
-            validateIndex(holdingsIndex, holdingsIndexType, titleRecord.externalID(), builder);
+            validateIndex(holdingsIndex, holdingsIndexType, titleRecord.getExternalID(), builder);
             if (statCounter != null) {
                 statCounter.increase("stat", "holdings", 1);
             }
@@ -205,7 +206,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         buildManifestation(builder, titleRecord, statCounter);
         builder.field("eonly", instcount > 0 && eonly);
         builder.endObject();
-        validateIndex(manifestationsIndex, manifestationsIndexType, titleRecord.externalID(), builder);
+        validateIndex(manifestationsIndex, manifestationsIndexType, titleRecord.getExternalID(), builder);
     }
 
     private void buildManifestation(XContentBuilder builder,
@@ -213,25 +214,25 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                                     StatCounter statCounter) throws IOException {
         builder.field("title", titleRecord.getExtendedTitle())
                 .field("titlecomponents", titleRecord.getTitleComponents());
-        String s = titleRecord.corporateName();
+        String s = titleRecord.getCorporateName();
         if (s != null) {
             builder.field("corporatename", s);
         }
-        s = titleRecord.meetingName();
+        s = titleRecord.getMeetingName();
         if (s != null) {
             builder.field("meetingname", s);
         }
-        builder.field("country", titleRecord.country())
-                .fieldIfNotNull("language", titleRecord.language())
+        builder.field("country", titleRecord.getCountry())
+                .fieldIfNotNull("language", titleRecord.getLanguage())
                 .field("publishedat", titleRecord.getPublisherPlace())
                 .field("publishedby", titleRecord.getPublisherName())
                 .field("openaccess", titleRecord.isOpenAccess())
                 .fieldIfNotNull("license", titleRecord.getLicense())
-                .field("contenttype", titleRecord.contentType())
-                .field("mediatype", titleRecord.mediaType())
-                .field("carriertype", titleRecord.carrierType())
-                .fieldIfNotNull("firstdate", titleRecord.firstDate())
-                .fieldIfNotNull("lastdate", titleRecord.lastDate());
+                .field("contenttype", titleRecord.getContentType())
+                .field("mediatype", titleRecord.getMediaType())
+                .field("carriertype", titleRecord.getCarrierType())
+                .fieldIfNotNull("firstdate", titleRecord.getFirstDate())
+                .fieldIfNotNull("lastdate", titleRecord.getLastDate());
         Set<Integer> missing = new HashSet<>(titleRecord.getDates());
         Set<Integer> set = titleRecord.getHoldingsByDate().keySet();
         builder.array("dates", set);
@@ -256,12 +257,12 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         builder.field("subseries", titleRecord.isSubseries());
         builder.field("aggregate", titleRecord.isAggregate());
         builder.field("supplement", titleRecord.isSupplement());
-        builder.fieldIfNotNull("resourcetype", titleRecord.resourceType());
-        builder.fieldIfNotNull("genre", titleRecord.genre());
+        builder.fieldIfNotNull("resourcetype", titleRecord.getResourceType());
+        builder.fieldIfNotNull("genre", titleRecord.getGenre());
         if (!titleRecord.getMonographVolumes().isEmpty()) {
             builder.startArray("volumes");
             for (MonographVolume volume : titleRecord.getMonographVolumes()) {
-                builder.value(volume.externalID());
+                builder.value(volume.getExternalID());
             }
             builder.endArray();
             builder.field("volumescount", titleRecord.getMonographVolumes().size());
@@ -272,7 +273,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             for (String rel : map.keySet()) {
                 for (TitleRecord tr : map.get(rel)) {
                     builder.startObject()
-                            .field("identifierForTheRelated", tr.externalID())
+                            .field("identifierForTheRelated", tr.getExternalID())
                             .field("label", rel)
                             .endObject();
                 }
@@ -296,30 +297,30 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             builder.array("links", titleRecord.getLinks());
         }
         if (statCounter != null) {
-            for (String country : titleRecord.country()) {
+            for (String country : titleRecord.getCountry()) {
                 statCounter.increase("country", country, 1);
             }
-            statCounter.increase("language", titleRecord.language(), 1);
-            statCounter.increase("contenttype", titleRecord.contentType(), 1);
-            statCounter.increase("mediatype", titleRecord.mediaType(), 1);
-            statCounter.increase("carriertype", titleRecord.carrierType(), 1);
-            statCounter.increase("resourcetype", titleRecord.resourceType(), 1);
-            statCounter.increase("genre", titleRecord.genre(), 1);
+            statCounter.increase("language", titleRecord.getLanguage(), 1);
+            statCounter.increase("contenttype", titleRecord.getContentType(), 1);
+            statCounter.increase("mediatype", titleRecord.getMediaType(), 1);
+            statCounter.increase("carriertype", titleRecord.getCarrierType(), 1);
+            statCounter.increase("resourcetype", titleRecord.getResourceType(), 1);
+            statCounter.increase("genre", titleRecord.getGenre(), 1);
         }
     }
 
     private boolean buildMonographVolume(XContentBuilder builder, MonographVolume monographVolume, StatCounter statCounter)
             throws IOException {
         builder.startObject()
-                .array("parents", monographVolume.parents())
+                .array("parents", monographVolume.getParents())
                 .field("title", monographVolume.getTitle())
                 .field("titlecomponents", monographVolume.getTitleComponents())
-                .fieldIfNotNull("firstdate", monographVolume.firstDate());
-        String s = monographVolume.corporateName();
+                .fieldIfNotNull("firstdate", monographVolume.getFirstDate());
+        String s = monographVolume.getCorporateName();
         if (s != null) {
             builder.field("corporateName", s);
         }
-        s = monographVolume.meetingName();
+        s = monographVolume.getMeetingName();
         if (s != null) {
             builder.field("meetingName", s);
         }
@@ -329,12 +330,12 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         }
         builder.fieldIfNotNull("volume", monographVolume.getVolumeDesignation())
                 .fieldIfNotNull("number", monographVolume.getNumbering())
-                .fieldIfNotNull("resourcetype", monographVolume.resourceType())
-                .fieldIfNotNull("genre", monographVolume.genre());
-        if (monographVolume.country() != null && !monographVolume.country().isEmpty()) {
-            builder.field("country", monographVolume.country());
+                .fieldIfNotNull("resourcetype", monographVolume.getResourceType())
+                .fieldIfNotNull("genre", monographVolume.getGenre());
+        if (monographVolume.getCountry() != null && !monographVolume.getCountry().isEmpty()) {
+            builder.field("country", monographVolume.getCountry());
         }
-        builder.fieldIfNotNull("language", monographVolume.language())
+        builder.fieldIfNotNull("language", monographVolume.getLanguage())
                 .fieldIfNotNull("publishedat", monographVolume.getPublisherPlace())
                 .fieldIfNotNull("publishedby", monographVolume.getPublisherName());
         boolean isManifestation = false;
@@ -347,15 +348,15 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         }
         builder.endObject();
         if (statCounter != null) {
-            for (String country : monographVolume.country()) {
+            for (String country : monographVolume.getCountry()) {
                 statCounter.increase("country", country, 1);
             }
-            statCounter.increase("language", monographVolume.language(), 1);
+            statCounter.increase("language", monographVolume.getLanguage(), 1);
             // TODO
             //structCounter.increase("contenttype", contentType, 1);
             //structCounter.increase("mediatype", mediaType, 1);
             //structCounter.increase("carriertype", carrierType, 1);
-            statCounter.increase("resourcetype", monographVolume.resourceType(), 1);
+            statCounter.increase("resourcetype", monographVolume.getResourceType(), 1);
             for (String genre : monographVolume.genres()) {
                 statCounter.increase("genre", genre, 1);
             }
@@ -473,6 +474,84 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         builder.fieldIfNotNull("comment", holding.getServiceComment())
                 .field("info", holding.getInfo())
                 .endObject();
+    }
+
+    public void indexMonograph(Monograph monograph) throws IOException {
+        XContentBuilder builder = jsonBuilder();
+        boolean isManifestation = buildMonograph(builder, monograph, null);
+        // if ISBN, index to manifestations for top level search
+        if (isManifestation) {
+            validateIndex(manifestationsIndex, manifestationsIndexType, monograph.getExternalID(), builder);
+        } else {
+            validateIndex(volumesIndex, volumesIndexType, monograph.getExternalID(), builder);
+        }
+        MultiMap<String,Holding> mm = monograph.getRelatedHoldings();
+        for (String key : mm.keySet()) {
+            for (Holding volumeHolding : mm.get(key)){
+                builder = jsonBuilder();
+                buildMonographHolding(builder, volumeHolding);
+                // to holding index
+                String hid = monograph.getExternalID();
+                validateIndex(holdingsIndex, holdingsIndexType, hid, builder);
+                String vhid = "(" + volumeHolding.getServiceISIL() + ")" + monograph.getExternalID()
+                        + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
+                validateIndex(shelfIndex, shelfIndexType, vhid, builder);
+            }
+        }
+    }
+
+    private boolean buildMonograph(XContentBuilder builder, Monograph monograph, StatCounter statCounter)
+            throws IOException {
+        builder.startObject()
+                .field("title", monograph.getTitle())
+                .field("titlecomponents", monograph.getTitleComponents())
+                .fieldIfNotNull("firstdate", monograph.getFirstDate());
+        String s = monograph.getCorporateName();
+        if (s != null) {
+            builder.field("corporateName", s);
+        }
+        s = monograph.getMeetingName();
+        if (s != null) {
+            builder.field("meetingName", s);
+        }
+        if (monograph.conference() != null) {
+            builder.field("conference");
+            builder.map(monograph.conference());
+        }
+        builder.fieldIfNotNull("volume", monograph.getVolumeDesignation())
+                .fieldIfNotNull("number", monograph.getNumbering())
+                .fieldIfNotNull("resourcetype", monograph.getResourceType())
+                .fieldIfNotNull("genre", monograph.getGenre());
+        if (monograph.getCountry() != null && !monograph.getCountry().isEmpty()) {
+            builder.field("country", monograph.getCountry());
+        }
+        builder.fieldIfNotNull("language", monograph.getLanguage())
+                .fieldIfNotNull("publishedat", monograph.getPublisherPlace())
+                .fieldIfNotNull("publishedby", monograph.getPublisherName());
+        boolean isManifestation = false;
+        if (monograph.hasIdentifiers()) {
+            Map<String,Object> identifiers =  monograph.getIdentifiers();
+            builder.field("identifiers", identifiers);
+            if (identifiers.get("isbn") != null) {
+                isManifestation = true;
+            }
+        }
+        builder.endObject();
+        if (statCounter != null) {
+            for (String country : monograph.getCountry()) {
+                statCounter.increase("country", country, 1);
+            }
+            statCounter.increase("language", monograph.getLanguage(), 1);
+            // TODO
+            //structCounter.increase("contenttype", contentType, 1);
+            //structCounter.increase("mediatype", mediaType, 1);
+            //structCounter.increase("carriertype", carrierType, 1);
+            statCounter.increase("resourcetype", monograph.getResourceType(), 1);
+            for (String genre : monograph.genres()) {
+                statCounter.increase("genre", genre, 1);
+            }
+        }
+        return isManifestation;
     }
 
     private XContentBuilder jsonBuilder() throws IOException {

@@ -105,7 +105,7 @@ public class CheckDelivery extends Analyzer {
                     SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
                     if (searchResponse.getHits().getTotalHits() > 0) {
                         TitleRecord m = new TitleRecord(searchResponse.getHits().getAt(0).getSource());
-                        zdbid = m.externalID();
+                        zdbid = m.getExternalID();
                         if (zdbid != null) {
                             queryBuilder = boolQuery()
                                     .must(termQuery("xbib:zdbid", zdbid))

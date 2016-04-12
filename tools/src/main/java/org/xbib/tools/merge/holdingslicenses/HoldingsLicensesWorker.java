@@ -199,7 +199,7 @@ public class HoldingsLicensesWorker
                 long delta = (t1 -t0) / 1000000;
                 // warn if delta is longer than 10 secs
                 if (delta > 10000) {
-                    logger.warn("long processing of {}: {} ms", titleRecord.externalID(), delta);
+                    logger.warn("long processing of {}: {} ms", titleRecord.getExternalID(), delta);
                 }
                 metric.mark();
                 element = getPipeline().getQueue().take();
@@ -338,7 +338,7 @@ public class HoldingsLicensesWorker
             for (int i = c.pos; i < searchResponse.getHits().getHits().length; i++) {
                 SearchHit hit = searchResponse.getHits().getAt(i);
                 TitleRecord m = new TitleRecord(hit.getSource());
-                if (m.id().equals(c.titleRecord.id())) {
+                if (m.getID().equals(c.titleRecord.getID())) {
                     continue;
                 }
                 if (titleRecords.contains(m)) {
@@ -351,7 +351,7 @@ public class HoldingsLicensesWorker
                     return;
                 }
                 boolean expand = false;
-                Collection<String> relations = findTheRelationsBetween(c.titleRecord, m.id());
+                Collection<String> relations = findTheRelationsBetween(c.titleRecord, m.getID());
                 for (String relation : relations) {
                     if (relation == null) {
                         continue;
@@ -408,7 +408,7 @@ public class HoldingsLicensesWorker
         // create a map of all title records that can have assigned a holding
         Map<String, TitleRecord> map = new HashMap<>();
         for (TitleRecord m : titleRecords) {
-            map.put("(DE-600)" + m.id(), m);
+            map.put("(DE-600)" + m.getID(), m);
             //if (m.getPrintID() != null && !map.containsKey(m.getPrintID())) {
             //    map.put("(DE-600)" + m.getPrintID(), m);
             //}
@@ -510,9 +510,9 @@ public class HoldingsLicensesWorker
         Map<String, TitleRecord> map = new HashMap<>();
         boolean isOnline = false;
         for (TitleRecord m : titleRecords) {
-            map.put(m.externalID(), m);
+            map.put(m.getExternalID(), m);
             // we really just rely on the carrier type. There may be licenses or indicators
-            isOnline = isOnline || "online resource".equals(m.carrierType());
+            isOnline = isOnline || "online resource".equals(m.getCarrierType());
             // copy print to the online edition in case it is not there
             //String id = m.getOnlineExternalID();
             //if (id != null && !map.containsKey(id)) {
@@ -699,7 +699,7 @@ public class HoldingsLicensesWorker
     private void searchMonographs(Collection<TitleRecord> titleRecords) throws IOException {
         for (TitleRecord titleRecord : titleRecords) {
             BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-            queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+            queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.getExternalID()));
             Collection<String> issns = (Collection<String>) titleRecord.getIdentifiers().get("issn");
             if (issns != null) {
                 for (String issn : issns) {
@@ -744,7 +744,7 @@ public class HoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void searchExtraHoldings(MonographVolume volume) {
         TitleRecord titleRecord = volume.getTitleRecord();
-        String key = volume.id();
+        String key = volume.getID();
         SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(sourceMonographicHoldingsIndex)
@@ -777,10 +777,10 @@ public class HoldingsLicensesWorker
                         if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
                             continue;
                         }
-                        volumeHolding.addParent(volume.externalID());
-                        volumeHolding.setMediaType(titleRecord.mediaType());
-                        volumeHolding.setCarrierType(titleRecord.carrierType());
-                        volumeHolding.setDate(volume.firstDate(), volume.lastDate());
+                        volumeHolding.addParent(volume.getExternalID());
+                        volumeHolding.setMediaType(titleRecord.getMediaType());
+                        volumeHolding.setCarrierType(titleRecord.getCarrierType());
+                        volumeHolding.setDate(volume.getFirstDate(), volume.getLastDate());
                         volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(isil));
                         volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
@@ -814,7 +814,7 @@ public class HoldingsLicensesWorker
     private void searchSeriesVolumeHoldings(MonographVolume parent)
             throws IOException {
         TitleRecord titleRecord = parent.getTitleRecord();
-        if (parent.id() == null || parent.id().isEmpty()) {
+        if (parent.getID() == null || parent.getID().isEmpty()) {
             return;
         }
         // search children volumes of the series (conference, processing, abstract, ...)
@@ -823,8 +823,8 @@ public class HoldingsLicensesWorker
                 .setIndices(sourceMonographicIndex)
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
-                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())))
+                .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.getID()))
+                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.getID())))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
         logger.debug("searchSeriesVolumeHoldings search request={} hits={}",
@@ -833,14 +833,14 @@ public class HoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
                 MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
-                volume.addParent(titleRecord.externalID());
+                volume.addParent(titleRecord.getExternalID());
                 // for each conference/congress, search holdings
                 SearchRequestBuilder holdingsSearchRequest = holdingsLicensesMerger.search().client()
                         .prepareSearch()
                         .setIndices(sourceMonographicHoldingsIndex)
                         .setSize(scrollSize)
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                        .setQuery(termQuery("xbib.uid", volume.id()))
+                        .setQuery(termQuery("xbib.uid", volume.getID()))
                         .addSort(SortBuilders.fieldSort("_doc"));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
                 getMetric().mark();
@@ -869,11 +869,11 @@ public class HoldingsLicensesWorker
                                 if (holdingsLicensesMerger.blackListedISIL().lookup(isil)) {
                                     continue;
                                 }
-                                volumeHolding.addParent(titleRecord.externalID());
-                                volumeHolding.addParent(volume.externalID());
-                                volumeHolding.setMediaType(titleRecord.mediaType());
-                                volumeHolding.setCarrierType(titleRecord.carrierType());
-                                volumeHolding.setDate(volume.firstDate(), volume.lastDate());
+                                volumeHolding.addParent(titleRecord.getExternalID());
+                                volumeHolding.addParent(volume.getExternalID());
+                                volumeHolding.setMediaType(titleRecord.getMediaType());
+                                volumeHolding.setCarrierType(titleRecord.getCarrierType());
+                                volumeHolding.setDate(volume.getFirstDate(), volume.getLastDate());
                                 volumeHolding.setName(holdingsLicensesMerger.bibdatLookup()
                                         .lookupName().get(isil));
                                 volumeHolding.setRegion(holdingsLicensesMerger.bibdatLookup()
@@ -913,7 +913,7 @@ public class HoldingsLicensesWorker
     private Set<String> findTheRelationsBetween(TitleRecord titleRecord, String id) {
         Set<String> relationNames = new HashSet<>();
         for (String entry : TitleRecord.getRelationEntries()) {
-            Object o = titleRecord.map().get(entry);
+            Object o = titleRecord.getMap().get(entry);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -945,7 +945,7 @@ public class HoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void setAllRelationsBetween(TitleRecord titleRecord, Collection<TitleRecord> cluster) {
         for (String relation : TitleRecord.getRelationEntries()) {
-            Object o = titleRecord.map().get(relation);
+            Object o = titleRecord.getMap().get(relation);
             if (o != null) {
                 if (!(o instanceof List)) {
                     o = Collections.singletonList(o);
@@ -962,7 +962,7 @@ public class HoldingsLicensesWorker
                             continue;
                         } else {
                             if (logger.isTraceEnabled()) {
-                                logger.trace("entry {} has no relation name in {}", entry, titleRecord.externalID());
+                                logger.trace("entry {} has no relation name in {}", entry, titleRecord.getExternalID());
                             }
                             continue;
                         }
@@ -973,10 +973,10 @@ public class HoldingsLicensesWorker
                             ((List) internalObj).get(0).toString() : internalObj.toString();
                     for (TitleRecord m : cluster) {
                         // self?
-                        if (m.id().equals(titleRecord.id())) {
+                        if (m.getID().equals(titleRecord.getID())) {
                             continue;
                         }
-                        if (m.id().equals(value)) {
+                        if (m.getID().equals(value)) {
                             titleRecord.addRelated(key, m);
                             // special trick: move over links from online to print
                             if ("hasPrintEdition".equals(key)) {
@@ -988,7 +988,7 @@ public class HoldingsLicensesWorker
                             } else {
                                 if (logger.isTraceEnabled()) {
                                     logger.trace("no inverse relation for {} in {}, using 'isRelatedTo'", key,
-                                            titleRecord.externalID());
+                                            titleRecord.getExternalID());
                                 }
                                 m.addRelated("isRelatedTo", titleRecord);
                             }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ctx:context-objects xmlns:ctx="info:ofi/fmt:xml:xsd:ctx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:ofi/fmt:xml:xsd:ctx-2004 http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:ctx">
+    <ctx:context-object timestamp="2002-06-14T12:13:00Z" version="Z39.88-2004" identifier="125">
+        <ctx:referent>
+            <ctx:metadata-by-val>
+                <ctx:format>info:ofi/fmt:xml:xsd:journal</ctx:format>
+                <ctx:metadata>
+                    <rft:journal xmlns:rft="info:ofi/fmt:xml:xsd:journal" xsi:schemaLocation="info:ofi/fmt:xml:xsd:journal http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:journal">
+                        <rft:authors>
+                            <rft:author>
+                                <rft:aulast>Bergelson</rft:aulast>
+                                <rft:auinit>J</rft:auinit>
+                            </rft:author>
+                        </rft:authors>
+                        <rft:atitle>Isolation of a common receptor for coxsackie B viruses and adenoviruses 2 and 5</rft:atitle>
+                        <rft:jtitle>Science</rft:jtitle>
+                        <rft:date>1997</rft:date>
+                        <rft:volume>275</rft:volume>
+                        <rft:spage>1320</rft:spage>
+                        <rft:epage>1323</rft:epage>
+                    </rft:journal>
+                </ctx:metadata>
+            </ctx:metadata-by-val>
+        </ctx:referent>
+        <ctx:referring-entity>
+            <ctx:identifier>info:doi/10.1006/mthe.2000.0239</ctx:identifier>
+        </ctx:referring-entity>
+        <ctx:requester>
+            <ctx:metadata-by-ref>
+                <ctx:format>http://my.example.org/eduperson.xsd</ctx:format>
+                <ctx:location>ldap://ldap.caltech.edu:389/janed</ctx:location>
+            </ctx:metadata-by-ref>
+        </ctx:requester>
+        <ctx:referrer>
+            <ctx:identifier>info:sid/elsevier.com:ScienceDirect</ctx:identifier>
+        </ctx:referrer>
+    </ctx:context-object>
+</ctx:context-objects>

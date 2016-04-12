@@ -31,23 +31,18 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
-public class MonographVolumeHolding extends Holding {
+public class MonographVolumeHolding extends MonographHolding {
 
     public MonographVolumeHolding(Map<String, Object> map, MonographVolume volume) {
-        super(map);
+        super(map, volume);
         this.identifier = makeIdentity(volume);
     }
 
     private String makeIdentity(MonographVolume volume) {
         StringBuilder sb = new StringBuilder();
-        sb.append(volume.id()).append('_').append(isil);
+        sb.append(volume.getID()).append('_').append(isil);
         if (map.containsKey("callnumber")) {
             sb.append('_').append(map.get("callnumber"));
         }
@@ -55,92 +50,6 @@ public class MonographVolumeHolding extends Holding {
             sb.append('_').append(map.get("shelfmark"));
         }
         return sb.toString();
-    }
-
-    protected void build() {
-        this.isil = getString("member");
-        setServiceISIL(isil);
-        Object o = get("interlibraryservice");
-        if (o != null) {
-            if (!(o instanceof List)) {
-                o = Collections.singletonList(o);
-            }
-            setServiceMode(o);
-            setServiceType("interlibrary");
-        }
-        this.info = buildInfo();
-    }
-
-    public MonographVolumeHolding setMediaType(String mediaType) {
-        this.mediaType = mediaType;
-        return this;
-    }
-
-    public MonographVolumeHolding setCarrierType(String carrierType) {
-        this.carrierType = carrierType;
-        setPriority(this.findPriority());
-        return this;
-    }
-
-    public MonographVolumeHolding setDate(Integer from, Integer to) {
-        List<Integer> dates = new ArrayList<>();
-        if (from != null && to != null) {
-            for (Integer i = from; i <= to; i++) {
-                dates.add(i);
-            }
-        } else if (from != null) {
-            dates.add(from);
-        }
-        if (!dates.isEmpty()) {
-            this.firstdate = dates.get(0);
-            this.lastdate = dates.get(dates.size() - 1);
-            this.dates = new TreeSet<>(dates);
-        }
-        return this;
-    }
-
-    protected Map<String, Object> buildInfo() {
-        return new HashMap<>();
-    }
-
-    public String getStatus() {
-        return (String)map.get("status");
-    }
-
-    @Override
-    protected Integer findPriority() {
-        if (carrierType == null) {
-            return 9;
-        }
-        switch (carrierType) {
-            case "online resource":
-                Object o = getServiceDistribution();
-                if (o != null) {
-                    if (o instanceof List) {
-                        List l = (List)o;
-                        if (l.contains("postal")) {
-                            return 3;
-                        }
-                    } else if (o.toString().equals("postal")) {
-                        return 3;
-                    }
-                }
-                return 1;
-            case "volume":
-                return 2;
-            case "computer disc":
-                return 4;
-            case "computer tape cassette":
-                return 4;
-            case "computer chip cartridge":
-                return 4;
-            case "microform":
-                return 5;
-            case "other":
-                return 6;
-            default:
-                throw new IllegalArgumentException("unknown carrier: " + carrierType());
-        }
     }
 
     @Override

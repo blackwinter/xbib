@@ -31,27 +31,15 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import org.xbib.util.Strings;
-
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class MonographVolume extends TitleRecord {
+public class MonographVolume extends Monograph {
 
-    protected final TitleRecord titleRecord;
+    private final TitleRecord titleRecord;
 
-    protected List<String> parents = new LinkedList<>();
-
-    protected Map<String,Object> conference;
-
-    protected String volumeDesignation;
-
-    protected String numbering;
-
-    protected List<String> genres;
+    private final List<String> parents = new LinkedList<>();
 
     public MonographVolume(Map<String, Object> map, TitleRecord titleRecord) {
         super(map);
@@ -63,24 +51,12 @@ public class MonographVolume extends TitleRecord {
         return titleRecord;
     }
 
-    public List<String> parents() {
+    public void addParent(String parent) {
+        parents.add(parent);
+    }
+
+    public  List<String> getParents() {
         return parents;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public String getVolumeDesignation() {
-        return volumeDesignation;
-    }
-
-    public String getNumbering() {
-        return numbering;
-    }
-
-    public List<String> genres() {
-        return genres;
     }
 
     @Override
@@ -95,194 +71,12 @@ public class MonographVolume extends TitleRecord {
         makeIdentifiers();
     }
 
-    public Map<String,Object> conference() {
-        return conference;
-    }
-
-    public void addParent(String parent) {
-        this.parents.add(parent);
-    }
-
+    @Override
     protected void makeIdentity() {
         String s = getString("RecordIdentifier.identifierForTheRecord");
         this.identifier = s != null ? s : "undefined";
         s = getString("IdentifierZDB.identifierZDB");
         this.externalID = s != null ? s : identifier;
-    }
-
-    @Override
-    protected void makeCorporate() {
-        this.corporate = getString("CorporateName.corporateName");
-    }
-
-    protected void makeConference() {
-        this.conference = getAnyObject("Conference");
-    }
-
-    @Override
-    protected void makeTitle() {
-        // shorten title (series statement after '/' or ':')
-        // but combine with corporate name, meeting name, and part specification
-        StringBuilder sb = new StringBuilder();
-        String titleMain = getString("TitleStatement.titleMain");
-        sb.append(clean(titleMain));
-        titleComponents.addAll(split(titleMain));
-        String titleRemainder = getString("TitleStatement.titleRemainder");
-        if (!Strings.isNullOrEmpty(titleRemainder)) {
-            sb.append(" ; ").append(titleRemainder);
-            titleComponents.addAll(split(titleRemainder));
-        }
-        String titleAddendum = getString("TitleAddendum.title");
-        if (!Strings.isNullOrEmpty(titleAddendum)) {
-            sb.append(" ; ").append(titleAddendum);
-            titleComponents.addAll(split(titleAddendum));
-        }
-        String subSeriesStatement = getString("SubseriesStatement.title");
-        if (!Strings.isNullOrEmpty(subSeriesStatement)) {
-            sb.append(" ; ").append(subSeriesStatement);
-            titleComponents.addAll(split(subSeriesStatement));
-        }
-        this.volumeDesignation = getString("SortableVolumeDesignation.volumeDesignation");
-        if (!Strings.isNullOrEmpty(volumeDesignation)) {
-            sb.append(" ; ").append(volumeDesignation);
-            titleComponents.addAll(split(volumeDesignation));
-        }
-        // add part name / part number
-        String partName = clean(getString("SeriesAddedEntryUniformTitle.title"));
-        if (!Strings.isNullOrEmpty(partName)) {
-            sb.append(" ; ").append(partName);
-            titleComponents.addAll(split(partName));
-        }
-        // numbering is already in partName
-        this.numbering = getString("SeriesAddedEntryUniformTitle.number");
-        setTitle(sb.toString());
-        // extended title
-        // proper title
-        String titleProper = clean(getString("TitleProper.title"));
-        if (!Strings.isNullOrEmpty(titleProper)) {
-            sb.append(" ; ").append(titleProper);
-            titleComponents.addAll(split(titleProper));
-        }
-        if (!Strings.isNullOrEmpty(corporate)) {
-            sb.append(" / ").append(corporate);
-            titleComponents.add(corporate);
-        }
-        if (!Strings.isNullOrEmpty(meeting)) {
-            sb.append(" / ").append(meeting);
-            titleComponents.add(meeting);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void makePublisher() {
-        this.publisherName = getString("PublisherName.publisherName");
-        if (this.publisherName == null) {
-            this.publisherName = getString("PublisherName.printerName");
-        }
-        if (this.publisherName == null) {
-            this.publisherName = getString("PublisherName.name");
-        }
-        this.publisherPlace = getString("PublicationPlace.publisherPlace");
-        if (this.publisherPlace == null) {
-            this.publisherPlace = getString("PublicationPlace.printingPlace");
-        }
-        if (this.publisherPlace == null) {
-            this.publisherPlace = getString("PublicationPlace.place");
-        }
-        this.language = getString("Language.languageSource", null);
-        Object o = getAnyObject("Country.countryISO");
-        if (o instanceof List) {
-            this.country = (List<String>) o;
-        } else if (o instanceof String) {
-            List<String> l = new LinkedList<>();
-            l.add((String) o);
-            this.country = l;
-        } else {
-            this.country =  new LinkedList();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void makeGenre() {
-        this.resourceType = getString("TypeMedia");
-        Object o = getAnyObject("TypeMonograph");
-        if (o instanceof List) {
-            this.genres = (List<String>) o;
-        } else if (o instanceof String) {
-            List<String> l = new LinkedList();
-            l.add((String) o);
-            this.genres = l;
-        } else {
-            this.genres = new LinkedList<>();
-        }
-    }
-
-    protected void makeDate() {
-        Integer firstDate = getInteger("DateFirst.date");
-        if (firstDate == null) {
-            firstDate = getInteger("DateProper.date");
-        }
-        if (firstDate == null) {
-            firstDate = getInteger("DateOther.date");
-        }
-        if (firstDate == null) {
-            firstDate = getInteger("Conference.conferenceDate");
-        }
-        this.firstDate = firstDate == null ? null : firstDate == 9999 ? null : firstDate;
-        // only single date by default
-        this.lastDate = null;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void makeIdentifiers() {
-        Map<String, Object> m = new HashMap<>();
-        // get and convert all ISSN
-        Object o = map.get("IdentifierISSN");
-        if (o != null) {
-            if (!(o instanceof List)) {
-                o = Collections.singletonList(o);
-            }
-            List<String> issns = new LinkedList<>();
-            List<Map<String, Object>> l = (List<Map<String, Object>>) o;
-            for (Map<String, Object> aL : l) {
-                Object oo = aL.get("identifierISSN");
-                if (!(oo instanceof List)) {
-                    oo = Collections.singletonList(oo);
-                }
-                for (String s : (List<String>)oo) {
-                    if (s != null) {
-                        issns.add(s.replaceAll("\\-", "").toLowerCase());
-                    }
-                }
-            }
-            if (!issns.isEmpty()) {
-                m.put("issn", issns);
-            }
-        }
-        // get and convert all ISBN
-        o = map.get("IdentifierISBN");
-        if (o != null) {
-            if (!(o instanceof List)) {
-                o = Collections.singletonList(o);
-            }
-            List<String> isbns = new LinkedList<>();
-            List<Map<String, Object>> l = (List<Map<String, Object>>) o;
-            for (Map<String, Object> aL : l) {
-                Object oo = aL.get("identifierISBN");
-                if (!(oo instanceof List)) {
-                    oo = Collections.singletonList(oo);
-                }
-                for (String s : (List<String>)oo) {
-                    if (s != null) {
-                        isbns.add(s.replaceAll("\\-", "").toLowerCase());
-                    }
-                }
-            }
-            if (!isbns.isEmpty()) {
-                m.put("isbn", isbns);
-            }
-        }
-        this.identifiers = m;
     }
 
     @Override
@@ -297,7 +91,7 @@ public class MonographVolume extends TitleRecord {
 
     @Override
     public int compareTo(TitleRecord m) {
-        return externalID.compareTo(m.externalID());
+        return externalID.compareTo(m.getExternalID());
     }
 
 }

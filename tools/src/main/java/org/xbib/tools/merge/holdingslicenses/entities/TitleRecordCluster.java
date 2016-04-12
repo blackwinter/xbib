@@ -114,17 +114,17 @@ public class TitleRecordCluster {
         if (main.size() == 1) {
             TitleRecord tr = main.iterator().next();
             headRecords.add(tr);
-            this.firstDate = tr.firstDate();
-            this.lastDate = tr.lastDate();
+            this.firstDate = tr.getFirstDate();
+            this.lastDate = tr.getLastDate();
         } else {
             for (TitleRecord m : this.main) {
-                if (m.firstDate() == null) {
+                if (m.getFirstDate() == null) {
                     continue;
                 }
-                if (m.firstDate() < this.firstDate) {
-                    this.firstDate = m.firstDate();
+                if (m.getFirstDate() < this.firstDate) {
+                    this.firstDate = m.getFirstDate();
                 }
-                int d = m.lastDate() == null ? currentYear : m.lastDate();
+                int d = m.getLastDate() == null ? currentYear : m.getLastDate();
                 if (d > this.lastDate) {
                     this.lastDate = d;
                 }
@@ -132,10 +132,10 @@ public class TitleRecordCluster {
                 MultiMap<String,TitleRecord> mm  = m.getRelated();
                 for (String key : mm.keySet()) {
                     for (TitleRecord p : mm.get(key)) {
-                        if (p.firstDate() != null && p.firstDate() < firstDate) {
-                            this.firstDate = p.firstDate();
+                        if (p.getFirstDate() != null && p.getFirstDate() < firstDate) {
+                            this.firstDate = p.getFirstDate();
                         }
-                        d = p.lastDate() == null ? currentYear : p.lastDate();
+                        d = p.getLastDate() == null ? currentYear : p.getLastDate();
                         if (d > this.lastDate) {
                             this.lastDate = d;
                         }

@@ -87,18 +87,18 @@ public class Expression {
         builder.startArray("titles");
         for (TitleRecord titleRecord : titleRecordCluster.getMain()) {
             builder.startObject();
-            builder.field("identifierForTheTitle", titleRecord.externalID());
-            builder.field("firstdate", titleRecord.firstDate());
-            builder.field("lastdate", titleRecord.lastDate());
+            builder.field("identifierForTheTitle", titleRecord.getExternalID());
+            builder.field("firstdate", titleRecord.getFirstDate());
+            builder.field("lastdate", titleRecord.getLastDate());
             builder.array("title", titleRecord.getTitleComponents());
             builder.endObject();
             // list all monographic volumes of this title record
             synchronized (titleRecord.getMonographVolumes()) {
                 for (MonographVolume monographVolume : titleRecord.getMonographVolumes()) {
                     builder.startObject();
-                    builder.field("identifierForTheTitle", monographVolume.externalID());
-                    builder.field("firstdate", monographVolume.firstDate());
-                    builder.field("lastdate", monographVolume.lastDate());
+                    builder.field("identifierForTheTitle", monographVolume.getExternalID());
+                    builder.field("firstdate", monographVolume.getFirstDate());
+                    builder.field("lastdate", monographVolume.getLastDate());
                     builder.array("title", monographVolume.getTitleComponents());
                     builder.endObject();
                 }
@@ -106,19 +106,19 @@ public class Expression {
         }
         for (TitleRecord titleRecord : titleRecordCluster.getOther()) {
             builder.startObject();
-            builder.field("identifierForTheTitle", titleRecord.externalID());
+            builder.field("identifierForTheTitle", titleRecord.getExternalID());
             builder.field("main", false);
-            builder.field("firstdate", titleRecord.firstDate());
-            builder.field("lastdate", titleRecord.lastDate());
+            builder.field("firstdate", titleRecord.getFirstDate());
+            builder.field("lastdate", titleRecord.getLastDate());
             builder.array("title", titleRecord.getTitleComponents());
             builder.endObject();
             // list all monographic volumes of this title record
             synchronized (titleRecord.getMonographVolumes()) {
                 for (MonographVolume monographVolume : titleRecord.getMonographVolumes()) {
                     builder.startObject();
-                    builder.field("identifierForTheTitle", monographVolume.externalID());
-                    builder.field("firstdate", monographVolume.firstDate());
-                    builder.field("lastdate", monographVolume.lastDate());
+                    builder.field("identifierForTheTitle", monographVolume.getExternalID());
+                    builder.field("firstdate", monographVolume.getFirstDate());
+                    builder.field("lastdate", monographVolume.getLastDate());
                     builder.array("title", monographVolume.getTitleComponents());
                     builder.endObject();
                 }
@@ -130,6 +130,6 @@ public class Expression {
 
     @Override
     public String toString() {
-        return titleRecord.externalID();
+        return titleRecord.getExternalID();
     }
 }

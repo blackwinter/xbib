@@ -46,6 +46,7 @@ import org.xbib.metrics.Meter;
 import org.xbib.tools.merge.holdingslicenses.entities.Holding;
 import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
 import org.xbib.tools.merge.holdingslicenses.entities.License;
+import org.xbib.tools.merge.holdingslicenses.entities.Monograph;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
@@ -128,12 +129,16 @@ public class SimpleHoldingsLicensesWorker
                     break;
                 }
                 long t0 = System.nanoTime();
-                process(titleRecord);
+                if (titleRecord instanceof Monograph) {
+                    processMonographTitle((Monograph)titleRecord);
+                } else {
+                    processSerialTitle(titleRecord);
+                }
                 long t1 = System.nanoTime();
-                long delta = (t1 -t0) / 1000000;
+                long delta = (t1 - t0) / 1000000;
                 // warn if delta is longer than 10 secs
                 if (delta > 10000) {
-                    logger.warn("long processing of {}: {} ms", titleRecord.externalID(), delta);
+                    logger.warn("long processing of {}: {} ms", titleRecord.getExternalID(), delta);
                 }
                 metric.mark();
             }
@@ -158,8 +163,8 @@ public class SimpleHoldingsLicensesWorker
         return SimpleHoldingsLicensesMerger.class.getSimpleName() + "." + number;
     }
 
-    private void process(TitleRecord titleRecord) throws IOException {
-        boolean isOnline = "online resource".equals(titleRecord.carrierType());
+    private void processSerialTitle(TitleRecord titleRecord) throws IOException {
+        boolean isOnline = "online resource".equals(titleRecord.getCarrierType());
         // collect all IDs from all carrier relations that we want to integrate
         Collection<String> internalIDs = new HashSet<>();
         Collection<String> externalIDs = new HashSet<>();
@@ -174,9 +179,9 @@ public class SimpleHoldingsLicensesWorker
             }
         }
         logger.debug("IDs: {}/{} -> {}/{} online={}",
-                titleRecord.id(), titleRecord.externalID(),
+                titleRecord.getID(), titleRecord.getExternalID(),
                 internalIDs, externalIDs, isOnline);
-        addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.id());
+        addSerialHoldings(titleRecord, "(DE-600)" + titleRecord.getID());
         for (String id : internalIDs) {
             addSerialHoldings(titleRecord, "(DE-600)" + id.toUpperCase());
         }
@@ -391,7 +396,7 @@ public class SimpleHoldingsLicensesWorker
 
     private void addMonographs(TitleRecord titleRecord) throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.externalID()));
+        queryBuilder.should(termQuery("IdentifierZDB.identifierZDB", titleRecord.getExternalID()));
         for (String issn : titleRecord.getISSNs()) {
             // not guaranteed which ISSN is really the print or online edition!
             queryBuilder.should(termQuery("IdentifierISSN.identifierISSN", issn));
@@ -432,7 +437,7 @@ public class SimpleHoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void addExtraHoldings(MonographVolume volume) {
         TitleRecord titleRecord = volume.getTitleRecord();
-        String key = volume.id();
+        String key = volume.getID();
         SearchRequestBuilder holdingsSearchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(simpleHoldingsLicensesMerger.getSourceMonographicHoldingsIndex())
@@ -465,10 +470,10 @@ public class SimpleHoldingsLicensesWorker
                         if (simpleHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
                             continue;
                         }
-                        volumeHolding.addParent(volume.externalID());
-                        volumeHolding.setMediaType(titleRecord.mediaType());
-                        volumeHolding.setCarrierType(titleRecord.carrierType());
-                        volumeHolding.setDate(volume.firstDate(), volume.lastDate());
+                        volumeHolding.addParent(volume.getExternalID());
+                        volumeHolding.setMediaType(titleRecord.getMediaType());
+                        volumeHolding.setCarrierType(titleRecord.getCarrierType());
+                        volumeHolding.setDate(volume.getFirstDate(), volume.getLastDate());
                         volumeHolding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(isil));
                         volumeHolding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup()
@@ -501,7 +506,7 @@ public class SimpleHoldingsLicensesWorker
     @SuppressWarnings("unchecked")
     private void addSeriesVolumeHoldings(MonographVolume parent) throws IOException {
         TitleRecord titleRecord = parent.getTitleRecord();
-        if (parent.id() == null || parent.id().isEmpty()) {
+        if (parent.getID() == null || parent.getID().isEmpty()) {
             return;
         }
         // search children volumes of the series (conference, processing, abstract, ...)
@@ -510,8 +515,8 @@ public class SimpleHoldingsLicensesWorker
                 .setIndices(simpleHoldingsLicensesMerger.getSourceMonographicIndex())
                 .setSize(scrollSize)
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.id()))
-                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.id())))
+                .setQuery(boolQuery().should(termQuery("SeriesAddedEntryUniformTitle.designation", parent.getID()))
+                        .should(termQuery("RecordIdentifierSuper.recordIdentifierSuper", parent.getID())))
                 .addSort(SortBuilders.fieldSort("_doc"));
         SearchResponse searchResponse = searchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
         logger.debug("addSeriesVolumeHoldings search request={} hits={}",
@@ -520,14 +525,14 @@ public class SimpleHoldingsLicensesWorker
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
                 MonographVolume volume = new MonographVolume(hit.getSource(), titleRecord);
-                volume.addParent(titleRecord.externalID());
+                volume.addParent(titleRecord.getExternalID());
                 // for each conference/congress, search holdings
                 SearchRequestBuilder holdingsSearchRequest = simpleHoldingsLicensesMerger.search().client()
                         .prepareSearch()
                         .setIndices(simpleHoldingsLicensesMerger.getSourceMonographicHoldingsIndex())
                         .setSize(scrollSize)
                         .setScroll(TimeValue.timeValueMillis(scrollMillis))
-                        .setQuery(termQuery("xbib.uid", volume.id()))
+                        .setQuery(termQuery("xbib.uid", volume.getID()))
                         .addSort(SortBuilders.fieldSort("_doc"));
                 SearchResponse holdingSearchResponse = holdingsSearchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
                 getMetric().mark();
@@ -556,11 +561,11 @@ public class SimpleHoldingsLicensesWorker
                                 if (simpleHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
                                     continue;
                                 }
-                                volumeHolding.addParent(titleRecord.externalID());
-                                volumeHolding.addParent(volume.externalID());
-                                volumeHolding.setMediaType(titleRecord.mediaType());
-                                volumeHolding.setCarrierType(titleRecord.carrierType());
-                                volumeHolding.setDate(volume.firstDate(), volume.lastDate());
+                                volumeHolding.addParent(titleRecord.getExternalID());
+                                volumeHolding.addParent(volume.getExternalID());
+                                volumeHolding.setMediaType(titleRecord.getMediaType());
+                                volumeHolding.setCarrierType(titleRecord.getCarrierType());
+                                volumeHolding.setDate(volume.getFirstDate(), volume.getLastDate());
                                 volumeHolding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                         .lookupName().get(isil));
                                 volumeHolding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup()
@@ -616,6 +621,79 @@ public class SimpleHoldingsLicensesWorker
         long total = searchResponse.getHits().getTotalHits();
         logger.debug("openaccess: query {}", searchRequestBuilder, total);
         return total > 0;
+    }
+
+    private void processMonographTitle(Monograph monograph) throws IOException {
+        addMonographHoldings(monograph);
+        simpleHoldingsLicensesMerger.getHoldingsLicensesIndexer().indexMonograph(monograph);
+    }
+
+    private void addMonographHoldings(Monograph monograph) throws IOException {
+        SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
+                .prepareSearch()
+                .setIndices(simpleHoldingsLicensesMerger.getSourceMonographicHoldingsIndex())
+                .setQuery(termQuery("xbib.uid", "(DE-605)" + monograph.getID()))
+                .setSize(scrollSize)  // size is per shard!
+                .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                .addSort(SortBuilders.fieldSort("_doc"));
+        SearchResponse searchResponse = searchRequest.execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
+        logger.debug("monograph holdings: search request = {} hits = {}",
+                searchRequest.toString(),
+                searchResponse.getHits().getTotalHits());
+        while (searchResponse.getHits().getHits().length > 0){
+            getMetric().mark();
+            for (SearchHit hit : searchResponse.getHits()) {
+                Holding holding = new Holding(hit.getSource());
+                if (holding.isDeleted()) {
+                    continue;
+                }
+                String isil = holding.getISIL();
+                if (isil == null) {
+                    continue;
+                }
+                // mapped ISIL?
+                if (simpleHoldingsLicensesMerger.mappedISIL().lookup().containsKey(isil)) {
+                    isil = (String) simpleHoldingsLicensesMerger.mappedISIL().lookup().get(isil);
+                }
+                // consortia?
+                if (simpleHoldingsLicensesMerger.consortiaLookup().lookupISILs().containsKey(isil)) {
+                    List<String> list = simpleHoldingsLicensesMerger.consortiaLookup().lookupISILs().get(isil);
+                    for (String expandedisil : list) {
+                        // blacklisted expanded ISIL?
+                        if (simpleHoldingsLicensesMerger.blackListedISIL().lookup(expandedisil)) {
+                            continue;
+                        }
+                        // new Holding for each ISIL
+                        holding = new Holding(holding.map());
+                        holding.setISIL(isil);
+                        holding.setServiceISIL(expandedisil);
+                        holding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
+                                .lookupName().get(expandedisil));
+                        holding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup()
+                                .lookupRegion().get(expandedisil));
+                        holding.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup()
+                                .lookupOrganization().get(expandedisil));
+                        monograph.addRelatedHolding(expandedisil, holding);
+                    }
+                } else {
+                    // blacklisted ISIL?
+                    if (simpleHoldingsLicensesMerger.blackListedISIL().lookup(isil)) {
+                        continue;
+                    }
+                    holding.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(isil));
+                    holding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
+                    holding.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
+                    monograph.addRelatedHolding(isil, holding);
+                }
+            }
+            searchResponse = simpleHoldingsLicensesMerger.search().client()
+                    .prepareSearchScroll(searchResponse.getScrollId())
+                    .setScroll(TimeValue.timeValueMillis(scrollMillis))
+                    .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
+        }
+        simpleHoldingsLicensesMerger.search().client()
+                .prepareClearScroll().addScrollId(searchResponse.getScrollId())
+                .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
     }
 
 }

@@ -186,7 +186,7 @@ public class ArticlesMerger extends Merger {
                                 TitleRecord m = expandZdbId(indexDefinitionMap, relid);
                                 if (m != null) {
                                     titleRecords.add(m);
-                                    logger.debug("{} + {} added manifestation", titleRecord.externalID(), m.externalID());
+                                    logger.debug("{} + {} added manifestation", titleRecord.getExternalID(), m.getExternalID());
                                     manifestationDates = m.getDates();
                                     if (manifestationDates != null) {
                                         dates.addAll(manifestationDates);
@@ -199,12 +199,12 @@ public class ArticlesMerger extends Merger {
                         SerialItem serialItem = new SerialItem();
                         serialItem.setDate(date);
                         for (TitleRecord m : titleRecords) {
-                            if (m.firstDate() != null && m.lastDate() != null) {
-                                if (m.firstDate() <= date && date <= m.lastDate()) {
+                            if (m.getFirstDate() != null && m.getLastDate() != null) {
+                                if (m.getFirstDate() <= date && date <= m.getLastDate()) {
                                     serialItem.addManifestation(titleRecord);
                                 }
-                            } else if (m.firstDate() != null) {
-                                if (m.firstDate() <= date) {
+                            } else if (m.getFirstDate() != null) {
+                                if (m.getFirstDate() <= date) {
                                     serialItem.addManifestation(titleRecord);
                                 }
                             }
@@ -279,7 +279,7 @@ public class ArticlesMerger extends Merger {
             String license = hits.getAt(0).getSource().containsKey("dc:rights") ?
                     hits.getAt(0).getSource().get("dc:rights").toString() : null;
             titleRecord.setLicense(license);
-            logger.info("{} set to open access: {}", titleRecord.externalID(), license);
+            logger.info("{} set to open access: {}", titleRecord.getExternalID(), license);
         }
         return titleRecord;
     }

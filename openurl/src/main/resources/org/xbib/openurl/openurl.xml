@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns="info:openurl/config">
+    <processor>
+        <className>org.xbib.openurl.internal.InternalOpenURLRequestProcessor</className>
+    </processor>
+    <profiles>
+        <!-- San Antonio Community Profile Level 1 -->
+        <registry-identifier>info:ofi/pro:sap1-2004</registry-identifier>
+    </profiles>
+    <transportMap>
+        <transport>
+            <className>org.xbib.openurl.internal.transports.HTTPOpenURLInlineTransport</className>
+        </transport>
+    </transportMap>
+    <serviceMap>
+        <service id="info:localhost/svc/HelloWorld">
+            <className>org.xbib.openurl.internal.services.HelloWorld</className>
+            <args><something>Hello World</something></args>
+        </service>
+    </serviceMap>
+</config>

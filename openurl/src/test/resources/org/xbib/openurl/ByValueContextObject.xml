@@ -1,0 +1,19 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+<ctx:context-object xmlns:ctx="info:ofi/fmt:xml:xsd:ctx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="info:ofi/fmt:xml:xsd:ctx http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:ctx"
+timestamp="2002-06-14T12:13:00Z" version="Z39.88-2004" identifier="125">
+    <ctx:referent>
+        <ctx:identifier>info:doi/10.1126/science.275.5304.1320
+        </ctx:identifier> 
+        <ctx:identifier>info:pmid/9036860</ctx:identifier>
+    </ctx:referent>
+    <ctx:referring-entity>
+        <ctx:identifier>info:doi/10.1006/mthe.2000.0239</ctx:identifier>
+    </ctx:referring-entity>
+    <ctx:requester>
+        <ctx:identifier>mailto:jane.doe@caltech.edu</ctx:identifier>
+    </ctx:requester>
+    <ctx:referrer>
+        <ctx:identifier>info:sid/elsevier.com:ScienceDirect</ctx:identifier>
+    </ctx:referrer>
+</ctx:context-object>

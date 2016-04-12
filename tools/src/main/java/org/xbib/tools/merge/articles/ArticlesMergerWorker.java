@@ -370,7 +370,7 @@ public class ArticlesMergerWorker
         Collection<Map<String,Object>> publications = new HashSet<>();
         for (TitleRecord titleRecord : serialItem.getTitleRecords()) {
             Map<String, Object> publication = new HashMap<>();
-            String zdbid = titleRecord.externalID();
+            String zdbid = titleRecord.getExternalID();
             publication.put("xbib:zdbid", zdbid);
             // hyphenated form of ZDB ID for linking to ld.zdb-services.de
             String zdbIdWithHyphen = new StringBuilder(zdbid).insert(zdbid.length() - 1, "-").toString();
@@ -383,9 +383,9 @@ public class ArticlesMergerWorker
             publication.put("prism:issn", titleRecord.getIdentifiers().get("formattedissn"));
             publication.put("dc:rights", titleRecord.getLicense());
             publication.put("xbib:doaj", titleRecord.isOpenAccess());
-            publication.put("xbib:media", titleRecord.mediaType());
-            publication.put("xbib:content", titleRecord.contentType());
-            publication.put("xbib:carrier", titleRecord.carrierType());
+            publication.put("xbib:media", titleRecord.getMediaType());
+            publication.put("xbib:content", titleRecord.getContentType());
+            publication.put("xbib:carrier", titleRecord.getCarrierType());
             publications.add(publication);
         }
         if (publications.size() > 1) {
@@ -553,7 +553,7 @@ public class ArticlesMergerWorker
     private Set<String> getDDC(TitleRecord titleRecord) {
         // DDC
         Set<String> subjects = new HashSet<>();
-        Object o = titleRecord.map().get("DDCClassificationNumber");
+        Object o = titleRecord.getMap().get("DDCClassificationNumber");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);
@@ -578,7 +578,7 @@ public class ArticlesMergerWorker
     private Set<String> getAbbrev(TitleRecord titleRecord) {
         // Title abbrev
         Set<String> abbrevs = new HashSet<>();
-        Object o = titleRecord.map().get("AbbreviatedTitle");
+        Object o = titleRecord.getMap().get("AbbreviatedTitle");
         if (o != null) {
             if (!(o instanceof Collection)) {
                 o = Collections.singletonList(o);

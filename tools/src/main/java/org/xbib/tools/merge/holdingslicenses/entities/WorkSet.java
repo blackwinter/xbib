@@ -77,11 +77,11 @@ public class WorkSet {
         }
         // strategy: sort by date order descending
         Collections.sort(expressions, (o1, o2) -> {
-            Integer i1 = o1.getTitleRecord().firstDate();
+            Integer i1 = o1.getTitleRecord().getFirstDate();
             if (i1 == null) {
                 i1 = 0;
             }
-            Integer i2 = o2.getTitleRecord().firstDate();
+            Integer i2 = o2.getTitleRecord().getFirstDate();
             if (i2 == null) {
                 i2 = 0;
             }
@@ -94,7 +94,7 @@ public class WorkSet {
             }
         });
         // take all expressions with same year as works
-        Integer workdate = expressions.get(0).getTitleRecord().firstDate(); // anchor date
+        Integer workdate = expressions.get(0).getTitleRecord().getFirstDate(); // anchor date
         if (workdate == null) {
             workdate = currentYear;
         }
@@ -106,11 +106,11 @@ public class WorkSet {
         Iterator<Expression> it = expressions.iterator();
         while (it.hasNext()) {
             Expression expression = it.next();
-            if (expression.getTitleRecord().firstDate().equals(workdate)) {
+            if (expression.getTitleRecord().getFirstDate().equals(workdate)) {
                 works.add(expression);
                 statCounter.merge(expression.getStatCounter());
                 // count expression languages
-                statCounter.increase("lang", expression.getTitleRecord().language(), 1);
+                statCounter.increase("lang", expression.getTitleRecord().getLanguage(), 1);
                 it.remove(); // remove work from expressions
             }
         }
@@ -145,10 +145,10 @@ public class WorkSet {
             builder.startObject()
                     .field("identifierForTheWork", work.getTitleRecord().externalID)
                     .field("title", work.getTitleRecord().getTitleComponents())
-                    .field("firstdate", work.getTitleRecord().firstDate())
-                    .field("lastdate", work.getTitleRecord().lastDate())
-                    .field("language", work.getTitleRecord().language())
-                    .field("country", work.getTitleRecord().country())
+                    .field("firstdate", work.getTitleRecord().getFirstDate())
+                    .field("lastdate", work.getTitleRecord().getLastDate())
+                    .field("language", work.getTitleRecord().getLanguage())
+                    .field("country", work.getTitleRecord().getCountry())
                     .endObject();
         }
         builder.endArray();
@@ -158,10 +158,10 @@ public class WorkSet {
             builder.startObject()
                     .field("identifierForTheExpression", expression.getTitleRecord().externalID)
                     .field("title", expression.getTitleRecord().getTitleComponents())
-                    .field("firstdate", expression.getTitleRecord().firstDate())
-                    .field("lastdate", expression.getTitleRecord().lastDate())
-                    .field("language", expression.getTitleRecord().language())
-                    .field("country", expression.getTitleRecord().country())
+                    .field("firstdate", expression.getTitleRecord().getFirstDate())
+                    .field("lastdate", expression.getTitleRecord().getLastDate())
+                    .field("language", expression.getTitleRecord().getLanguage())
+                    .field("country", expression.getTitleRecord().getCountry())
                     .endObject();
         }
         builder.endArray();
@@ -171,6 +171,6 @@ public class WorkSet {
     @Override
     public String toString() {
          //first work only
-        return works.iterator().next().getTitleRecord().externalID();
+        return works.iterator().next().getTitleRecord().getExternalID();
     }
 }

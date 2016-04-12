@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressWarnings("unchecked")
 public class TitleRecord implements Comparable<TitleRecord> {
@@ -65,9 +63,9 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected String title;
 
-    protected String extendedTitle;
+    private String extendedTitle;
 
-    protected Set<String> titleComponents = new LinkedHashSet();
+    protected Set<String> titleComponents;
 
     protected String corporate;
 
@@ -91,6 +89,8 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     protected Map<String, Object> identifiers;
 
+    protected String resourceType;
+
     private boolean isDatabase;
 
     private boolean isPacket;
@@ -108,8 +108,6 @@ public class TitleRecord implements Comparable<TitleRecord> {
     private boolean isAggregate;
 
     private boolean openAccess;
-
-    protected String resourceType;
 
     private String genre;
 
@@ -228,27 +226,27 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return Collections.EMPTY_SET;
     }
 
-    public Map map() {
+    public Map getMap() {
         return map;
     }
 
-    public String id() {
+    public String getID() {
         return identifier;
     }
 
-    public String externalID() {
+    public String getExternalID() {
         return externalID;
     }
 
-    public String contentType() {
+    public String getContentType() {
         return contentType;
     }
 
-    public String mediaType() {
+    public String getMediaType() {
         return mediaType;
     }
 
-    public String carrierType() {
+    public String getCarrierType() {
         return carrierType;
     }
 
@@ -272,11 +270,11 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return titleComponents;
     }
 
-    public String corporateName() {
+    public String getCorporateName() {
         return corporate;
     }
 
-    public String meetingName() {
+    public String getMeetingName() {
         return meeting;
     }
 
@@ -288,27 +286,27 @@ public class TitleRecord implements Comparable<TitleRecord> {
         return publisherPlace;
     }
 
-    public String language() {
+    public String getLanguage() {
         return language;
     }
 
-    public List<String> country() {
+    public List<String> getCountry() {
         return country;
     }
 
-    public Integer firstDate() {
+    public Integer getFirstDate() {
         return firstDate;
     }
 
-    public Integer lastDate() {
+    public Integer getLastDate() {
         return lastDate;
     }
 
-    public String resourceType() {
+    public String getResourceType() {
         return resourceType;
     }
 
-    public String genre() {
+    public String getGenre() {
         return genre;
     }
 
@@ -432,6 +430,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
         StringBuilder sb = new StringBuilder();
         String titleMain = getString("TitleStatement.titleMain");
         sb.append(clean(titleMain));
+        titleComponents = new LinkedHashSet<>();
         titleComponents.addAll(split(titleMain));
         String titleRemainder = getString("TitleStatement.titleRemainder");
         if (!Strings.isNullOrEmpty(titleRemainder)) {
@@ -845,7 +844,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
         for (Integer date : holding.dates()) {
             holdingsByDate.put(date, holding);
         }
-        holding.addParent(this.externalID());
+        holding.addParent(this.getExternalID());
         if (!otherCarriers) {
             return;
         }
@@ -893,7 +892,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
         for (Integer date : indicator.dates()) {
             holdingsByDate.put(date, indicator);
         }
-        indicator.addParent(this.externalID());
+        indicator.addParent(this.getExternalID());
         // tricky: add this holding also to title records of other carrier editions!
         List<TitleRecord> list = new LinkedList();
         Collection<TitleRecord> trs = relatedRecords.get("hasPrintEdition");
@@ -1059,7 +1058,7 @@ public class TitleRecord implements Comparable<TitleRecord> {
 
     @Override
     public int compareTo(TitleRecord m) {
-        return externalID.compareTo(m.externalID());
+        return externalID.compareTo(m.getExternalID());
     }
 
 }
