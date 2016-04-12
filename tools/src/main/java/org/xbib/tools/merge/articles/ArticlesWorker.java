@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -532,6 +533,7 @@ public class ArticlesWorker
         }
         // collapse multiple authors
         collapseAuthorList(map1);
+        collapseTitleList(map1);
     }
 
     private void setPagination(Map<String,Object> map, Integer begin, Integer end) {
@@ -617,6 +619,32 @@ public class ArticlesWorker
             }
             map.put("dc:creator", dcCreator);
         }
+    }
+
+    private void collapseTitleList(Map<String,Object> map) {
+        List<String> titles = new ArrayList<>();
+        Object o = map.get("dc:title");
+        if (o != null) {
+            if (!(o instanceof Collection)) {
+                o = Collections.singletonList(o);
+            }
+            for (String s : (Collection<String>)o) {
+                if (titles.isEmpty()) {
+                    titles.add(s);
+                    continue;
+                }
+                boolean found = false;
+                for (String t : titles) {
+                    if (t.toLowerCase(Locale.US).equals(s.toLowerCase(Locale.US))) {
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    titles.add(s);
+                }
+            }
+        }
+        map.put("dc:title", titles);
     }
 
     private Set<String> getAbbrev(TitleRecord titleRecord) {
