@@ -35,6 +35,7 @@ import org.xbib.util.Strings;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +108,7 @@ public class Monograph extends TitleRecord {
         StringBuilder sb = new StringBuilder();
         String titleMain = getString("TitleStatement.titleMain");
         sb.append(clean(titleMain));
+        titleComponents = new LinkedHashSet<>();
         titleComponents.addAll(split(titleMain));
         String titleRemainder = getString("TitleStatement.titleRemainder");
         if (!Strings.isNullOrEmpty(titleRemainder)) {
