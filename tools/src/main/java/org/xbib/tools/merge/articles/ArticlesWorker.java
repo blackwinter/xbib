@@ -520,12 +520,17 @@ public class ArticlesWorker
                     set.addAll((Collection<Object>) o);
                     if (e.getValue() instanceof Collection) {
                         set.addAll((Collection)e.getValue());
-                    } else if (!(set.iterator().next() instanceof Map) || (e.getValue() instanceof Map)) {
+                    } else if ((!set.isEmpty() && !(set.iterator().next() instanceof Map)) || (e.getValue() instanceof Map)) {
                         set.add(e.getValue());
-                    } else {
-                        logger.warn("can't append value, wrong type: {}->{}", e.getKey(), e.getValue());
                     }
-                    map1.put(e.getKey(), set.size() > 1 ? set : set.iterator().next());
+                    if (!set.isEmpty()) {
+                        map1.put(e.getKey(), set.size() > 1 ? set : set.iterator().next());
+                    } else {
+                        logger.warn("key {} is now empty? value={} class={}",
+                                e.getKey(),
+                                e.getValue(),
+                                e.getValue() != null ? e.getValue().getClass() : "");
+                    }
                 }
             } else {
                 map1.put(e.getKey(), e.getValue());
@@ -533,6 +538,7 @@ public class ArticlesWorker
         }
         // collapse multiple authors
         collapseAuthorList(map1);
+        // collapse similar title (including typos!)
         collapseTitleList(map1);
     }
 
@@ -646,7 +652,9 @@ public class ArticlesWorker
                 }
             }
         }
-        map.put("dc:title", titles);
+        if (!titles.isEmpty()) {
+            map.put("dc:title", titles);
+        }
     }
 
     private String clean(String s) {
@@ -695,7 +703,7 @@ public class ArticlesWorker
      * @param s2 string 2
      * @return distance
      */
-    public double distance(String s1, String s2) {
+    private double distance(String s1, String s2) {
         if (s1.equals(s2)){
             return 0;
         }
@@ -714,7 +722,7 @@ public class ArticlesWorker
         for (int i = 0; i < s1.length(); i++) {
             v1[0] = i + 1;
             for (int j = 0; j < s2.length(); j++) {
-                int cost = (s1.charAt(i) == s2.charAt(j)) ? 0 : 1;
+                int cost = s1.charAt(i) == s2.charAt(j) ? 0 : 1;
                 v1[j + 1] = Math.min(v1[j] + 1, Math.min(v0[j + 1] + 1, v0[j] + cost));
             }
             vtemp = v0;
