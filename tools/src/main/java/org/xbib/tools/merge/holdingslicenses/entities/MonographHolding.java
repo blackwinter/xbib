@@ -45,18 +45,6 @@ public class MonographHolding extends Holding {
         this.identifier = makeIdentity(monograph);
     }
 
-    private String makeIdentity(Monograph monograph) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(monograph.getID()).append('_').append(isil);
-        if (map.containsKey("callnumber")) {
-            sb.append('_').append(map.get("callnumber"));
-        }
-        if (map.containsKey("shelfmark")) {
-            sb.append('_').append(map.get("shelfmark"));
-        }
-        return sb.toString();
-    }
-
     @Override
     protected void build() {
         this.isil = getString("member");
@@ -70,6 +58,21 @@ public class MonographHolding extends Holding {
             setServiceType("interlibrary");
         }
         this.info = buildInfo();
+    }
+
+    protected void makeParentIdentifier() {
+    }
+
+    private String makeIdentity(Monograph monograph) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(monograph.getID()).append('_').append(isil);
+        if (map.containsKey("callnumber")) {
+            sb.append('_').append(map.get("callnumber"));
+        }
+        if (map.containsKey("shelfmark")) {
+            sb.append('_').append(map.get("shelfmark"));
+        }
+        return sb.toString();
     }
 
     public MonographHolding setMediaType(String mediaType) {

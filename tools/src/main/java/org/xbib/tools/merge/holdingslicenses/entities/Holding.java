@@ -108,7 +108,7 @@ public class Holding implements Comparable<Holding> {
     }
 
     <T> T get(String key) {
-        return this.<T>get(map, key.split("\\."));
+        return this.get(map, key.split("\\."));
     }
 
     @SuppressWarnings("unchecked")
@@ -131,11 +131,7 @@ public class Holding implements Comparable<Holding> {
             throw new IllegalArgumentException("parent identifier must not be null");
         }
         this.identifier = this.identifier.replace('X', 'x');
-        this.parent = getString("ParentRecordIdentifier.identifierForTheParentRecord");
-        if (this.parent == null) {
-            throw new IllegalArgumentException("parent identifier must not be null");
-        }
-        this.parent = this.parent.replace('X','x'); // DNB-ID, turn 'X' to lower case
+        makeParentIdentifier();
         Object leader = map.get("leader");
         if (!(leader instanceof List)) {
             leader = Collections.singletonList(leader);
@@ -190,11 +186,20 @@ public class Holding implements Comparable<Holding> {
         setPriority(findPriority());
     }
 
-    public String identifier() {
+    protected void makeParentIdentifier() {
+        this.parent = getString("ParentRecordIdentifier.identifierForTheParentRecord");
+        if (this.parent == null) {
+            throw new IllegalArgumentException("parent identifier must not be null");
+        }
+        this.parent = this.parent.replace('X','x'); // DNB-ID, turn 'X' to lower case
+        parents.add(this.parent);
+    }
+
+    public String getIdentifier() {
         return identifier;
     }
 
-    public String parentIdentifier() {
+    public String getParentIdentifier() {
         return parent;
     }
 
@@ -204,7 +209,7 @@ public class Holding implements Comparable<Holding> {
         }
     }
 
-    public Set<String> parents() {
+    public Set<String> getParents() {
         return parents;
     }
 
@@ -569,16 +574,16 @@ public class Holding implements Comparable<Holding> {
 
     @Override
     public int compareTo(Holding o) {
-        return identifier().compareTo(o.identifier());
+        return getIdentifier().compareTo(o.getIdentifier());
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Holding && identifier().equals(((Holding)o).identifier());
+        return o instanceof Holding && getIdentifier().equals(((Holding)o).getIdentifier());
     }
 
     @Override
     public int hashCode() {
-        return identifier().hashCode();
+        return getIdentifier().hashCode();
     }
 }

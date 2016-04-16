@@ -157,7 +157,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                         if (holding.isDeleted()) {
                             continue;
                         }
-                        String serviceId = "(" + holding.getServiceISIL() + ")" + holding.identifier();
+                        String serviceId = "(" + holding.getServiceISIL() + ")" + holding.getIdentifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         buildService(serviceBuilder, holding);
                         validateIndex(servicesIndex, servicesIndexType, serviceId, serviceBuilder);
@@ -366,7 +366,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
 
     private void buildMonographHolding(XContentBuilder builder, Holding holding) throws IOException {
         builder.startObject();
-        builder.array("parents", holding.parents())
+        builder.array("parents", holding.getParents())
                 .array("date", holding.dates())
                 .startObject("institution")
                 .field("isil", holding.getISIL())
@@ -435,7 +435,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 if (service.isDeleted()) {
                     continue;
                 }
-                builder.value("(" + service.getServiceISIL() + ")" + service.identifier());
+                builder.value("(" + service.getServiceISIL() + ")" + service.getIdentifier());
                 priorities.add(service.getPriority());
             }
             builder.endArray();
@@ -449,7 +449,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
     private void buildService(XContentBuilder builder, Holding holding)
             throws IOException {
         builder.startObject()
-                .array("parents", holding.parents());
+                .array("parents", holding.getParents());
         builder.field("mediatype", holding.mediaType())
                 .field("carriertype", holding.carrierType())
                 .field("name", holding.getName())

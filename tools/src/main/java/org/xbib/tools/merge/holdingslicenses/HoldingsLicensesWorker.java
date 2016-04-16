@@ -476,7 +476,7 @@ public class HoldingsLicensesWorker
                                     .lookupRegion().get(expandedisil));
                             holding.setOrganization(holdingsLicensesMerger.bibdatLookup()
                                     .lookupOrganization().get(expandedisil));
-                            TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                            TitleRecord parentTitleRecord = titleRecordMap.get(holding.getParentIdentifier());
                             parentTitleRecord.addRelatedHolding(expandedisil, holding);
                             holdings.add(holding);
                         }
@@ -488,7 +488,7 @@ public class HoldingsLicensesWorker
                         holding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                         holding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         holding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                        TitleRecord parentTitleRecord = titleRecordMap.get(holding.parentIdentifier());
+                        TitleRecord parentTitleRecord = titleRecordMap.get(holding.getParentIdentifier());
                         parentTitleRecord.addRelatedHolding(isil, holding);
                         holdings.add(holding);
                     }
@@ -582,7 +582,7 @@ public class HoldingsLicensesWorker
                             license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                            for (String parent : license.parents()) {
+                            for (String parent : license.getParents()) {
                                 TitleRecord m = titleRecordMap.get(parent);
                                 m.addRelatedHolding(expandedisil, license);
                             }
@@ -596,7 +596,7 @@ public class HoldingsLicensesWorker
                         license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                         license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                        for (String parent : license.parents()) {
+                        for (String parent : license.getParents()) {
                             TitleRecord m = titleRecordMap.get(parent);
                             m.addRelatedHolding(isil, license);
                         }
@@ -663,7 +663,7 @@ public class HoldingsLicensesWorker
                             indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
-                            for (String parent : indicator.parents()) {
+                            for (String parent : indicator.getParents()) {
                                 TitleRecord m = titleRecordMap.get(parent);
                                 m.addRelatedIndicator(expandedisil, indicator);
                             }
@@ -677,7 +677,7 @@ public class HoldingsLicensesWorker
                         indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(isil));
                         indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(isil));
                         indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(isil));
-                        for (String parent : indicator.parents()) {
+                        for (String parent : indicator.getParents()) {
                             TitleRecord m = titleRecordMap.get(parent);
                             m.addRelatedIndicator(isil, indicator);
                         }

@@ -47,6 +47,7 @@ import org.xbib.tools.merge.holdingslicenses.entities.Holding;
 import org.xbib.tools.merge.holdingslicenses.entities.Indicator;
 import org.xbib.tools.merge.holdingslicenses.entities.License;
 import org.xbib.tools.merge.holdingslicenses.entities.Monograph;
+import org.xbib.tools.merge.holdingslicenses.entities.MonographHolding;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
@@ -643,7 +644,7 @@ public class SimpleHoldingsLicensesWorker
         while (searchResponse.getHits().getHits().length > 0){
             getMetric().mark();
             for (SearchHit hit : searchResponse.getHits()) {
-                Holding holding = new Holding(hit.getSource());
+                Holding holding = new MonographHolding(hit.getSource(), monograph);
                 if (holding.isDeleted()) {
                     continue;
                 }
@@ -664,7 +665,7 @@ public class SimpleHoldingsLicensesWorker
                             continue;
                         }
                         // new Holding for each ISIL
-                        holding = new Holding(holding.map());
+                        holding = new MonographHolding(holding.map(), monograph);
                         holding.setISIL(isil);
                         holding.setServiceISIL(expandedisil);
                         holding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
