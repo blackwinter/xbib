@@ -324,9 +324,9 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         if (s != null) {
             builder.field("meetingName", s);
         }
-        if (monographVolume.conference() != null) {
+        if (monographVolume.getConference() != null) {
             builder.field("conference");
-            builder.map(monographVolume.conference());
+            builder.map(monographVolume.getConference());
         }
         builder.fieldIfNotNull("volume", monographVolume.getVolumeDesignation())
                 .fieldIfNotNull("number", monographVolume.getNumbering())
@@ -357,7 +357,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             //structCounter.increase("mediatype", mediaType, 1);
             //structCounter.increase("carriertype", carrierType, 1);
             statCounter.increase("resourcetype", monographVolume.getResourceType(), 1);
-            for (String genre : monographVolume.genres()) {
+            for (String genre : monographVolume.getGenres()) {
                 statCounter.increase("genre", genre, 1);
             }
         }
@@ -506,6 +506,13 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 .field("title", monograph.getTitle())
                 .field("titlecomponents", monograph.getTitleComponents())
                 .fieldIfNotNull("firstdate", monograph.getFirstDate());
+        if (monograph.getPerson() != null) {
+            builder.startArray("person");
+            for (Map<String,Object> map : monograph.getPerson()) {
+                builder.map(map);
+            }
+            builder.endArray();
+        }
         String s = monograph.getCorporateName();
         if (s != null) {
             builder.field("corporateName", s);
@@ -514,9 +521,9 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
         if (s != null) {
             builder.field("meetingName", s);
         }
-        if (monograph.conference() != null) {
+        if (monograph.getConference() != null) {
             builder.field("conference");
-            builder.map(monograph.conference());
+            builder.map(monograph.getConference());
         }
         builder.fieldIfNotNull("volume", monograph.getVolumeDesignation())
                 .fieldIfNotNull("number", monograph.getNumbering())
@@ -547,7 +554,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             //structCounter.increase("mediatype", mediaType, 1);
             //structCounter.increase("carriertype", carrierType, 1);
             statCounter.increase("resourcetype", monograph.getResourceType(), 1);
-            for (String genre : monograph.genres()) {
+            for (String genre : monograph.getGenres()) {
                 statCounter.increase("genre", genre, 1);
             }
         }

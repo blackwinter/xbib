@@ -186,7 +186,7 @@ public class HoldingsLicensesMerger extends Merger {
         SearchResponse searchResponse = searchRequest.execute().actionGet();
         logger.info("merging holdings/licenses for {} title records",
                 searchResponse.getHits().getTotalHits());
-        do {
+        while (!failure && searchResponse.getHits().getHits().length > 0) {
             queryMetric.mark();
             for (SearchHit hit : searchResponse.getHits()) {
                 try {
@@ -208,7 +208,7 @@ public class HoldingsLicensesMerger extends Merger {
                     .prepareSearchScroll(searchResponse.getScrollId())
                     .setScroll(TimeValue.timeValueMillis(scrollMillis))
                     .execute().actionGet();
-        } while (!failure && searchResponse.getHits().getHits().length > 0);
+        }
         holdingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet();

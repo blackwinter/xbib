@@ -33,6 +33,7 @@ package org.xbib.tools.merge.holdingslicenses.entities;
 
 import org.xbib.util.Strings;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -41,6 +42,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Monograph extends TitleRecord {
+
+    private final static String[] PERSONS = new String[] {
+            "Person", "PersonCreator", "PersonContributor", "PersonAddressee"
+    };
+
+    private List<Map<String,Object>> person;
 
     private Map<String,Object> conference;
 
@@ -66,17 +73,22 @@ public class Monograph extends TitleRecord {
         return numbering;
     }
 
-    public List<String> genres() {
+    public List<Map<String,Object>> getPerson() {
+        return person;
+    }
+
+    public List<String> getGenres() {
         return genres;
     }
 
-    public Map<String,Object> conference() {
+    public Map<String,Object> getConference() {
         return conference;
     }
 
     @Override
     protected void build() {
         makeIdentity();
+        makePerson();
         makeCorporate();
         makeConference();
         makeTitle();
@@ -90,6 +102,25 @@ public class Monograph extends TitleRecord {
         String s = getString("RecordIdentifier.identifierForTheRecord");
         this.identifier = s != null ? s : "undefined";
         this.externalID = this.identifier;
+    }
+
+    protected void makePerson() {
+        this.person = new ArrayList<>();
+        for (String s : PERSONS) {
+            Object o = getMap().get(s);
+            if (o == null) {
+                continue;
+            }
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            for (Map<String,Object> m : (List<Map<String, Object>>) o) {
+                Map<String,Object> map = new HashMap<>();
+                map.putAll(m);
+                map.put("type", s);
+                person.add(map);
+            }
+        }
     }
 
     @Override

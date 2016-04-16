@@ -632,7 +632,7 @@ public class SimpleHoldingsLicensesWorker
         SearchRequestBuilder searchRequest = simpleHoldingsLicensesMerger.search().client()
                 .prepareSearch()
                 .setIndices(simpleHoldingsLicensesMerger.getSourceMonographicHoldingsIndex())
-                .setQuery(termQuery("xbib.uid", "(DE-605)" + monograph.getID()))
+                .setQuery(termQuery("xbib.uid", monograph.getID()))
                 .setSize(scrollSize)  // size is per shard!
                 .setScroll(TimeValue.timeValueMillis(scrollMillis))
                 .addSort(SortBuilders.fieldSort("_doc"));

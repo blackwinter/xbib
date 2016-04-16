@@ -94,8 +94,6 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     private String sourceMonographicIndex;
     private String sourceMonographicHoldingsIndex;
     private String sourceOpenAccessIndex;
-    private String sourceMonographTitleIndex;
-    private String sourceMonographHoldingsIndex;
 
     private HoldingsLicensesIndexer holdingsLicensesIndexer;
 
