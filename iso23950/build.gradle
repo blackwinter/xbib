@@ -19,6 +19,4 @@ apply plugin: 'jacc'
 dependencies {
     compile project(':io:charset')
     compile project(':sru')
-    jflex 'de.jflex:jflex:1.6.0'
-    jacc project(':compiler:jacc')
 }

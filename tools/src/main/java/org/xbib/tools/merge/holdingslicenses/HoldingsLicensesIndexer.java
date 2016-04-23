@@ -513,11 +513,14 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
             }
             builder.endArray();
         }
-        String s = monograph.getCorporateName();
-        if (s != null) {
-            builder.field("corporateName", s);
+        if (monograph.getCorporateBody() != null) {
+            builder.startArray("corporatebody");
+            for (Map<String,Object> map : monograph.getCorporateBody()) {
+                builder.map(map);
+            }
+            builder.endArray();
         }
-        s = monograph.getMeetingName();
+        String s = monograph.getMeetingName();
         if (s != null) {
             builder.field("meetingName", s);
         }

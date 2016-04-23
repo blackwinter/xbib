@@ -47,7 +47,13 @@ public class Monograph extends TitleRecord {
             "Person", "PersonCreator", "PersonContributor", "PersonAddressee"
     };
 
+    private final static String[] CORPORATEBODIES = new String[] {
+            "CorporateBody"
+    };
+
     private List<Map<String,Object>> person;
+
+    private List<Map<String,Object>> corporateBody;
 
     private Map<String,Object> conference;
 
@@ -75,6 +81,10 @@ public class Monograph extends TitleRecord {
 
     public List<Map<String,Object>> getPerson() {
         return person;
+    }
+
+    public List<Map<String,Object>> getCorporateBody() {
+        return corporateBody;
     }
 
     public List<String> getGenres() {
@@ -125,7 +135,22 @@ public class Monograph extends TitleRecord {
 
     @Override
     protected void makeCorporate() {
-        this.corporate = getString("CorporateName.corporateName");
+        this.corporateBody = new ArrayList<>();
+        for (String s : CORPORATEBODIES) {
+            Object o = getMap().get(s);
+            if (o == null) {
+                continue;
+            }
+            if (!(o instanceof List)) {
+                o = Collections.singletonList(o);
+            }
+            for (Map<String,Object> m : (List<Map<String, Object>>) o) {
+                Map<String,Object> map = new HashMap<>();
+                map.putAll(m);
+                map.put("type", s);
+                corporateBody.add(map);
+            }
+        }
     }
 
     protected void makeConference() {

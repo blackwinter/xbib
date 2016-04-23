@@ -6,8 +6,7 @@ import jacc.grammar.Machine;
 import java.io.*;
 import java.util.Date;
 
-public abstract class Output extends Phase
-{
+public abstract class Output extends Phase {
 
     protected JaccJob job;
     protected Grammar grammar;
@@ -35,16 +34,18 @@ public abstract class Output extends Phase
         settings = jaccjob.getSettings();
     }
 
-    public void write(String s)
-    {
+    public void write(String s) {
         PrintWriter printwriter = null;
-        try
-        {
+        try {
+            File file = new File(s);
+            File parent = file.getParentFile();
+            if (!parent.exists()) {
+                parent.mkdirs();
+            }
             printwriter = new PrintWriter(new FileWriter(s));
             write(printwriter);
         }
-        catch (IOException ioexception)
-        {
+        catch (IOException ioexception) {
             report(new Failure("Cannot write to file \"" + s + "\""));
         }
         if (printwriter != null)
@@ -53,28 +54,24 @@ public abstract class Output extends Phase
 
     public abstract void write(PrintWriter printwriter);
 
-    protected static void indent(PrintWriter printwriter, int i, String as[])
-    {
+    protected static void indent(PrintWriter printwriter, int i, String as[]) {
         for (int j = 0; j < as.length; j++)
             indent(printwriter, i, as[j]);
 
     }
 
-    protected static void indent(PrintWriter printwriter, int i)
-    {
-        for (int j = 0; j < i; j++)
+    protected static void indent(PrintWriter printwriter, int i) {
+        for (int j = 0; j < i; j++) {
             printwriter.print("    ");
-
+        }
     }
 
-    protected static void indent(PrintWriter printwriter, int i, String s)
-    {
+    protected static void indent(PrintWriter printwriter, int i, String s) {
         indent(printwriter, i);
         printwriter.println(s);
     }
 
-    protected static void datestamp(PrintWriter printwriter)
-    {
+    protected static void datestamp(PrintWriter printwriter) {
         printwriter.println("// Output created by jacc on " + new Date());
         printwriter.println();
     }

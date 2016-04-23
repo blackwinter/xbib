@@ -18,6 +18,4 @@ apply plugin: 'jacc'
 
 dependencies {
     compile project(':content:common')
-    jflex 'de.jflex:jflex:1.6.0'
-    jacc project(':compiler:jacc')
 }
