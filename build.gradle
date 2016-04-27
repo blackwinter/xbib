@@ -19,7 +19,8 @@ ext {
     'woodstox' : '5.0.2',
     'log4j': '2.5',
     'gradle-plugin-jflex': '1.1.0',
-    'gradle-plugin-jacc': '1.1.1'
+    'gradle-plugin-jacc': '1.1.2',
+    'wikidata' : '0.6.0'
   ]
 }
 

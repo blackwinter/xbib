@@ -1,0 +1,9 @@
+
+dependencies {
+    compile project(':tools')
+    compile "org.wikidata.wdtk:wdtk-datamodel:${versions.wikidata}"
+    compile "org.wikidata.wdtk:wdtk-dumpfiles:${versions.wikidata}"
+    compile "org.wikidata.wdtk:wdtk-rdf:${versions.wikidata}"
+    compile "org.wikidata.wdtk:wdtk-util:${versions.wikidata}"
+    compile "org.wikidata.wdtk:wdtk-wikibaseapi:${versions.wikidata}"
+}

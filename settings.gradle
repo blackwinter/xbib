@@ -31,4 +31,5 @@ include 'time'
 include 'transformer'
 include 'tools'
 include 'openurl'
+include 'wikidata'
 

@@ -58,17 +58,11 @@ public class PrettyTime {
      * Default constructor
      */
     public PrettyTime() {
-        setLocale(Locale.getDefault());
-        initTimeUnits();
-        this.localDateTime = LocalDateTime.now();
+        this(LocalDateTime.now());
     }
 
     public PrettyTime(long l) {
-        setLocale(Locale.getDefault());
-        initTimeUnits();
-        Instant instant = Instant.ofEpochMilli(l);
-        ZoneId zoneId = ZoneId.systemDefault();
-        this.localDateTime = LocalDateTime.ofInstant(instant, zoneId);
+        this(LocalDateTime.ofInstant(Instant.ofEpochMilli(l), ZoneId.systemDefault()));
     }
 
     /**
@@ -80,9 +74,9 @@ public class PrettyTime {
      * @param localDateTime reference date time
      */
     public PrettyTime(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
         setLocale(Locale.getDefault());
         initTimeUnits();
-        this.localDateTime = localDateTime;
     }
 
     /**
