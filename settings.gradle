@@ -1,4 +1,4 @@
-rootProject.name = 'xbib'
+rootProject.name = 'hbz-xbib'
 include 'datastructures:collection'
 include 'datastructures:sync'
 include 'datastructures:forkjoin'

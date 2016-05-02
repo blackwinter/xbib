@@ -1,10 +1,10 @@
 
-def xbibGroup = 'org.xbib'
+def xbibGroup = 'hbz.xbib'
 def xbibVersion = '2.0'
 def xbibBuildNumber = System.getenv("BUILD_NUMBER") as Integer ?: 0
 
 group = xbibGroup
-version = xbibVersion + '.' + xbibBuildNumber + '-SNAPSHOT'
+version = xbibVersion + '.' + xbibBuildNumber + '-HBZ-SNAPSHOT'
 
 println "Host: " + java.net.InetAddress.getLocalHost()
 println "Gradle: " + gradle.gradleVersion + " JVM: " + org.gradle.internal.jvm.Jvm.current() + " Groovy: " + GroovySystem.getVersion()
