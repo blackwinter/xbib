@@ -29,21 +29,15 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.tools.feed.elasticsearch.zdb;
+package org.xbib.analyzer.marc.bib;
 
-import org.xbib.tools.convert.Converter;
-import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
-import org.xbib.util.concurrent.WorkerProvider;
+import org.xbib.etl.marc.MARCEntity;
 
+import java.util.Map;
 
-/**
- * Index Zeitschriftendatenbank (ZDB) MARC Holdings ISO2709 files
- */
-public class MarcHol extends HoldingsFeeder {
+public class HostItemEntry extends MARCEntity {
 
-    @Override
-    protected WorkerProvider<Converter> provider() {
-        return p -> new MarcHol().setPipeline(p);
+    public HostItemEntry(Map<String, Object> params) {
+        super(params);
     }
-
 }
