@@ -20,3 +20,12 @@ dependencies {
     compile project(':io:charset')
     compile project(':sru')
 }
+
+test {
+    systemProperties = [ 'java.protocol.handler.pkgs': 'org.xbib.io.CustomURLStreamHandlerFactory' ]
+    classpath += configurations.provided
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
+}

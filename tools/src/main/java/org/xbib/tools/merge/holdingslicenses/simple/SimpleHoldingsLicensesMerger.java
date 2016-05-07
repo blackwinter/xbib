@@ -53,7 +53,7 @@ import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
 import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.IndexDefinition;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 

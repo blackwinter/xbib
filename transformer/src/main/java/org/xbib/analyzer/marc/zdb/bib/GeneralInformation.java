@@ -35,9 +35,9 @@ public class GeneralInformation extends MARCEntity {
                 continue;
             }
             String date1 = data.length() > 11 ? data.substring(7,11) : "0000";
-            worker.state().getResource().add("date1", check(date1));
+            worker.getWorkerState().getResource().add("date1", check(date1));
             String date2 = data.length() > 15 ? data.substring(11,15) : "0000";
-            worker.state().getResource().add("date2", check(date2));
+            worker.getWorkerState().getResource().add("date2", check(date2));
             for (int i = 0; i < data.length(); i++) {
                 String ch = data.substring(i, i+1);
                 if ("|".equals(ch) || " ".equals(ch)) {
@@ -52,7 +52,7 @@ public class GeneralInformation extends MARCEntity {
                         if (code == null) {
                             logger.warn("unmapped code {} in field {} predicate {}", ch, field, predicate);
                         }
-                        worker.state().getResource().add(predicate, code);
+                        worker.getWorkerState().getResource().add(predicate, code);
                     }
                 }
                 if (continuingresource != null) {
@@ -63,7 +63,7 @@ public class GeneralInformation extends MARCEntity {
                         if (code == null) {
                             logger.warn("unmapped code {} in field {} predicate {}", ch, field, predicate);
                         }
-                        worker.state().getResource().add(predicate, code);
+                        worker.getWorkerState().getResource().add(predicate, code);
                     }
 
                 }

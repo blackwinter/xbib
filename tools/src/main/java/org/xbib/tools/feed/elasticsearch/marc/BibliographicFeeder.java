@@ -82,6 +82,34 @@ public class BibliographicFeeder extends Feeder {
         }
     }
 
+    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
+        return new BibQueue(params);
+    }
+
+    protected MARCEntityQueue createDirectQueue() throws Exception {
+        return new DirectQueue();
+    }
+
+    protected  void process(InputStream in, MARCEntityQueue queue) throws IOException {
+        final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
+                .setStringTransformer(value ->
+                        Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
+                                Normalizer.Form.NFKC))
+                .add(queue);
+        InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
+        try {
+            final Iso2709Reader reader = new Iso2709Reader(r)
+                    .setMarcXchangeListener(marcXchangeStream);
+            reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
+            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
+            reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
+            reader.parse();
+            r.close();
+        } catch (SAXNotSupportedException | SAXNotRecognizedException e) {
+            throw new IOException(e);
+        }
+    }
+
     @Override
     protected void performIndexSwitch() throws IOException {
         if (settings.getAsBoolean("mock", false)) {
@@ -122,34 +150,6 @@ public class BibliographicFeeder extends Feeder {
         } else {
             ingest.switchAliases(def.getIndex(), def.getConcreteIndex(), aliases);
             elasticsearchOutput.retention(ingest, def);
-        }
-    }
-
-    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new BibQueue(params);
-    }
-
-    protected MARCEntityQueue createDirectQueue() throws Exception {
-        return new DirectQueue();
-    }
-
-    protected  void process(InputStream in, MARCEntityQueue queue) throws IOException {
-        final MarcXchangeStream marcXchangeStream = new MarcXchangeStream()
-                .setStringTransformer(value ->
-                        Normalizer.normalize(new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8),
-                                Normalizer.Form.NFKC))
-                .add(queue);
-        InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
-        try {
-            final Iso2709Reader reader = new Iso2709Reader(r)
-                    .setMarcXchangeListener(marcXchangeStream);
-            reader.setProperty(Iso2709Reader.FORMAT, "MARC21");
-            reader.setProperty(Iso2709Reader.TYPE, "Bibliographic");
-            reader.setProperty(Iso2709Reader.FATAL_ERRORS, false);
-            reader.parse();
-            r.close();
-        } catch (SAXNotSupportedException | SAXNotRecognizedException e) {
-            throw new IOException(e);
         }
     }
 

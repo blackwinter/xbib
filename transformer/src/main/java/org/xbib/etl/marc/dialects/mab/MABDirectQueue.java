@@ -64,7 +64,7 @@ public class MABDirectQueue extends MABEntityQueue {
                     continue;
                 }
                 if ("001".equals(field.tag())) {
-                    state().setRecordIdentifier(data);
+                    getWorkerState().setRecordIdentifier(data);
                 }
                 if (field.isControlField()) {
                     tagResource.add("_", data);
@@ -78,7 +78,7 @@ public class MABDirectQueue extends MABEntityQueue {
                     }
                 }
             }
-            state().getResource().add(tag, tagResource);
+            getWorkerState().getResource().add(tag, tagResource);
         }
     }
 

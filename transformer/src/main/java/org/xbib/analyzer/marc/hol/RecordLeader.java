@@ -23,7 +23,7 @@ public class RecordLeader extends MARCEntity {
     @Override
     public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
-        worker.state().setLabel(value);
+        worker.getWorkerState().setLabel(value);
         if (codes == null) {
             return false;
         }
@@ -33,7 +33,7 @@ public class RecordLeader extends MARCEntity {
             Map<String,String> v = (Map<String,String>)codes.get(k);
             String code = value.length() > pos ? value.substring(pos,pos+1) : "";
             if (v.containsKey(code)) {
-                worker.state().getResource().add(predicate, v.get(code));
+                worker.getWorkerState().getResource().add(predicate, v.get(code));
             }
         }
         return false;

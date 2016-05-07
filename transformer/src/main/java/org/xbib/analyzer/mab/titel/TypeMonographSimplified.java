@@ -40,7 +40,7 @@ public class TypeMonographSimplified extends MABEntity {
                     // two letters?
                     code = (String) codes.get(value.substring(i, i + 2));
                 }
-                worker.state().getResource().add(predicate, code);
+                worker.getWorkerState().getResource().add(predicate, code);
             }
         }
         if (facetcodes != null) {
@@ -50,7 +50,7 @@ public class TypeMonographSimplified extends MABEntity {
                     // two letters?
                     code = (String) facetcodes.get(value.substring(i, i + 2));
                 }
-                facetize(worker.state(), code);
+                facetize(worker.getWorkerState(), code);
             }
         }
         return true; // done!

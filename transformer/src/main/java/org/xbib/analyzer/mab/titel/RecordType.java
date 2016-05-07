@@ -50,7 +50,7 @@ public class RecordType extends MABEntity {
         if (value == null) {
             return false;
         }
-        worker.state().setType(value.trim());
+        worker.getWorkerState().setType(value.trim());
         return true; // done, no more analysis
     }
 

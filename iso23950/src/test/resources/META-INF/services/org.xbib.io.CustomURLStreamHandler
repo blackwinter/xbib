@@ -1,2 +1,2 @@
 org.xbib.io.ClasspathURLStreamHandler
-org.xbib.io.iso23950.ZURLStreamHandler
+sun.net.www.protocol.z3950.Handler

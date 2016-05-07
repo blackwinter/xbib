@@ -28,9 +28,9 @@ public class RecordIdentifier extends MARCEntity {
             return value;
         }
         String v = prefix + value.trim();
-        worker.state().setRecordIdentifier(v);
+        worker.getWorkerState().setRecordIdentifier(v);
         try {
-            worker.state().getResource().newResource("xbib").add("uid", v);
+            worker.getWorkerState().getResource().newResource("xbib").add("uid", v);
         } catch (IOException e) {
             // ignore
         }

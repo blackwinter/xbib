@@ -224,8 +224,11 @@ public class WorkAuthorKey implements IdentifiableEndeavor {
     }
 
     public boolean isValidWork() {
-        // only a single word in work name and no author name is not valid
-        if (authorName == null) {
+        if (workName == null) {
+            return false;
+        }
+        if (authorName == null)  {
+            // only a single word in work name and no author name --> this key is not valid
             int pos = workName.toString().indexOf(' ');
             if (pos < 0) {
                 return false;

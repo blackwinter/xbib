@@ -46,14 +46,14 @@ public class TextualHoldings extends MARCEntity {
             if (data == null || data.isEmpty()) {
                 continue;
             }
-            worker.state().getResource().add("textualholdings", data);
+            worker.getWorkerState().getResource().add("textualholdings", data);
             if (field.subfieldId().equals("a")) {
-                Resource r = worker.state().getResource().newResource("holdings");
+                Resource r = worker.getWorkerState().getResource().newResource("holdings");
                 Resource parsedHoldings = eac.parse(data, r, getMovingwallPatterns());
                 if (!parsedHoldings.isEmpty()) {
-                    Set<Integer> dates = eac.dates(worker.state().getResource().id(), parsedHoldings);
+                    Set<Integer> dates = eac.dates(worker.getWorkerState().getResource().id(), parsedHoldings);
                     for (Integer date : dates) {
-                        worker.state().getResource().add("dates", date);
+                        worker.getWorkerState().getResource().add("dates", date);
                     }
                 } else {
                     logger.debug("no dates found in field " + field);

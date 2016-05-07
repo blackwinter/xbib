@@ -71,10 +71,10 @@ public class Extent extends MABEntity {
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
         for (String code : findCodes(value)) {
-            if (worker.state().getFacets().get(facet) == null) {
-                worker.state().getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
+            if (worker.getWorkerState().getFacets().get(facet) == null) {
+                worker.getWorkerState().getFacets().put(facet, new TermFacet().setName(facet).setType(Literal.STRING));
             }
-            worker.state().getFacets().get(facet).addValue(code);
+            worker.getWorkerState().getFacets().get(facet).addValue(code);
         }
         return false; // done
     }

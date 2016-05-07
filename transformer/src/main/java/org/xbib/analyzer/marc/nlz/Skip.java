@@ -29,22 +29,15 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.io.iso23950;
+package org.xbib.analyzer.marc.nlz;
 
-import org.xbib.io.CustomURLStreamHandler;
+import org.xbib.etl.marc.dialects.nlz.NlzEntity;
 
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Map;
 
-public class ZURLStreamHandler extends CustomURLStreamHandler {
-    @Override
-    public String getName() {
-        return "z3950";
-    }
+public class Skip extends NlzEntity {
 
-    @Override
-    protected URLConnection openConnection(URL u) throws IOException {
-        return new ZConnection(u);
+    public Skip(Map<String, Object> params) {
+        super(params);
     }
 }

@@ -20,8 +20,8 @@ public class RecordIdentifier extends MARCEntity {
         if (getParams().containsKey("_predicate")) {
             predicate = (String) getParams().get("_predicate");
         }
-        worker.state().setRecordIdentifier(value);
-        worker.state().getResource().add(predicate, value);
+        worker.getWorkerState().setRecordIdentifier(value);
+        worker.getWorkerState().getResource().add(predicate, value);
         return false;
     }
 

@@ -1,10 +1,18 @@
 package org.xbib.common;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
 public class Strings {
 
     public static final String EMPTY = "";
 
     public static final String[] EMPTY_ARRAY = new String[0];
+
+    public static final String SINGLE_QUOTE = "'";
+
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     private Strings() {
     }
@@ -36,35 +44,6 @@ public class Strings {
      */
     public static boolean hasLength(String str) {
         return hasLength((CharSequence) str);
-    }
-
-    /**
-     * Replace all occurences of a substring within a string with
-     * another string.
-     *
-     * @param inString   String to examine
-     * @param oldPattern String to replace
-     * @param newPattern String to insert
-     * @return a String with the replacements
-     */
-    public static String replace(String inString, String oldPattern, String newPattern) {
-        if (!hasLength(inString) || !hasLength(oldPattern) || newPattern == null) {
-            return inString;
-        }
-        StringBuilder sb = new StringBuilder();
-        int pos = 0; // our position in the old string
-        int index = inString.indexOf(oldPattern);
-        // the index of an occurrence we've found, or -1
-        int patLen = oldPattern.length();
-        while (index >= 0) {
-            sb.append(inString.substring(pos, index));
-            sb.append(newPattern);
-            pos = index + patLen;
-            index = inString.indexOf(oldPattern, pos);
-        }
-        sb.append(inString.substring(pos));
-        // remember to append any characters to the right of a match
-        return sb.toString();
     }
 
     /**
@@ -241,4 +220,198 @@ public class Strings {
         }
     }
 
+    /**
+     * <p>Gives a string consisting of the given character repeated the given number of
+     * times.</p>
+     *
+     * @param ch    the character to repeat
+     * @param count how many times to repeat the character
+     * @return the resultant string
+     */
+    public static String repeat(char ch, int count) {
+        StringBuilder buffer = new StringBuilder();
+
+        for (int i = 0; i < count; ++i) {
+            buffer.append(ch);
+        }
+
+        return buffer.toString();
+    }
+
+    /**
+     * <p>Tells whether the given string is either {@code} or consists solely of
+     * whitespace characters.</p>
+     *
+     * @param s string to check
+     * @return {@code true} if the target string is null or empty
+     */
+    public static boolean isNullOrEmpty(String s) {
+        return s == null || EMPTY.equals(s);
+    }
+
+    public static boolean isEmpty(String s) {
+        return EMPTY.equals(s);
+    }
+
+    public static String unquote(String s) {
+        if (s != null && ((s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'")))) {
+            s = s.substring(1, s.length() - 1);
+        }
+        return s;
+    }
+
+    /**
+     * Gives a string consisting of the elements of a given array of strings, each
+     * separated by a given separator string.
+     *
+     * @param pieces    the strings to join
+     * @param separator the separator
+     * @return the joined string
+     */
+    public static String join(String[] pieces, String separator) {
+        return join(Arrays.asList(pieces), separator);
+    }
+
+    /**
+     * Gives a string consisting of the string representations of the elements of a
+     * given array of objects, each separated by a given separator string.
+     *
+     * @param pieces    the elements whose string representations are to be joined
+     * @param separator the separator
+     * @return the joined string
+     */
+    public static String join(List<String> pieces, String separator) {
+        StringBuilder buffer = new StringBuilder();
+
+        for (Iterator<String> iter = pieces.iterator(); iter.hasNext(); ) {
+            buffer.append(iter.next());
+
+            if (iter.hasNext()) {
+                buffer.append(separator);
+            }
+        }
+
+        return buffer.toString();
+    }
+
+    /**
+     * <p>Replaces a String with another String inside a larger String, once.</p>
+     * <p/>
+     * <p>A <code>null</code> reference passed to this method is a no-op.</p>
+     * <p>
+     * <pre>
+     * StringUtils.replaceOnce(null, *, *)        = null
+     * StringUtils.replaceOnce("", *, *)          = ""
+     * StringUtils.replaceOnce("any", null, *)    = "any"
+     * StringUtils.replaceOnce("any", *, null)    = "any"
+     * StringUtils.replaceOnce("any", "", *)      = "any"
+     * StringUtils.replaceOnce("aba", "a", null)  = "aba"
+     * StringUtils.replaceOnce("aba", "a", "")    = "ba"
+     * StringUtils.replaceOnce("aba", "a", "z")   = "zba"
+     * </pre>
+     *
+     * @param text         text to search and replace in, may be null
+     * @param searchString the String to search for, may be null
+     * @param replacement  the String to replace with, may be null
+     * @return the text with any replacements processed,
+     * <code>null</code> if null String input
+     * @see #replace(String text, String searchString, String replacement, int max)
+     */
+    public static String replaceOnce(String text, String searchString, String replacement) {
+        return replace(text, searchString, replacement, 1);
+    }
+
+    /**
+     * <p>Replaces all occurrences of a String within another String.</p>
+     * <p/>
+     * <p>A <code>null</code> reference passed to this method is a no-op.</p>
+     * <p>
+     * <pre>
+     * StringUtils.replace(null, *, *)        = null
+     * StringUtils.replace("", *, *)          = ""
+     * StringUtils.replace("any", null, *)    = "any"
+     * StringUtils.replace("any", *, null)    = "any"
+     * StringUtils.replace("any", "", *)      = "any"
+     * StringUtils.replace("aba", "a", null)  = "aba"
+     * StringUtils.replace("aba", "a", "")    = "b"
+     * StringUtils.replace("aba", "a", "z")   = "zbz"
+     * </pre>
+     *
+     * @param text         text to search and replace in, may be null
+     * @param searchString the String to search for, may be null
+     * @param replacement  the String to replace it with, may be null
+     * @return the text with any replacements processed,
+     * <code>null</code> if null String input
+     * @see #replace(String text, String searchString, String replacement, int max)
+     */
+    public static String replace(String text, String searchString, String replacement) {
+        return replace(text, searchString, replacement, -1);
+    }
+
+    /**
+     * <p>Replaces a String with another String inside a larger String,
+     * for the first <code>max</code> values of the search String.</p>
+     * <p/>
+     * <p>A <code>null</code> reference passed to this method is a no-op.</p>
+     * <p>
+     * <pre>
+     * StringUtils.replace(null, *, *, *)         = null
+     * StringUtils.replace("", *, *, *)           = ""
+     * StringUtils.replace("any", null, *, *)     = "any"
+     * StringUtils.replace("any", *, null, *)     = "any"
+     * StringUtils.replace("any", "", *, *)       = "any"
+     * StringUtils.replace("any", *, *, 0)        = "any"
+     * StringUtils.replace("abaa", "a", null, -1) = "abaa"
+     * StringUtils.replace("abaa", "a", "", -1)   = "b"
+     * StringUtils.replace("abaa", "a", "z", 0)   = "abaa"
+     * StringUtils.replace("abaa", "a", "z", 1)   = "zbaa"
+     * StringUtils.replace("abaa", "a", "z", 2)   = "zbza"
+     * StringUtils.replace("abaa", "a", "z", -1)  = "zbzz"
+     * </pre>
+     *
+     * @param text         text to search and replace in, may be null
+     * @param searchString the String to search for, may be null
+     * @param replacement  the String to replace it with, may be null
+     * @param max          maximum number of values to replace, or <code>-1</code> if no maximum
+     * @return the text with any replacements processed,
+     * <code>null</code> if null String input
+     */
+    public static String replace(String text, String searchString, String replacement, int max) {
+        if (isNullOrEmpty(text) || isNullOrEmpty(searchString) || replacement == null || max == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = text.indexOf(searchString, start);
+        if (end == -1) {
+            return text;
+        }
+        int replLength = searchString.length();
+        int increase = replacement.length() - replLength;
+        increase = (increase < 0 ? 0 : increase);
+        increase *= (max < 0 ? 16 : (max > 64 ? 64 : max));
+        StringBuilder buf = new StringBuilder(text.length() + increase);
+        while (end != -1) {
+            buf.append(text.substring(start, end)).append(replacement);
+            start = end + replLength;
+            if (--max == 0) {
+                break;
+            }
+            end = text.indexOf(searchString, start);
+        }
+        buf.append(text.substring(start));
+        return buf.toString();
+    }
+
+    public static boolean isBlank(String str) {
+        int strLen;
+        if (str == null || (strLen = str.length()) == 0) {
+            return true;
+        }
+        for (int i = 0; i < strLen; i++) {
+            if ((!Character.isWhitespace(str.charAt(i)))) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

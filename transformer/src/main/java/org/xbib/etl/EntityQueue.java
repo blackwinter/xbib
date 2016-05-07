@@ -89,6 +89,7 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
             return;
         }
         try {
+            // poor man's copy-on-write
             submit((List<K>) objects.clone());
             objects.clear();
         } catch (Exception e) {
@@ -126,11 +127,16 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
 
     public class EntityWorker extends DefaultWorker implements Worker<List<K>> {
 
-        private S state;
+        private S workerState;
+
+        @SuppressWarnings("unchecked")
+        public S newState() {
+            return (S) new DefaultEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders());
+        }
 
         @Override
         public void execute(List<K> request) throws IOException {
-            this.state = newState();
+            this.workerState = newState();
             for (K key : request) {
                 if (key == null) {
                     break;
@@ -138,22 +144,18 @@ public class EntityQueue<S extends EntityBuilderState, E extends Entity, K, V>
                     build(key);
                 }
             }
-            beforeCompletion(state);
-            state.complete();
-            afterCompletion(state);
+            beforeCompletion(workerState);
+            workerState.complete();
+            afterCompletion(workerState);
         }
 
-        public S state() {
-            return state;
+        public S getWorkerState() {
+            return workerState;
         }
 
         public void build(K key) throws IOException {
         }
 
-        @SuppressWarnings("unchecked")
-        public S newState() {
-            return (S) new DefaultEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders());
-        }
     }
 
 }

@@ -44,7 +44,7 @@ public class TypeMonograph extends MABEntity {
                         // two letters?
                         code = (String) q.get(value.substring(i, i + 2));
                     }
-                    worker.state().getResource().add(predicate, code);
+                    worker.getWorkerState().getResource().add(predicate, code);
                 }
             }
         }
@@ -58,7 +58,7 @@ public class TypeMonograph extends MABEntity {
                         code = (String) q.get(value.substring(i, i + 2));
                     }
                     if (code != null) {
-                        facetize(worker.state(), code);
+                        facetize(worker.getWorkerState(), code);
                     }
                 }
             }

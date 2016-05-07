@@ -39,7 +39,7 @@ import org.xbib.etl.Entity;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MARCSpecification extends DefaultSpecification<MARCEntity> {
+public class MARCSpecification<E extends MARCEntity> extends DefaultSpecification<E> {
 
     private final static Logger logger = LogManager.getLogger(MARCSpecification.class.getName());
 
@@ -50,7 +50,7 @@ public class MARCSpecification extends DefaultSpecification<MARCEntity> {
                 "org.xbib.analyzer.marc.bib", "/org/xbib/analyzer/marc/bib.json");
     }
 
-    public MARCSpecification(Map<String, MARCEntity> entites, Map<String, Object> params, ClassLoader cl,
+    public MARCSpecification(Map<String, E> entites, Map<String, Object> params, ClassLoader cl,
                              String packageName, String... paths) throws Exception {
         super(entites, params, cl, packageName, paths);
     }

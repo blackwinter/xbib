@@ -47,13 +47,13 @@ public class EnumerationAndChronology extends MARCEntity {
                 continue;
             }
             if ("a".equals(field.subfieldId())) {
-                worker.state().getResource().add("TextualEnumerationAndChronology", data);
-                Resource r = worker.state().getResource().newResource("EnumerationAndChronology");
+                worker.getWorkerState().getResource().add("TextualEnumerationAndChronology", data);
+                Resource r = worker.getWorkerState().getResource().newResource("EnumerationAndChronology");
                 Resource parsedHoldings = eac.parse(data, r, getMovingwallPatterns());
                 if (!parsedHoldings.isEmpty()) {
                     Set<Integer> dates = eac.dates(r.id(), parsedHoldings);
                     for (Integer date : dates) {
-                        worker.state().getResource().add("Dates", date);
+                        worker.getWorkerState().getResource().add("Dates", date);
                     }
                 }
             }

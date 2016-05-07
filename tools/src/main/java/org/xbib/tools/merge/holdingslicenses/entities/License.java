@@ -31,7 +31,7 @@
  */
 package org.xbib.tools.merge.holdingslicenses.entities;
 
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 
 import java.util.Arrays;
 import java.util.Collections;

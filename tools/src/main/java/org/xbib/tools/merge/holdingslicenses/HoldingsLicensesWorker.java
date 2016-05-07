@@ -53,7 +53,7 @@ import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 

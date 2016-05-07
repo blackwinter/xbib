@@ -34,6 +34,7 @@ package org.xbib.etl.marc.dialects.mab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.EntityQueue;
+import org.xbib.etl.Specification;
 import org.xbib.etl.UnmappedKeyListener;
 import org.xbib.etl.marc.SubfieldValueMapper;
 import org.xbib.etl.support.IdentifierMapper;
@@ -207,9 +208,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             if (fields == null) {
                 return;
             }
-            MABEntity entity = null;
+            MABEntity<MABWorker> entity;
             try {
-                entity = getSpecification().getEntity(fields.toKey(), getMap());
+                Specification<MABEntity> spec = getSpecification();
+                entity = spec.getEntity(fields.toKey(), getMap());
             } catch (ClassCastException e) {
                 logger.error("can't convert fields {}, entity map problem", fields);
                 return;
@@ -220,7 +222,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 if (done) {
                     return;
                 }
-                addToResource(state().getResource(), fields, entity);
+                addToResource(getWorkerState().getResource(), fields, entity);
                 // build facets and classify
                 String value = fields.getLast().data();
                 if (value != null && !value.isEmpty()) {
@@ -232,7 +234,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 }
             } else {
                 if (listener != null) {
-                    listener.unknown(state().getIdentifier(), fields);
+                    listener.unknown(getWorkerState().getIdentifier(), fields);
                 }
             }
         }

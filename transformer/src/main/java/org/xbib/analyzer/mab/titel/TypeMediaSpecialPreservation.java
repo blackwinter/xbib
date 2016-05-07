@@ -69,7 +69,7 @@ public class TypeMediaSpecialPreservation extends MABEntity {
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
         for (String code : findCodes(value)) {
-            worker.state().getResource().add(predicate, code);
+            worker.getWorkerState().getResource().add(predicate, code);
         }
         return true; // done!
     }

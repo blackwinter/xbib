@@ -71,7 +71,7 @@ public class RecordIdentifierExternal extends MABEntity {
             }
         }
         if (prefix != null && !prefix.isEmpty() && content != null && !content.isEmpty()) {
-            worker.state().getResource().newResource("RecordIdentifierExternal").add("identifier", prefix + content);
+            worker.getWorkerState().getResource().newResource("RecordIdentifierExternal").add("identifier", prefix + content);
         }
         return true; // done!
     }

@@ -44,7 +44,7 @@ public class PhysicalDescriptionCode extends MARCEntity {
                 Map<String,Object> q = (Map<String,Object>)m.get(Integer.toString(i));
                 if (q != null) {
                     String code = (String)q.get(ch);
-                    worker.state().getResource().add(predicate, code);
+                    worker.getWorkerState().getResource().add(predicate, code);
                 }
             }
         }
