@@ -31,6 +31,7 @@
  */
 package org.xbib.etl.marc.dialects.nlz;
 
+import org.xbib.common.Booleans;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.IRI;
@@ -46,13 +47,17 @@ public class NlzEntityBuilderState extends MARCEntityBuilderState {
 
     private final Map<String, Resource> serialsMap;
 
+    private final Map<String, Boolean> missingSerials;
+
     private WorkAuthorKey workAuthorKey;
 
     NlzEntityBuilderState(RdfGraph<RdfGraphParams> graph,
                           Map<IRI,RdfContentBuilderProvider> providers,
-                          Map<String, Resource>  serialsMap) {
+                          Map<String, Resource>  serialsMap,
+                          Map<String, Boolean> missingSerials) {
         super(graph, providers);
         this.serialsMap = serialsMap;
+        this.missingSerials = missingSerials;
         this.workAuthorKey = new WorkAuthorKey();
     }
 
@@ -64,6 +69,10 @@ public class NlzEntityBuilderState extends MARCEntityBuilderState {
 
     public Map<String, Resource> getSerialsMap() {
         return serialsMap;
+    }
+
+    public  Map<String, Boolean> getMissingSerialsMap() {
+        return missingSerials;
     }
 
     public WorkAuthorKey getWorkAuthorKey() {

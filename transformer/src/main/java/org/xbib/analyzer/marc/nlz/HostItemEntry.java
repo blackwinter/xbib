@@ -48,10 +48,10 @@ import java.util.regex.Pattern;
 public class HostItemEntry extends NlzEntity {
 
     // 84:3 (1987:Sept.) 39
-    private final static Pattern partPattern1 = Pattern.compile("^(.*?)\\:(.*?)\\s*\\((\\d+).*?\\)(.*?)$");
+    private final static Pattern partPattern1 = Pattern.compile("^(.*?)\\:(.*?)\\s*\\((\\d{4,}).*?\\)(.*?)$");
 
     // 22 (1924/1925) 115
-    private final static Pattern partPattern2 = Pattern.compile("^(.*?)\\s*\\((\\d+).*?\\)(.*?)$");
+    private final static Pattern partPattern2 = Pattern.compile("^(.*?)\\s*\\((\\d{4,}).*?\\)(.*?)$");
 
     private final static Pattern titlePattern = Pattern.compile("^(.*?)\\.\\.\\s\\-\\s(.*?)\\s\\:\\s(.*?)$");
 
@@ -145,7 +145,7 @@ public class HostItemEntry extends NlzEntity {
                             j.add(PRISM_ISSN, issn.toString());
                         }
                     } else {
-                        logger.warn("missing serial: {} {} ", cleanTitle.toLowerCase(), journalTitle);
+                        worker.getWorkerState().getMissingSerialsMap().put(journalTitle, true);
                     }
                 }
                 break;

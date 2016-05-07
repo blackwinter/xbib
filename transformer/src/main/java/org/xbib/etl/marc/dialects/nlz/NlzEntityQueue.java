@@ -41,6 +41,7 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NlzEntityQueue extends MARCEntityQueue<NlzEntityBuilderState, NlzEntity> {
 
@@ -48,14 +49,22 @@ public class NlzEntityQueue extends MARCEntityQueue<NlzEntityBuilderState, NlzEn
 
     private final Map<String, Resource> serialsMap;
 
+    private final Map<String,Boolean> missingSerials;
+
+
     public NlzEntityQueue(Map<String, Resource> serialsMap, String packageName, int workers, String... paths) throws Exception {
         super(packageName, workers, paths);
         this.serialsMap = serialsMap;
+        this.missingSerials = new ConcurrentHashMap<>();
     }
 
     public NlzEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {
         this.listener = listener;
         return this;
+    }
+
+    public Map<String,Boolean> getMissingSerials() {
+        return missingSerials;
     }
 
     @Override
@@ -77,7 +86,7 @@ public class NlzEntityQueue extends MARCEntityQueue<NlzEntityBuilderState, NlzEn
 
         @Override
         public NlzEntityBuilderState newState() {
-            return new NlzEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders(), serialsMap);
+            return new NlzEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders(), serialsMap, missingSerials);
         }
 
         @Override

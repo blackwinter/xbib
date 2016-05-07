@@ -208,5 +208,12 @@ public class MarcBib extends BibliographicFeeder {
                 logger.info("{}", builder.string());
             }
         }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            logger.info("unmatched serials = {}", getMissingSerials().keySet());
+
+        }
     }
 }
