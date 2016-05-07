@@ -184,9 +184,9 @@ public class MarcBib extends BibliographicFeeder {
     private class BibQueue extends NlzEntityQueue {
 
         BibQueue(Map<String, Resource> serialsMap) throws Exception {
-            super(serialsMap, settings.get("package", "org.xbib.analyzer.marc.bib"),
+            super(serialsMap, settings.get("package", "org.xbib.analyzer.marc.nlz"),
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements",  "/org/xbib/analyzer/marc/bib.json")
+                    settings.get("elements",  "/org/xbib/analyzer/marc/nlz/bib.json")
             );
         }
 
@@ -196,13 +196,12 @@ public class MarcBib extends BibliographicFeeder {
             if (indexDefinition == null) {
                 throw new IOException("no 'bib' index definition configured");
             }
-            RouteRdfXContentParams params = new RouteRdfXContentParams(indexDefinition.getConcreteIndex(),
+            RouteRdfXContentParams params = new RouteRdfXContentParams(
+                    namespaceContext,
+                    indexDefinition.getConcreteIndex(),
                     indexDefinition.getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordIdentifier(), content));
             RdfContentBuilder builder = routeRdfXContentBuilder(params);
-            if (settings.get("collection") != null) {
-                state.getResource().add("collection", settings.get("collection"));
-            }
             builder.receive(state.getResource());
             getMetric().mark();
             if (indexDefinition.isMock()) {

@@ -51,7 +51,7 @@ public class PersonalName extends NlzEntity {
                        String resourcePredicate, Resource resource, String property, String value) throws IOException {
         Resource r = worker.getWorkerState().getResource();
         if ("personalName".equals(property)) {
-            String name = capitalize(value.toLowerCase().substring(0, value.length()-1), " ");
+            String name = capitalize(value.toLowerCase().substring(0, value.length()-1), " -");
             r.newResource(DC_CREATOR)
                     .a(FOAF_AGENT)
                     .add(FOAF_NAME, name);

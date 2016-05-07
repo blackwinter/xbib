@@ -126,12 +126,20 @@ public class HostItemEntry extends NlzEntity {
                     if (publisherName.endsWith(".")) {
                         publisherName = publisherName.substring(0, publisherName.length()-1);
                     }
+                    Resource serial = worker.getWorkerState().getSerialsMap().get(cleanTitle.toLowerCase());
+                    if (serial == null && journalTitle.startsWith("The")) {
+                        journalTitle = journalTitle.substring(4);
+                        cleanTitle = journalTitle
+                                .replaceAll("\\p{C}", "")
+                                .replaceAll("\\p{Space}", "")
+                                .replaceAll("\\p{Punct}", "");
+                        serial = worker.getWorkerState().getSerialsMap().get(cleanTitle.toLowerCase());
+                    }
                     Resource j = r.newResource(FRBR_PARTOF)
                             .a(FABIO_JOURNAL)
                             .add(PRISM_PUBLICATION_NAME, journalTitle)
                             .add(PRISM_LOCATION, publishingPlace)
                             .add(DC_PUBLISHER, publisherName);
-                    Resource serial = worker.getWorkerState().getSerialsMap().get(cleanTitle.toLowerCase());
                     if (serial != null) {
                         for (Node issn : serial.objects(PRISM_ISSN)) {
                             j.add(PRISM_ISSN, issn.toString());

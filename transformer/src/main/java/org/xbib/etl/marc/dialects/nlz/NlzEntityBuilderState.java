@@ -31,8 +31,6 @@
  */
 package org.xbib.etl.marc.dialects.nlz;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.IRI;
@@ -45,8 +43,6 @@ import java.io.IOException;
 import java.util.Map;
 
 public class NlzEntityBuilderState extends MARCEntityBuilderState {
-
-    private final static Logger logger = LogManager.getLogger(NlzEntityBuilderState.class);
 
     private final Map<String, Resource> serialsMap;
 
@@ -62,11 +58,7 @@ public class NlzEntityBuilderState extends MARCEntityBuilderState {
 
     @Override
     public void complete() throws IOException {
-        String key = workAuthorKey.createIdentifier();
-        getResource().add("xbib:key", key);
-        getResource().triples().stream().forEach(t -> {
-            logger.info("{}", t);
-        });
+        getResource().add("xbib:key", workAuthorKey.createIdentifier());
         super.complete();
     }
 
