@@ -31,13 +31,12 @@
  */
 package org.xbib.analyzer.marc.nlz;
 
+import org.xbib.common.Strings;
 import org.xbib.etl.marc.dialects.nlz.NlzEntity;
 import org.xbib.etl.marc.dialects.nlz.NlzEntityQueue;
 import org.xbib.iri.IRI;
-import org.xbib.rdf.Literal;
 import org.xbib.rdf.Node;
 import org.xbib.rdf.Resource;
-import org.xbib.rdf.memory.MemoryLiteral;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -48,10 +47,12 @@ import java.util.regex.Pattern;
 public class HostItemEntry extends NlzEntity {
 
     // 84:3 (1987:Sept.) 39
-    private final static Pattern partPattern1 = Pattern.compile("^(.*?)\\:(.*?)\\s*\\((\\d{4,}).*?\\)(.*?)$");
+    // 2:1 ([1979]:Fall) 13
+    private final static Pattern partPattern1 = Pattern.compile("^(.*?)\\:(.*?)\\s*\\(\\[*(\\d{4,})\\]*.*?\\)(.*?)$");
 
     // 22 (1924/1925) 115
-    private final static Pattern partPattern2 = Pattern.compile("^(.*?)\\s*\\((\\d{4,}).*?\\)(.*?)$");
+    // 3 ([1962]) 33
+    private final static Pattern partPattern2 = Pattern.compile("^(.*?)\\s*\\(\\[*(\\d{4,})\\]*.*?\\)(.*?)$");
 
     private final static Pattern titlePattern = Pattern.compile("^(.*?)\\.\\.\\s\\-\\s(.*?)\\s\\:\\s(.*?)$");
 
@@ -90,17 +91,22 @@ public class HostItemEntry extends NlzEntity {
                         logger.warn("unmatched: {}", value);
                     }
                 }
-                r.newResource(FRBR_EMBODIMENT)
-                        .a(FABIO_PRINT_OBJECT)
-                        .add(PRISM_STARTING_PAGE, page);
-                r.newResource(FRBR_EMBODIMENT)
-                        .a(FABIO_PERIODICAL_VOLUME)
-                        .add(PRISM_VOLUME, volume);
-                r.newResource(FRBR_EMBODIMENT)
-                        .a(FABIO_PERIODICAL_ISSUE)
-                        .add(PRISM_NUMBER, issue);
+                if (page != null) {
+                    r.newResource(FRBR_EMBODIMENT)
+                            .a(FABIO_PRINT_OBJECT)
+                            .add(PRISM_STARTING_PAGE, page);
+                }
+                if (volume != null) {
+                    r.newResource(FRBR_EMBODIMENT)
+                            .a(FABIO_PERIODICAL_VOLUME)
+                            .add(PRISM_VOLUME, volume);
+                }
+                if (issue != null) {
+                    r.newResource(FRBR_EMBODIMENT)
+                            .a(FABIO_PERIODICAL_ISSUE)
+                            .add(PRISM_NUMBER, issue);
+                }
                 if (date != null) {
-                    r.add(DC_DATE, new MemoryLiteral(date.substring(0, 4)).type(Literal.GYEAR));
                     r.add(PRISM_PUBLICATION_DATE, date);
                     worker.getWorkerState().getWorkAuthorKey()
                             .chronology(date.substring(0, 4));
@@ -142,7 +148,9 @@ public class HostItemEntry extends NlzEntity {
                             .add(DC_PUBLISHER, publisherName);
                     if (serial != null) {
                         for (Node issn : serial.objects(PRISM_ISSN)) {
-                            j.add(PRISM_ISSN, issn.toString());
+                            if (!Strings.isEmpty(issn.toString())) {
+                                j.add(PRISM_ISSN, issn.toString());
+                            }
                         }
                     } else {
                         worker.getWorkerState().getMissingSerialsMap().put(journalTitle, true);

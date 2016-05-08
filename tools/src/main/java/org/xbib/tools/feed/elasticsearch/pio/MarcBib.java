@@ -196,8 +196,12 @@ public class MarcBib extends BibliographicFeeder {
             if (indexDefinition == null) {
                 throw new IOException("no 'bib' index definition configured");
             }
-            RouteRdfXContentParams params = new RouteRdfXContentParams(
-                    namespaceContext,
+            String key = state.getWorkAuthorKey().createIdentifier();
+            if (key == null) {
+                return;
+            }
+            state.getResource().add("xbib:key", key);
+            RouteRdfXContentParams params = new RouteRdfXContentParams(namespaceContext,
                     indexDefinition.getConcreteIndex(),
                     indexDefinition.getType());
             params.setHandler((content, p) -> ingest.index(p.getIndex(), p.getType(), state.getRecordIdentifier(), content));

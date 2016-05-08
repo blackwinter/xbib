@@ -31,7 +31,6 @@
  */
 package org.xbib.etl.marc.dialects.nlz;
 
-import org.xbib.common.Booleans;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.grouping.bibliographic.endeavor.WorkAuthorKey;
 import org.xbib.iri.IRI;
@@ -40,7 +39,6 @@ import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class NlzEntityBuilderState extends MARCEntityBuilderState {
@@ -59,12 +57,6 @@ public class NlzEntityBuilderState extends MARCEntityBuilderState {
         this.serialsMap = serialsMap;
         this.missingSerials = missingSerials;
         this.workAuthorKey = new WorkAuthorKey();
-    }
-
-    @Override
-    public void complete() throws IOException {
-        getResource().add("xbib:key", workAuthorKey.createIdentifier());
-        super.complete();
     }
 
     public Map<String, Resource> getSerialsMap() {
