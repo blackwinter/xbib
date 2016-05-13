@@ -210,7 +210,7 @@ public class PrettyTimeI18n_FA_Test {
         assertTrue(timeUnitQuantities.size() >= 2); // might be more because of milliseconds between date capturing and result
         // calculation
         assertEquals(-5, timeUnitQuantities.get(0).getQuantity());
-        assertEquals(-10, timeUnitQuantities.get(1).getQuantity());
+        assertTrue(-10 == timeUnitQuantities.get(1).getQuantity() || -9 == timeUnitQuantities.get(1).getQuantity());
     }
 
     @Test

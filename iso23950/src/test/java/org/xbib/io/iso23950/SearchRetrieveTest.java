@@ -81,33 +81,4 @@ public class SearchRetrieveTest {
         }
     }
 
-    @Test
-    public void testADS() throws Exception {
-        String address = "z3950://z3950.adsabs.harvard.edu:210";
-        String database = "AST";
-        String resultSetName = "default";
-        String elementSetName = "F";
-        String query = "@attr 1=5 AASHS";
-        int from = 1;
-        int length = 10;
-        URI uri = URI.create(address);
-        ZConnection connection = new ZConnection(uri.toURL());
-        ZSession session = connection.createSession();
-        ZClient client = session.newZClient();
-        ZSearchRetrieveRequest searchRetrieve = client.newPQFSearchRetrieveRequest();
-        searchRetrieve.setDatabase(Collections.singletonList(database))
-                .setQuery(query)
-                .setResultSetName(resultSetName)
-                .setElementSetName(elementSetName)
-                .setFrom(from)
-                .setSize(length);
-        ZSearchRetrieveResponse response = searchRetrieve.execute();
-        StringWriter writer = new StringWriter();
-        response.to(writer);
-        client.close();
-        session.close();
-        connection.close();
-        logger.info("{}", writer.toString());
-    }
-
 }

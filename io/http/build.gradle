@@ -1,7 +1,7 @@
 
 import org.gradle.internal.os.OperatingSystem;
 
-println "Operating system: " + OperatingSystem.current().getFamilyName()
+//println "Operating system: " + OperatingSystem.current().getFamilyName()
 
 dependencies {
     compile project(':io:stream')
@@ -13,7 +13,7 @@ dependencies {
     compile "org.javassist:javassist:3.20.0-GA"
     if ('os x' == OperatingSystem.current().getFamilyName()) {
         compile "io.netty:netty-tcnative:1.1.33.Fork12:osx-x86_64"
-    }    
+    }
     if ('linux' == OperatingSystem.current().getFamilyName()) {
         if (new File("/etc/redhat-release").exists()) {
             // use this for linking to libssl.so.10 (RHEL/Fedora/CentOS)

@@ -48,7 +48,6 @@ import org.xbib.rdf.io.xml.XmlHandler;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.input.FileInput;
-import org.xbib.util.URIBuilder;
 import org.xbib.util.concurrent.WorkerProvider;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -57,10 +56,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
 
