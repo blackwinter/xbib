@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.iso23950.client.ZClient;
 import org.xbib.io.iso23950.exceptions.MessageSizeTooSmallException;
+import org.xbib.io.iso23950.exceptions.NoRecordsReturnedException;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 
@@ -76,7 +77,7 @@ public class SearchRetrieveTest {
             client.close();
             session.close();
             connection.close();
-        } catch (MessageSizeTooSmallException e) {
+        } catch (NoRecordsReturnedException | MessageSizeTooSmallException e) {
             logger.error(e.getMessage());
         }
     }

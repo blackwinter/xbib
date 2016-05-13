@@ -25,7 +25,7 @@ test {
     systemProperties = [ 'java.protocol.handler.pkgs': 'org.xbib.io.CustomURLStreamHandlerFactory' ]
     classpath += configurations.provided
     testLogging {
-        showStandardStreams = true
+        showStandardStreams = false
         exceptionFormat = 'full'
     }
 }
