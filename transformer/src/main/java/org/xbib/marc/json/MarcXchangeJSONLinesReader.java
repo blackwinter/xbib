@@ -130,7 +130,7 @@ public class MarcXchangeJSONLinesReader {
                 jsonParser.nextToken();
                 parseInner(jsonParser.getCurrentName(), level);
             } else {
-                throw new JsonParseException("expected field name, but got " + jsonParser.getCurrentToken(),
+                throw new JsonParseException(jsonParser, "expected field name, but got " + jsonParser.getCurrentToken(),
                         jsonParser.getCurrentLocation());
             }
         }

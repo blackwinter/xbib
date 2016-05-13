@@ -42,7 +42,7 @@ import org.xbib.rdf.Resource;
 import java.io.IOException;
 import java.util.Map;
 
-public abstract class MABEntity<W extends MABEntityQueue.MABWorker> extends DefaultEntity<W> {
+public abstract class MABEntity extends DefaultEntity<MABEntityQueue.MABWorker> {
 
     protected static final Logger logger = LogManager.getLogger(MABEntity.class.getName());
 
@@ -56,7 +56,7 @@ public abstract class MABEntity<W extends MABEntityQueue.MABWorker> extends Defa
      * @param worker the worker
      * @param fields  fields
      */
-    public boolean fields(W worker, FieldList fields) throws IOException {
+    public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         // overridden
         return false;
     }
@@ -67,7 +67,7 @@ public abstract class MABEntity<W extends MABEntityQueue.MABWorker> extends Defa
      * @param value value
      * @return transformed value
      */
-    public String data(W worker, String resourcePredicate, Resource resource, String property, String value) {
+    public String data(MABEntityQueue.MABWorker worker, String resourcePredicate, Resource resource, String property, String value) {
         // nothing
         return value;
     }

@@ -208,7 +208,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             if (fields == null) {
                 return;
             }
-            MABEntity<MABWorker> entity;
+            MABEntity entity;
             try {
                 Specification<MABEntity> spec = getSpecification();
                 entity = spec.getEntity(fields.toKey(), getMap());
