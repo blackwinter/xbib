@@ -43,6 +43,7 @@ import org.xbib.io.iso23950.client.ZClient;
 import org.xbib.io.iso23950.client.ZClientFactory;
 import org.xbib.io.iso23950.searchretrieve.CQLSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.PQFSearchRetrieveRequest;
+import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 import org.xbib.io.iso23950.service.ZService;
 import org.xbib.sru.Diagnostics;
@@ -56,7 +57,7 @@ import org.xbib.xml.transform.StylesheetTransformer;
 /**
  *  A SRU service on a Z service
  */
-public class ZSRUService implements SRUService, SRUConstants, ZService, ZConstants {
+public class ZSRUService implements SRUService<ZSearchRetrieveRequest, ZSearchRetrieveResponse>, SRUConstants, ZService, ZConstants {
 
     private final Properties properties;
 

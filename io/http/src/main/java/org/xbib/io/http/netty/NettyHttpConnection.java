@@ -94,7 +94,7 @@ public class NettyHttpConnection extends URLConnection implements Connection<Htt
         }
     }
 
-    void setNettyHttpResponse(NettyHttpResponse nettyHttpResponse) {
+    private void setNettyHttpResponse(NettyHttpResponse nettyHttpResponse) {
         this.nettyHttpResponse = nettyHttpResponse;
     }
 

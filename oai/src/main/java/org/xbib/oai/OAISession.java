@@ -31,21 +31,12 @@
  */
 package org.xbib.oai;
 
-import org.xbib.io.http.netty.NettyHttpSession;
-import org.xbib.io.http.HttpSession;
-
-import java.io.IOException;
+import java.io.Closeable;
 
 /**
  *  OAI session
  *
  */
-public interface OAISession extends HttpSession {
-
-    NettyHttpSession getSession();
-
-    OAISession setProxy(String host, int port);
-
-    void close() throws IOException;
+public interface OAISession extends Closeable {
 
 }

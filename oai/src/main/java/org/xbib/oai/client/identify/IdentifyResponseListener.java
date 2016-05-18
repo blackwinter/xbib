@@ -34,8 +34,6 @@ package org.xbib.oai.client.identify;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpResponse;
 import org.xbib.oai.DefaultOAIResponseListener;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -48,14 +46,11 @@ import java.io.StringReader;
 
 public class IdentifyResponseListener extends DefaultOAIResponseListener {
 
-    private final IdentifyRequest request;
-
     private final IdentifyResponse response;
 
     private StringBuilder body;
 
     public IdentifyResponseListener(IdentifyRequest request) {
-        this.request = request;
         this.response = new IdentifyResponse(request);
         this.body = new StringBuilder();
     }
@@ -65,12 +60,12 @@ public class IdentifyResponseListener extends DefaultOAIResponseListener {
     }
 
     @Override
-    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
+    public void onReceive(CharSequence message) throws IOException {
         body.append(message);
     }
 
     @Override
-    public void receivedResponse(HttpResponse result) throws IOException {
+    public void receivedResponse() throws IOException {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();

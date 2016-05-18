@@ -31,9 +31,8 @@
  */
 package org.xbib.sru;
 
-import org.xbib.io.http.HttpResponseListener;
 
-public interface SRUResponseListener extends HttpResponseListener {
+public interface SRUResponseListener {
 
 }
 

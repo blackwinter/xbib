@@ -32,12 +32,11 @@
 package org.xbib.oai.client.getrecord;
 
 import org.xbib.oai.client.ClientOAIRequest;
-import org.xbib.oai.OAISession;
 
 public class GetRecordRequest extends ClientOAIRequest {
 
-    public GetRecordRequest(OAISession session) {
-        super(session);
+    public GetRecordRequest() {
+        super();
         addParameter(VERB_PARAMETER, GET_RECORD);
     }
 }

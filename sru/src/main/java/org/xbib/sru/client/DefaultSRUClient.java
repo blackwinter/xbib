@@ -31,78 +31,99 @@
  */
 package org.xbib.sru.client;
 
-import org.xbib.io.Session;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpSession;
-import org.xbib.io.http.netty.NettyHttpSession;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.query.cql.SyntaxException;
+import org.xbib.service.client.Clients;
+import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.http.SimpleHttpRequest;
+import org.xbib.service.client.http.SimpleHttpRequestBuilder;
+import org.xbib.service.client.http.SimpleHttpResponse;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
 import org.xbib.sru.SRUConstants;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
+import org.xbib.util.URIBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
  * A default SRU client
  */
-public class DefaultSRUClient implements SRUClient {
+public class DefaultSRUClient<Request extends SearchRetrieveRequest, Response extends SearchRetrieveResponse>
+        implements SRUClient<Request, Response> {
 
-    private final HttpSession session;
+    private final static Logger logger = LogManager.getLogger(DefaultSRUClient.class);
+
+    private final static RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
+
+    private SimpleHttpClient client;
+
+    private String url;
 
     public DefaultSRUClient() throws IOException {
-        this.session = new NettyHttpSession();
-        session.open(Session.Mode.READ);
     }
 
     @Override
-    public void close() throws IOException {
-        session.close();
-    }
-
-    @Override
-    public SearchRetrieveRequest newSearchRetrieveRequest(URL url) {
+    public Request newSearchRetrieveRequest(String url) {
+        this.url = url;
+        this.client = Clients.newClient(remoteInvokerFactory, "none+" + url, SimpleHttpClient.class);
         SearchRetrieveRequest request = new ClientSearchRetrieveRequest();
-        request.setURL(url);
-        return request;
+        request.setQuery(URI.create(url).getQuery());
+        return (Request) request;
     }
 
-    public SearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
+    @Override
+    public Response searchRetrieve(Request request)
             throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException {
         if (request == null) {
             throw new IOException("request not set");
         }
-        if (request.getURL() == null) {
-            throw new IOException("request URI not set");
+        URIBuilder uriBuilder = new URIBuilder();
+        URI uri = URI.create(url);
+        uriBuilder.scheme(uri.getScheme())
+                .authority(uri.getAuthority())
+                .path(uri.getPath())
+                .addParameter(SRUConstants.OPERATION_PARAMETER, "searchRetrieve")
+                .addParameter(SRUConstants.VERSION_PARAMETER, request.getVersion())
+                .addParameter(SRUConstants.QUERY_PARAMETER, request.getQuery())
+                .addParameter(SRUConstants.START_RECORD_PARAMETER, Integer.toString(request.getStartRecord()))
+                .addParameter(SRUConstants.MAXIMUM_RECORDS_PARAMETER, Integer.toString(request.getMaximumRecords()));
+        if (request.getRecordPacking() != null && !request.getRecordPacking().isEmpty()) {
+            uriBuilder.addParameter(SRUConstants.RECORD_PACKING_PARAMETER, request.getRecordPacking());
         }
-        final SearchRetrieveResponse response = new SearchRetrieveResponse(request);
-
-        try {
-            HttpRequest req = session.newRequest()
-                    .setMethod("GET")
-                    .setURL(request.getURL())
-                    .addParameter(SRUConstants.OPERATION_PARAMETER, "searchRetrieve")
-                    .addParameter(SRUConstants.VERSION_PARAMETER, request.getVersion())
-                    .addParameter(SRUConstants.QUERY_PARAMETER, request.getQuery())
-                    .addParameter(SRUConstants.START_RECORD_PARAMETER, Integer.toString(request.getStartRecord()))
-                    .addParameter(SRUConstants.MAXIMUM_RECORDS_PARAMETER, Integer.toString(request.getMaximumRecords()));
-            if (request.getRecordPacking() != null && !request.getRecordPacking().isEmpty()) {
-                req.addParameter(SRUConstants.RECORD_PACKING_PARAMETER, request.getRecordPacking());
-            }
-            if (request.getRecordSchema() != null && !request.getRecordSchema().isEmpty()) {
-                req.addParameter(SRUConstants.RECORD_SCHEMA_PARAMETER, request.getRecordSchema());
-            }
-            req.prepare().execute(response).waitFor();
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
+        if (request.getRecordSchema() != null && !request.getRecordSchema().isEmpty()) {
+            uriBuilder.addParameter(SRUConstants.RECORD_SCHEMA_PARAMETER, request.getRecordSchema());
         }
-        return response;
+        SimpleHttpRequest simpleHttpRequest = SimpleHttpRequestBuilder.forGet(uriBuilder.build().toString()).build();
+        SimpleHttpResponse simpleHttpResponse = client.execute(simpleHttpRequest).get();
+        int max = 3;
+        while (simpleHttpResponse.followUrl() != null && max-- > 0) {
+            client = Clients.newClient(remoteInvokerFactory, "none+" + simpleHttpResponse.followUrl(),
+                    SimpleHttpClient.class);
+            simpleHttpRequest = SimpleHttpRequestBuilder.forGet(simpleHttpResponse.followUrl())
+                    .header(HttpHeaderNames.ACCEPT, "utf-8")
+                    .build();
+            simpleHttpResponse = client.execute(simpleHttpRequest).get();
+        }
+        String content = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+        logger.debug("content={}", content);
+        final SearchRetrieveResponse response = new SearchRetrieveResponse(request, simpleHttpResponse);
+        response.onReceive(content);
+        return (Response) response;
     }
 
-    class ClientSearchRetrieveRequest extends SearchRetrieveRequest {
+    @Override
+    public void close() throws IOException {
+    }
+
+    private class ClientSearchRetrieveRequest extends SearchRetrieveRequest {
     }
 
 }

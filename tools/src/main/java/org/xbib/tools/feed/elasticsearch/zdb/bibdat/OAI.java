@@ -46,6 +46,7 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIBuilder;
@@ -58,6 +59,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -110,10 +112,10 @@ public final class OAI extends OAIFeeder {
         }
         do {
             final OAIClient client = OAIClientFactory.newClient(server);
-            client.setTimeout(settings.getAsInt("timeout", 60000));
-            if (settings.get("proxyhost") != null) {
-                client.setProxy(settings.get("proxyhost"), settings.getAsInt("proxyport", 3128));
-            }
+            // TODO
+            // if (settings.get("proxyhost") != null) {
+            //    client.setProxy(settings.get("proxyhost"), settings.getAsInt("proxyport", 3128));
+            //}
             ListRecordsRequest request = client.newListRecordsRequest()
                     .setMetadataPrefix(metadataPrefix)
                     .setSet(set)
@@ -127,7 +129,9 @@ public final class OAI extends OAIFeeder {
                     PicaMetadataHandler handler = new PicaMetadataHandler(marcXchangeStream);
                     request.addHandler(handler);
                     ListRecordsListener listener = new ListRecordsListener(request);
-                    request.prepare().execute(listener).waitFor();
+                    SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                    String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                    listener.onReceive(response);
                     if (listener.getResponse() != null) {
                         StringWriter w = new StringWriter();
                         listener.getResponse().to(w);

@@ -43,13 +43,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.junit.Test;
-import org.xbib.io.http.HttpRequest;
+import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
+import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 import org.xbib.sru.client.SRUClient;
-import org.xbib.sru.iso23950.service.ZSRUService;
 import org.xbib.sru.iso23950.service.ZSRUServiceFactory;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
-import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
+import org.xbib.sru.service.SRUService;
 import org.xbib.xml.transform.StylesheetTransformer;
 
 public class SRUServiceTest {
@@ -60,19 +60,13 @@ public class SRUServiceTest {
     public void testSearchRetrieve() throws Exception {
         for (String name : Collections.singletonList("OBVSG")) {
             logger.info("trying " + name);
-            ZSRUService service = ZSRUServiceFactory.getService(name);
+            SRUService<ZSearchRetrieveRequest, ZSearchRetrieveResponse> service = ZSRUServiceFactory.getService(name);
             if (service != null) {
                 File file = File.createTempFile("sru-" + service.getURI().getHost(), ".xml");
                 FileOutputStream out = new FileOutputStream(file);
                 Writer w = new OutputStreamWriter(out, "UTF-8");
                 try {
-                    SRUClient client = service.newClient();
                     SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
-                        @Override
-                        public void onConnect(HttpRequest request) {
-                            logger.info("connect, request = " + request);
-                        }
-
                         @Override
                         public void version(String version) {
                             logger.info("version = " + version);
@@ -123,16 +117,13 @@ public class SRUServiceTest {
                             logger.info("endStream record");
                         }
 
-                        @Override
-                        public void onDisconnect(HttpRequest request) {
-                            logger.info("disconnect, request = " + request);
-                        }
                     };
                     String query = "dc.title = Linux";
                     int from = 1;
                     int size = 10;
-                    SearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI().toURL())
-                            .addListener(listener)
+                    SRUClient<ZSearchRetrieveRequest, ZSearchRetrieveResponse> client = service.newClient();
+                    ZSearchRetrieveRequest request = client.newSearchRetrieveRequest(service.getURI().toString());
+                    request.addListener(listener)
                             .setQuery(query)
                             .setStartRecord(from)
                             .setMaximumRecords(size);

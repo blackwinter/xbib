@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -45,9 +46,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.identify.IdentifyRequest;
-import org.xbib.oai.client.identify.IdentifyResponseListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.xml.SimpleMetadataHandler;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -56,20 +57,17 @@ public class DNBClientTest {
     private final static Logger logger = LogManager.getLogger(DNBClientTest.class.getName());
 
     @Test
-    public void testIdentify() throws InterruptedException, IOException, TimeoutException {
+    public void testIdentify() throws Exception {
         try {
             OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
             IdentifyRequest request = client.newIdentifyRequest();
-            request.prepare().execute(new IdentifyResponseListener(request) {
-            }).waitFor();
-        } catch (ConnectException | ExecutionException e) {
-            logger.warn("skipped, can not connect");
-        } catch (TimeoutException | InterruptedException | IOException e) {
+            SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+        } catch (Exception e) {
             throw e;
         }
     }
 
-
+    @Test
     public void testListRecordsDNB() throws InterruptedException, TimeoutException, IOException {
         try {
             OAIClient client = OAIClientFactory.newClient("http://services.dnb.de/oai/repository");
@@ -113,12 +111,16 @@ public class DNBClientTest {
 
             };
             File file = File.createTempFile("dnb-bib-pica.", ".xml");
+            file.deleteOnExit();
             FileWriter sw = new FileWriter(file);
             do {
                 try {
                     request.addHandler(simpleMetadataHandler);
                     ListRecordsListener listener = new ListRecordsListener(request);
-                    request.prepare().execute(listener).waitFor();
+                    SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                    String content = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                    listener.onReceive(content);
+                    listener.receivedResponse(simpleHttpResponse);
                     if (listener.getResponse() != null) {
                         listener.getResponse().to(sw);
                     } else {
@@ -135,7 +137,7 @@ public class DNBClientTest {
             logger.info("count={}", count.get());
         } catch (ConnectException | ExecutionException e) {
             logger.warn("skipped, can not connect");
-        } catch (TimeoutException | InterruptedException | IOException e) {
+        } catch (InterruptedException | IOException e) {
             throw e;
         }
     }

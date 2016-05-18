@@ -32,9 +32,10 @@
 package org.xbib.oai.client;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Duration;
 
-import org.xbib.io.http.netty.NettyHttpSession;
 import org.xbib.oai.client.getrecord.GetRecordRequest;
 import org.xbib.oai.client.identify.IdentifyRequest;
 import org.xbib.oai.client.listidentifiers.ListIdentifiersRequest;
@@ -42,17 +43,24 @@ import org.xbib.oai.client.listmetadataformats.ListMetadataFormatsRequest;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.client.listsets.ListSetsRequest;
 import org.xbib.oai.util.ResumptionToken;
+import org.xbib.service.client.ClientBuilder;
+import org.xbib.service.client.http.SimpleHttpClient;
 
 /**
  * Default OAI client
  */
-public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
+public class DefaultOAIClient implements OAIClient {
+
+    private SimpleHttpClient client;
 
     private URL url;
 
     @Override
-    public DefaultOAIClient setURL(URL url) {
+    public DefaultOAIClient setURL(URL url) throws URISyntaxException {
         this.url = url;
+        this.client = new ClientBuilder("none+" + url.toURI())
+                .responseTimeout(Duration.ofMinutes(1L)) // maybe not enough for extreme slow archive servers...
+                .build(SimpleHttpClient.class);
         return this;
     }
 
@@ -62,60 +70,48 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
     }
 
     @Override
-    public DefaultOAIClient setProxy(String host, int port) {
-        super.setProxy(host, port);
-        return this;
-    }
-
-    @Override
-    public NettyHttpSession getSession() {
-        return this;
+    public SimpleHttpClient getHttpClient() {
+        return client;
     }
 
     @Override
     public IdentifyRequest newIdentifyRequest() {
-        ensureOpen();
-        IdentifyRequest request = new IdentifyRequest(this);
-        request.setURL(getURL());
+        IdentifyRequest request = new IdentifyRequest();
+        request.setURL(url);
         return request;
     }
 
     @Override
     public ListMetadataFormatsRequest newListMetadataFormatsRequest() {
-        ensureOpen();
-        ListMetadataFormatsRequest request = new ListMetadataFormatsRequest(this);
+        ListMetadataFormatsRequest request = new ListMetadataFormatsRequest();
         request.setURL(getURL());
         return request;
     }
 
     @Override
     public ListSetsRequest newListSetsRequest() {
-        ensureOpen();
-        ListSetsRequest request = new ListSetsRequest(this);
+        ListSetsRequest request = new ListSetsRequest();
         request.setURL(getURL());
         return request;
     }
 
     @Override
     public ListIdentifiersRequest newListIdentifiersRequest() {
-        ensureOpen();
-        ListIdentifiersRequest request = new ListIdentifiersRequest(this);
+        ListIdentifiersRequest request = new ListIdentifiersRequest();
         request.setURL(getURL());
         return request;
     }
 
     @Override
     public GetRecordRequest newGetRecordRequest() {
-        ensureOpen();
-        GetRecordRequest request = new GetRecordRequest(this);
+        GetRecordRequest request = new GetRecordRequest();
         request.setURL(getURL());
         return request;
     }
 
     @Override
     public ListRecordsRequest newListRecordsRequest() {
-        ensureOpen();
-        ListRecordsRequest request = new ListRecordsRequest(this);
+        ListRecordsRequest request = new ListRecordsRequest();
         request.setURL(getURL());
         return request;
     }
@@ -129,7 +125,6 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newIdentifyRequest();
         request.setResumptionToken(token);
         return request;
@@ -144,7 +139,6 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newListRecordsRequest();
         request.setResumptionToken(token);
         return request;
@@ -159,7 +153,6 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newListIdentifiersRequest();
         request.setResumptionToken(token);
         return request;
@@ -174,7 +167,6 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newListMetadataFormatsRequest();
         request.setResumptionToken(token);
         return request;
@@ -189,7 +181,6 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newListSetsRequest();
         request.setResumptionToken(token);
         return request;
@@ -204,23 +195,13 @@ public class DefaultOAIClient extends NettyHttpSession implements OAIClient {
         if (token == null) {
             return null;
         }
-        ensureOpen();
         request = newGetRecordRequest();
         request.setResumptionToken(token);
         return request;
     }
 
-    private void ensureOpen() {
-        if (url == null) {
-            throw new IllegalArgumentException("no URL set for session");
-        }
-        if (!isOpen()) {
-            try {
-                open(Mode.READ);
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-    }
+    @Override
+    public void close() throws IOException {
 
+    }
 }

@@ -696,8 +696,8 @@ public class IRI implements Comparable<IRI>, Node {
         return CharUtils.wrapBidi(toString(), CharUtils.LRE);
     }
 
-    public java.net.URI toURI() throws URISyntaxException {
-        return new java.net.URI(toASCIIString());
+    public URI toURI() throws URISyntaxException {
+        return new URI(toASCIIString());
     }
 
     public java.net.URL toURL() throws MalformedURLException, URISyntaxException {

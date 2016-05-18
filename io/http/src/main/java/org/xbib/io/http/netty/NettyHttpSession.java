@@ -31,6 +31,9 @@
  */
 package org.xbib.io.http.netty;
 
+import io.netty.handler.ssl.OpenSsl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.io.http.HttpPacket;
 import org.xbib.io.http.HttpRequest;
 import org.xbib.io.http.HttpSession;
@@ -43,6 +46,8 @@ import org.xbib.io.http.client.proxy.ProxyServer;
 import java.io.IOException;
 
 public class NettyHttpSession implements HttpSession {
+
+    private final static Logger logger = LogManager.getLogger(NettyHttpSession.class);
 
     private DefaultAsyncHttpClientConfig.Builder config = new DefaultAsyncHttpClientConfig.Builder();
 
@@ -118,6 +123,8 @@ public class NettyHttpSession implements HttpSession {
                 }
                 case CONTROL: {
                     // for crawling
+                    logger.info("OpenSSL available = {}", OpenSsl.isAvailable());
+                    logger.info("ALPN supported = {}", OpenSsl.isAlpnSupported());
                     config.setUseOpenSsl(true)
                             .setAcceptAnyCertificate(true)
                             .setFollowRedirect(false)

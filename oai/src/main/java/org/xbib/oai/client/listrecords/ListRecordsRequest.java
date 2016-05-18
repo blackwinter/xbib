@@ -33,7 +33,6 @@ package org.xbib.oai.client.listrecords;
 
 import org.xbib.oai.client.ClientOAIRequest;
 import org.xbib.oai.OAIConstants;
-import org.xbib.oai.OAISession;
 import org.xbib.oai.xml.MetadataHandler;
 
 import java.util.LinkedList;
@@ -41,16 +40,16 @@ import java.util.List;
 
 public class ListRecordsRequest extends ClientOAIRequest<ListRecordsRequest> {
 
-    private List<ListRecordsListener> listeners = new LinkedList<>();
+    //private List<ListRecordsListener> listeners = new LinkedList<>();
 
     private List<MetadataHandler> handlers = new LinkedList<>();
 
-    public ListRecordsRequest(OAISession session) {
-        super(session);
+    public ListRecordsRequest() {
+        super();
         addParameter(OAIConstants.VERB_PARAMETER, LIST_RECORDS);
     }
 
-    public ListRecordsRequest addListener(ListRecordsListener listener) {
+/*    public ListRecordsRequest addListener(ListRecordsListener listener) {
         listeners.add(listener);
         return this;
     }
@@ -58,7 +57,7 @@ public class ListRecordsRequest extends ClientOAIRequest<ListRecordsRequest> {
     public List<ListRecordsListener> getListeners() {
         return listeners;
     }
-
+*/
     public ListRecordsRequest addHandler(MetadataHandler handler) {
         handlers.add(handler);
         return this;

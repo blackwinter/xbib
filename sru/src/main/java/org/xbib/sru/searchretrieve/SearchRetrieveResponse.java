@@ -43,9 +43,7 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpResponse;
-import org.xbib.io.http.HttpResponseListener;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.sru.DefaultSRUResponse;
 import org.xbib.sru.SRUResponse;
 import org.xbib.sru.SRUVersion;
@@ -58,57 +56,32 @@ import org.xml.sax.InputSource;
  *
  */
 public class SearchRetrieveResponse extends DefaultSRUResponse
-        implements SRUResponse, SearchRetrieveListener, HttpResponseListener, XMLEventConsumer {
+        implements SRUResponse, SearchRetrieveListener, XMLEventConsumer {
 
     private final static Logger logger = LogManager.getLogger(SearchRetrieveResponse.class.getName());
 
     private final SearchRetrieveRequest request;
 
-    private HttpResponse httpResponse;
+    private final SimpleHttpResponse simpleHttpResponse;
 
     private StringBuilder sb;
 
-    public SearchRetrieveResponse(SearchRetrieveRequest request) {
+    public SearchRetrieveResponse(SearchRetrieveRequest request, SimpleHttpResponse simpleHttpResponse) {
         this.request = request;
+        this.simpleHttpResponse = simpleHttpResponse;
         this.sb = new StringBuilder();
     }
 
-    @Override
-    public void receivedResponse(HttpResponse response) {
-        this.httpResponse = response;
+    public SearchRetrieveRequest getRequest() {
+        return request;
     }
 
-    public int httpStatus() {
-        return httpResponse.getStatusCode();
+    public SimpleHttpResponse getSimpleHttpResponse() {
+        return simpleHttpResponse;
     }
 
-    @Override
-    public void onConnect(HttpRequest request) throws IOException {
-        for (SearchRetrieveListener listener : this.request.getListeners()) {
-            listener.onConnect(request);
-        }
-    }
-
-    @Override
-    public void onDisconnect(HttpRequest request) throws IOException {
-        for (SearchRetrieveListener listener : this.request.getListeners()) {
-            listener.onDisconnect(request);
-        }
-    }
-
-    @Override
-    public void onError(HttpRequest request, Throwable error) throws IOException {
-        for (SearchRetrieveListener listener : this.request.getListeners()) {
-            listener.onError(request, error);
-        }
-    }
-
-    @Override
-    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
+    public void onReceive(CharSequence message) throws IOException {
         sb.append(message);
-        for (SearchRetrieveListener listener : this.request.getListeners()) {
-            listener.onReceive(request, message);
-        }
     }
 
     @Override
@@ -194,15 +167,8 @@ public class SearchRetrieveResponse extends DefaultSRUResponse
         }
     }
 
-    public boolean isEmpty() {
-        return httpResponse != null && httpResponse.notfound();
-    }
-
     @Override
     public SearchRetrieveResponse to(Writer writer) throws IOException {
-        if (httpResponse == null) {
-            return this;
-        }
         if (getTransformer() == null) {
             setStylesheetTransformer(new StylesheetTransformer().setPath("xsl"));
         }

@@ -31,6 +31,7 @@
  */
 package org.xbib.tools.analyze;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -41,17 +42,17 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.xbib.common.settings.Settings;
 import org.xbib.elasticsearch.helper.client.SearchTransportClient;
-import org.xbib.io.Session;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpResponse;
-import org.xbib.io.http.HttpResponseListener;
-import org.xbib.io.http.netty.NettyHttpSession;
+import org.xbib.service.client.Clients;
+import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.http.SimpleHttpRequest;
+import org.xbib.service.client.http.SimpleHttpRequestBuilder;
+import org.xbib.service.client.http.SimpleHttpResponse;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Set;import org.elasticsearch.action.search.SearchType;
+import java.util.Set;
 
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,42 +71,9 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
         SearchTransportClient search = new SearchTransportClient();
         try {
             Set<String> issns = new TreeSet<>();
-            NettyHttpSession session = new NettyHttpSession();
-            session.open(Session.Mode.READ);
-            HttpRequest httpRequest = session.newRequest();
+            RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
             final AtomicInteger found = new AtomicInteger();
             final AtomicInteger notfound =  new AtomicInteger();;
-
-            HttpResponseListener listener = new HttpResponseListener() {
-                @Override
-                public void receivedResponse(HttpResponse response) throws IOException {
-                    logger.info("status={}", response.getStatusCode());
-                }
-
-                @Override
-                public void onConnect(HttpRequest request) throws IOException {
-                }
-
-                @Override
-                public void onDisconnect(HttpRequest request) throws IOException {
-                }
-
-                @Override
-                public void onReceive(HttpRequest request, CharSequence message) throws IOException {
-                    if (!message.toString().contains("has returned 0 articles")) {
-                        issns.add(getISSN());
-                        found.incrementAndGet();
-                    } else {
-                        notfound.incrementAndGet();
-                    }
-                }
-
-                @Override
-                public void onError(HttpRequest request, Throwable error) throws IOException {
-                    logger.error(error.getMessage(), error);
-                }
-            };
-
             search = search.init(Settings.settingsBuilder()
                     .put("cluster.name", settings.get("elasticsearch.cluster"))
                     .put("host", settings.get("elasticsearch.host"))
@@ -134,13 +102,20 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                                 s = s.substring(0,8); // cut to first 8 letters
                             }
                             setISSN(s);
-                            httpRequest.setMethod("GET")
-                                    .setURL(new URL("http://www.journaltocs.ac.uk/api/journals/" + s))
-                                    .addParameter("output", "articles")
-                                    .addParameter("user", "joergprante@gmail.com")
-                                    .prepare()
-                                    .execute(listener)
-                                    .waitFor();
+                            SimpleHttpClient simpleHttpClient = Clients.newClient(remoteInvokerFactory, "none+http://www.journaltocs.ac.uk",
+                                    SimpleHttpClient.class);
+                            SimpleHttpRequest request = SimpleHttpRequestBuilder.forGet("/api/journals/" + s + "?output=articles&user=joergprante@gmail.com")
+                                    .header(HttpHeaderNames.ACCEPT, "utf-8")
+                                    .header(HttpHeaderNames.CONTENT_LENGTH, "0")
+                                    .build();
+                            SimpleHttpResponse response = simpleHttpClient.execute(request).get();
+                            String content = new String(response.content(), StandardCharsets.UTF_8);
+                            if (!content.contains("has returned 0 articles")) {
+                                issns.add(getISSN());
+                                found.incrementAndGet();
+                            } else {
+                                notfound.incrementAndGet();
+                            }
                             logger.info("found={} notfound={}", found.get(), notfound.get());
                         }
                     }
@@ -149,7 +124,7 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
                         .setScroll(TimeValue.timeValueMinutes(10))
                         .execute().actionGet();
             } while (searchResponse.getHits().getHits().length > 0);
-            session.close();
+            //session.close();
             BufferedWriter fileWriter = getFileWriter(settings.get("output","journaltocs-issns.txt"));
             for (String s : issns) {
                 fileWriter.write(s);
@@ -165,7 +140,7 @@ public class ISSNsOfZDBInJournalTOCs extends Analyzer {
         return 0;
     }
 
-    String issn;
+    private String issn;
 
     public void setISSN(String issn) {
         this.issn = issn;

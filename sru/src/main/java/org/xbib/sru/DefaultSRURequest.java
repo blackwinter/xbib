@@ -31,26 +31,23 @@
  */
 package org.xbib.sru;
 
-
-import java.net.URL;
-
 /**
  * Default SRU request
  *
  */
 public class DefaultSRURequest implements SRURequest {
 
-    private URL url;
+    private String request;
 
     private String query;
 
-    public DefaultSRURequest setURL(URL url) {
-        this.url = url;
+    public DefaultSRURequest setRequest(String request) {
+        this.request = request;
         return this;
     }
     
-    public URL getURL() {
-        return url;
+    public String getRequest() {
+        return request;
     }
 
     public DefaultSRURequest setQuery(String query) {

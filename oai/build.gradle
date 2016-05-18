@@ -1,10 +1,26 @@
 
 dependencies {
-    compile project(':io:http')
     compile project(':content:rdf')
+    compile("org.xbib:netty-http-service:${versions.'netty-http-service'}") {
+        changing = true
+    }
     testCompile "xerces:xercesImpl:2.11.0"
     testCompile "xalan:xalan:2.7.2"
     testCompile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
+    // openssl native libs are optional and must be added to runtime classpath separately
+    if ('os x' == org.gradle.internal.os.OperatingSystem.current().getFamilyName()) {
+        testCompile "io.netty:netty-tcnative:1.1.33.Fork16:osx-x86_64"
+    }
+    if ('linux' == org.gradle.internal.os.OperatingSystem.current().getFamilyName()) {
+        if (new File("/etc/redhat-release").exists()) {
+            // use this for linking to libssl.so.10 (RHEL/Fedora/CentOS)
+            testCompile "io.netty:netty-tcnative:1.1.33.Fork16:linux-x86_64-fedora"
+            //compile 'io.netty:netty-tcnative-boringssl-static:1.1.33.Fork15:linux-x86_64'
+        } else {
+            // use this for linking to libssl.so.1.0.0
+            testCompile "io.netty:netty-tcnative:1.1.33.Fork16:linux-x86_64"
+        }
+    }
 }
 
 test {

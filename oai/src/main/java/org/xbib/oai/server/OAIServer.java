@@ -31,6 +31,7 @@
  */
 package org.xbib.oai.server;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
 
@@ -57,7 +58,7 @@ public interface OAIServer {
 
     URL getURL();
 
-    OAISession newSession();
+    OAISession newSession() throws URISyntaxException;
 
     /**
      * This verb is used to retrieve information about a repository. 

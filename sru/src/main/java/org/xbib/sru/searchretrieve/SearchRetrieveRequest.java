@@ -36,8 +36,7 @@ import org.xbib.sru.SRUConstants;
 import org.xbib.sru.SRURequest;
 import org.xbib.util.URIBuilder;
 
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -85,34 +84,27 @@ public class SearchRetrieveRequest extends DefaultSRURequest implements SRUReque
     }
 
     @Override
-    public SearchRetrieveRequest setURL(URL url) {
-        super.setURL(url);
-        if (url != null) {
-            try {
-                final Map<String, String> params = URIBuilder.parseQueryString(url.toURI());
-                if (params.containsKey(VERSION_PARAMETER)) {
-                    setVersion(params.get(VERSION_PARAMETER));
-                }
-                if (params.containsKey(RECORD_SCHEMA_PARAMETER)) {
-                    setRecordSchema(params.get(RECORD_SCHEMA_PARAMETER));
-                }
-                if (params.containsKey(RECORD_PACKING_PARAMETER)) {
-                    setRecordPacking(params.get(RECORD_PACKING_PARAMETER));
-                }
-                if (params.containsKey(QUERY_PARAMETER)) {
-                    setQuery(params.get(QUERY_PARAMETER));
-                }
-                if (params.containsKey(START_RECORD_PARAMETER)) {
-                    setStartRecord(Integer.parseInt(params.get(START_RECORD_PARAMETER)));
-                }
-                if (params.containsKey(MAXIMUM_RECORDS_PARAMETER)) {
-                    setMaximumRecords(Integer.parseInt(params.get(MAXIMUM_RECORDS_PARAMETER)));
-                }
-                // TODO add more parameters
-            } catch (URISyntaxException e) {
-                // ignore
-            }
+    public SearchRetrieveRequest setRequest(String queryString) {
+        final Map<String, String> params = URIBuilder.parseQueryString(queryString, StandardCharsets.UTF_8, null);
+        if (params.containsKey(VERSION_PARAMETER)) {
+            setVersion(params.get(VERSION_PARAMETER));
         }
+        if (params.containsKey(RECORD_SCHEMA_PARAMETER)) {
+            setRecordSchema(params.get(RECORD_SCHEMA_PARAMETER));
+        }
+        if (params.containsKey(RECORD_PACKING_PARAMETER)) {
+            setRecordPacking(params.get(RECORD_PACKING_PARAMETER));
+        }
+        if (params.containsKey(QUERY_PARAMETER)) {
+            setQuery(params.get(QUERY_PARAMETER));
+        }
+        if (params.containsKey(START_RECORD_PARAMETER)) {
+            setStartRecord(Integer.parseInt(params.get(START_RECORD_PARAMETER)));
+        }
+        if (params.containsKey(MAXIMUM_RECORDS_PARAMETER)) {
+            setMaximumRecords(Integer.parseInt(params.get(MAXIMUM_RECORDS_PARAMETER)));
+        }
+        // TODO add more parameters
         return this;
     }
 

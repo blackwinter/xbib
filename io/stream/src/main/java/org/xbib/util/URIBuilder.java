@@ -138,15 +138,19 @@ public class URIBuilder {
      * @return a Map of parameters
      */
     public static Map<String, String> parseQueryString(URI uri, Charset encoding, ParameterListener listener) {
-        Map<String, String> m = new HashMap<>();
         if (uri == null) {
             throw new IllegalArgumentException();
         }
-        if (uri.getRawQuery() == null) {
+        return parseQueryString(uri.getRawQuery(), encoding, listener);
+    }
+
+    public static Map<String, String> parseQueryString(String rawQuery, Charset encoding, ParameterListener listener) {
+        Map<String, String> m = new HashMap<>();
+        if (rawQuery == null) {
             return m;
         }
         // we use getRawQuery because we do our decoding by ourselves
-        StringTokenizer st = new StringTokenizer(uri.getRawQuery(), "&");
+        StringTokenizer st = new StringTokenizer(rawQuery, "&");
         while (st.hasMoreTokens()) {
             String pair = st.nextToken();
             String k;

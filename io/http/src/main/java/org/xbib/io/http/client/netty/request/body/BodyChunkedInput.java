@@ -1,6 +1,7 @@
 package org.xbib.io.http.client.netty.request.body;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.stream.ChunkedInput;
 import org.xbib.io.http.client.request.body.Body;
@@ -28,11 +29,9 @@ public class BodyChunkedInput implements ChunkedInput<ByteBuf> {
 
     @Override
     public ByteBuf readChunk(ChannelHandlerContext ctx) throws Exception {
-
         if (endOfInput) {
             return null;
         }
-
         ByteBuf buffer = ctx.alloc().buffer(chunkSize);
         Body.BodyState state = body.transferTo(buffer);
         switch (state) {
@@ -47,6 +46,37 @@ public class BodyChunkedInput implements ChunkedInput<ByteBuf> {
             default:
                 throw new IllegalStateException("Unknown state: " + state);
         }
+    }
+
+    @Override
+    public ByteBuf readChunk(ByteBufAllocator allocator) throws Exception {
+        if (endOfInput) {
+            return null;
+        }
+        ByteBuf buffer = allocator.buffer(chunkSize);
+        Body.BodyState state = body.transferTo(buffer);
+        switch (state) {
+            case STOP:
+                endOfInput = true;
+                return buffer;
+            case SUSPEND:
+                // this will suspend the stream in ChunkedWriteHandler
+                return null;
+            case CONTINUE:
+                return buffer;
+            default:
+                throw new IllegalStateException("Unknown state: " + state);
+        }
+    }
+
+    @Override
+    public long length() {
+        return 0;
+    }
+
+    @Override
+    public long progress() {
+        return 0;
     }
 
     @Override

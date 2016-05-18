@@ -31,6 +31,7 @@
  */
 package org.xbib.oai.client;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.xbib.oai.OAIConstants;
@@ -42,6 +43,7 @@ import org.xbib.oai.client.listmetadataformats.ListMetadataFormatsRequest;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.client.listsets.ListSetsRequest;
 import org.xbib.oai.util.ResumptionToken;
+import org.xbib.service.client.http.SimpleHttpClient;
 
 /**
  * OAI client API
@@ -49,7 +51,9 @@ import org.xbib.oai.util.ResumptionToken;
  */
 public interface OAIClient extends OAISession, OAIConstants {
 
-    OAIClient setURL(URL uri);
+    SimpleHttpClient getHttpClient();
+
+    OAIClient setURL(URL uri) throws URISyntaxException;
 
     URL getURL();
 

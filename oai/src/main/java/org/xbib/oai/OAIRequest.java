@@ -32,6 +32,7 @@
 package org.xbib.oai;
 
 import org.xbib.oai.util.ResumptionToken;
+import org.xbib.service.client.http.SimpleHttpRequest;
 
 import java.time.Instant;
 

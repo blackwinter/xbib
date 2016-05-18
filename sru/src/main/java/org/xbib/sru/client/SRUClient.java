@@ -38,18 +38,17 @@ import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
  * SRU client
  */
-public interface SRUClient extends SRUConstants, Closeable {
+public interface SRUClient<Request extends SearchRetrieveRequest, Response extends SearchRetrieveResponse> extends SRUConstants, Closeable {
 
-    SearchRetrieveRequest newSearchRetrieveRequest(URL url);
+    Request newSearchRetrieveRequest(String url);
 
-    SearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
+    Response searchRetrieve(Request request)
             throws SyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException;
 
 }

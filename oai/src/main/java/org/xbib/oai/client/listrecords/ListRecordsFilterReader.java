@@ -49,12 +49,14 @@ public class ListRecordsFilterReader extends XMLFilterReader {
 
     @Override
     public void startDocument() throws SAXException {
+        logger.debug("start of document");
         super.startDocument();
         request.setResumptionToken(null);
     }
 
     @Override
     public void endDocument() throws SAXException {
+        logger.debug("end of document");
         super.endDocument();
     }
 

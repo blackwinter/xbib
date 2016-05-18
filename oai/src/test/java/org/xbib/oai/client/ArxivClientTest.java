@@ -38,7 +38,9 @@ import org.xbib.oai.client.identify.IdentifyRequest;
 import org.xbib.oai.client.identify.IdentifyResponseListener;
 import org.xbib.oai.client.listrecords.ListRecordsListener;
 import org.xbib.oai.client.listrecords.ListRecordsRequest;
+import org.xbib.oai.client.listrecords.ListRecordsResponse;
 import org.xbib.oai.xml.SimpleMetadataHandler;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -46,12 +48,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.Assert.assertTrue;
 
 public class ArxivClientTest {
 
@@ -62,27 +67,33 @@ public class ArxivClientTest {
         try {
             OAIClient client = OAIClientFactory.newClient("http://export.arxiv.org/oai2");
             IdentifyRequest identifyRequest = client.newIdentifyRequest();
+            SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(identifyRequest.getHttpRequest()).get();
             IdentifyResponseListener identifyResponseListener = new IdentifyResponseListener(identifyRequest);
-            identifyRequest.prepare().execute(identifyResponseListener).waitFor();
+            String content = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+            logger.debug("identifyResponse = {}", content);
+            identifyResponseListener.onReceive(content);
+            identifyResponseListener.receivedResponse();
             String granularity = identifyResponseListener.getResponse().getGranularity();
             logger.info("granularity = {}", granularity);
             DateTimeFormatter dateTimeFormatter = "YYYY-MM-DD".equals(granularity) ?
                     DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT")) : null;
-            // ArXiv wants us to wait 20 secs between *every* HTTP request, so we muste wait here
+            // ArXiv wants us to wait 20 secs between *every* HTTP request, so we must wait here
             Thread.sleep(20 * 1000L);
-            ListRecordsRequest request = client.newListRecordsRequest()
+            ListRecordsRequest listRecordsRequest = client.newListRecordsRequest()
                     .setDateTimeFormatter(dateTimeFormatter)
-                    .setFrom(Instant.parse("2013-02-01T00:00:00Z"))
-                    .setUntil(Instant.parse("2013-02-02T00:00:00Z"))
+                    .setFrom(Instant.parse("2016-05-01T00:00:00Z"))
+                    .setUntil(Instant.parse("2016-05-02T00:00:00Z"))
                     .setMetadataPrefix("arXiv");
             final AtomicLong count = new AtomicLong(0L);
             SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
                 @Override
                 public void startDocument() throws SAXException {
+                    logger.debug("start doc");
                 }
 
                 @Override
                 public void endDocument() throws SAXException {
+                    logger.debug("end doc");
                     count.incrementAndGet();
                 }
 
@@ -108,30 +119,37 @@ public class ArxivClientTest {
 
             };
             File file = File.createTempFile("arxiv.", ".xml");
-            FileWriter sw = new FileWriter(file);
+            file.deleteOnExit();
+            FileWriter fileWriter = new FileWriter(file);
             do {
                 try {
-                    request.addHandler(simpleMetadataHandler);
-                    ListRecordsListener listener = new ListRecordsListener(request);
-                    request.prepare().execute(listener).waitFor();
+                    listRecordsRequest.addHandler(simpleMetadataHandler);
+                    simpleHttpResponse = client.getHttpClient().execute(listRecordsRequest.getHttpRequest()).get();
+                    logger.debug("response headers = {}", simpleHttpResponse.headers().entries());
+                    ListRecordsListener listener = new ListRecordsListener(listRecordsRequest);
+                    content = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                    listener.onReceive(content);
+                    listener.receivedResponse(simpleHttpResponse);
                     if (listener.getResponse() != null) {
-                        listener.getResponse().to(sw);
-                        logger.info("delay={}", listener.getResponse().getDelaySeconds());
+                        listener.getResponse().to(fileWriter);
+                        logger.info("delay={} resumption token={}",
+                                listener.getResponse().getDelaySeconds(), listener.getResumptionToken());
                     } else {
                         logger.warn("no response in listener");
                     }
-                    request = client.resume(request, listener.getResumptionToken());
+                    listRecordsRequest = client.resume(listRecordsRequest, listener.getResumptionToken());
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
-                    request = null;
+                    listRecordsRequest = null;
                 }
-            } while (request != null);
-            sw.close();
+            } while (listRecordsRequest != null);
+            fileWriter.close();
             client.close();
             logger.info("count={}", count.get());
+            assertTrue(count.get() > 0L);
         } catch (ConnectException | ExecutionException e) {
-            logger.warn("skipped, can not connect");
-        } catch (TimeoutException | InterruptedException | IOException e) {
+            logger.warn("skipped, can not connect", e);
+        } catch (InterruptedException | IOException e) {
             throw e;
         }
     }
