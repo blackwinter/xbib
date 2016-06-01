@@ -131,11 +131,6 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
         return this;
     }
 
-    public MarcXchangeSaxAdapter setInputStream(InputStream in) throws IOException {
-        this.reader = new InputStreamReader(in, "UTF-8");
-        return this;
-    }
-
     public MarcXchangeSaxAdapter setInputSource(final InputSource source) throws IOException {
         if (source.getByteStream() != null) {
             String encoding = source.getEncoding() != null ? source.getEncoding() : "ANSEL";

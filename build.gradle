@@ -14,7 +14,7 @@ println "Timestamp: " + java.time.Instant.now().atZone(java.time.ZoneId.systemDe
 ext {
   versions = [
           'xbib-elasticsearch' : '2.2.1.1',
-          'jackson': '2.7.3',
+          'jackson': '2.7.4',
           'woodstox' : '5.0.2',
           'log4j': '2.5',
           'gradle-plugin-jflex': '1.1.0',

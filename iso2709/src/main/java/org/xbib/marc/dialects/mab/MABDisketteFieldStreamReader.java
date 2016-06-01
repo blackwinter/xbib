@@ -46,6 +46,8 @@ import java.io.Reader;
  */
 public class MABDisketteFieldStreamReader extends LineFeedStreamReader {
 
+    private final static Logger logger = LogManager.getLogger(MABDisketteFieldStreamReader.class);
+
     private FieldListener listener;
 
     public MABDisketteFieldStreamReader(Reader reader, FieldListener listener) {
@@ -58,6 +60,10 @@ public class MABDisketteFieldStreamReader extends LineFeedStreamReader {
 
     public void processLine(String line) throws Exception {
         if (line == null || line.isEmpty()) {
+            return;
+        }
+        if (line.length() < 5) {
+            logger.warn("short line: {}", line);
             return;
         }
         String number = line.substring(0, 3);
