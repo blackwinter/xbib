@@ -38,7 +38,6 @@ import org.xbib.scheme.SchemeRegistry;
 import org.xbib.text.CharUtils;
 import org.xbib.text.CharUtils.Profile;
 import org.xbib.text.InvalidCharacterException;
-import org.xbib.text.Normalizer;
 import org.xbib.text.UrlEncoding;
 
 import java.io.IOException;
@@ -202,10 +201,6 @@ public class IRI implements Comparable<IRI>, Node {
     public IRI(String iri) {
         parse(CharUtils.stripBidi(iri));
         build();
-    }
-
-    public IRI(String iri, Normalizer.Form nf) throws IOException {
-        this(Normalizer.normalize(CharUtils.stripBidi(iri), nf));
     }
 
     IRI(Scheme schemeClass,

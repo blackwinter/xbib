@@ -31,7 +31,7 @@
  */
 package org.xbib.text;
 
-import org.xbib.text.data.UnicodeCharacterDatabase;
+import org.xbib.text.unicode.UnicodeCharacterDatabase;
 
 import java.io.IOException;
 
