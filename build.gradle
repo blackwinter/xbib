@@ -20,7 +20,7 @@ ext {
           'gradle-plugin-jflex': '1.1.0',
           'gradle-plugin-jacc': '1.1.3',
           'wikidata' : '0.6.0',
-          'netty-http-service' : '1.0.0',
+          'netty-http-service' : '1.0.1',
           'guava' : '19.0'
   ]
 }
