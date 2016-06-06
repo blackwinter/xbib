@@ -1,6 +1,6 @@
 package org.xbib.io.redis.codec;
 
-import org.xbib.io.redis.protocol.LettuceCharsets;
+import org.xbib.io.redis.protocol.Charsets;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -21,7 +21,7 @@ public class Utf8StringCodec extends RedisCodec<String, String> {
      * Initialize a new instance that encodes and decodes strings using the UTF-8 charset;
      */
     public Utf8StringCodec() {
-        charset = LettuceCharsets.UTF8;
+        charset = Charsets.UTF8;
         decoder = charset.newDecoder();
         chars = CharBuffer.allocate(1024);
     }

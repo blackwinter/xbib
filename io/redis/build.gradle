@@ -1,0 +1,41 @@
+
+import org.gradle.internal.os.OperatingSystem;
+
+dependencies {
+    compile project(':io:stream')
+    compile project(':io:zlib')
+    compile 'org.xbib:rxjava:1.1.0'
+    compile 'org.xbib:guice:4.0.1'
+    compile('org.xbib:netty-http-service:' + versions.'netty-http-service') {
+        changing = true
+    }
+    compile "org.javassist:javassist:3.20.0-GA"
+    if ('os x' == OperatingSystem.current().getFamilyName()) {
+        compile "io.netty:netty-tcnative:1.1.33.Fork16:osx-x86_64"
+    }
+    if ('linux' == OperatingSystem.current().getFamilyName()) {
+        if (new File("/etc/redhat-release").exists()) {
+            // use this for linking to libssl.so.10 (RHEL/Fedora/CentOS)
+            compile "io.netty:netty-tcnative:1.1.33.Fork16:linux-x86_64-fedora"
+        } else {
+            // use this for linking to libssl.so.1.0.0
+            compile "io.netty:netty-tcnative:1.1.33.Fork16:linux-x86_64"
+        }
+    }
+    testCompile "com.googlecode.multithreadedtc:multithreadedtc:1.01"
+    testCompile "org.mockito:mockito-core:1.10.19"
+    testCompile "com.google.code.tempus-fugit:tempus-fugit:1.1"
+    testCompile "org.apache.openwebbeans.test:cditest-owb:1.2.8"
+    testCompile "org.assertj:assertj-core:3.2.0"
+}
+
+test {
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
+}
+
+clean {
+    delete "work"
+}

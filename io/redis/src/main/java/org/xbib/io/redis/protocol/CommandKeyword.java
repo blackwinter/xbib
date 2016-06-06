@@ -17,7 +17,7 @@ public enum CommandKeyword implements ProtocolKeyword {
     public final byte[] bytes;
 
     private CommandKeyword() {
-        bytes = name().getBytes(LettuceCharsets.ASCII);
+        bytes = name().getBytes(Charsets.ASCII);
     }
 
     @Override

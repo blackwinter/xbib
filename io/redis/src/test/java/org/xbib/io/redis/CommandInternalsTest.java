@@ -1,7 +1,7 @@
 
 package org.xbib.io.redis;
 
-import static org.xbib.io.redis.protocol.LettuceCharsets.*;
+import static org.xbib.io.redis.protocol.Charsets.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

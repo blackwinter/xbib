@@ -5,7 +5,7 @@ import org.xbib.io.redis.protocol.CommandOutput;
 
 import java.nio.ByteBuffer;
 
-import static org.xbib.io.redis.protocol.LettuceCharsets.buffer;
+import static org.xbib.io.redis.protocol.Charsets.buffer;
 
 /**
  * Status message output.

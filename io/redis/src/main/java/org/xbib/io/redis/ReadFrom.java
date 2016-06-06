@@ -37,7 +37,7 @@ public abstract class ReadFrom {
      * @throws IllegalArgumentException if {@code name} is empty, {@literal null} or the {@link ReadFrom} preset is unknown.
      */
     public static ReadFrom valueOf(String name) {
-        if (LettuceStrings.isEmpty(name)) {
+        if (Strings.isEmpty(name)) {
             throw new IllegalArgumentException("name must not be empty");
         }
 

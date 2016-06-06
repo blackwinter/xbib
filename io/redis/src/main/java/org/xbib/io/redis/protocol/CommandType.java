@@ -75,7 +75,7 @@ public enum CommandType implements ProtocolKeyword {
     public final byte[] bytes;
 
     private CommandType() {
-        bytes = name().getBytes(LettuceCharsets.ASCII);
+        bytes = name().getBytes(Charsets.ASCII);
     }
 
     @Override

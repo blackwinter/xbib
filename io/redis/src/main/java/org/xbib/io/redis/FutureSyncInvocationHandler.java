@@ -67,7 +67,7 @@ class FutureSyncInvocationHandler<K, V> extends AbstractInvocationHandler {
                     }
                 }
 
-                Object awaitedResult = LettuceFutures.awaitOrCancel(redisCommand, timeout, unit);
+                Object awaitedResult = Futures.awaitOrCancel(redisCommand, timeout, unit);
 
                 if (redisCommand instanceof Command) {
                     Command<?, ?, ?> command = (Command<?, ?, ?>) redisCommand;

@@ -38,9 +38,5 @@ public interface Filter {
 
     boolean accept(int c);
 
-    public static final Filter NONOPFILTER = new Filter() {
-        public boolean accept(int c) {
-            return true;
-        }
-    };
+    Filter NONOPFILTER = c -> true;
 }

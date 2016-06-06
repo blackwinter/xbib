@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Command<K, V, T> extends AbstractFuture<T> implements RedisCommand<K, V, T> {
 
-    private static final byte[] CRLF = "\r\n".getBytes(LettuceCharsets.ASCII);
+    private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
     private final ProtocolKeyword type;
     protected CommandArgs<K, V> args;
     protected CommandOutput<K, V, T> output;

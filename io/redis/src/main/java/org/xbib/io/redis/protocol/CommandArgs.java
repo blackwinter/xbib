@@ -17,7 +17,7 @@ import static java.lang.Math.max;
  * @param <V> Value type.
  */
 public class CommandArgs<K, V> {
-    private static final byte[] CRLF = "\r\n".getBytes(LettuceCharsets.ASCII);
+    private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
 
     private final RedisCodec<K, V> codec;
     private final List<ProtocolKeyword> keywords = new ArrayList<ProtocolKeyword>(8);

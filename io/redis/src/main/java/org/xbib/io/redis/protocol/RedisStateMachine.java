@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static org.xbib.io.redis.protocol.LettuceCharsets.buffer;
+import static org.xbib.io.redis.protocol.Charsets.buffer;
 import static org.xbib.io.redis.protocol.RedisStateMachine.State.Type.BULK;
 import static org.xbib.io.redis.protocol.RedisStateMachine.State.Type.BYTES;
 import static org.xbib.io.redis.protocol.RedisStateMachine.State.Type.ERROR;

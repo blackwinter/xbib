@@ -3,7 +3,7 @@ package org.xbib.io.redis.cluster;
 import com.google.common.base.Splitter;
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
-import org.xbib.io.redis.LettuceStrings;
+import org.xbib.io.redis.Strings;
 import org.xbib.io.redis.ReadFrom;
 import org.xbib.io.redis.RedisAsyncConnectionImpl;
 import org.xbib.io.redis.RedisChannelHandler;
@@ -109,7 +109,7 @@ class ClusterDistributionChannelWriter<K, V> implements RedisChannelWriter<K, V>
 
     private HostAndPort getMoveTarget(String errorMessage) {
 
-        checkArgument(LettuceStrings.isNotEmpty(errorMessage), "errorMessage must not be empty");
+        checkArgument(Strings.isNotEmpty(errorMessage), "errorMessage must not be empty");
         checkArgument(errorMessage.startsWith(CommandKeyword.MOVED.name()), "errorMessage must start with "
                 + CommandKeyword.MOVED);
 
@@ -121,7 +121,7 @@ class ClusterDistributionChannelWriter<K, V> implements RedisChannelWriter<K, V>
 
     private HostAndPort getAskTarget(String errorMessage) {
 
-        checkArgument(LettuceStrings.isNotEmpty(errorMessage), "errorMessage must not be empty");
+        checkArgument(Strings.isNotEmpty(errorMessage), "errorMessage must not be empty");
         checkArgument(errorMessage.startsWith(CommandKeyword.ASK.name()), "errorMessage must start with " + CommandKeyword.ASK);
 
         List<String> movedMessageParts = Splitter.on(' ').splitToList(errorMessage);

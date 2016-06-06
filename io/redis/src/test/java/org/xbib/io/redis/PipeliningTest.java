@@ -25,7 +25,7 @@ public class PipeliningTest extends AbstractCommandTest {
 
         connection.flushCommands();
 
-        LettuceFutures.awaitAll(5, TimeUnit.SECONDS, futures.toArray(new RedisFuture[futures.size()]));
+        Futures.awaitAll(5, TimeUnit.SECONDS, futures.toArray(new RedisFuture[futures.size()]));
 
         verifyExecuted(iterations);
 
@@ -54,7 +54,7 @@ public class PipeliningTest extends AbstractCommandTest {
         verifyNotExecuted(iterations);
 
         connection.flushCommands();
-        boolean result = LettuceFutures.awaitAll(5, TimeUnit.SECONDS, futures.toArray(new RedisFuture[futures.size()]));
+        boolean result = Futures.awaitAll(5, TimeUnit.SECONDS, futures.toArray(new RedisFuture[futures.size()]));
         assertThat(result).isTrue();
 
         connection.close();

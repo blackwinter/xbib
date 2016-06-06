@@ -1,17 +1,18 @@
 package org.xbib.io.redis;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
+
 
 public class TimeTest {
-    RedisClient client = new RedisClient();
+    static RedisClient client = new RedisClient();
 
     @BeforeClass
-    public void setUp() throws Exception {
+    public static void setUp() throws Exception {
         client.setDefaultTimeout(15, TimeUnit.SECONDS);
     }
 

@@ -33,6 +33,7 @@ package org.xbib.marc.dialects.mab;
 
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
+import org.xbib.io.CRLFLineReader;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xml.sax.SAXException;
 
@@ -54,8 +55,9 @@ public class MABDisketteTest extends StreamTester {
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("mgl.", ".xml");
         FileOutputStream out = new FileOutputStream(file);
-        try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
-            read(new InputStreamReader(in, "cp850"), w);
+        try (Writer writer = new OutputStreamWriter(out, "UTF-8")) {
+            Reader reader = new CRLFLineReader(new InputStreamReader(in, "cp850"));
+            read(reader, writer);
         }
         assertStream(s, getClass().getResource("mgl.txt.xml").openStream(),
                 new FileInputStream(file));
