@@ -1,0 +1,10 @@
+dependencies {
+    compile 'net.java.dev.jna:jna:4.1.0'
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
+}
