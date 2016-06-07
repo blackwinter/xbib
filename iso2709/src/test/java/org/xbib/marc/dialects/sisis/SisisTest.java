@@ -21,6 +21,7 @@ public class SisisTest extends StreamTester {
         String s = "unloaddipl";
         InputStream in = getClass().getResourceAsStream(s);
         File file = File.createTempFile("DE-A96-" + s + "-sisis.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         try (InputStreamReader r = new InputStreamReader(in, "UTF-8")) {
             SisisReader reader = new SisisReader(r);
@@ -44,6 +45,7 @@ public class SisisTest extends StreamTester {
         String s = "testTit.tit";
         InputStream in = getClass().getResourceAsStream(s);
         File file = File.createTempFile("DE-836-" + s + "-sisis.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         Map<String, Object> translateMap = new ObjectMapper()
                 .configure(JsonParser.Feature.ALLOW_COMMENTS, true)

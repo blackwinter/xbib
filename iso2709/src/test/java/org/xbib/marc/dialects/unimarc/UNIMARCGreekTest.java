@@ -58,6 +58,7 @@ public class UNIMARCGreekTest extends Assert {
             final Iso2709Reader reader = new Iso2709Reader(r)
                     .setStringTransformer(value -> XMLUtil.sanitizeXml10(new String(value.getBytes(ISO88591), UTF8)).toString());
             File file = File.createTempFile("serres.", ".xml");
+            file.deleteOnExit();
             FileWriter w = new FileWriter(file);
             MarcXchangeWriter writer = new MarcXchangeWriter(w);
             reader.setFormat("UNIMARC").setType("Bibliographic");

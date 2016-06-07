@@ -29,7 +29,7 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.dialects.mab;
+package org.xbib.marc.dialects.marctag;
 
 import org.xbib.marc.FieldReader;
 import org.xbib.marc.MarcXchangeConstants;
@@ -53,12 +53,7 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * "MAB-Diskette" is an ISO2709 format derivative with custom padding symbold and field delimiters
- * created originally for diskette distribution to PC systems with MS-DOS.
- *
- */
-public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeConstants {
+public class MarcTagReader implements FieldReader, XMLReader, MarcXchangeConstants {
 
     private final Reader reader;
 
@@ -105,12 +100,10 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
 
     private final static String FIELDMAPPER = "field_mapper";
 
-    private final static String CRLF = "crlf";
-
     /**
      * The SaX service
      */
-    private MABDisketteSaxAdapter adapter;
+    private MarcTagSaxAdapter adapter;
     /**
      * XML content handler
      */
@@ -133,16 +126,19 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
             put(TYPE, BIBLIOGRAPHIC);
             put(FATAL_ERRORS, Boolean.FALSE);
             put(BUFFER_SIZE, 65536);
-            put(CRLF, Boolean.FALSE);
         }
     };
 
-    public MABDisketteReader(Reader reader) {
-        this.reader = reader;
-        this.adapter = new MABDisketteSaxAdapter();
+    public MarcTagReader(InputStream in, String encoding) throws IOException {
+        this(new InputStreamReader(in, encoding));
     }
 
-    public MABDisketteSaxAdapter getAdapter() {
+    public MarcTagReader(Reader reader) {
+        this.reader = reader;
+        this.adapter = new MarcTagSaxAdapter();
+    }
+
+    public MarcTagSaxAdapter getAdapter() {
         return adapter;
     }
 
@@ -211,27 +207,27 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
      * @param listener the MarcXchange listener
      * @return this reader
      */
-    public MABDisketteReader setMarcXchangeListener(MarcXchangeListener listener) {
+    public MarcTagReader setMarcXchangeListener(MarcXchangeListener listener) {
         this.adapter.setMarcXchangeListener(listener);
         return this;
     }
 
-    public MABDisketteReader setMarcXchangeListener(String type, MarcXchangeListener listener) {
+    public MarcTagReader setMarcXchangeListener(String type, MarcXchangeListener listener) {
         this.adapter.setMarcXchangeListener(type, listener);
         return this;
     }
 
-    public MABDisketteReader setTransformer(StringTransformer transformer) {
+    public MarcTagReader setTransformer(StringTransformer transformer) {
         this.adapter.setTransformer("_default", transformer);
         return this;
     }
 
-    public MABDisketteReader setTransformer(String fieldKey, StringTransformer transformer) {
+    public MarcTagReader setTransformer(String fieldKey, StringTransformer transformer) {
         this.adapter.setTransformer(fieldKey, transformer);
         return this;
     }
 
-    public MABDisketteReader addFieldMap(String fieldMapName, Map<String, Object> fieldMap) {
+    public MarcTagReader addFieldMap(String fieldMapName, Map<String, Object> fieldMap) {
         if (fieldMap != null) {
             this.adapter.addFieldMap(fieldMapName, fieldMap);
             properties.put(FIELDMAPPER, Boolean.TRUE);
@@ -243,26 +239,12 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
         return properties.get(FIELDMAPPER) != null;
     }
 
-    public MABDisketteReader setLineFeed() {
-        properties.put(CRLF, Boolean.FALSE);
-        return this;
-    }
-
-    public MABDisketteReader setCarriageReturnLineFeed() {
-        properties.put(CRLF, Boolean.TRUE);
-        return this;
-    }
-
-    public boolean isCRLF() {
-        return Boolean.TRUE.equals(properties.get(CRLF));
-    }
-
-    public MABDisketteReader setFieldEventListener(EventListener eventListener) {
+    public MarcTagReader setFieldEventListener(EventListener eventListener) {
         this.adapter.setFieldEventListener(eventListener);
         return this;
     }
 
-    public MABDisketteReader setFormat(String format) {
+    public MarcTagReader setFormat(String format) {
         properties.put(FORMAT, format);
         return this;
     }
@@ -271,7 +253,7 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
         return (String) properties.get(FORMAT);
     }
 
-    public MABDisketteReader setType(String type) {
+    public MarcTagReader setType(String type) {
         properties.put(TYPE, type);
         return this;
     }
@@ -280,7 +262,7 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
         return (String) properties.get(TYPE);
     }
 
-    private MABDisketteSaxAdapter setup(MABDisketteSaxAdapter adapter) {
+    private MarcTagSaxAdapter setup(MarcTagSaxAdapter adapter) {
         Object o = properties.get(FATAL_ERRORS);
         Boolean fatalErrors = o != null ? (o instanceof Boolean ? (Boolean)o : "true".equalsIgnoreCase(o.toString())) : Boolean.FALSE;
         o = properties.get(CLEAN_TAGS);
@@ -307,13 +289,8 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
     @Override
     public void parse(InputSource input) throws IOException {
         try {
-            if (isCRLF()) {
-                setup(adapter).setInputSource(input)
-                        .parseCollection(isFieldMapped() ? adapter.mabDisketteCarriageReturnMappedFieldStream() : adapter.mabDisketteCarriageReturnFieldStream());
-            } else {
-                setup(adapter).setInputSource(input)
-                        .parseCollection(isFieldMapped() ? adapter.mabDisketteMappedFieldStream() : adapter.mabDisketteFieldStream());
-            }
+            setup(adapter).setInputSource(input).parseCollection(isFieldMapped() ?
+                            adapter.marcTagMappedFieldStream() : adapter.marcTagFieldStream());
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -322,8 +299,8 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
     /**
      * We do not support system ID based parsing.
      * @param systemId the system ID
-     * @throws java.io.IOException
-     * @throws org.xml.sax.SAXException
+     * @throws IOException
+     * @throws SAXException
      */
     @Override
     public void parse(String systemId) throws IOException, SAXException {

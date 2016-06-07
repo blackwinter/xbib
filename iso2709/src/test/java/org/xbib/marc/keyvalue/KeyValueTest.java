@@ -158,30 +158,30 @@ public class KeyValueTest extends StreamTester {
 
 
         // transform MAB "Gesamttitel" to MARC21 "Series added entry - uniform title"
-        Map<String,Object> serSubf = new HashMap();
+        Map<String,Object> serSubf = new HashMap<>();
         serSubf.put("a", ">830$ 0$t");
-        Map<String,Object> serInd = new HashMap();
+        Map<String,Object> serInd = new HashMap<>();
         serInd.put(" 1", serSubf);
         fields.put("451", serInd);
         fields.put("461", serInd);
 
-        Map<String,Object> serSubf2 = new HashMap();
+        Map<String,Object> serSubf2 = new HashMap<>();
         serSubf2.put("a", "-830$ 0$w");
-        Map<String,Object> serInd2 = new HashMap();
+        Map<String,Object> serInd2 = new HashMap<>();
         serInd2.put(" 1", serSubf2);
         fields.put("453", serInd2);
         fields.put("463", serInd2);
 
-        Map<String,Object> serSubf3 = new HashMap();
+        Map<String,Object> serSubf3 = new HashMap<>();
         serSubf3.put("a", "-830$ 0$v");
-        Map<String,Object> serInd3 = new HashMap();
+        Map<String,Object> serInd3 = new HashMap<>();
         serInd3.put(" 1", serSubf3);
         fields.put("455", serInd3);
         fields.put("465", serInd3);
 
-        Map<String,Object> serSubf4 = new HashMap();
+        Map<String,Object> serSubf4 = new HashMap<>();
         serSubf4.put("a", "-830$ 0$n");
-        Map<String,Object> serInd4 = new HashMap();
+        Map<String,Object> serInd4 = new HashMap<>();
         serInd4.put(" 1", serSubf4);
         fields.put("456", serInd4);
         fields.put("466", serInd4);

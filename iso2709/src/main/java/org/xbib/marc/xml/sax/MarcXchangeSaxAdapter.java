@@ -98,7 +98,7 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
 
     private Map<String,MarcXchangeListener> listeners = new HashMap<>();
 
-    private Map<String, StringTransformer> transformers = new HashMap<>();
+    protected Map<String, StringTransformer> transformers = new HashMap<>();
 
     private EventListener<FieldEvent> fieldEventListener;
 

@@ -7,18 +7,14 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.Map;
 import java.util.SortedMap;
 
-public class CharsetTest extends Assert {
+public class MabCharsetTest extends Assert {
 
     @Test
     public void listCharsets() throws Exception {
         SortedMap<String, Charset> map = Charset.availableCharsets();
-        for (Map.Entry<String, Charset> me : map.entrySet()) {
-            me.getKey();
-            me.getValue();
-        }
+        assertTrue(map.keySet().contains("x-MAB"));
     }
 
     @Test

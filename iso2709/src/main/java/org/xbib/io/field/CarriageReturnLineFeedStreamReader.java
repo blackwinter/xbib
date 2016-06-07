@@ -1,15 +1,13 @@
-package org.xbib.io;
+package org.xbib.io.field;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
-public final class CRLFLineReader extends BufferedReader
-{
+public class CarriageReturnLineFeedStreamReader extends BufferedFieldStreamReader {
     private static final char LF = '\n';
     private static final char CR = '\r';
 
-    public CRLFLineReader(Reader reader)
+    public CarriageReturnLineFeedStreamReader(Reader reader)
     {
         super(reader);
     }

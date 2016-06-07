@@ -56,6 +56,7 @@ public class MABTest extends StreamTester {
         String s = "1217zdbtit.dat";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("zdb.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
             read(new InputStreamReader(in, "x-MAB"), w);
@@ -70,6 +71,7 @@ public class MABTest extends StreamTester {
         String s ="test.groupstream";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("test.groupstream.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         try (Writer w = new OutputStreamWriter(out, "UTF-8")) {
             read(new InputStreamReader(in, "x-MAB"), w);
@@ -84,6 +86,7 @@ public class MABTest extends StreamTester {
         String s = "DE-605-aleph500-publish.xml";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-605-aleph500-publish-out.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         MarcXchangeReader reader = new MarcXchangeReader(in)
                 .addNamespace("http://www.ddb.de/professionell/mabxml/mabxml-1.xsd");

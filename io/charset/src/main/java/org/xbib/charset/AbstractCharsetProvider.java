@@ -41,44 +41,41 @@ import java.util.TreeMap;
 /**
  * All character sets provided share this common parent class.
  */
-public class AbstractCharsetProvider extends CharsetProvider {
+class AbstractCharsetProvider extends CharsetProvider {
 
     /**
      * A map for character set classes
      */
-    private Map classMap;
+    private Map<String,Object> classMap;
     /**
      * A map for aliases of character set classes
      */
-    private Map aliasMap;
+    private Map<String,Object> aliasMap;
     /**
      * A named map for aliases of character set classes
      */
-    private Map aliasNameMap;
+    private Map<String,Object> aliasNameMap;
     /**
      * A character set cache
      */
-    private Map cache;
+    private Map<String,Object> cache;
     /**
      * The package prefix of this character set classes
      */
     private String packagePrefix;
 
-    /**
-     * Constructor
-     */
-    protected AbstractCharsetProvider() {
-        classMap = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-        aliasMap = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-        aliasNameMap = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-        cache = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+    AbstractCharsetProvider() {
+        classMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        aliasMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        aliasNameMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        cache = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         packagePrefix = getClass().getPackage().getName();
     }
 
     /**
      * Add character set to a apecific internal map
      */
-    private static void put(Map map, String s, Object obj) {
+    private static void put(Map<String,Object> map, String s, Object obj) {
         if (!map.containsKey(s)) {
             map.put(s, obj);
         }
@@ -89,11 +86,9 @@ public class AbstractCharsetProvider extends CharsetProvider {
      */
     protected void charset(String s, String s1, String[] as) {
         put(classMap, s, s1);
-
-        for (int i = 0; i < as.length; i++) {
-            put(aliasMap, as[i], s);
+        for (String a : as) {
+            put(aliasMap, a, s);
         }
-
         put(aliasNameMap, s, as);
     }
 
@@ -117,27 +112,21 @@ public class AbstractCharsetProvider extends CharsetProvider {
     protected Charset lookup(String s) {
         String s1;
         SoftReference softreference = (SoftReference) cache.get(s);
-
         if (softreference != null) {
             Charset charset1 = (Charset) softreference.get();
-
             if (charset1 != null) {
                 return charset1;
             }
         }
-
         s1 = (String) classMap.get(s);
-
         if (s1 == null) {
             return null;
         }
-
         try {
             Charset charset2;
-            Class class1 = Class.forName(packagePrefix + "." + s1, true,
-                    getClass().getClassLoader());
+            Class class1 = Class.forName(packagePrefix + "." + s1, true, getClass().getClassLoader());
             charset2 = (Charset) class1.newInstance();
-            cache.put(s, new SoftReference(charset2));
+            cache.put(s, new SoftReference<>(charset2));
             return charset2;
         } catch (ClassNotFoundException e1) {
             System.err.println("Class not found: " + packagePrefix + "." + s1);
@@ -164,19 +153,22 @@ public class AbstractCharsetProvider extends CharsetProvider {
      * @return character sets provided by this provider
      */
     @Override
-    public final Iterator charsets() {
-        return new Iterator() {
+    public final Iterator<Charset> charsets() {
+        return new Iterator<Charset>() {
 
-            Iterator i = classMap.keySet().iterator();
+            Iterator<String> i = classMap.keySet().iterator();
 
+            @Override
             public boolean hasNext() {
                 return i.hasNext();
             }
 
-            public Object next() {
-                return lookup((String) i.next());
+            @Override
+            public Charset next() {
+                return lookup(i.next());
             }
 
+            @Override
             public void remove() {
                 throw new UnsupportedOperationException();
             }
@@ -186,7 +178,7 @@ public class AbstractCharsetProvider extends CharsetProvider {
     /**
      * @return array of aliases of a specific character set name
      */
-    public final String[] aliases(String s) {
+    final String[] aliases(String s) {
         return (String[]) aliasNameMap.get(s);
     }
 }

@@ -480,8 +480,9 @@ public class BufferedFieldStreamReader extends Reader implements FieldStream {
                         case FieldSeparator.GS : return new GroupField(res);
                         case FieldSeparator.RS : return new RecordField(res);
                         case FieldSeparator.FS : return new FileField(res);
+                        default: // custom separator, like \n
+                            return new RecordField(res);
                     }
-                    throw new IOException();
                 }
             }
             char eod = '\0';

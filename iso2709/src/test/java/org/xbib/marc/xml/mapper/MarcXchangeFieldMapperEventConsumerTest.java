@@ -24,6 +24,7 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
     public void testMarcXchangeCleaner() throws Exception {
         String s = "HT016424175-clean.";
         File file = File.createTempFile(s, ".xml");
+        file.deleteOnExit();
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");
@@ -53,6 +54,7 @@ public class MarcXchangeFieldMapperEventConsumerTest extends StreamTester {
     public void testMarcXchangeFieldMapperEventConsumer() throws Exception {
         String s = "HT016424175-event-fieldmapper.";
         File file = File.createTempFile(s, ".xml");
+        file.deleteOnExit();
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");

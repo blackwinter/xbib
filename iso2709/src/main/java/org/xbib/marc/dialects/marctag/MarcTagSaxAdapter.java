@@ -29,11 +29,12 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.dialects.mab;
+package org.xbib.marc.dialects.marctag;
 
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.event.EventListener;
 import org.xbib.marc.event.FieldEvent;
+import org.xbib.marc.transformer.StringTransformer;
 import org.xbib.marc.xml.sax.MarcXchangeSaxAdapter;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -44,22 +45,22 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
+public class MarcTagSaxAdapter extends MarcXchangeSaxAdapter {
 
     @Override
-    public MABDisketteSaxAdapter setBuffersize(int buffersize) {
+    public MarcTagSaxAdapter setBuffersize(int buffersize) {
         super.setBuffersize(buffersize);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setReader(Reader reader) {
+    public MarcTagSaxAdapter setReader(Reader reader) {
         this.reader = reader;
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setInputSource(final InputSource source) throws IOException {
+    public MarcTagSaxAdapter setInputSource(final InputSource source) throws IOException {
         if (source.getByteStream() != null) {
             Charset encoding = Charset.forName(source.getEncoding() != null ? source.getEncoding() : "cp850");
             this.reader = new InputStreamReader(source.getByteStream(), encoding);
@@ -70,94 +71,86 @@ public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
     }
 
     @Override
-    public MABDisketteSaxAdapter setContentHandler(ContentHandler handler) {
+    public MarcTagSaxAdapter setContentHandler(ContentHandler handler) {
         super.setContentHandler(handler);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setMarcXchangeListener(String type, MarcXchangeListener listener) {
+    public MarcTagSaxAdapter setMarcXchangeListener(String type, MarcXchangeListener listener) {
         super.setMarcXchangeListener(type, listener);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setMarcXchangeListener(MarcXchangeListener listener) {
+    public MarcTagSaxAdapter setMarcXchangeListener(MarcXchangeListener listener) {
         super.setMarcXchangeListener(BIBLIOGRAPHIC, listener);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setFieldEventListener(EventListener<FieldEvent> fieldEventListener) {
+    public MarcTagSaxAdapter setFieldEventListener(EventListener<FieldEvent> fieldEventListener) {
         super.setFieldEventListener(fieldEventListener);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setSchema(String schema) {
+    public MarcTagSaxAdapter setSchema(String schema) {
         super.setSchema(schema);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setFormat(String format) {
+    public MarcTagSaxAdapter setFormat(String format) {
         super.setFormat(format);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setType(String type) {
+    public MarcTagSaxAdapter setType(String type) {
         super.setType(type);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setFatalErrors(Boolean fatalerrors) {
+    public MarcTagSaxAdapter setFatalErrors(Boolean fatalerrors) {
         super.setFatalErrors(fatalerrors);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setCleanTags(Boolean cleanTags) {
+    public MarcTagSaxAdapter setCleanTags(Boolean cleanTags) {
         super.setCleanTags(cleanTags);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setScrubData(Boolean scrub) {
+    public MarcTagSaxAdapter setScrubData(Boolean scrub) {
         super.setScrubData(scrub);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter setTransformData(Boolean transformData) {
+    public MarcTagSaxAdapter setTransformData(Boolean transformData) {
         super.setTransformData(transformData);
         return this;
     }
 
     @Override
-    public MABDisketteSaxAdapter addFieldMap(String fieldMapName, Map<String, Object> map) {
+    public MarcTagSaxAdapter addFieldMap(String fieldMapName, Map<String, Object> map) {
         super.addFieldMap(fieldMapName, map);
         return this;
     }
 
-    public MABDisketteLineFeedStreamReader mabDisketteFieldStream() {
-        return new MABDisketteLineFeedStreamReader(reader, new DirectListener());
+    public MarcTagFieldStreamReader marcTagFieldStream() {
+        return new MarcTagFieldStreamReader(reader, new DirectListener());
     }
 
-    public MABDisketteLineFeedStreamReader mabDisketteMappedFieldStream() {
-        return new MABDisketteLineFeedStreamReader(reader, new MappedStreamListener());
+    public MarcTagFieldStreamReader marcTagMappedFieldStream() {
+        return new MarcTagFieldStreamReader(reader, new MappedStreamListener());
     }
 
-    public MABDisketteCarriageReturnLineFeedStreamReader mabDisketteCarriageReturnFieldStream() {
-        return new MABDisketteCarriageReturnLineFeedStreamReader(reader, new DirectListener());
-    }
-
-    public MABDisketteCarriageReturnLineFeedStreamReader mabDisketteCarriageReturnMappedFieldStream() {
-        return new MABDisketteCarriageReturnLineFeedStreamReader(reader, new MappedStreamListener());
-    }
-
-    public void parseCollection(MABDisketteLineFeedStreamReader reader) throws Exception {
+    public void parseCollection(MarcTagFieldStreamReader reader) throws Exception {
         beginCollection();
         reader.begin();
         String s;
@@ -169,15 +162,4 @@ public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
         endCollection();
     }
 
-    public void parseCollection(MABDisketteCarriageReturnLineFeedStreamReader reader) throws Exception {
-        beginCollection();
-        reader.begin();
-        String s;
-        while ((s = reader.readLine ()) != null) {
-            reader.processLine(s);
-        }
-        reader.end();
-        reader.close();
-        endCollection();
-    }
 }

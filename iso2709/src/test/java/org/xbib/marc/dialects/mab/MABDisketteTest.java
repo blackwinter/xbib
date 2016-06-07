@@ -33,7 +33,6 @@ package org.xbib.marc.dialects.mab;
 
 import org.junit.Test;
 import org.xbib.helper.StreamTester;
-import org.xbib.io.CRLFLineReader;
 import org.xbib.marc.xml.stream.MarcXchangeWriter;
 import org.xml.sax.SAXException;
 
@@ -54,24 +53,19 @@ public class MABDisketteTest extends StreamTester {
         String s = "mgl.txt";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("mgl.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
-        try (Writer writer = new OutputStreamWriter(out, "UTF-8")) {
-            Reader reader = new CRLFLineReader(new InputStreamReader(in, "cp850"));
-            read(reader, writer);
+        try (Reader reader = new InputStreamReader(in, "cp850"); Writer writer = new OutputStreamWriter(out, "UTF-8")) {
+            MABDisketteReader mabDisketteReader = new MABDisketteReader(reader);
+            MarcXchangeWriter marcXchangeWriter = new MarcXchangeWriter(writer);
+            mabDisketteReader.setMarcXchangeListener(marcXchangeWriter);
+            marcXchangeWriter.startDocument();
+            marcXchangeWriter.beginCollection();
+            mabDisketteReader.parse();
+            marcXchangeWriter.endCollection();
+            marcXchangeWriter.endDocument();
         }
         assertStream(s, getClass().getResource("mgl.txt.xml").openStream(),
                 new FileInputStream(file));
-    }
-
-    private void read(Reader reader, Writer writer) throws IOException, SAXException {
-        MABDisketteReader mabDisketteReader = new MABDisketteReader(reader);
-        mabDisketteReader.setFormat("MABDiskette");
-        MarcXchangeWriter marcXchangeWriter = new MarcXchangeWriter(writer);
-        mabDisketteReader.setMarcXchangeListener(marcXchangeWriter);
-        marcXchangeWriter.startDocument();
-        marcXchangeWriter.beginCollection();
-        mabDisketteReader.parse();
-        marcXchangeWriter.endCollection();
-        marcXchangeWriter.endDocument();
     }
 }

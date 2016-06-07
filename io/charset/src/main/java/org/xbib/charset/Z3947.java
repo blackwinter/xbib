@@ -40,64 +40,63 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ANSI Z39.47/Ansel charset decoder
  *
  */
-public class ANSI_Z39_47 extends Charset {
+public class Z3947 extends Charset {
 
-    private final static HashMap encodeMap = new HashMap();
-    private final static HashMap decodeMap = new HashMap();
+    private final static Map<Character, Character> encodeMap = new HashMap<>();
+    private final static Map<Character, Character> decodeMap = new HashMap<>();
     private Charset encodeCharset;
 
-    public ANSI_Z39_47() {
-        super("ANSI_Z39_47", CharsetProvider.aliasesFor("ANSI_Z39_47"));
-        encodeCharset = Charset.forName("UTF-8");
+    public Z3947() {
+        super("Z3947", CharsetProvider.aliasesFor("Z3947"));
+        encodeCharset = StandardCharsets.UTF_8;
     }
 
-    static void charTable(char from, char to, char[] code) {
+    private static void charTable(char from, char to, char[] code) {
         int i = 0;
-
         for (char c = from; c <= to; c++) {
             if (code[i] != '\u0000') {
-                encodeMap.put(Character.valueOf(code[i]), Character.valueOf(c));
-                decodeMap.put(Character.valueOf(c), Character.valueOf(code[i]));
+                encodeMap.put(code[i], c);
+                decodeMap.put(c, code[i]);
             }
             i++;
         }
     }
-    private final static Object EXISTS = new Object();
 
-    static void composeTable(String[] mappings) {
+    private static void composeTable(String[] mappings) {
 
         for (int i = 0; i < mappings.length; i += 2) {
             String key = mappings[i];
             String value = mappings[i + 1];
             if (key.length() < 2) {
-                continue;
             }
         }
     }
 
     public boolean contains(Charset charset) {
-        return charset instanceof ANSI_Z39_47;
+        return charset instanceof Z3947;
     }
 
     public CharsetEncoder newEncoder() {
-        return new Z39_47_Encoder(this, encodeCharset.newEncoder());
+        return new Z3947Encoder(this, encodeCharset.newEncoder());
     }
 
     public CharsetDecoder newDecoder() {
-        return new Z39_47_Decoder(this, encodeCharset.newDecoder());
+        return new Z3947Decoder(this, encodeCharset.newDecoder());
     }
 
-    private static class Z39_47_Encoder extends CharsetEncoder {
+    private static class Z3947Encoder extends CharsetEncoder {
 
         private CharsetEncoder baseEncoder;
 
-        Z39_47_Encoder(Charset cs, CharsetEncoder baseEncoder) {
+        Z3947Encoder(Charset cs, CharsetEncoder baseEncoder) {
             super(cs, baseEncoder.averageBytesPerChar(),
                     baseEncoder.maxBytesPerChar());
             this.baseEncoder = baseEncoder;
@@ -105,22 +104,17 @@ public class ANSI_Z39_47 extends Charset {
 
         protected CoderResult encodeLoop(CharBuffer cb, ByteBuffer bb) {
             CharBuffer tmpcb = CharBuffer.allocate(cb.remaining());
-
             while (cb.hasRemaining()) {
                 tmpcb.put(cb.get());
             }
-
             tmpcb.rewind();
-
             for (int pos = tmpcb.position(); pos < tmpcb.limit(); pos++) {
                 char c = tmpcb.get(pos);
-                Character mapChar = (Character) encodeMap.get(new Character(c));
-
+                Character mapChar = encodeMap.get(c);
                 if (mapChar != null) {
-                    tmpcb.put(pos, mapChar.charValue());
+                    tmpcb.put(pos, mapChar);
                 }
             }
-
             baseEncoder.reset();
             CoderResult cr = baseEncoder.encode(tmpcb, bb, true);
             cb.position(cb.position() - tmpcb.remaining());
@@ -128,9 +122,9 @@ public class ANSI_Z39_47 extends Charset {
         }
     }
 
-    private static class Z39_47_Decoder extends CharsetDecoder {
+    private static class Z3947Decoder extends CharsetDecoder {
 
-        Z39_47_Decoder(Charset cs, CharsetDecoder baseDecoder) {
+        Z3947Decoder(Charset cs, CharsetDecoder baseDecoder) {
             super(cs, baseDecoder.averageCharsPerByte(),
                     baseDecoder.maxCharsPerByte());
         }
@@ -144,20 +138,16 @@ public class ANSI_Z39_47 extends Charset {
             CharArrayWriter diacritics = new CharArrayWriter();
 
             int pos = in.position();
-            int bufpos = 0;
             while (in.hasRemaining()) {
                 byte b = in.get();
                 char oldChar = (char) (b & 0xFF);
-                Character mapChar = (Character) decodeMap.get(Character.valueOf(oldChar));
-                char ch = mapChar != null ? mapChar.charValue() : oldChar;
+                Character mapChar = decodeMap.get(oldChar);
+                char ch = mapChar != null ? mapChar : oldChar;
                 if (isDiacritical(oldChar)) {
                     diacritics.write(ch);
                 } else {
-                    // save the char
                     w.write(ch);
-                    // add diacritics if exist.
-                    // diacritics must be appended in Unicode, but are
-                    // prepended in Z39.47
+                    // diacritics must be appended in Unicode, but are prepended in Z39.47
                     if (diacritics.toString().length() > 0) {
                         try {
                             w.write(diacritics.toCharArray());
@@ -167,7 +157,6 @@ public class ANSI_Z39_47 extends Charset {
                         // reset diacritics temp buffer
                         diacritics = new CharArrayWriter();
                     }
-                // character sequence plus diacritics complete.
                 }
             }
             char[] buf = w.toCharArray();
@@ -181,10 +170,9 @@ public class ANSI_Z39_47 extends Charset {
             return CoderResult.UNDERFLOW;
         }
     }
-    
 
     static {
-        ANSI_Z39_47.charTable('\u00a0', '\u00ff',
+        Z3947.charTable('\u00a0', '\u00ff',
                 new char[]{
                     '\u00a0', '\u0141', '\u00d8', '\u0110', '\u00de', '\u00c6',
                     '\u0152', '\u02b9', '\u00b7', '\u266d', '\u00ae', '\u00b1',
@@ -203,7 +191,7 @@ public class ANSI_Z39_47 extends Charset {
                     '\u0325', '\u0333', '\u0332', '\u0326', '\u0321', '\u032e',
                     '\ufe22', '\ufe23', '\u00fc', '\u00fd', '\u0313', '\u00ff'
                 });
-        ANSI_Z39_47.composeTable(
+        Z3947.composeTable(
                 new String[]{
                     "\u0041\u0300", "\u00C0",
                     "\u0041\u0301", "\u00C1",

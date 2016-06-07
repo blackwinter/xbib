@@ -29,13 +29,13 @@
  * feasible for technical reasons, the Appropriate Legal Notices must display
  * the words "Powered by xbib".
  */
-package org.xbib.marc.dialects.mab;
+package org.xbib.marc.dialects.marctag;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.xbib.io.field.CarriageReturnLineFeedStreamReader;
 import org.xbib.io.field.FieldListener;
 import org.xbib.io.field.FieldSeparator;
-import org.xbib.io.field.LineFeedStreamReader;
 import org.xbib.marc.label.RecordLabel;
 
 import java.io.Reader;
@@ -44,13 +44,17 @@ import java.io.Reader;
  * "MAB-Diskette" is an ISO2709 format derivative with custom padding symbold and field delimiters
  * created originally for diskette distribution to PC systems with MS-DOS.
  */
-public class MABDisketteFieldStreamReader extends LineFeedStreamReader {
+public class MarcTagFieldStreamReader extends CarriageReturnLineFeedStreamReader {
 
-    private final static Logger logger = LogManager.getLogger(MABDisketteFieldStreamReader.class);
+    private final static Logger logger = LogManager.getLogger(MarcTagFieldStreamReader.class);
 
     private FieldListener listener;
 
-    public MABDisketteFieldStreamReader(Reader reader, FieldListener listener) {
+    private String FILE_SEPARATOR = String.valueOf(FieldSeparator.FS);
+
+    private String SUBFIELD_SEPARATOR = String.valueOf(FieldSeparator.US);
+
+    public MarcTagFieldStreamReader(Reader reader, FieldListener listener) {
         super(reader);
         this.listener = listener;
     }
@@ -58,30 +62,45 @@ public class MABDisketteFieldStreamReader extends LineFeedStreamReader {
     public void begin() {
     }
 
+    /*
+     * Marc 21 "tagged"
+     *
+     * <tag> <ind1> <ind2> <1f> <subf> <1c> <value> [ <1f> <subf> <1c> <value> ... ] <0d> <0a>
+     *
+     */
     public void processLine(String line) throws Exception {
         if (line == null || line.isEmpty()) {
             return;
         }
         if (line.length() < 5) {
-            logger.warn("short line: {}", line);
             return;
         }
         String number = line.substring(0, 3);
         String ind1 = line.substring(3, 4);
-        String ind2 = " ";
-        String value = line.substring(4);
+        String ind2 = line.substring(4, 5);
+        String value = line.substring(5);
         if ("###".equals(number)) { // leader
             listener.mark(FieldSeparator.GS);
             RecordLabel label = new RecordLabel(value.toCharArray())
-                    .setIndicatorLength(2).setSubfieldIdentifierLength(0);
+                    .setIndicatorLength(2)
+                    .setSubfieldIdentifierLength(2);
             listener.data(label.getRecordLabel());
         } else if (number.startsWith("00")) {
             listener.mark(FieldSeparator.RS);
             listener.data(number + value);
         } else {
+            // split into subfields
             String designator = number + ind1 + ind2;
             listener.mark(FieldSeparator.RS);
-            listener.data(designator + value);
+            listener.data(designator);
+            value = value.replaceAll(FILE_SEPARATOR, "");
+            String[] subfields = value.split(SUBFIELD_SEPARATOR);
+            for (String s : subfields) {
+                if (s.length() > 1) {
+                    listener.mark(FieldSeparator.US);
+                    listener.data(s); // with subfield code
+                }
+            }
         }
     }
 

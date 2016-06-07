@@ -49,7 +49,7 @@ public class CharsetProvider extends AbstractCharsetProvider {
      * Constructor
      */
     public CharsetProvider() {
-        charset("ANSI-Z39_47", "ANSI_Z39_47",
+        charset("Z3947", "Z3947",
             new String[] { "ANSI_Z39_47", "ANSI-Z39-47", "Z39_47", "Z39-47", "ANSEL", "Ansel", "ansel"});
         charset("x-MAB", "MabCharset",
             new String[] { "x-mab",  "ISO-5426", "ISO_5426", "ISO_5426:1983", "5426-1983", "MAB2" } );
@@ -57,7 +57,7 @@ public class CharsetProvider extends AbstractCharsetProvider {
             new String[] { "Pica", "pica"} );
         charset("x-PICA", "PicaCharset",
             new String[] { "x-pica" } );
-        charset("ISO_5428", "ISO_5428",
+        charset("ISO5428", "ISO5428",
             new String[]{ "ISO-5428", "ISO-5428:1984", "iso-ir-55" });
         instance = new SoftReference(this);
     }
