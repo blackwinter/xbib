@@ -48,7 +48,7 @@ public class MonographHolding extends Holding {
     @Override
     protected void build() {
         this.isil = getString("member");
-        setServiceISIL(isil);
+        setISIL(isil);
         Object o = get("interlibraryservice");
         if (o != null) {
             if (!(o instanceof List)) {

@@ -63,7 +63,7 @@ public class License extends Holding {
         String parent = getString("ezb:zdbid");
         addParent(parent);
         this.isil = getString("ezb:isil");
-        setServiceISIL(isil);
+        setISIL(isil);
         setDeleted("delete".equals(getString("ezb:action")));
         buildDateArray();
         this.info = buildInfo();

@@ -65,7 +65,7 @@ public class Indicator extends License {
         String parent = getString("xbib:identifier");
         addParent(parent);
         this.isil = getString("xbib:isil");
-        setServiceISIL(isil);
+        setISIL(isil);
         buildDateArray();
         this.info = buildInfo();
         this.findContentType();
@@ -246,7 +246,7 @@ public class Indicator extends License {
         for (Holding holding : holdings) {
             // same ISIL, media, carrier, from/to?
             if (isil.equals(holding.isil)
-                    && getServiceISIL().equals(holding.getServiceISIL())
+                    && getISIL().equals(holding.getISIL())
                     && mediaType.equals(holding.mediaType)
                     && carrierType.equals(holding.carrierType)) {
                 // check if start date / end date are the same

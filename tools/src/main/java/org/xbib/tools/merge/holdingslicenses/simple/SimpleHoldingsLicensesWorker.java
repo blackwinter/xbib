@@ -233,8 +233,7 @@ public class SimpleHoldingsLicensesWorker
                         }
                         // new Holding for each ISIL
                         holding = new Holding(holding.map());
-                        holding.setISIL(isil);
-                        holding.setServiceISIL(expandedisil);
+                        holding.setISIL(expandedisil);
                         holding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(expandedisil));
                         holding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup()
@@ -304,8 +303,7 @@ public class SimpleHoldingsLicensesWorker
                         }
                         // new License for each ISIL
                         license = new License(license.map());
-                        license.setISIL(isil);
-                        license.setServiceISIL(expandedisil);
+                        license.setISIL(expandedisil);
                         license.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         license.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         license.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
@@ -367,8 +365,7 @@ public class SimpleHoldingsLicensesWorker
                             continue;
                         }
                         indicator = new Indicator(indicator.map());
-                        indicator.setISIL(isil);
-                        indicator.setServiceISIL(expandedisil);
+                        indicator.setISIL(expandedisil);
                         indicator.setName(simpleHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                         indicator.setRegion(simpleHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                         indicator.setOrganization(simpleHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
@@ -666,8 +663,7 @@ public class SimpleHoldingsLicensesWorker
                         }
                         // new Holding for each ISIL
                         holding = new MonographHolding(holding.map(), monograph);
-                        holding.setISIL(isil);
-                        holding.setServiceISIL(expandedisil);
+                        holding.setISIL(expandedisil);
                         holding.setName(simpleHoldingsLicensesMerger.bibdatLookup()
                                 .lookupName().get(expandedisil));
                         holding.setRegion(simpleHoldingsLicensesMerger.bibdatLookup()
@@ -695,6 +691,21 @@ public class SimpleHoldingsLicensesWorker
         simpleHoldingsLicensesMerger.search().client()
                 .prepareClearScroll().addScrollId(searchResponse.getScrollId())
                 .execute().actionGet(timeoutSeconds, TimeUnit.SECONDS);
+    }
+
+    private String findMainISIL(String isil) {
+        if (isil.startsWith("DE-")) {
+            // find "base" ISIL in DE namespace: cut from last '-' if there is more than one '-'
+            int firstpos = isil.indexOf('-');
+            int lastpos = isil.lastIndexOf('-');
+            String mainISIL = lastpos > firstpos ? isil.substring(0, lastpos) : isil;
+            String mappedMainISIL = (String)simpleHoldingsLicensesMerger.mappedMainISIL().lookup().get(mainISIL);
+            if (mappedMainISIL != null) {
+                mainISIL = mappedMainISIL;
+            }
+            return mainISIL;
+        }
+        return isil;
     }
 
 }

@@ -70,30 +70,12 @@ public class SRU extends Feeder {
         return p -> new SRU().setPipeline(p);
     }
 
-    /*@Override
-    protected void prepareInput() throws IOException, InterruptedException {
-        if (settings.get("numbers") != null) {
-            // fetch from SRU by number file, each line is an ID
-            FileInputStream in = new FileInputStream(settings.get("numbers"));
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(in, UTF8))) {
-                String line;
-                while ((line = r.readLine()) != null) {
-                    URIWorkerRequest request = new URIWorkerRequest();
-                    request.set(URI.create(String.format(settings.get("uri"), line)));
-                    getQueue().put(request);
-                }
-            }
-        } else {
-            super.prepareInput();
-        }
-    }*/
-
     @Override
     public void process(URI uri) throws Exception {
         final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<>());
         final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1));
         bibqueue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmappedbib.add("\"" + key + "\"");
             }
@@ -102,7 +84,7 @@ public class SRU extends Feeder {
         final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
         final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1));
         holqueue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmappedhol.add("\"" + key + "\"");
             }

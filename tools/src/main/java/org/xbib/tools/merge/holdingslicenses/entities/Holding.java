@@ -88,7 +88,6 @@ public class Holding implements Comparable<Holding> {
     private Object servicedistribution;
     private Object servicecomment;
     private Integer priority;
-    private String serviceisil;
     private String name;
     private String region;
     private String organization;
@@ -142,6 +141,12 @@ public class Holding implements Comparable<Holding> {
                 break;
             }
         }
+        buildLocation();
+        buildDateArray();
+        setPriority(findPriority());
+    }
+
+    protected void buildLocation() {
         Object o = map.get("Location");
         if (!(o instanceof List)) {
             o = Collections.singletonList(o);
@@ -152,17 +157,9 @@ public class Holding implements Comparable<Holding> {
                 continue;
             }
             if (map.containsKey("location")) {
-                setServiceISIL((String) map.get("location"));
-                String s = getServiceISIL();
+                String s = (String) map.get("location");
                 if (s != null) {
-                    if (s.startsWith("DE-")) {
-                        // find "base" ISIL in DE namespace: cut from last '-' if there is more than one '-'
-                        int firstpos = s.indexOf('-');
-                        int lastpos = s.lastIndexOf('-');
-                        setISIL(lastpos > firstpos ? s.substring(0, lastpos) : s);
-                    } else {
-                        setISIL(s);
-                    }
+                    setISIL(s);
                 }
             }
         }
@@ -170,7 +167,6 @@ public class Holding implements Comparable<Holding> {
             // e.g. DNB-ID 036674168 WEU GB-LON63
             String isil = getString("service.organization");
             setISIL(isil);
-            setServiceISIL(isil); // Sigel
         }
         // isil may be null, broken holding record, e.g. DNB-ID 114091315 ZDB-ID 2476016x
         if (isil != null) {
@@ -178,12 +174,6 @@ public class Holding implements Comparable<Holding> {
             this.info = buildInfo();
             buildService();
         }
-        // serviceisil may be null
-        if (getServiceISIL() == null) {
-            setServiceISIL(isil);
-        }
-        buildDateArray();
-        setPriority(findPriority());
     }
 
     protected void makeParentIdentifier() {
@@ -227,14 +217,6 @@ public class Holding implements Comparable<Holding> {
 
     public boolean isDeleted() {
         return deleted;
-    }
-
-    public void setServiceISIL(String isil) {
-        this.serviceisil = isil;
-    }
-
-    public String getServiceISIL() {
-        return serviceisil != null ? serviceisil : isil;
     }
 
     public Holding setName(String name) {

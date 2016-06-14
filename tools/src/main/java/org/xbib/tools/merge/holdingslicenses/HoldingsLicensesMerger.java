@@ -48,6 +48,7 @@ import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
+import org.xbib.tools.merge.holdingslicenses.support.MappedMainISIL;
 import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.ExceptionFormatter;
@@ -74,6 +75,8 @@ public class HoldingsLicensesMerger extends Merger {
     private BlackListedISIL isilbl;
 
     private MappedISIL isilMapped;
+
+    private MappedMainISIL mainIsilMapped;
 
     private StatusCodeMapper statusCodeMapper;
 
@@ -159,6 +162,15 @@ public class HoldingsLicensesMerger extends Merger {
             logger.error(e.getMessage(), e);
         }
         logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
+
+        logger.info("preparing mapped main ISIL...");
+        mainIsilMapped = new MappedMainISIL();
+        try (InputStream in = getClass().getResourceAsStream("mainisil.map")) {
+            mainIsilMapped.buildLookup(in);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("mapped main ISILs prepared, size = {}", mainIsilMapped.lookup().size());
 
         logger.info("preparing status code mapper...");
         ValueMaps valueMaps = new ValueMaps();
@@ -261,6 +273,10 @@ public class HoldingsLicensesMerger extends Merger {
 
     public MappedISIL mappedISIL() {
         return isilMapped;
+    }
+
+    public MappedMainISIL mappedMainISIL() {
+        return mainIsilMapped;
     }
 
     public StatusCodeMapper statusCodeMapper() {
