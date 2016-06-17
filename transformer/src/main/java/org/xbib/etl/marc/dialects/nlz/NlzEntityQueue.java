@@ -40,6 +40,7 @@ import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,9 +52,8 @@ public class NlzEntityQueue extends MARCEntityQueue<NlzEntityBuilderState, NlzEn
 
     private final Map<String,Boolean> missingSerials;
 
-
-    public NlzEntityQueue(Map<String, Resource> serialsMap, String packageName, int workers, String... paths) throws Exception {
-        super(packageName, workers, paths);
+    public NlzEntityQueue(Map<String, Resource> serialsMap, String packageName, int workers, URL path) throws Exception {
+        super(packageName, workers, path);
         this.serialsMap = serialsMap;
         this.missingSerials = new ConcurrentHashMap<>();
     }

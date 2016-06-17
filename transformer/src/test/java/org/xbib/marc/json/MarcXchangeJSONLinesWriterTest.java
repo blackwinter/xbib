@@ -112,7 +112,7 @@ public class MarcXchangeJSONLinesWriterTest extends StreamTester {
 
         public MyQueue() throws Exception{
             super("org.xbib.analyzer.marc.zdb.bib", 1,
-                    "org/xbib/analyzer/marc/zdb/bib.json");
+                    MyQueue.class.getClassLoader().getResource("org/xbib/analyzer/marc/zdb/bib.json"));
         }
 
         @Override

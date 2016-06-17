@@ -78,17 +78,16 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
     private ConfigurableClassifier classifier;
 
-    public MABEntityQueue(String packageName, String... paths) throws Exception{
-        this(packageName, new HashMap<>(), 1, paths);
+    public MABEntityQueue(String packageName, URL path) throws Exception{
+        this(packageName, new HashMap<>(), 1, path);
     }
 
-    public MABEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers, paths);
+    public MABEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) throws Exception {
-        super(new MABSpecification(new HashMap<>(), params,
-                MABEntityQueue.class.getClassLoader(), packageName, paths), workers);
+    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, URL path) throws Exception {
+        super(new MABSpecification(path != null ? path.openStream() : null, new HashMap<>(), params, packageName), workers);
         this.packageName = packageName;
         this.identifierMapper = setupIdentifierMapper(params);
         this.statusMapper = setupStatusMapper(params);

@@ -85,7 +85,7 @@ public class ZDBHolTest extends Assert {
 
         public MyQueue() throws Exception {
             super("org.xbib.analyzer.marc.zdb.hol", 1,
-                    "org/xbib/analyzer/marc/zdb/hol.json");
+                    MyQueue.class.getClassLoader().getResource("org/xbib/analyzer/marc/zdb/hol.json"));
         }
 
         @Override

@@ -13,3 +13,9 @@ task (nlz, dependsOn: ':build', type: JavaExec) {
     args 'conf/nlz.json'
 }
 
+task (bibdat, dependsOn: ':build', type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperties = [ 'log4j.level': 'debug' ]
+    main = 'org.xbib.tools.Runner'
+    args 'conf/bibdat.json'
+}

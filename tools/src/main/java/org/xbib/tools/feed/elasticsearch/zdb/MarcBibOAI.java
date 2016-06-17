@@ -169,7 +169,7 @@ public class MarcBibOAI extends OAIFeeder {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements", "/org/xbib/analyzer/marc/bib.json")
+                    findURL(settings.get("elements", "/org/xbib/analyzer/marc/bib.json"))
             );
         }
 

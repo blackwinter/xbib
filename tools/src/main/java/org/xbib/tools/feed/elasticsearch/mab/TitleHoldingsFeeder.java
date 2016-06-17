@@ -17,7 +17,9 @@ import org.xbib.util.MockIndexDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,7 +54,8 @@ public abstract class TitleHoldingsFeeder extends Feeder {
             params.put("catalogid", catalogId);
             params.put("_prefix", "(" + catalogId + ")");
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            final MABEntityQueue queue = createQueue(params);
+            final URL path = findURL(settings.get("elements"));
+            final MABEntityQueue queue = createQueue(params, path);
             for (Map.Entry<String,List<String>> entry : fileInput.getFileMap().entrySet()) {
                 String key = entry.getKey();
                 if (key.startsWith("taxonomy-")) {
@@ -112,19 +115,19 @@ public abstract class TitleHoldingsFeeder extends Feeder {
         elasticsearchOutput.retention(ingest, def);
     }
 
-    protected MABEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return settings.getAsBoolean("direct", false) ? new MyDirectMABQueue() : new MyMABQueue(params);
+    protected MABEntityQueue createQueue(Map<String,Object> params, URL path) throws Exception {
+        return settings.getAsBoolean("direct", false) ? new MyDirectMABQueue() : new MyMABQueue(params, path);
     }
 
     protected abstract void process(InputStream in, MABEntityQueue queue) throws IOException;
 
     class MyMABQueue extends MABEntityQueue {
 
-        public MyMABQueue(Map<String,Object> params) throws Exception {
+        public MyMABQueue(Map<String,Object> params, URL path) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements")
+                    path
             );
         }
 

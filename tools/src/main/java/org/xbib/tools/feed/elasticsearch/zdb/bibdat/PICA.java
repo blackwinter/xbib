@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -62,7 +63,9 @@ public final class PICA extends Converter {
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            MyQueue queue = new MyQueue("/org/xbib/analyze/pica/zdb/bibdat.json", settings.getAsInt("pipelines", 1));
+            final String packageName = settings.get("package");
+            final URL path = findURL(settings.get("elements", "/org/xbib/analyze/pica/zdb/bibdat.json"));
+            MyQueue queue = new MyQueue(packageName, settings.getAsInt("pipelines", 1), path);
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("unmapped field {}", key);
@@ -86,8 +89,8 @@ public final class PICA extends Converter {
 
     static class MyQueue extends PicaEntityQueue {
 
-        MyQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

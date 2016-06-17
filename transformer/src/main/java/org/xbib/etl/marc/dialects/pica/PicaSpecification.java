@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,8 +44,8 @@ public class PicaSpecification extends DefaultSpecification {
 
     private final static Logger logger = LogManager.getLogger(PicaSpecification.class.getName());
 
-    public PicaSpecification(Map entites, Map params, ClassLoader cl, String packageName, String... paths) throws Exception {
-        super(entites, params, cl, packageName, paths);
+    public PicaSpecification(InputStream inputStream, Map entites, Map params, String packageName) throws Exception {
+        super(inputStream, entites, params, packageName);
     }
 
     @Override

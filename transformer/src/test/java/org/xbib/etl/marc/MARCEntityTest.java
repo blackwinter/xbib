@@ -88,7 +88,8 @@ public class MARCEntityTest extends Assert {
         final AtomicInteger counter = new AtomicInteger();
 
         public MyQueue() throws Exception {
-            super("org.xbib.analyzer.marc.bib", 1, "org/xbib/analyzer/marc/bib.json");
+            super("org.xbib.analyzer.marc.bib", 1,
+                    MyQueue.class.getClassLoader().getResource("org/xbib/analyzer/marc/bib.json"));
         }
 
         @Override

@@ -59,7 +59,7 @@ public class DNBPicaElementsTest extends Assert {
     public void testPicaSetup() throws Exception {
         PicaEntityQueue queue = new PicaEntityQueue("org.xbib.analyzer.pica.zdb.bibdat",
                 1,
-                "/org/xbib/analyzer/pica/zdb/bibdat.json");
+                DNBPicaElementsTest.class.getResource("/org/xbib/analyzer/pica/zdb/bibdat.json"));
         queue.execute();
         queue.close();
     }
@@ -100,7 +100,7 @@ public class DNBPicaElementsTest extends Assert {
         public MyQueue() throws Exception{
             super("org.xbib.analyzer.pica.zdb.bibdat",
                     1,
-                    "/org/xbib/analyzer/pica/zdb/bibdat.json");
+                    MyQueue.class.getResource("/org/xbib/analyzer/pica/zdb/bibdat.json"));
         }
 
         @Override
