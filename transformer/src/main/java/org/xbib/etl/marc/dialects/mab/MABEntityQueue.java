@@ -37,10 +37,7 @@ import org.xbib.etl.EntityQueue;
 import org.xbib.etl.Specification;
 import org.xbib.etl.UnmappedKeyListener;
 import org.xbib.etl.marc.SubfieldValueMapper;
-import org.xbib.etl.support.IdentifierMapper;
-import org.xbib.etl.support.StatusCodeMapper;
-import org.xbib.etl.support.ConfigurableClassifier;
-import org.xbib.etl.support.ValueMaps;
+import org.xbib.etl.support.*;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
@@ -51,7 +48,10 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +77,8 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
     private UnmappedKeyListener<FieldList> listener;
 
     private ConfigurableClassifier classifier;
+
+    private List<Supplement> supplements;
 
     public MABEntityQueue(String packageName, String... paths) throws Exception{
         this(packageName, new HashMap<>(), 1, paths);
@@ -165,6 +167,24 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         logger.info("added classifications for {} with size of {}", isil, classifier.getMap().size());
         return this;
     }
+
+    public MABEntityQueue addSupplement(Class<? extends Supplement> clazz, String idKey, String prefix, String isil, String supplementPath) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        if (supplements == null) {
+            supplements = new ArrayList<>();
+        }
+        URL url = new URL(supplementPath);
+        InputStream in = url.openStream();
+        if (in == null) {
+            in = getClass().getResource(supplementPath).openStream();
+        }
+        Constructor<?> conztructor = clazz.getConstructor(String.class);
+        Supplement supplement = (Supplement) conztructor.newInstance(new Object[] { idKey });
+        supplement.load(in, isil, prefix);
+        supplements.add(supplement);
+        logger.info("added supplements for {} with size of {}", isil, supplement.getMap().size());
+        return this;
+    }
+
 
     @Override
     public Map<IRI,RdfContentBuilderProvider> contentBuilderProviders() {
@@ -416,6 +436,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
         public StatusCodeMapper statusCodeMapper() {
             return statusMapper;
+        }
+
+        public List<Supplement> supplements() {
+            return supplements;
         }
     }
 
