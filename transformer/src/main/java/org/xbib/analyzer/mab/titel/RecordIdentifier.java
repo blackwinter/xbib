@@ -45,11 +45,11 @@ import java.util.Map;
 
 public class RecordIdentifier extends MABEntity {
 
-    private final static String taxonomyFacet = "xbib.taxonomy";
+    protected final static String taxonomyFacet = "xbib.taxonomy";
 
     private String prefix = "";
 
-    private String catalogid = "";
+    protected String catalogid = "";
 
     public RecordIdentifier(Map<String,Object> params) {
         super(params);
