@@ -86,8 +86,6 @@ public abstract class InternalGraphEdges<E> implements GraphEdges<E> {
 
     public abstract ObjectSet<E> createSet(E label);
 
-    public abstract ObjectSet<E> createSet(Collection<? extends E> labels);
-
     @Override
     public int hashCode() {
         return edges.hashCode();

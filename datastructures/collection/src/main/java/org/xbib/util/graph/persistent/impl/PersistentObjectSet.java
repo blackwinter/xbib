@@ -18,10 +18,6 @@ public class PersistentObjectSet<T> implements ObjectSet<T> {
         this(PersistentHashSet.<T>of(value));
     }
 
-    public PersistentObjectSet(Collection<? extends T> values) {
-        this(PersistentHashSet.<T>copyOf(values));
-    }
-
     public PersistentObjectSet(PersistentHashSet<T> set) {
         this.set = set;
     }

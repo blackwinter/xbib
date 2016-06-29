@@ -5,12 +5,10 @@ import org.xbib.util.graph.persistent.IntMap;
 import org.xbib.util.graph.persistent.ObjectSet;
 import org.xbib.util.graph.persistent.internal.InternalGraphEdges;
 
-import java.util.Collection;
-
 public class PersistentTreeGraphEdges<E> extends InternalGraphEdges<E> {
 
     public PersistentTreeGraphEdges() {
-        this(new PersistentTreeIntMap<ObjectSet<E>>());
+        this(new PersistentTreeIntMap<>());
     }
 
     public PersistentTreeGraphEdges(IntMap<ObjectSet<E>> edges) {
@@ -27,8 +25,4 @@ public class PersistentTreeGraphEdges<E> extends InternalGraphEdges<E> {
         return new PersistentObjectSet<E>(label);
     }
 
-    @Override
-    public ObjectSet<E> createSet(Collection<? extends E> labels) {
-        return new PersistentObjectSet<E>(labels);
-    }
 }
