@@ -1,5 +1,30 @@
 
-Tomasz Nurkiewicz https://github.com/nurkiewicz/LazySeq
+Lazy sequences are based on
 
+https://github.com/nurkiewicz/LazySeq
 
-Pedro Ramalhete, Andreia Correia
+by Tomasz Nurkiewicz
+
+Copy-on-write data structures are based on
+
+https://github.com/pramalhe/ConcurrencyFreaks
+
+by Pedro Ramalhete and Andreia Correia
+
+The persistent data structures are based on
+
+https://github.com/ssaarela/javersion
+
+by Samppa Saarela
+
+with the following modifications:
+
+- dependencies to Google Guava eliminated
+
+- cleand up tests to only use junit, hamcrest and mockito
+
+The persistent graph is based on
+
+https://github.com/Gohla/persistent-graph
+
+by Gabriel Konat gabrielkonat@gmail.com
