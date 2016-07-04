@@ -6,16 +6,18 @@ task (mergeHoldingsLicensesDebug, dependsOn: ':build', type: JavaExec) {
     args 'conf/debug.json'
 }
 
-task (nlz, dependsOn: ':build', type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    systemProperties = [ 'log4j.level': 'debug' ]
-    main = 'org.xbib.tools.Runner'
-    args 'conf/nlz.json'
-}
-
 task (bibdat, dependsOn: ':build', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     systemProperties = [ 'log4j.level': 'debug' ]
     main = 'org.xbib.tools.Runner'
     args 'conf/bibdat.json'
+}
+
+task (nlz, dependsOn: ':build', type: JavaExec) {
+    jvmArgs "-Xbootclasspath/p:" + configurations.alpnboot.asPath
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.provided
+    systemProperties = [ 'log4j.level': 'debug' ]
+    main = 'org.xbib.tools.Runner'
+    args 'conf/nlz.json'
 }

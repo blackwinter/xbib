@@ -4,7 +4,6 @@ import org.xbib.util.graph.persistent.GraphEdges;
 import org.xbib.util.graph.persistent.IntMap;
 import org.xbib.util.graph.persistent.ObjectSet;
 
-import java.util.Collection;
 import java.util.Collections;
 
 /**
