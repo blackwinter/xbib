@@ -50,4 +50,4 @@ LCDB.properties
 SWB.properties
 ZDB.properties
 
-tools/bin/natliz/licensecrawler.sh
+tools/conf/nlz.json

@@ -43,6 +43,7 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +60,13 @@ public class MARCEntityQueue<S extends MARCEntityBuilderState, E extends MARCEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public MARCEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers,  paths);
+    public MARCEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers, URL path)
             throws Exception {
-        super(new MARCSpecification(new HashMap<>(), params, MARCEntityQueue.class.getClassLoader(),
-                packageName, paths), workers);
+        super(new MARCSpecification(path != null ? path.openStream() : null, new HashMap<>(), params, packageName), workers);
         logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
     }
 

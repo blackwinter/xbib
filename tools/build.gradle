@@ -7,6 +7,10 @@ plugins {
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'maven-publish'
 
+configurations {
+    alpnboot
+}
+
 dependencies {
     compile project(':time')
     compile project(':matching')
@@ -25,6 +29,7 @@ dependencies {
     compile "xalan:xalan:2.7.2"
     compile "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
     compile 'org.apache.logging.log4j:log4j-1.2-api:' + versions.log4j
+    // openssl native libs are optional and must be added separately
     provided "org.javassist:javassist:3.20.0-GA"
     if ('os x' == org.gradle.internal.os.OperatingSystem.current().getFamilyName()) {
         provided "io.netty:netty-tcnative:1.1.33.Fork16:osx-x86_64"
@@ -39,6 +44,7 @@ dependencies {
         }
     }
     provided project(':io:charset') // for bibliographic charsets
+    alpnboot 'org.mortbay.jetty.alpn:alpn-boot:8.1.8.v20160420'
 }
 
 test {
@@ -89,4 +95,4 @@ clean {
     delete 'logs'
 }
 
-apply from: 'gradle/javaexec.gradle'
+apply from: 'gradle/xbib.gradle'

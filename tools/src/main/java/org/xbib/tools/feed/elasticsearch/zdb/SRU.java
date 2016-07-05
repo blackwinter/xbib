@@ -53,6 +53,7 @@ import javax.xml.stream.util.XMLEventConsumer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -73,7 +74,10 @@ public class SRU extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<>());
-        final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1));
+        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
+
+        final URL bibpath = findURL(settings.get("bibelements"));
+        final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1), bibpath);
         bibqueue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
@@ -81,8 +85,8 @@ public class SRU extends Feeder {
             }
         });
 
-        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
-        final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1));
+        final URL holpath = findURL(settings.get("holelements"));
+        final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1), holpath);
         holqueue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
@@ -168,10 +172,10 @@ public class SRU extends Feeder {
         logger.info("w={}", w);
     }
 
-    class MyBibQueue extends MARCEntityQueue {
+    private class MyBibQueue extends MARCEntityQueue {
 
-        public MyBibQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyBibQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override
@@ -186,10 +190,10 @@ public class SRU extends Feeder {
         }
     }
 
-    class MyHolQueue extends MARCEntityQueue {
+    private class MyHolQueue extends MARCEntityQueue {
 
-        public MyHolQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyHolQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

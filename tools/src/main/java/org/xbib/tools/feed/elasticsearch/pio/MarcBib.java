@@ -45,6 +45,7 @@ import org.xbib.rdf.io.turtle.TurtleContentParams;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.tools.feed.elasticsearch.marc.BibliographicFeeder;
+import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
 import org.xbib.util.Finder;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.concurrent.Pipeline;
@@ -54,7 +55,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -85,10 +88,6 @@ public class MarcBib extends BibliographicFeeder {
     @Override
     protected WorkerProvider<Converter> provider() {
         return p -> new MarcBib().setPipeline(p);
-    }
-
-    protected NlzEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new BibQueue(serials.getMap());
     }
 
     @Override
@@ -183,10 +182,10 @@ public class MarcBib extends BibliographicFeeder {
 
     private class BibQueue extends NlzEntityQueue {
 
-        BibQueue(Map<String, Resource> serialsMap) throws Exception {
+        BibQueue(Map<String, Resource> serialsMap, URL path) throws Exception {
             super(serialsMap, settings.get("package", "org.xbib.analyzer.marc.nlz"),
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements",  "/org/xbib/analyzer/marc/nlz/bib.json")
+                   path
             );
         }
 

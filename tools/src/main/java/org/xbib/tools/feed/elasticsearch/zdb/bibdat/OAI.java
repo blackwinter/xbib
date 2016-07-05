@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Instant;
@@ -87,7 +88,8 @@ public final class OAI extends OAIFeeder {
         Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-600"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-600") + ")");
-        final PicaEntityQueue queue = createQueue(params);
+        final URL path = findURL(settings.get("elements", "/org/xbib/analyzer/pica/zdb/bibdat.json"));
+        final PicaEntityQueue queue = createQueue(params, path);
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         queue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
@@ -132,6 +134,7 @@ public final class OAI extends OAIFeeder {
                     SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
                     String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
                     listener.onReceive(response);
+                    listener.receivedResponse(simpleHttpResponse);
                     if (listener.getResponse() != null) {
                         StringWriter w = new StringWriter();
                         listener.getResponse().to(w);
@@ -157,17 +160,17 @@ public final class OAI extends OAIFeeder {
         }
     }
 
-    protected PicaEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new MyQueue(params);
+    protected PicaEntityQueue createQueue(Map<String,Object> params, URL path) throws Exception {
+        return new MyQueue(params, path);
     }
 
     class MyQueue extends PicaEntityQueue {
 
-        public MyQueue(Map<String,Object> params) throws Exception {
+        public MyQueue(Map<String,Object> params, URL path) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.pica.zdb.bibdat"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements", "/org/xbib/analyzer/pica/zdb/bibdat.json")
+                    path
             );
         }
 

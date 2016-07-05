@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,8 +44,8 @@ public class DublinCoreSpecification extends DefaultSpecification {
 
     private final static Logger logger = LogManager.getLogger(DublinCoreSpecification.class.getName());
 
-    public DublinCoreSpecification(Map entites, Map params, ClassLoader cl, String packageName, String... paths) throws Exception {
-        super(entites, params, cl, packageName, paths);
+    public DublinCoreSpecification(InputStream inputStream, Map entites, Map params, String packageName) throws Exception {
+        super(inputStream, entites, params, packageName);
     }
 
     @Override

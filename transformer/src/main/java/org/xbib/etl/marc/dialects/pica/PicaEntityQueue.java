@@ -41,6 +41,7 @@ import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,14 +50,13 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public PicaEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers, paths);
+    public PicaEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  URL path)
             throws Exception {
-        super(new PicaSpecification(new HashMap<>(), params,
-                PicaEntityQueue.class.getClassLoader(), packageName, paths), workers);
+        super(new PicaSpecification(path.openStream(), new HashMap<>(), params, packageName), workers);
     }
 
     public PicaEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {

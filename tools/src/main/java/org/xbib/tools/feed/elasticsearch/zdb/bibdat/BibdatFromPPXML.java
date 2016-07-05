@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -71,7 +72,8 @@ public final class BibdatFromPPXML extends Feeder {
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
-            MyQueue queue = new MyQueue("pica/zdb/bib", settings.getAsInt("pipelines", 1));
+            final URL path = findURL(settings.get("elements"));
+            MyQueue queue = new MyQueue("pica/zdb/bib", settings.getAsInt("pipelines", 1), path);
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("unmapped field {}", key);
@@ -94,8 +96,8 @@ public final class BibdatFromPPXML extends Feeder {
 
     class MyQueue extends PicaEntityQueue {
 
-        MyQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

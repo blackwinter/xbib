@@ -36,11 +36,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +46,10 @@ import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.etl.scripting.ScriptEntity;
 
 public class DefaultSpecification<E extends Entity> implements Specification<E> {
 
     private final static Logger logger = LogManager.getLogger(DefaultSpecification.class.getName());
-
-    private final static int DEFAULT_BUFFER_SIZE = 8192;
 
     private final Map<String, Object> map;
 
@@ -62,18 +57,12 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
 
     private final Map<String,Object> params;
 
-    public DefaultSpecification(Map<String,E> entites, Map<String,Object> params,
-                                ClassLoader cl, String packageName, String... paths) throws Exception {
+    public DefaultSpecification(InputStream inputStream, Map<String,E> entites, Map<String,Object> params,
+                                String packageName) throws Exception {
         this.entities = entites;
         this.params = params;
-        if (paths == null || paths.length == 0) {
-            throw new IllegalArgumentException("no path given");
-        }
         this.map = new TreeMap<>();
-        for (String path : paths) {
-            logger.info("initializing from {}", path);
-            init(cl, packageName, path);
-        }
+        init(inputStream, packageName);
         logger.info("initialized map of {} keys", map.size());
     }
 
@@ -88,61 +77,38 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
     }
 
     @SuppressWarnings("unchecked")
-    private void init(ClassLoader cl, String packageName, String path) throws Exception {
-        InputStream in = loadResource(cl, path);
-        if (in == null) {
-            String msg = "not found: " + path;
-            throw new IOException(msg);
+    private void init(InputStream inputStream, String packageName) throws Exception {
+        Map<String, Map<String, Object>> defs = new HashMap<>();
+        if (inputStream != null) {
+            defs = new ObjectMapper().configure(Feature.ALLOW_COMMENTS, true).readValue(inputStream, Map.class);
+            inputStream.close();
+        } else {
+            logger.warn("no specification input stream found");
         }
-        Map<String, Map<String, Object>> defs = new ObjectMapper()
-                .configure(Feature.ALLOW_COMMENTS, true).readValue(in, Map.class);
         for (Map.Entry<String, Map<String,Object>> entry : defs.entrySet()) {
             String key = entry.getKey();
             Map<String,Object> struct = entry.getValue();
             // allow override static struct map from json with given params
             struct.putAll(params);
             E entity = null;
-            String type = (String) struct.get("_type");
-            if (type != null && type.startsWith("application/x-")) {
-                String language = type.substring("application/x-".length());
-                String invocable = (String) struct.get("class");
-                String source = (String) struct.get("source");
-                String script = (String) struct.get("script");
-                if (script != null) {
-                    InputStream input = loadResource(cl, path + script);
-                    if (input == null) {
-                        throw new IOException(path + script + " not found: " + path + script);
-                    }
-                    InputStreamReader reader = new InputStreamReader(input, "UTF-8");
-                    ScriptEntity<E> scriptEntity = new ScriptEntity(language, getString(reader), invocable);
-                    scriptEntity.setSettings(struct);
-                    entity = scriptEntity.getEntity();
-                    reader.close();
-                } else if (source != null) {
-                    ScriptEntity<E> scriptEntity = new ScriptEntity(language, source, invocable);
-                    scriptEntity.setSettings(struct);
-                    entity = scriptEntity.getEntity();
-                }
-            } else {
-                // load class
-                Class clazz = loadClass(cl, packageName + "." + key);
-                if (clazz == null) {
-                    // custom class name, try without package
-                    clazz = loadClass(cl, key);
-                }
-                if (clazz != null) {
+            // load class
+            Class clazz = loadClass(getClass().getClassLoader(), packageName + "." + key);
+            if (clazz == null) {
+                // custom class name, try without package
+                clazz = loadClass(getClass().getClassLoader(), key);
+            }
+            if (clazz != null) {
+                try {
+                    entity = (E)clazz.getDeclaredConstructor(Map.class).newInstance(struct);
+                } catch (Throwable t1) {
                     try {
-                        entity = (E)clazz.getDeclaredConstructor(Map.class).newInstance(struct);
-                    } catch (Throwable t1) {
-                        try {
-                            entity = (E) clazz.newInstance();
-                        } catch (Throwable t2) {
-                            logger.error("can't instantiate class " + clazz.getName());
-                        }
+                        entity = (E) clazz.newInstance();
+                    } catch (Throwable t2) {
+                        logger.error("can't instantiate class " + clazz.getName());
                     }
-                    if (entity != null) {
-                        entities.put(packageName + "." + key, entity);
-                    }
+                }
+                if (entity != null) {
+                    entities.put(packageName + "." + key, entity);
                 }
             }
             // connect each value to an entity class
@@ -197,7 +163,7 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
         }
     }
 
-    private String getString(Reader input) throws IOException {
+    /*private String getString(Reader input) throws IOException {
         StringWriter sw = new StringWriter();
         char[] buffer = new char[DEFAULT_BUFFER_SIZE];
         int n;
@@ -205,9 +171,9 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
             sw.write(buffer, 0, n);
         }
         return sw.toString();
-    }
+    }*/
 
-    private InputStream loadResource(ClassLoader cl, String resourcePath) {
+    /*private InputStream loadResource(ClassLoader cl, String resourcePath) {
         // load from root of jar
         InputStream in = cl.getResourceAsStream(resourcePath);
         if (in == null) {
@@ -219,7 +185,7 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
             }
         }
         return in;
-    }
+    }*/
 
     private Class loadClass(ClassLoader cl, String className) {
         Class clazz = null;
@@ -228,7 +194,6 @@ public class DefaultSpecification<E extends Entity> implements Specification<E> 
             clazz = cl.loadClass(className);
         } catch (ClassNotFoundException e) {
             try {
-                // load from same class loader as class ElementMap
                 clazz = Class.forName(className);
             } catch (ClassNotFoundException e1) {
                 // last resort: load from system class loader

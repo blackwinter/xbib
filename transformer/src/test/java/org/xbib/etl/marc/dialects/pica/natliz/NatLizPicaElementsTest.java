@@ -55,7 +55,7 @@ public class NatLizPicaElementsTest extends Assert {
     public void testPicaSetup() throws Exception {
         PicaEntityQueue queue = new PicaEntityQueue("org.xbib.analyzer.pica.natliz.bib",
                 1,
-                "/org/xbib/analyzer/pica/natliz/bib.json");
+                NatLizPicaElementsTest.class.getResource("/org/xbib/analyzer/pica/natliz/bib.json"));
         queue.execute();
         queue.close();
     }
@@ -97,7 +97,7 @@ public class NatLizPicaElementsTest extends Assert {
         public MyQueue() throws Exception {
             super("org.xbib.analyzer.pica.natliz.bib",
                     1,
-                    "/org/xbib/analyzer/pica/natliz/bib.json");
+                    MyQueue.class.getResource("/org/xbib/analyzer/pica/natliz/bib.json"));
         }
 
         @Override
