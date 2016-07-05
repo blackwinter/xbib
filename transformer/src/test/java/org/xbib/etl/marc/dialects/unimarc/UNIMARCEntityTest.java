@@ -102,7 +102,7 @@ public class UNIMARCEntityTest extends Assert {
         public MyQueue() throws Exception {
             super("org.xbib.analyzer.unimarc.bib",
                     Runtime.getRuntime().availableProcessors(),
-                    "org/xbib/analyzer/unimarc/bib.json");
+                    UNIMARCEntityTest.class.getResource("org/xbib/analyzer/unimarc/bib.json"));
         }
 
         @Override

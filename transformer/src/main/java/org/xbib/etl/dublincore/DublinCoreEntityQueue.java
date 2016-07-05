@@ -38,14 +38,13 @@ import java.util.Map;
 
 public class DublinCoreEntityQueue extends EntityQueue<DublinCoreEntityBuilderState, DublinCoreEntity, String, String> {
 
-    public DublinCoreEntityQueue(String packageName, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), 1, paths);
+    public DublinCoreEntityQueue(String packageName) throws Exception {
+        this(packageName, new HashMap<>(), 1);
     }
 
-    public DublinCoreEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths)
+    public DublinCoreEntityQueue(String packageName, Map<String,Object> params, int workers)
             throws Exception {
-        super(new DublinCoreSpecification(new HashMap<>(), params,
-                DublinCoreEntityQueue.class.getClassLoader(), packageName, paths),
+        super(new DublinCoreSpecification(DublinCoreEntityQueue.class.getResourceAsStream(""), new HashMap<>(), params, packageName),
                 workers);
     }
 

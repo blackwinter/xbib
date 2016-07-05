@@ -48,7 +48,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
@@ -73,10 +75,11 @@ public final class MarcXML extends Feeder {
     public void process(URI uri) throws Exception {
         try (InputStream in = FileInput.getInputStream(uri)) {
             InputStreamReader r = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
+            final URL path = findURL(settings.get("elements"));
             final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
             final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                    new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                    new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+                    new MyDirectQueue(settings.get("package"), settings.getAsInt("pipelines", 1)) :
+                    new MyEntityQueue(settings.get("package"), settings.getAsInt("pipelines", 1), path);
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect", false))) {
                     logger.warn("unmapped field {}", key);
@@ -102,8 +105,8 @@ public final class MarcXML extends Feeder {
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        public MyEntityQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

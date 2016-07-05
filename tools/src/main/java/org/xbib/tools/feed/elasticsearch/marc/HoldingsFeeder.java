@@ -21,7 +21,9 @@ import org.xml.sax.SAXNotSupportedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Collections;
@@ -59,8 +61,9 @@ public class HoldingsFeeder extends Feeder {
             params.put("_prefix", "(" + settings.get("catalogid") + ")");
         }
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+        final URL path = findURL(settings.get("elements",  "/org/xbib/analyzer/marc/hol.json"));
         final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                createDirectQueue() : createQueue(params);
+                createDirectQueue() : createQueue(params, path);
         queue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("record {} unmapped field {}", id, key);
@@ -99,8 +102,8 @@ public class HoldingsFeeder extends Feeder {
         elasticsearchOutput.retention(ingest, def);
     }
 
-    protected MARCEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new HolQueue(params);
+    protected MARCEntityQueue createQueue(Map<String,Object> params, URL path) throws Exception {
+        return new HolQueue(params, path);
     }
 
     protected MARCEntityQueue createDirectQueue() throws Exception {
@@ -129,11 +132,11 @@ public class HoldingsFeeder extends Feeder {
 
     private class HolQueue extends MARCEntityQueue {
 
-        HolQueue(Map<String,Object> params) throws Exception {
+        HolQueue(Map<String,Object> params, URL path) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.hol"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements",  "/org/xbib/analyzer/marc/hol.json")
+                    path
             );
         }
 

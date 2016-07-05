@@ -170,7 +170,7 @@ public class MarcHolOAI extends OAIFeeder {
             super(settings.get("package", "org.xbib.analyzer.marc.hol"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements", "/org/xbib/analyzer/marc/hol.json")
+                    findURL(settings.get("elements", "/org/xbib/analyzer/marc/hol.json"))
             );
         }
 

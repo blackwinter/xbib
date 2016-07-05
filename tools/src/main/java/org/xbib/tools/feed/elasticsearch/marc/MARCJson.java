@@ -47,7 +47,9 @@ import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -69,9 +71,10 @@ public final class MARCJson extends Feeder {
     @Override
     public void process(URI uri) throws Exception {
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
+        final URL path = findURL(settings.get("elements"));
         final MARCEntityQueue queue = settings.getAsBoolean("direct", false) ?
-                new MyDirectQueue(settings.get("elements"), settings.getAsInt("pipelines", 1)) :
-                new MyEntityQueue(settings.get("elements"), settings.getAsInt("pipelines", 1));
+                new MyDirectQueue(settings.get("package"), settings.getAsInt("pipelines", 1)) :
+                new MyEntityQueue(settings.get("package"), settings.getAsInt("pipelines", 1), path);
         queue.setUnmappedKeyListener((id, key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
@@ -92,8 +95,8 @@ public final class MARCJson extends Feeder {
 
     class MyEntityQueue extends MARCEntityQueue {
 
-        public MyEntityQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        public MyEntityQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

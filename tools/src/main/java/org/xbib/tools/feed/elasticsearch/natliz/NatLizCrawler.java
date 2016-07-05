@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,8 +54,7 @@ public class NatLizCrawler extends Feeder {
 
     private final static Logger logger = LogManager.getLogger(NatLizCrawler.class);
 
-    private final RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
-
+    private final static RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
 
     @Override
     protected WorkerProvider<Converter> provider() {
@@ -72,12 +69,12 @@ public class NatLizCrawler extends Feeder {
         // use findInstitutions()
         try (InputStream in = getClass().getResourceAsStream("nlz-sigel-isil.json")) {
             List<Map<String, Object>> members = mapper.readValue(in, List.class);
-            String cookie = login();
+            String cookie = login(uri.toString());
             if (cookie.isEmpty()) {
                 throw new IOException("not authorized, no cookie found");
             }
             Set<Triple> triples = new TreeSet<>();
-            Map<String, Object> licenses = new HashMap<String, Object>();
+            Map<String, Object> licenses = new HashMap<>();
             for (Map<String, Object> member : members) {
                 String memberid = (String) member.get("member");
                 Object o = member.get("isil");
@@ -85,16 +82,16 @@ public class NatLizCrawler extends Feeder {
                     o = Collections.singletonList(o);
                 }
                 Collection<Object> isils = (Collection<Object>) o;
-                findLicenses(cookie, memberid, isils, licenses, triples);
+                findLicenses(uri.toString(), cookie, memberid, isils, licenses, triples);
             }
             writeLicenses(licenses);
             writeTriples(triples);
         }
     }
 
-    private String login() throws Exception {
+    private String login(String httpUrl) throws Exception {
         StringBuilder cookie = new StringBuilder();
-        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+:https://www.nationallizenzen.de",
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, httpUrl,
                 SimpleHttpClient.class);
         SimpleHttpRequest request = SimpleHttpRequestBuilder
                 .forPost("/anmeldung/inform_registration")
@@ -114,12 +111,11 @@ public class NatLizCrawler extends Feeder {
         return cookie.toString();
     }
 
-    private Collection<String> findInstitutions(String cookie) throws Exception {
-        URL url = new URL("https://www.nationallizenzen.de/Members/institutionen");
+    private Collection<String> findInstitutions(String httpUrl, String cookie) throws Exception {
         int n = 0;
         int count;
         Set<String> members = new LinkedHashSet<>();
-        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+:https://www.nationallizenzen.de",
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, httpUrl,
                 SimpleHttpClient.class);
         do {
             SimpleHttpRequest request = SimpleHttpRequestBuilder
@@ -142,13 +138,13 @@ public class NatLizCrawler extends Feeder {
                 count++;
             }
             n += 50;
-            logger.info("n={} count={} members={} next={}", n, count, members.size(), url);
+            logger.info("n={} count={} members={}", n, count, members.size());
         } while (count > 0);
         return members;
     }
 
-    private void findSigel(String cookie, String member) throws Exception {
-        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+:https://www.nationallizenzen.de",
+    private void findSigel(String httpUrl, String cookie, String member) throws Exception {
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, httpUrl,
                 SimpleHttpClient.class);
         SimpleHttpRequest request = SimpleHttpRequestBuilder
                 .forGet("/Members/" + member)
@@ -177,9 +173,9 @@ public class NatLizCrawler extends Feeder {
         //writer.write("\n");
     }
 
-    private void findLicenses(String cookie, String member, Collection<Object> isils,
+    private void findLicenses(String httpUrl, String cookie, String member, Collection<Object> isils,
                               Map<String,Object> licenses, Set<Triple> triples) throws Exception {
-        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+:https://www.nationallizenzen.de",
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, httpUrl,
                 SimpleHttpClient.class);
         for (String license: new String[] {"NLLicence", "NLOptLicence"}) {
             String params = "base_url=nl3_inst_get_licences&ltype=" + license + "&state=authorized";
@@ -202,6 +198,7 @@ public class NatLizCrawler extends Feeder {
             // it might not be JSON we receive
             ObjectMapper mapper = new ObjectMapper();
             try {
+                @SuppressWarnings("unchecked")
                 List<Map<String, Object>> lics = mapper.readValue(content, List.class);
                 for (Map<String, Object> lic : lics) {
                     // Name
@@ -220,12 +217,13 @@ public class NatLizCrawler extends Feeder {
                     // download metadata
                     String url = (String) lic.get("vmetadata");
                     if (settings.getAsBoolean("downloadmetadata", false) && url != null && !url.isEmpty()) {
-                        downloadMetadataArchive(cookie, url, zdbisil + ".zip");
+                        downloadMetadataArchive(httpUrl, cookie, url, zdbisil + ".zip");
                     }
                     Map<String, Object> map = new HashMap<>();
                     String timestamp = convertFromDate((String) lic.get("modification_date"));
                     map.put("lastmodified", timestamp);
                     map.put("isil", isils);
+                    @SuppressWarnings("unchecked")
                     List<Map<String, Object>> list = licenses.containsKey(zdbisil) ?
                             (List<Map<String, Object>>) licenses.get(zdbisil) : new LinkedList<>();
                     list.add(map);
@@ -257,7 +255,7 @@ public class NatLizCrawler extends Feeder {
         }
     }
 
-    private void downloadMetadataArchive(String cookie, String url, String target) throws Exception {
+    private void downloadMetadataArchive(String httpUrl, String cookie, String url, String target) throws Exception {
         // already exists?
         Path path = Paths.get(target);
         if (path.toFile().exists()) {
@@ -271,7 +269,7 @@ public class NatLizCrawler extends Feeder {
         String puid = params.get("puid");
         String mid = params.get("mid");
 
-        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+:https://www.nationallizenzen.de",
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, httpUrl,
                 SimpleHttpClient.class);
         String paramstr = "lname=" + lname + "&puid=" + puid + "&mid=" + mid;
         SimpleHttpRequest request = SimpleHttpRequestBuilder
@@ -314,6 +312,7 @@ public class NatLizCrawler extends Feeder {
         if (indexDefinition != null) {
             for (Map.Entry<String,Object> entry : licenses.entrySet()) {
                 String key = entry.getKey();
+                @SuppressWarnings("unchecked")
                 List<Map<String, Object>> value = (List<Map<String, Object>>)entry.getValue();
                 XContentBuilder builder = jsonBuilder();
                 List<String> isils = new LinkedList<>();

@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,13 +47,13 @@ public class MARCSpecification<E extends MARCEntity> extends DefaultSpecificatio
     private String value;
 
     public MARCSpecification() throws Exception {
-        this(new HashMap<>(), new HashMap<>(), MARCSpecification.class.getClassLoader(),
-                "org.xbib.analyzer.marc.bib", "/org/xbib/analyzer/marc/bib.json");
+        this(MARCSpecification.class.getClassLoader().getResourceAsStream("/org/xbib/analyzer/marc/bib.json"),
+                new HashMap<>(), new HashMap<>(), "org.xbib.analyzer.marc.bib");
     }
 
-    public MARCSpecification(Map<String, E> entites, Map<String, Object> params, ClassLoader cl,
-                             String packageName, String... paths) throws Exception {
-        super(entites, params, cl, packageName, paths);
+    public MARCSpecification(InputStream inputStream, Map<String, E> entites, Map<String, Object> params,
+                             String packageName) throws Exception {
+        super(inputStream, entites, params, packageName);
     }
 
     @Override

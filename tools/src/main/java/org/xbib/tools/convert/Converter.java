@@ -46,7 +46,9 @@ import org.xbib.util.concurrent.Worker;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -234,6 +236,20 @@ public class Converter
     // must be overriden
     protected WorkerProvider<Converter> provider() {
         return null;
+    }
+
+    protected URL findURL(String path) throws MalformedURLException {
+        URL url = Converter.class.getClassLoader().getResource(path);
+        if (url == null) {
+            try {
+                url = new URL(path);
+            } catch (MalformedURLException e) {
+                if (path.startsWith("/")) {
+                    url = Converter.class.getClassLoader().getResource(path.substring(1)); // drop '/'
+                }
+            }
+        }
+        return url;
     }
 
     @Override

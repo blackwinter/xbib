@@ -40,8 +40,8 @@ import java.io.IOException;
 
 public class MABDirectQueue extends MABEntityQueue {
 
-    public MABDirectQueue(String packageName, int workers, String... paths) throws Exception {
-        super(packageName, workers, paths);
+    public MABDirectQueue(String packageName, int workers) throws Exception {
+        super(packageName, workers, null);
     }
 
     @Override
