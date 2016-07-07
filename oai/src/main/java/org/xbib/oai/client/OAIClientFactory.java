@@ -57,6 +57,10 @@ public class OAIClientFactory {
     }
 
     public static OAIClient newClient(String spec) {
+        return newClient(spec, false);
+    }
+
+    public static OAIClient newClient(String spec, boolean trustAll) {
         Properties properties = new Properties();
         InputStream in = instance.getClass().getResourceAsStream("/org/xbib/oai/client/" + spec + ".properties");
         if (in != null) {
@@ -67,7 +71,7 @@ public class OAIClientFactory {
             }
             DefaultOAIClient client = new DefaultOAIClient();
             try {
-                client.setURL(new URL(properties.getProperty("uri")));
+                client.setURL(new URL(properties.getProperty("uri")), trustAll);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             }

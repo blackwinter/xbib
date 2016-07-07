@@ -31,6 +31,7 @@
  */
 package org.xbib.tools.feed.elasticsearch.oai;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.common.settings.Settings;
@@ -54,7 +55,12 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
+import org.xbib.service.client.Clients;
+import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.http.SimpleHttpRequest;
+import org.xbib.service.client.http.SimpleHttpRequestBuilder;
 import org.xbib.service.client.http.SimpleHttpResponse;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
 import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
 import org.xbib.tools.convert.Converter;
@@ -218,7 +224,21 @@ public class OAIFeeder extends Feeder {
                 request.addHandler(newMetadataHandler());
                 ListRecordsListener listener = new ListRecordsListener(request);
                 logger.info("OAI request: {}", request);
-                SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                SimpleHttpClient simpleHttpClient = client.getHttpClient();
+                SimpleHttpRequest simpleHttpRequest = request.getHttpRequest();
+                SimpleHttpResponse simpleHttpResponse = simpleHttpClient.execute(simpleHttpRequest).get();
+                // follow a maximum of 10 HTTP redirects
+                int max = 10;
+                RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
+                while (simpleHttpResponse.followUrl() != null && max-- > 0) {
+                    URI nextUri = URI.create(simpleHttpResponse.followUrl());
+                    simpleHttpClient = Clients.newClient(remoteInvokerFactory, "none+" + nextUri, SimpleHttpClient.class);
+                    simpleHttpRequest = SimpleHttpRequestBuilder.forGet(simpleHttpResponse.followUrl())
+                            .header(HttpHeaderNames.ACCEPT, "utf-8")
+                            .build();
+                    simpleHttpResponse = simpleHttpClient.execute(simpleHttpRequest).get();
+                }
+                remoteInvokerFactory.close();
                 String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
                 listener.onReceive(response);
                 listener.receivedResponse(simpleHttpResponse);

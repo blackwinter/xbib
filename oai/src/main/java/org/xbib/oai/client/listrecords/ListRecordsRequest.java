@@ -40,24 +40,12 @@ import java.util.List;
 
 public class ListRecordsRequest extends ClientOAIRequest<ListRecordsRequest> {
 
-    //private List<ListRecordsListener> listeners = new LinkedList<>();
-
     private List<MetadataHandler> handlers = new LinkedList<>();
 
     public ListRecordsRequest() {
         super();
         addParameter(OAIConstants.VERB_PARAMETER, LIST_RECORDS);
     }
-
-/*    public ListRecordsRequest addListener(ListRecordsListener listener) {
-        listeners.add(listener);
-        return this;
-    }
-
-    public List<ListRecordsListener> getListeners() {
-        return listeners;
-    }
-*/
     public ListRecordsRequest addHandler(MetadataHandler handler) {
         handlers.add(handler);
         return this;

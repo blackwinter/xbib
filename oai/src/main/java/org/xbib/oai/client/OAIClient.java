@@ -44,6 +44,7 @@ import org.xbib.oai.client.listrecords.ListRecordsRequest;
 import org.xbib.oai.client.listsets.ListSetsRequest;
 import org.xbib.oai.util.ResumptionToken;
 import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
 
 /**
  * OAI client API
@@ -51,11 +52,15 @@ import org.xbib.service.client.http.SimpleHttpClient;
  */
 public interface OAIClient extends OAISession, OAIConstants {
 
-    SimpleHttpClient getHttpClient();
+    OAIClient setURL(URL uri, boolean trustAlways) throws URISyntaxException;
 
     OAIClient setURL(URL uri) throws URISyntaxException;
 
     URL getURL();
+
+    SimpleHttpClient getHttpClient();
+
+    RemoteInvokerFactory getRemoteInvokerFactory();
 
     /**
      * This verb is used to retrieve information about a repository.
