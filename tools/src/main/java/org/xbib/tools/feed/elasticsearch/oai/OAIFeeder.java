@@ -221,6 +221,7 @@ public class OAIFeeder extends Feeder {
                 SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
                 String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
                 listener.onReceive(response);
+                listener.receivedResponse(simpleHttpResponse);
                 if (listener.getResponse() != null) {
                     logger.debug("got OAI response");
                     StringWriter w = new StringWriter();
