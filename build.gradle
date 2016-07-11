@@ -1,5 +1,5 @@
 
-def xbibGroup = 'hbz.xbib'
+def xbibGroup = 'hbz.introx.xbib'
 def xbibVersion = '2.0'
 def xbibBuildNumber = System.getenv("BUILD_NUMBER") as Integer ?: 0
 
