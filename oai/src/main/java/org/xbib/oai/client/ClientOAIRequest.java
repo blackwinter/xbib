@@ -154,8 +154,8 @@ public class ClientOAIRequest<R extends ClientOAIRequest> implements OAIRequest<
         this.token = token;
         if (token != null && token.toString() != null) {
             // resumption token may have characters that are illegal in URIs like '|'
-            String tokenStr = URIFormatter.encode(token.toString(), StandardCharsets.UTF_8);
-            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, tokenStr);
+            //String tokenStr = URIFormatter.encode(token.toString(), StandardCharsets.UTF_8);
+            addParameter(OAIConstants.RESUMPTION_TOKEN_PARAMETER, token.toString());
         }
         return (R) this;
     }

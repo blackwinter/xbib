@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.xbib.oai.client.getrecord.GetRecordRequest;
 import org.xbib.oai.client.identify.IdentifyRequest;
 import org.xbib.oai.client.listidentifiers.ListIdentifiersRequest;
@@ -45,6 +46,11 @@ import org.xbib.oai.client.listsets.ListSetsRequest;
 import org.xbib.oai.util.ResumptionToken;
 import org.xbib.service.client.ClientBuilder;
 import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
+import org.xbib.service.client.invocation.RemoteInvokerOption;
+import org.xbib.service.client.invocation.RemoteInvokerOptions;
+
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Default OAI client
@@ -53,12 +59,22 @@ public class DefaultOAIClient implements OAIClient {
 
     private SimpleHttpClient client;
 
+    private RemoteInvokerFactory remoteInvokerFactory;
+
     private URL url;
 
     @Override
     public DefaultOAIClient setURL(URL url) throws URISyntaxException {
+        return setURL(url, false);
+    }
+
+    @Override
+    public DefaultOAIClient setURL(URL url, boolean trustAlways) throws URISyntaxException {
         this.url = url;
+        RemoteInvokerOptions options = RemoteInvokerOptions.of(RemoteInvokerOption.TRUST_MANAGER_FACTORY.newValue(InsecureTrustManagerFactory.INSTANCE));
+        this.remoteInvokerFactory = new RemoteInvokerFactory(options);
         this.client = new ClientBuilder("none+" + url.toURI())
+                .remoteInvokerFactory(remoteInvokerFactory)
                 .responseTimeout(Duration.ofMinutes(1L)) // maybe not enough for extreme slow archive servers...
                 .build(SimpleHttpClient.class);
         return this;
@@ -72,6 +88,11 @@ public class DefaultOAIClient implements OAIClient {
     @Override
     public SimpleHttpClient getHttpClient() {
         return client;
+    }
+
+    @Override
+    public RemoteInvokerFactory getRemoteInvokerFactory() {
+        return remoteInvokerFactory;
     }
 
     @Override
