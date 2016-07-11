@@ -31,6 +31,8 @@
  */
 package org.xbib.sru.iso23950.client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xbib.io.iso23950.ZConnection;
 import org.xbib.io.iso23950.ZSession;
 import org.xbib.io.iso23950.client.ZClient;
@@ -38,9 +40,9 @@ import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 import org.xbib.sru.client.DefaultSRUClient;
 import org.xbib.sru.iso23950.service.ZSRUService;
-import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -48,43 +50,57 @@ import java.util.concurrent.TimeoutException;
 /**
  *  A SRU client for Z services
  */
-public class ZSRUClient extends DefaultSRUClient {
+public class ZSRUClient extends DefaultSRUClient<ZSearchRetrieveRequest, ZSearchRetrieveResponse> {
+
+    private final static Logger logger = LogManager.getLogger(ZSRUClient.class);
 
     private final ZSRUService service;
 
-    protected ZSRUClient(ZSRUService service) throws IOException {
+    private ZClient client;
+
+    private ZSession session;
+
+    private ZConnection connection;
+
+    ZSRUClient(ZSRUService service) throws IOException {
         super();
         this.service = service;
     }
 
     @Override
-    public SearchRetrieveRequest newSearchRetrieveRequest(URL url) {
-        return super.newSearchRetrieveRequest(url);
+    public ZSearchRetrieveRequest newSearchRetrieveRequest(String url) {
+        try {
+            connection = new ZConnection(new URL(url));
+            session = connection.createSession();
+            client = session.newZClient();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return client.newCQLSearchRetrieveRequest();
     }
 
     @Override
-    public ZSearchRetrieveResponse searchRetrieve(SearchRetrieveRequest request)
+    public ZSearchRetrieveResponse searchRetrieve(ZSearchRetrieveRequest request)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        // connect to Z service
-        URL url = request.getURL();
-        ZConnection connection = new ZConnection(url);
-        ZSession session = connection.createSession();
-        ZClient client = session.newZClient();
         try {
-            // search with CQL
-            ZSearchRetrieveRequest searchRetrieve = client.newCQLSearchRetrieveRequest();
-            searchRetrieve.setDatabase(service.getDatabase())
+            request.setDatabase(service.getDatabase())
                     .setResultSetName(service.getResultSetName())
                     .setElementSetName(service.getElementSetName())
                     .setPreferredRecordSyntax(service.getPreferredRecordSyntax())
                     .setQuery(request.getQuery())
                     .setFrom(request.getStartRecord())
                     .setSize(request.getMaximumRecords());
-            return searchRetrieve.execute();
+            return request.execute();
         } finally {
-            client.close();
-            session.close();
-            connection.close();
+            if (client != null) {
+                client.close();
+            }
+            if (session != null) {
+                session.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
 

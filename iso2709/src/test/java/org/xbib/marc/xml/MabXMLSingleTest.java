@@ -79,6 +79,7 @@ public class MabXMLSingleTest extends StreamTester {
         };
 
         File file = File.createTempFile("NLM22420274-out.", ".xml");
+        file.deleteOnExit();
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.addListener("h", listener);

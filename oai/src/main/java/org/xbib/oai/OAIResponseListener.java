@@ -31,13 +31,11 @@
  */
 package org.xbib.oai;
 
-import org.xbib.io.http.HttpResponseListener;
-
 /**
  *  OAI response listener
  *
  */
-public interface OAIResponseListener extends HttpResponseListener {
+public interface OAIResponseListener {
 
     OAIResponse getResponse();
 }

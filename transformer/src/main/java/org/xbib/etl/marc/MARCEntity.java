@@ -34,7 +34,6 @@ package org.xbib.etl.marc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.DefaultEntity;
-import org.xbib.etl.Entity;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
 import org.xbib.marc.MarcXchangeConstants;
@@ -46,7 +45,7 @@ import java.util.Map;
 /**
  * A MARC entity
  */
-public abstract class MARCEntity extends DefaultEntity implements Entity, MarcXchangeConstants {
+public abstract class MARCEntity<W extends MARCEntityQueue.MARCWorker> extends DefaultEntity<W> implements MarcXchangeConstants {
 
     protected static final Logger logger = LogManager.getLogger(MARCEntity.class.getName());
 
@@ -62,14 +61,16 @@ public abstract class MARCEntity extends DefaultEntity implements Entity, MarcXc
      * @return true if processing has been completed and should not continue at this point,
      * false if it should continue
      */
-    public boolean fields(MARCEntityQueue.MARCWorker worker, FieldList fields) throws IOException {
+    @Override
+    public boolean fields(W worker, FieldList fields) throws IOException {
         return false;
     }
 
     /**
      * Transform field data
      */
-    public String data(MARCEntityQueue.MARCWorker worker,
+    @Override
+    public String data(W worker,
                        String resourcePredicate, Resource resource, String property, String value) throws IOException {
         return value;
     }

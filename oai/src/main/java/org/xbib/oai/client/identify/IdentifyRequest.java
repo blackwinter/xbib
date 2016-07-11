@@ -33,12 +33,11 @@ package org.xbib.oai.client.identify;
 
 import org.xbib.oai.client.ClientOAIRequest;
 import org.xbib.oai.OAIRequest;
-import org.xbib.oai.OAISession;
 
 public class IdentifyRequest extends ClientOAIRequest implements OAIRequest {
 
-    public IdentifyRequest(OAISession session) {
-        super(session);
+    public IdentifyRequest() {
+        super();
         addParameter(VERB_PARAMETER, IDENTIFY);
     }
 }

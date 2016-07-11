@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
-import org.xbib.io.redis.LettuceStrings;
+import org.xbib.io.redis.Strings;
 import org.xbib.io.redis.RedisException;
 import org.xbib.io.redis.RedisURI;
 
@@ -84,7 +84,7 @@ public class ClusterPartitionParser {
 
         HostAndPort hostAndPort = HostAndPort.fromString(iterator.next());
 
-        if (LettuceStrings.isNotEmpty(hostAndPort.getHostText())) {
+        if (Strings.isNotEmpty(hostAndPort.getHostText())) {
             uri = RedisURI.Builder.redis(hostAndPort.getHostText(), hostAndPort.getPort()).build();
         }
 

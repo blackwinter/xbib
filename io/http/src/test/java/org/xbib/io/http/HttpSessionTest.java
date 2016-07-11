@@ -31,62 +31,55 @@
  */
 package org.xbib.io.http;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.Test;
-import org.xbib.io.Session;
-import org.xbib.io.http.netty.NettyHttpResponseListener;
-import org.xbib.io.http.netty.NettyHttpSession;
+import org.xbib.service.client.Clients;
+import org.xbib.service.client.http.SimpleHttpClient;
+import org.xbib.service.client.http.SimpleHttpRequest;
+import org.xbib.service.client.http.SimpleHttpRequestBuilder;
+import org.xbib.service.client.http.SimpleHttpResponse;
+import org.xbib.service.client.invocation.RemoteInvokerFactory;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.URI;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class HttpSessionTest {
 
     @Test
     public void testGet() throws Exception {
-        NettyHttpSession session = new NettyHttpSession();
-        session.open(Session.Mode.READ);
-        HttpRequest request = session.newRequest()
-                .setMethod("GET")
-                .setURL(new URL("http://www.google.com/search"))
-                .addParameter("q", "köln");
-        AtomicInteger counter = new AtomicInteger();
-        request.prepare().execute(new NettyHttpResponseListener() {
-            @Override
-            public void receivedResponse(HttpResponse result) {
-                //logger.info("result = {}", result);
-                counter.incrementAndGet();
-            }
-            @Override
-            public void onError(HttpRequest request, Throwable error) throws IOException {
-                //logger.error(error.getMessage(), error);
-            }
-        }).waitFor(15L, TimeUnit.SECONDS);
-        session.close();
-        assertTrue(counter.get() > 0);
+        RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+http://www.google.com",
+                SimpleHttpClient.class);
+        SimpleHttpRequest request = SimpleHttpRequestBuilder.forGet("/search?q=köln")
+                .header(HttpHeaderNames.ACCEPT, "utf-8")
+                .build();
+        SimpleHttpResponse response = client.execute(request).get();
+        // --> www.google.de
+        int max = 3;
+        while (response.followUrl() != null && max-- > 0) {
+            URI uri = URI.create(response.followUrl());
+            client = Clients.newClient(remoteInvokerFactory, "none+" + uri,
+                    SimpleHttpClient.class);
+            request = SimpleHttpRequestBuilder.forGet(uri.getPath())
+                    .header(HttpHeaderNames.ACCEPT, "utf-8")
+                    .build();
+            response = client.execute(request).get();
+        }
+        assertEquals(HttpResponseStatus.OK, response.status());
     }
 
     @Test
     public void testPost() throws Exception {
-        NettyHttpSession session = new NettyHttpSession();
-        session.open(Session.Mode.READ);
-        HttpRequest request = session.newRequest()
-                .setMethod("POST")
-                .setURL(new URL("http://www.google.com/search"))
-                .addHeader("Content-Length", "0")
-                .addParameter("q", "köln");
-        AtomicInteger counter = new AtomicInteger();
-        request.prepare().execute(new NettyHttpResponseListener() {
-            @Override
-            public void receivedResponse(HttpResponse result) {
-                //logger.info("result = {}",result);
-                counter.incrementAndGet();
-            }
-        }).waitFor(15, TimeUnit.SECONDS);
-        session.close();
-        assertTrue(counter.get() > 0);
+        RemoteInvokerFactory remoteInvokerFactory = RemoteInvokerFactory.DEFAULT;
+        SimpleHttpClient client = Clients.newClient(remoteInvokerFactory, "none+http://www.google.com",
+                SimpleHttpClient.class);
+        SimpleHttpRequest request = SimpleHttpRequestBuilder.forPost("/search")
+                .header(HttpHeaderNames.ACCEPT, "utf-8")
+                .header(HttpHeaderNames.CONTENT_LENGTH, "0")
+                .build();
+        SimpleHttpResponse response = client.execute(request).get();
+        assertEquals(HttpResponseStatus.METHOD_NOT_ALLOWED, response.status());
     }
 }

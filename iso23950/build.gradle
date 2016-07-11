@@ -13,10 +13,19 @@ buildscript {
     }
 }
 
-apply plugin: 'jflex'
+apply plugin: 'org.xbib.gradle.plugin.jflex'
 apply plugin: 'jacc'
 
 dependencies {
     compile project(':io:charset')
     compile project(':sru')
+}
+
+test {
+    systemProperties = [ 'java.protocol.handler.pkgs': 'org.xbib.io.CustomURLStreamHandlerFactory' ]
+    classpath += configurations.provided
+    testLogging {
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
 }

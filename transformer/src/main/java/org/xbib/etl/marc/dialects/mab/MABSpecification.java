@@ -36,17 +36,19 @@ import org.apache.logging.log4j.Logger;
 import org.xbib.etl.DefaultSpecification;
 import org.xbib.etl.Entity;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MABSpecification extends DefaultSpecification<MABEntity> {
+public class MABSpecification<E extends MABEntity> extends DefaultSpecification<E> {
 
     private final static Logger logger = LogManager.getLogger(MABSpecification.class.getName());
 
     private String value;
 
-    public MABSpecification(Map<String, MABEntity> entites, Map<String, Object> params, ClassLoader cl, String packageName, String... paths) throws Exception {
-        super(entites, params, cl, packageName, paths);
+    public MABSpecification(InputStream inputStream, Map<String, E> entites, Map<String, Object> params,
+                            String packageName) throws Exception {
+        super(inputStream, entites, params, packageName);
     }
 
     @Override

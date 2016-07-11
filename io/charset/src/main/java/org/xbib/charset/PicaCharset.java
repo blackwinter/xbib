@@ -44,20 +44,10 @@ import java.util.Map;
  */
 public class PicaCharset extends Charset {
 
-    /**
-     * <code>end-of-record-character</code>
-     */
-    public static final char END_OF_RECORD = '\u001D';
-    /**
-     * <code>end-of-field-character</code>
-     */
-    public static final char END_OF_FIELD = '\u001E';
-    /**
-     * <code>start-of-subfield-character</code>
-     */
-    public static final char START_OF_SUBFIELD = '\u001F';
-    public final static char[] BYTE_TO_CHAR_MAP = newPicaToUnicodeMap();
-    public final static Map<Character, Byte> CHAR_TO_BYTE_MAP = newCharToByteMap();
+    private final static char[] BYTE_TO_CHAR_MAP = newPicaToUnicodeMap();
+
+    private final static Map<Character, Byte> CHAR_TO_BYTE_MAP = newCharToByteMap();
+
     private boolean isNFCOutput;
 
     /**
@@ -70,14 +60,13 @@ public class PicaCharset extends Charset {
     /**
      * Constructor
      */
-    public PicaCharset(boolean isNFCOuput) {
+    private PicaCharset(boolean isNFCOuput) {
         super("x-PICA", null);
         this.isNFCOutput = isNFCOuput;
     }
 
     private static char[] newPicaToUnicodeMap() {
         char[] map = new char[256];
-
         for (int i = 0; i < 128; i++) {
             map[i] = (char) i;
         }
@@ -264,9 +253,9 @@ public class PicaCharset extends Charset {
         return map;
     }
 
-    class PicaDecoder extends SingleByteDecoder {
+    private class PicaDecoder extends SingleByteDecoder {
 
-        protected PicaDecoder(Charset cs) {
+        PicaDecoder(Charset cs) {
             super(cs);
         }
 
@@ -281,9 +270,9 @@ public class PicaCharset extends Charset {
         }
     }
 
-    class PicaEncoder extends SingleByteEncoder {
+    private class PicaEncoder extends SingleByteEncoder {
 
-        protected PicaEncoder(Charset cs) {
+        PicaEncoder(Charset cs) {
             super(cs);
         }
 
@@ -293,7 +282,7 @@ public class PicaCharset extends Charset {
             if (b == null) {
                 return 0;
             }
-            return b.byteValue();
+            return b;
         }
     }
 
@@ -305,15 +294,11 @@ public class PicaCharset extends Charset {
         byteToCharMap[0x83] = 0;
         byteToCharMap[0x84] = 0;
         byteToCharMap[0x85] = 0;
-
-        Map<Character, Byte> ret = new HashMap<Character, Byte>(
-                byteToCharMap.length);
-
-        for (int i = 0; i < byteToCharMap.length; i++) {
+        Map<Character, Byte> ret = new HashMap<>(byteToCharMap.length);
+        for (int i = 0; i < byteToCharMap.length; i++)
             if (byteToCharMap[i] != 0) {
-                ret.put(Character.valueOf(byteToCharMap[i]), Byte.valueOf((byte) i));
+                ret.put(byteToCharMap[i], (byte) i);
             }
-        }
         return ret;
     }
 

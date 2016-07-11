@@ -60,7 +60,7 @@ public class OnlineAccessScopedLink extends OnlineAccessRemote {
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
-        worker.addToResource(worker.state().getNextItemResource(), fields, this);
+        worker.addToResource(worker.getWorkerState().getNextItemResource(), fields, this);
         return true;
     }
 
@@ -70,7 +70,7 @@ public class OnlineAccessScopedLink extends OnlineAccessRemote {
         if (value == null) {
             return null;
         }
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         if ("url".equals(property)) {
             // create synthetic local record identifier
             state.setUID(IRI.builder().curie("uid:" + state.getRecordIdentifier() + "/" + state.getISIL() + "/" + value).build());

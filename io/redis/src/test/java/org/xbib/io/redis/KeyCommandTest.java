@@ -200,7 +200,7 @@ public class KeyCommandTest extends AbstractCommandTest {
         redis.renamenx(key, key + "X");
     }
 
-    @Test
+    @Test(expected = RedisCommandExecutionException.class)
     public void renamenxIdenticalKeys() throws Exception {
         redis.set(key, value);
         assertThat(redis.renamenx(key, key)).isFalse();

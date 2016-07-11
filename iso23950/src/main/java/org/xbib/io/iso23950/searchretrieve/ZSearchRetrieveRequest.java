@@ -66,8 +66,6 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
 
     private List<String> databases;
 
-    private String query;
-
     private int offset;
 
     private int length;
@@ -99,7 +97,7 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
     }
 
     public ZSearchRetrieveRequest setQuery(String query) {
-        this.query = query;
+        super.setQuery(query);
         return this;
     }
 
@@ -135,6 +133,7 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
     }
 
     public ZSearchRetrieveResponse execute() throws IOException {
+        String query = super.getQuery();
         if (query == null) {
             throw new IOException("no query");
         }
@@ -188,7 +187,7 @@ public abstract class ZSearchRetrieveRequest extends SearchRetrieveRequest {
         if (!search.isSuccess()) {
             throw new IOException("search was not a success");
         }
-        return new ZSearchRetrieveResponse(this)
+        return new ZSearchRetrieveResponse(this, null)
                 .setResultCount(search.getResultCount())
                 .setRecords(records.toByteArray())
                 .setErrors(errors.toByteArray());

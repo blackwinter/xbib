@@ -33,14 +33,11 @@ package org.xbib.oai;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.netty.NettyHttpResponseListener;
-import org.xbib.io.http.HttpResponse;
 
 import java.io.IOException;
 
 public abstract class DefaultOAIResponseListener<Response extends OAIResponse>
-        extends NettyHttpResponseListener implements OAIResponseListener {
+         implements OAIResponseListener {
 
     private final Logger logger = LogManager.getLogger(DefaultOAIResponseListener.class.getName());
 
@@ -63,41 +60,20 @@ public abstract class DefaultOAIResponseListener<Response extends OAIResponse>
 
     public abstract Response getResponse();
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public void receivedResponse(HttpResponse result) throws IOException {
-        super.receivedResponse(result);
-        if (!result.ok()) {
-            logger.error("HTTP error " + result.getStatusCode());
-            return;
-        }
-        logger.debug("got response: status = {}, headers = {}, body = {}",
-                result.getStatusCode(),
-                result.getHeaderMap(),
-                sb.toString()
-        );
-        if (!result.getContentType().startsWith("text/xml")) {
-            logger.warn("got non-XML body {}", result);
-        }
+    public void receivedResponse() throws IOException {
     }
 
-    @Override
-    public void onConnect(HttpRequest request) throws IOException {
-    }
-
-    @Override
-    public void onDisconnect(HttpRequest request) throws IOException {
-    }
-
-    @Override
-    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
+    public void onReceive(CharSequence message) throws IOException {
        sb.append(message);
     }
 
-    @Override
-    public void onError(HttpRequest request, Throwable error) throws IOException {
+    public void onError(Throwable error) throws IOException {
         logger.error("received error {}", error);
         this.failure = true;
+    }
+
+    protected String getBody() {
+        return sb.toString();
     }
 
 }

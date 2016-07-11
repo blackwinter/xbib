@@ -32,12 +32,11 @@
 package org.xbib.oai.client.listsets;
 
 import org.xbib.oai.client.ClientOAIRequest;
-import org.xbib.oai.OAISession;
 
 public class ListSetsRequest extends ClientOAIRequest<ListSetsRequest> {
 
-    public ListSetsRequest(OAISession session) {
-        super(session);
+    public ListSetsRequest() {
+        super();
         addParameter(VERB_PARAMETER, LIST_SETS);
     }
 

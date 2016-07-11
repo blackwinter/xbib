@@ -14,12 +14,15 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.tools.feed.elasticsearch.Feeder;
+import org.xbib.tools.feed.elasticsearch.marc.HoldingsFeeder;
 import org.xbib.tools.input.FileInput;
 import org.xbib.util.concurrent.WorkerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +59,8 @@ public class NatLiz extends Feeder {
             Map<String, Object> params = new HashMap<>();
             params.put("identifier", settings.get("identifier", "DE-NLZ"));
             params.put("_prefix", "(" + settings.get("identifier", "DE-NLZ") + ")");
-            final MABEntityQueue queue = new MyEntityQueue(params);
+            final URL path = findURL(settings.get("elements"));
+            final MABEntityQueue queue = new MyEntityQueue(params, path);
             queue.setUnmappedKeyListener((id, key) -> {
                 if ((settings.getAsBoolean("detect-unknown", false))) {
                     logger.warn("record {} unmapped field {}", id, key);
@@ -79,11 +83,11 @@ public class NatLiz extends Feeder {
 
         final RouteRdfXContentParams params;
 
-        public MyEntityQueue(Map<String,Object> map) throws Exception {
+        public MyEntityQueue(Map<String,Object> map, URL path) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.mab.titel"),
                     map,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements"));
+                    path);
             this.params = new RouteRdfXContentParams(namespaceContext,
                     indexDefinitionMap.get("bib").getConcreteIndex(),
                     indexDefinitionMap.get("bib").getType());

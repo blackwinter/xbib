@@ -38,14 +38,14 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.text.Normalizer;
 
-public abstract class SingleByteEncoder extends CharsetEncoder {
+abstract class SingleByteEncoder extends CharsetEncoder {
 
     private boolean decomposeCharactersBeforeConversion = true;
 
     /**
      * @return Returns the decomposeCharactersBeforeConversion.
      */
-    public boolean isDecomposeCharactersBeforeConversion() {
+    boolean isDecomposeCharactersBeforeConversion() {
         return this.decomposeCharactersBeforeConversion;
     }
 
@@ -58,7 +58,7 @@ public abstract class SingleByteEncoder extends CharsetEncoder {
         this.decomposeCharactersBeforeConversion = decomposeCharactersBeforeConversion;
     }
 
-    protected SingleByteEncoder(Charset cs) {
+    SingleByteEncoder(Charset cs) {
         super(cs, 1.0f, 1.0f);
     }
 

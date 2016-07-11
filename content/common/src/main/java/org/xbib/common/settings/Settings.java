@@ -1,4 +1,3 @@
-
 package org.xbib.common.settings;
 
 import java.io.IOException;
@@ -34,9 +33,13 @@ import static org.xbib.common.xcontent.XContentService.jsonBuilder;
 
 public class Settings {
 
-    private Map<String, String> settings;
+    private final Map<String, String> settings;
 
-    private Settings(Map<String, String> settings) {
+    public Settings() {
+        this(new HashMap<String, String>());
+    }
+
+    public Settings(Map<String, String> settings) {
         this.settings = new HashMap<>(settings);
     }
 
@@ -487,10 +490,8 @@ public class Settings {
          * Loads settings from a map
          */
         public Builder loadFromMap(Map<String,Object> map) {
-            SettingsLoader settingsLoader = new JsonSettingsLoader();
             try {
-                Map<String, String> loadedSettings = settingsLoader.load(jsonBuilder().map(map).string());
-                put(loadedSettings);
+                put(new JsonSettingsLoader().load(jsonBuilder().map(map).string()));
             } catch (Exception e) {
                 throw new SettingsException("Failed to load settings from [" + map + "]", e);
             }

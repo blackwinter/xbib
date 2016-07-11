@@ -53,12 +53,12 @@ public abstract class SingleByteDecoder extends CharsetDecoder {
      * @param composeCharactersAfterConversion
      *            The composeCharactersAfterConversion to set.
      */
-    public void setComposeCharactersAfterConversion(
+    void setComposeCharactersAfterConversion(
             boolean composeCharactersAfterConversion) {
         this.composeCharactersAfterConversion = composeCharactersAfterConversion;
     }
 
-    protected SingleByteDecoder(Charset cs) {
+    SingleByteDecoder(Charset cs) {
         super(cs, 1.0f, 1.0f);
     }
 
@@ -68,7 +68,6 @@ public abstract class SingleByteDecoder extends CharsetDecoder {
         while (in.hasRemaining()) {
             byte c = in.get();
             inputBuffer.put(c);
-
             StringBuilder convertedInputBuffer = null;
             if (!isCombiningCharacter(c)) {
                 convertedInputBuffer = new StringBuilder();

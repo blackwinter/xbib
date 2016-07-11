@@ -42,6 +42,7 @@ import org.xbib.iri.namespace.IRINamespaceContext;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.rdfxml.RdfXmlContentParser;
 import org.xbib.rdf.io.xml.XmlHandler;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.Feeder;
 import org.xbib.util.concurrent.WorkerProvider;
@@ -52,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import static org.xbib.rdf.content.RdfXContentFactory.routeRdfXContentBuilder;
@@ -94,7 +96,9 @@ public class RdfXml extends Feeder {
         ListRecordsListener listener = new ListRecordsListener(request);
         do {
             try {
-                request.prepare().execute(listener).waitFor();
+                SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                listener.onReceive(response);
                 if (listener.getResponse() != null) {
                     StringWriter w = new StringWriter();
                     listener.getResponse().to(w);

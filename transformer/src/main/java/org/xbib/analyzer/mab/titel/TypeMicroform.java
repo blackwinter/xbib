@@ -46,7 +46,7 @@ public class TypeMicroform extends MABEntity {
                     // two letters?
                     code = (String) q.get(value.substring(i, i + 2));
                 }
-                worker.state().getResource().add(predicate, code);
+                worker.getWorkerState().getResource().add(predicate, code);
             }
         }
         if (facetcodes != null) {
@@ -59,7 +59,7 @@ public class TypeMicroform extends MABEntity {
                         code = (String) q.get(value.substring(i, i + 2));
                     }
                     if (code != null) {
-                        facetize(worker.state(), code);
+                        facetize(worker.getWorkerState(), code);
                     }
                 }
             }

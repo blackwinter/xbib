@@ -31,14 +31,17 @@
  */
 package org.xbib.oai.client;
 
-import org.xbib.io.http.HttpRequest;
 import org.xbib.oai.OAIConstants;
 import org.xbib.oai.OAIRequest;
-import org.xbib.oai.OAISession;
-import org.xbib.io.http.netty.NettyHttpRequest;
 import org.xbib.oai.util.ResumptionToken;
+import org.xbib.service.client.http.SimpleHttpRequest;
+import org.xbib.service.client.http.SimpleHttpRequestBuilder;
+import org.xbib.util.URIBuilder;
 import org.xbib.util.URIFormatter;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -47,10 +50,13 @@ import java.time.format.DateTimeFormatter;
 /**
  * Client OAI request
  */
-public class ClientOAIRequest<R extends ClientOAIRequest>
-        extends NettyHttpRequest implements HttpRequest, OAIRequest<R> {
+public class ClientOAIRequest<R extends ClientOAIRequest> implements OAIRequest<R> {
 
-    private DateTimeFormatter dateTimeFormatter = null;
+    private SimpleHttpRequestBuilder builder;
+
+    private URIBuilder uriBuilder;
+
+    private DateTimeFormatter dateTimeFormatter;
 
     private ResumptionToken token;
 
@@ -64,27 +70,32 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
 
     private boolean retry;
 
-    protected ClientOAIRequest(OAISession session) {
-        super(session.getSession());
-        setMethod("GET");
-        addHeader("User-Agent", OAIClient.USER_AGENT);
+    protected ClientOAIRequest() {
+        uriBuilder = new URIBuilder();
     }
 
-    @Override
     public R setURL(URL url) {
         try {
-            super.setURL(url);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+            URI uri = url.toURI();
+            uriBuilder.scheme(uri.getScheme())
+                    .authority(uri.getAuthority())
+                    .path(uri.getPath());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("invalid URI " + url);
         }
-        return (R) this;
+        return (R)this;
     }
 
-    @Override
+    public URL getURL() throws MalformedURLException {
+        return uriBuilder.build().toURL();
+    }
+
+    public SimpleHttpRequest getHttpRequest() {
+        return builder.forGet(uriBuilder.build().toString()).build();
+    }
+
     public R addParameter(String name, String value) {
-        if (value != null && value.length() > 0) {
-            super.addParameter(name, value);
-        }
+        uriBuilder.addParameter(name, value);
         return (R) this;
     }
 
@@ -164,40 +175,35 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
 
     class GetRecord extends ClientOAIRequest<GetRecord> {
 
-        public GetRecord(OAISession session) {
-            super(session);
+        public GetRecord() {
             addParameter(VERB_PARAMETER, GET_RECORD);
         }
     }
 
     class Identify extends ClientOAIRequest<Identify> {
 
-        public Identify(OAISession session) {
-            super(session);
+        public Identify() {
             addParameter(VERB_PARAMETER, IDENTIFY);
         }
     }
 
     class ListIdentifiers extends ClientOAIRequest<ListIdentifiers> {
 
-        public ListIdentifiers(OAISession session) {
-            super(session);
+        public ListIdentifiers() {
             addParameter(VERB_PARAMETER, LIST_IDENTIFIERS);
         }
     }
 
     class ListMetadataFormats extends ClientOAIRequest<ListMetadataFormats> {
 
-        public ListMetadataFormats(OAISession session) {
-            super(session);
+        public ListMetadataFormats() {
             addParameter(VERB_PARAMETER, LIST_METADATA_FORMATS);
         }
     }
 
     class ListRecordsRequest extends ClientOAIRequest<ListRecordsRequest> {
 
-        public ListRecordsRequest(OAISession session) {
-            super(session);
+        public ListRecordsRequest() {
             addParameter(OAIConstants.VERB_PARAMETER, LIST_RECORDS);
         }
 
@@ -205,8 +211,7 @@ public class ClientOAIRequest<R extends ClientOAIRequest>
 
     class ListSetsRequest extends ClientOAIRequest<ListSetsRequest> {
 
-        public ListSetsRequest(OAISession session) {
-            super(session);
+        public ListSetsRequest() {
             addParameter(VERB_PARAMETER, LIST_SETS);
         }
     }

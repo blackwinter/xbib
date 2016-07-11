@@ -41,6 +41,7 @@ import org.xbib.rdf.memory.BlankMemoryResource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,14 +50,13 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    public PicaEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers, paths);
+    public PicaEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+    public PicaEntityQueue(String packageName, Map<String, Object> params, int workers,  URL path)
             throws Exception {
-        super(new PicaSpecification(new HashMap<>(), params,
-                PicaEntityQueue.class.getClassLoader(), packageName, paths), workers);
+        super(new PicaSpecification(path.openStream(), new HashMap<>(), params, packageName), workers);
     }
 
     public PicaEntityQueue setUnmappedKeyListener(UnmappedKeyListener<FieldList> listener) {
@@ -100,7 +100,7 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                 Map<String, Object> subfields = (Map<String, Object>) params.get("subfields");
                 if (subfields != null) {
                     // get current resource and create new anoymous resource
-                    Resource resource = state().getResource();
+                    Resource resource = getWorkerState().getResource();
                     Resource newResource = new BlankMemoryResource(); //state().getResource().newResource();
                     // default predicate is the name of the class
                     String predicate = entity.getClass().getSimpleName();
@@ -136,11 +136,11 @@ public class PicaEntityQueue extends EntityQueue<PicaEntityBuilderState, PicaEnt
                     }
                     // add child resource
                     resource.add(predicate, newResource);
-                    state().setResource(resource); // switch back to old resource
+                    getWorkerState().setResource(resource); // switch back to old resource
                 }
             } else {
                 if (listener != null) {
-                    listener.unknown(state().getRecordNumber(), fields);
+                    listener.unknown(getWorkerState().getRecordNumber(), fields);
                 }
             }
         }

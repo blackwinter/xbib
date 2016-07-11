@@ -33,10 +33,10 @@ package org.xbib.sru.client;
 
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.Test;
-import org.xbib.io.http.HttpRequest;
 import org.xbib.sru.SRUResponse;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
+import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 import org.xbib.sru.searchretrieve.SearchRetrieveResponseAdapter;
 import org.xbib.xml.transform.StylesheetTransformer;
 
@@ -46,26 +46,30 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import static org.junit.Assert.assertTrue;
 
 public class AsyncClientTest {
 
     @Test
     public void testMultiClient()  {
         try {
-            for (String s : Arrays.asList("http://pub.uni-bielefeld.de/sru",
+            List<String> responses = new ArrayList<>();
+            for (String s : Arrays.asList("h1://pub.uni-bielefeld.de/sru", // HTTP 1.1 only
                     "http://biblio.ugent.be/sru",
                     "http://lup.lub.lu.se/sru"
             )) {
-                SRUClient client = new DefaultSRUClient();
+                SRUClient<SearchRetrieveRequest, SearchRetrieveResponse> client = new DefaultSRUClient<>();
                 String query = "title=linux";
                 int from = 0;
                 int size = 10;
                 SearchRetrieveRequest request = client
-                        .newSearchRetrieveRequest(new URL(s))
+                        .newSearchRetrieveRequest(s)
                         .setQuery(query)
                         .setStartRecord(from)
                         .setMaximumRecords(size);
@@ -74,11 +78,6 @@ public class AsyncClientTest {
                 Writer writer = new OutputStreamWriter(out, "UTF-8");
 
                 SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
-
-                    @Override
-                    public void onConnect(HttpRequest request) {
-                        //logger.info("connect, request = " + request);
-                    }
 
                     @Override
                     public void version(String version) {
@@ -132,18 +131,14 @@ public class AsyncClientTest {
                         //logger.info("end record");
                     }
 
-                    @Override
-                    public void onDisconnect(HttpRequest request) {
-                        //logger.info("disconnect, request = " + request);
-                    }
                 };
                 request.addListener(listener);
                 StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/test/resources/xsl");
                 try {
-                    SRUResponse response = client
-                            .searchRetrieve(request)
+                    SRUResponse response = client.searchRetrieve(request)
                             .setStylesheetTransformer(transformer)
                             .to(writer);
+                    responses.add(writer.toString());
                 } catch (ConnectTimeoutException e) {
                     //logger.error(e.getMessage(), e);
                 }
@@ -151,6 +146,7 @@ public class AsyncClientTest {
                 client.close();
                 out.close();
             }
+            assertTrue(responses.size() == 3);
         } catch (InterruptedException | ExecutionException | IOException | TimeoutException e) {
             //logger.error(e.getMessage(), e);
         }

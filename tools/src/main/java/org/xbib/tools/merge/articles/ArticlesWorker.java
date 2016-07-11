@@ -41,7 +41,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.common.settings.Settings;
 import org.xbib.grouping.bibliographic.endeavor.AuthorKey;
 import org.xbib.iri.IRI;

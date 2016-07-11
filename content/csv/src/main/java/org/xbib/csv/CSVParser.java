@@ -21,6 +21,12 @@ public class CSVParser {
         reusableToken = new Token();
     }
 
+    public CSVParser(Reader reader, char sep) throws IOException {
+        lexer = new CSVLexer(new LookAheadReader(reader), sep, '\\', '"', '#', true, true);
+        row = new LinkedList<>();
+        reusableToken = new Token();
+    }
+
     public void close() throws IOException {
         lexer.close();
     }

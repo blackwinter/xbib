@@ -112,7 +112,6 @@ public class HashCommandTest extends AbstractCommandTest {
         assertThat((long) redis.hlen(key)).isEqualTo(1);
     }
 
-    @Test
     public void hstrlen() throws Exception {
         assertThat((long) redis.hstrlen(key, "one")).isEqualTo(0);
         redis.hset(key, "one", value);

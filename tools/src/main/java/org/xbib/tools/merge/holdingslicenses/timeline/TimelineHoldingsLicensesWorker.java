@@ -53,7 +53,7 @@ import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.tools.merge.holdingslicenses.entities.TitleRecord;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
@@ -469,8 +469,7 @@ public class TimelineHoldingsLicensesWorker
                             }
                             // new Holding for each ISIL
                             holding = new Holding(holding.map());
-                            holding.setISIL(isil);
-                            holding.setServiceISIL(expandedisil);
+                            holding.setISIL(expandedisil);
                             holding.setName(timelineHoldingsLicensesMerger.bibdatLookup()
                                     .lookupName().get(expandedisil));
                             holding.setRegion(timelineHoldingsLicensesMerger.bibdatLookup()
@@ -578,8 +577,7 @@ public class TimelineHoldingsLicensesWorker
                             }
                             // new License for each ISIL
                             license = new License(license.map());
-                            license.setISIL(isil);
-                            license.setServiceISIL(expandedisil);
+                            license.setISIL(expandedisil);
                             license.setName(timelineHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             license.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             license.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
@@ -659,8 +657,7 @@ public class TimelineHoldingsLicensesWorker
                                 continue;
                             }
                             indicator = new Indicator(indicator.map());
-                            indicator.setISIL(isil);
-                            indicator.setServiceISIL(expandedisil);
+                            indicator.setISIL(expandedisil);
                             indicator.setName(timelineHoldingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             indicator.setRegion(timelineHoldingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             indicator.setOrganization(timelineHoldingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));

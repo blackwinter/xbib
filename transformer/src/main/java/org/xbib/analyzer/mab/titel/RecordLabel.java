@@ -47,11 +47,11 @@ public class RecordLabel extends MABEntity {
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
-       worker.state().setLabel(value.trim());
+       worker.getWorkerState().setLabel(value.trim());
         if (value.length() == 24) {
             char satztyp = value.charAt(23);
-            worker.state().getResource().add("type", String.valueOf(satztyp));
-            worker.state().getResource().add("boost", satztyp == 'u' ? "0.1" : "1.0");
+            worker.getWorkerState().getResource().add("type", String.valueOf(satztyp));
+            worker.getWorkerState().getResource().add("boost", satztyp == 'u' ? "0.1" : "1.0");
         } else {
             logger.warn("the length of this record label is {} characters and was skipped: {}", value.length(), value);
         }

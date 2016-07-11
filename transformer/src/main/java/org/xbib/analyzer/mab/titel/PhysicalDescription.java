@@ -79,7 +79,7 @@ public class PhysicalDescription extends MABEntity {
                         // two letters?
                         code = (String) q.get(value.substring(i, i + 2));
                     }
-                    worker.state().getResource().add(predicate, code);
+                    worker.getWorkerState().getResource().add(predicate, code);
                 }
             }
         }
@@ -92,7 +92,7 @@ public class PhysicalDescription extends MABEntity {
                         // two letters?
                         code = (String) q.get(value.substring(i, i + 2));
                     }
-                    facetize(worker.state(), code);
+                    facetize(worker.getWorkerState(), code);
                 }
             }
         }

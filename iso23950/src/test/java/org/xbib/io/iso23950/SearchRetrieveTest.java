@@ -35,6 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.iso23950.client.ZClient;
+import org.xbib.io.iso23950.exceptions.MessageSizeTooSmallException;
+import org.xbib.io.iso23950.exceptions.NoRecordsReturnedException;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
 import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
 
@@ -47,7 +49,7 @@ public class SearchRetrieveTest {
     private final static Logger logger = LogManager.getLogger(SearchRetrieveTest.class.getName());
 
     @Test
-    public void testCopac() {
+    public void testCopac() throws Exception {
         String address = "z3950://z3950.copac.ac.uk:210";
         String database = "COPAC";
         String resultSetName = "default";
@@ -75,8 +77,9 @@ public class SearchRetrieveTest {
             client.close();
             session.close();
             connection.close();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        } catch (NoRecordsReturnedException | MessageSizeTooSmallException e) {
+            logger.error(e.getMessage());
         }
     }
+
 }

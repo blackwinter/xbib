@@ -38,6 +38,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,8 +54,8 @@ import java.util.Map;
  */
 public class Pica extends Charset {
 
-    private final static HashMap encodeMap = new HashMap(128);
-    private final static HashMap decodeMap = new HashMap(128);
+    private final static Map<Character,Character> encodeMap = new HashMap<>();
+    private final static Map<Character,Character> decodeMap = new HashMap<>();
 
     /**
      * Pica character mapping for index subset \u00a0..\u00ff.
@@ -86,7 +87,7 @@ public class Pica extends Charset {
     // Handle to the real charset we'll use for transcoding between
     // characters and bytes.  Doing this allows applying the Pica
     // charset to multi-byte charset encodings like UTF-8.
-    Charset encodeCharset;
+    private Charset encodeCharset;
 
     /**
      * Constructor for the Pica charset.  Call the superclass
@@ -95,20 +96,20 @@ public class Pica extends Charset {
      */
     public Pica() {
         super("PICA", CharsetProvider.aliasesFor("PICA"));
-        encodeCharset = Charset.forName("ISO-8859-1");
+        encodeCharset = StandardCharsets.ISO_8859_1;
     }
 
     /**
      * Fill the conversion tables.
      */
-    static void charTable(Map encodeMap, Map decodeMap, char from, char to,
+    private static void charTable(Map<Character,Character> encodeMap, Map<Character,Character> decodeMap, char from, char to,
             char[] code) {
         int i = 0;
 
         for (char c = from; c <= to; c++) {
             if (code[i] != '\u0000') {
-                encodeMap.put(Character.valueOf(code[i]), Character.valueOf(c));
-                decodeMap.put(Character.valueOf(c), Character.valueOf(code[i]));
+                encodeMap.put(code[i], c);
+                decodeMap.put(c, code[i]);
             }
 
             i++;
@@ -168,32 +169,24 @@ public class Pica extends Charset {
          */
         protected CoderResult encodeLoop(CharBuffer cb, ByteBuffer bb) {
             CharBuffer tmpcb = CharBuffer.allocate(cb.remaining());
-
             while (cb.hasRemaining()) {
                 tmpcb.put(cb.get());
             }
-
             tmpcb.rewind();
-
             for (int pos = tmpcb.position(); pos < tmpcb.limit(); pos++) {
                 char c = tmpcb.get(pos);
-                Character mapChar = (Character) encodeMap.get(Character.valueOf(c));
-
+                Character mapChar = encodeMap.get(c);
                 if (mapChar != null) {
-                    tmpcb.put(pos, mapChar.charValue());
+                    tmpcb.put(pos, mapChar);
                 }
             }
-
             baseEncoder.reset();
-
             CoderResult cr = baseEncoder.encode(tmpcb, bb, true);
-
             // If error or output overflow, we need to adjust
             // the position of the input buffer to match what
             // was really consumed from the temp buffer.  If
             // underflow (all input consumed) this is a no-op.
             cb.position(cb.position() - tmpcb.remaining());
-
             return cr;
         }
     }
@@ -226,8 +219,8 @@ public class Pica extends Charset {
                     return CoderResult.OVERFLOW;
                 }
                 char oldChar = (char) (b & 0xFF);
-                Character mapChar = (Character) decodeMap.get(Character.valueOf(oldChar));
-                out.put(mapChar != null ? mapChar.charValue() : oldChar);
+                Character mapChar = decodeMap.get(oldChar);
+                out.put(mapChar != null ? mapChar : oldChar);
             }
             return CoderResult.UNDERFLOW;
         }

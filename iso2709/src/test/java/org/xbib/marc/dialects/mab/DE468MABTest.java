@@ -64,6 +64,7 @@ public class DE468MABTest extends StreamTester {
         String s = "aleph500-subfields.mrc";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-468.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
         reader.setFormat("MAB");
@@ -89,6 +90,7 @@ public class DE468MABTest extends StreamTester {
         String s = "aleph500-subfields.mrc";
         InputStream in = getClass().getResource(s).openStream();
         File file = File.createTempFile("DE-468-mapped.", ".xml");
+        file.deleteOnExit();
         FileOutputStream out = new FileOutputStream(file);
         Iso2709Reader reader = new Iso2709Reader(in, "UTF-8");
         reader.setFormat("MAB");

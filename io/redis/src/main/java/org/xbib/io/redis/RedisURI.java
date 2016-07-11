@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.xbib.io.redis.LettuceStrings.isEmpty;
-import static org.xbib.io.redis.LettuceStrings.isNotEmpty;
+import static org.xbib.io.redis.Strings.isEmpty;
+import static org.xbib.io.redis.Strings.isNotEmpty;
 
 /**
  * Redis URI. Contains connection details for the Redis/Sentinel connections. You can provide the database, password and

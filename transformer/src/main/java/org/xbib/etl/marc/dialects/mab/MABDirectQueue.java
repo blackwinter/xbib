@@ -40,8 +40,8 @@ import java.io.IOException;
 
 public class MABDirectQueue extends MABEntityQueue {
 
-    public MABDirectQueue(String packageName, int workers, String... paths) throws Exception {
-        super(packageName, workers, paths);
+    public MABDirectQueue(String packageName, int workers) throws Exception {
+        super(packageName, workers, null);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MABDirectQueue extends MABEntityQueue {
                     continue;
                 }
                 if ("001".equals(field.tag())) {
-                    state().setRecordIdentifier(data);
+                    getWorkerState().setRecordIdentifier(data);
                 }
                 if (field.isControlField()) {
                     tagResource.add("_", data);
@@ -78,7 +78,7 @@ public class MABDirectQueue extends MABEntityQueue {
                     }
                 }
             }
-            state().getResource().add(tag, tagResource);
+            getWorkerState().getResource().add(tag, tagResource);
         }
     }
 

@@ -36,21 +36,19 @@ import java.io.StringReader;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.netty.NettyHttpResponseListener;
 import org.xbib.oai.OAIResponseListener;
 import org.xbib.oai.util.ResumptionToken;
-import org.xbib.io.http.HttpResponse;
 
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.xml.XMLUtil;
 import org.xbib.xml.transform.StylesheetTransformer;
 import org.xml.sax.InputSource;
 
-public class ListRecordsListener extends NettyHttpResponseListener
+public class ListRecordsListener
         implements OAIResponseListener {
 
     private final static Logger logger = LogManager.getLogger(ListRecordsListener.class.getName());
@@ -93,25 +91,23 @@ public class ListRecordsListener extends NettyHttpResponseListener
         return response;
     }
 
-    @Override
-    public void onError(HttpRequest request, Throwable error) throws IOException {
-        logger.error(request.getQuery(), error);
+    public void onError(Throwable error) throws IOException {
+        throw new IOException(error);
     }
 
-    @Override
-    public void receivedResponse(HttpResponse result) throws IOException {
-        super.receivedResponse(result);
-        int status = result.getStatusCode();
+    public void receivedResponse(SimpleHttpResponse simpleHttpResponse) throws IOException {
+        int status = simpleHttpResponse.status().code();
         if (status == 503) {
             logger.warn("retry-after, body={}", body);
-            doRetryAfter(result);
+            doRetryAfter(simpleHttpResponse);
             return;
         }
-        if (!result.ok()) {
+        if (status != 200) {
             throw new IOException("status  = " + status + " response = " + body);
         }
         // activate XSLT only if OAI XML content type is returned
-        if (result.getContentType().startsWith("text/xml")) {
+        String contentType = simpleHttpResponse.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        if (contentType.startsWith("text/xml")) {
             StylesheetTransformer transformer = new StylesheetTransformer().setPath("xsl");
             this.filterreader = new ListRecordsFilterReader(request, response);
             String s = !scrubCharacters ? body.toString() : XMLUtil.sanitize(body.toString());
@@ -119,22 +115,18 @@ public class ListRecordsListener extends NettyHttpResponseListener
             transformer.setSource(filterreader, source);
             response.setTransformer(transformer);
         } else {
-            throw new IOException("no XML content type in response: " + result.getContentType());
+            throw new IOException("no XML content type in response: " + contentType);
         }
     }
 
-    private void doRetryAfter(HttpResponse httpResponse) {
+    private void doRetryAfter(SimpleHttpResponse httpResponse) {
         long secs = retryAfterMillis / 1000;
-        if (httpResponse.getHeaderMap() != null) {
+        if (httpResponse.headers() != null) {
             for (String retryAfterHeader : RETRY_AFTER_HEADERS) {
-                List<String> retryAfterValues = httpResponse.getHeaderMap().get(retryAfterHeader);
-                if (retryAfterValues == null) {
+                String retryAfter = httpResponse.headers().get(retryAfterHeader);
+                if (retryAfter == null) {
                     continue;
                 }
-                if (retryAfterValues.size() < 1) {
-                    continue;
-                }
-                String retryAfter = retryAfterValues.get(0);
                 secs = Long.parseLong(retryAfter);
                 if (!isDigits(retryAfter)) {
                     // parse RFC date, e.g. Fri, 31 Dec 1999 23:59:59 GMT
@@ -158,16 +150,7 @@ public class ListRecordsListener extends NettyHttpResponseListener
         return true;
     }
 
-    @Override
-    public void onConnect(HttpRequest request) throws IOException {
-    }
-
-    @Override
-    public void onDisconnect(HttpRequest request) throws IOException {
-    }
-
-    @Override
-    public void onReceive(HttpRequest request, CharSequence message) throws IOException {
+    public void onReceive(CharSequence message) throws IOException {
         body.append(message);
     }
 

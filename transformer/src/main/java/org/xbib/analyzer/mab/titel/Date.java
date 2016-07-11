@@ -51,7 +51,7 @@ public class Date extends MABEntity {
     @Override
     public MABEntity facetize(MABEntityQueue.MABWorker worker,
                               Field field) {
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         state.getFacets().putIfAbsent(FACET, new GregorianYearFacet().setName(FACET).setType(Literal.GYEAR));
         GregorianYearFacet dateFacet = (GregorianYearFacet) state.getFacets().get(FACET);
         dateFacet.addValue(field.data());

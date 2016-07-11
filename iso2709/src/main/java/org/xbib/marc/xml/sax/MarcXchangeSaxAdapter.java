@@ -98,7 +98,7 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
 
     private Map<String,MarcXchangeListener> listeners = new HashMap<>();
 
-    private Map<String, StringTransformer> transformers = new HashMap<>();
+    protected Map<String, StringTransformer> transformers = new HashMap<>();
 
     private EventListener<FieldEvent> fieldEventListener;
 
@@ -128,11 +128,6 @@ public class MarcXchangeSaxAdapter extends MarcXchangeFieldMapper
 
     public MarcXchangeSaxAdapter setReader(Reader reader) {
         this.reader = reader;
-        return this;
-    }
-
-    public MarcXchangeSaxAdapter setInputStream(InputStream in) throws IOException {
-        this.reader = new InputStreamReader(in, "UTF-8");
         return this;
     }
 

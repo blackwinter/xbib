@@ -1,6 +1,8 @@
 dependencies {
-    compile "io.netty:netty-all:${versions.netty}"
+    compile("org.xbib:netty-http-service:${versions.'netty-http-service'}") {
+        changing = true
+    }
     compile "com.esotericsoftware:kryo:3.0.3"
-    compile "com.google.guava:guava:18.0"
+    compile "com.google.guava:guava:${versions.guava}"
     compile "org.objenesis:objenesis:2.2"
 }

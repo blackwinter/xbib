@@ -56,7 +56,7 @@ public class OnlineAccessRemote extends MABEntity {
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
-        worker.addToResource(worker.state().getNextItemResource(), fields, this);
+        worker.addToResource(worker.getWorkerState().getNextItemResource(), fields, this);
         return true;
     }
 
@@ -66,7 +66,7 @@ public class OnlineAccessRemote extends MABEntity {
         if (value == null) {
             return null;
         }
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         String isil = value;
         if ("uri".equals(property)) {
             // create synthetic local record identifier as scheme specific part. We have no ISIL!

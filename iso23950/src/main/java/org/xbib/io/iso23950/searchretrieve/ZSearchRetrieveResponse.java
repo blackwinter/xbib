@@ -31,6 +31,7 @@
  */
 package org.xbib.io.iso23950.searchretrieve;
 
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.sru.SRUVersion;
 import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
 import org.xbib.sru.SRUFilterReader;
@@ -51,8 +52,6 @@ import java.util.Arrays;
 public class ZSearchRetrieveResponse extends SearchRetrieveResponse
         implements ZResponse {
 
-    private SearchRetrieveRequest request;
-
     private byte[] records;
 
     private String format;
@@ -61,9 +60,8 @@ public class ZSearchRetrieveResponse extends SearchRetrieveResponse
 
     private long resultCount;
 
-    public ZSearchRetrieveResponse(SearchRetrieveRequest request) {
-        super(request);
-        this.request = request;
+    public ZSearchRetrieveResponse(SearchRetrieveRequest request, SimpleHttpResponse simpleHttpResponse) {
+        super(request, simpleHttpResponse);
     }
 
     public ZSearchRetrieveResponse setRecords(byte[] records) {
@@ -108,7 +106,7 @@ public class ZSearchRetrieveResponse extends SearchRetrieveResponse
             sruFilterReader.setProperty(Iso2709Reader.TYPE, type);
             StreamResult streamResult = new StreamResult(writer);
             getTransformer().setSource(new SAXSource(sruFilterReader, new InputSource(reader))).setResult(streamResult);
-            SRUVersion version = SRUVersion.fromString(request.getVersion());
+            SRUVersion version = SRUVersion.fromString(getRequest().getVersion());
             if (getStylesheets(version) != null) {
                 getTransformer().transform(Arrays.asList(getStylesheets(version)));
             }

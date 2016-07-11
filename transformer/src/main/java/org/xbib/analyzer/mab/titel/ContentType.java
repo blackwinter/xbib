@@ -43,7 +43,7 @@ public class ContentType extends MABEntity {
                         // two letters?
                         code = (String) q.get(value.substring(i, i + 2));
                     }
-                    worker.state().getResource().add(predicate, code);
+                    worker.getWorkerState().getResource().add(predicate, code);
                 }
             }
         }
@@ -65,8 +65,8 @@ public class ContentType extends MABEntity {
 
     private MABEntity facetize(MABEntityQueue.MABWorker worker, String value) {
         if (value != null && !value.isEmpty()) {
-            worker.state().getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
-            worker.state().getFacets().get(FACET).addValue(value);
+            worker.getWorkerState().getFacets().putIfAbsent(FACET, new TermFacet().setName(FACET).setType(Literal.STRING));
+            worker.getWorkerState().getFacets().get(FACET).addValue(value);
         }
         return this;
     }

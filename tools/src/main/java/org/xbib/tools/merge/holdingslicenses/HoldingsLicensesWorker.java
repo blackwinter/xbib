@@ -53,7 +53,7 @@ import org.xbib.tools.merge.holdingslicenses.entities.MonographVolume;
 import org.xbib.tools.merge.holdingslicenses.entities.MonographVolumeHolding;
 import org.xbib.util.IndexDefinition;
 import org.xbib.util.MultiMap;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.Worker;
 
@@ -468,14 +468,10 @@ public class HoldingsLicensesWorker
                             }
                             // new Holding for each ISIL
                             holding = new Holding(holding.map());
-                            holding.setISIL(isil);
-                            holding.setServiceISIL(expandedisil);
-                            holding.setName(holdingsLicensesMerger.bibdatLookup()
-                                    .lookupName().get(expandedisil));
-                            holding.setRegion(holdingsLicensesMerger.bibdatLookup()
-                                    .lookupRegion().get(expandedisil));
-                            holding.setOrganization(holdingsLicensesMerger.bibdatLookup()
-                                    .lookupOrganization().get(expandedisil));
+                            holding.setISIL(expandedisil);
+                            holding.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
+                            holding.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
+                            holding.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
                             TitleRecord parentTitleRecord = titleRecordMap.get(holding.getParentIdentifier());
                             parentTitleRecord.addRelatedHolding(expandedisil, holding);
                             holdings.add(holding);
@@ -577,8 +573,7 @@ public class HoldingsLicensesWorker
                             }
                             // new License for each ISIL
                             license = new License(license.map());
-                            license.setISIL(isil);
-                            license.setServiceISIL(expandedisil);
+                            license.setISIL(expandedisil);
                             license.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             license.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             license.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));
@@ -658,8 +653,7 @@ public class HoldingsLicensesWorker
                                 continue;
                             }
                             indicator = new Indicator(indicator.map());
-                            indicator.setISIL(isil);
-                            indicator.setServiceISIL(expandedisil);
+                            indicator.setISIL(expandedisil);
                             indicator.setName(holdingsLicensesMerger.bibdatLookup().lookupName().get(expandedisil));
                             indicator.setRegion(holdingsLicensesMerger.bibdatLookup().lookupRegion().get(expandedisil));
                             indicator.setOrganization(holdingsLicensesMerger.bibdatLookup().lookupOrganization().get(expandedisil));

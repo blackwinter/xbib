@@ -5,16 +5,18 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.EventExecutor;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ThrowableNioEventLoopGroup extends NioEventLoopGroup {
-    EventExecutor[] children;
+    private final List<EventExecutor> children = new ArrayList<>();
 
     public ThrowableNioEventLoopGroup(int nThreads, String name, UncaughtExceptionHandler exceptionHandler) {
         super(nThreads, new ThreadFactoryBuilder()
                 .setNameFormat(name + "-%d")
                 .setUncaughtExceptionHandler(exceptionHandler)
                 .build());
-        children = super.children().stream().toArray(EventExecutor[]::new);
+        super.iterator().forEachRemaining(children::add);
     }
 
     public ThrowableNioEventLoopGroup(String name, UncaughtExceptionHandler exceptionHandler) {
@@ -22,7 +24,7 @@ public class ThrowableNioEventLoopGroup extends NioEventLoopGroup {
     }
 
     public EventExecutor getChild(int id) {
-        return children[id % children.length];
+        return children.get(id % children.size());
     }
 
 }

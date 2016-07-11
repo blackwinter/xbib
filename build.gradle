@@ -4,7 +4,7 @@ def xbibVersion = '2.0'
 def xbibBuildNumber = System.getenv("BUILD_NUMBER") as Integer ?: 0
 
 group = xbibGroup
-version = xbibVersion + '.' + xbibBuildNumber + '-HBZ-SNAPSHOT'
+version = xbibVersion + '.' + xbibBuildNumber
 
 println "Host: " + java.net.InetAddress.getLocalHost()
 println "Gradle: " + gradle.gradleVersion + " JVM: " + org.gradle.internal.jvm.Jvm.current() + " Groovy: " + GroovySystem.getVersion()
@@ -13,21 +13,22 @@ println "Timestamp: " + java.time.Instant.now().atZone(java.time.ZoneId.systemDe
 
 ext {
   versions = [
-    'xbib-elasticsearch' : '2.2.1.1',
-    'jackson': '2.6.5',
-    'netty': '4.0.34.Final',
-    'woodstox' : '5.0.2',
-    'log4j': '2.5',
-    'gradle-plugin-jflex': '1.1.0',
-    'gradle-plugin-jacc': '1.1.3',
-    'wikidata' : '0.6.0'
+          'xbib-elasticsearch' : '2.2.1.1',
+          'jackson': '2.7.4',
+          'woodstox' : '5.0.2',
+          'log4j': '2.5',
+          'gradle-plugin-jflex': '1.1.0',
+          'gradle-plugin-jacc': '1.1.3',
+          'wikidata' : '0.6.0',
+          'netty-http-service' : '1.0.2',
+          'guava' : '19.0'
   ]
 }
 
 allprojects {
     apply plugin: 'maven'
     group = xbibGroup
-    version = xbibVersion + '.' + xbibBuildNumber + '-SNAPSHOT'
+    version = xbibVersion + '.' + xbibBuildNumber
     repositories {
         mavenCentral()
         mavenLocal()
@@ -61,7 +62,6 @@ subprojects {
 
     dependencies {
         compile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
-        provided "org.apache.logging.log4j:log4j-slf4j-impl:${versions.log4j}"
         testCompile('junit:junit:4.12') {
             exclude group: 'org.hamcrest'
         }

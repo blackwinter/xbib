@@ -40,8 +40,8 @@ import java.io.IOException;
 
 public class MARCDirectQueue extends MARCEntityQueue {
 
-    public MARCDirectQueue(String packageName, int workers, String... paths) throws Exception {
-        super(packageName, workers, paths);
+    public MARCDirectQueue(String packageName, int workers) throws Exception {
+        super(packageName, workers, null);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MARCDirectQueue extends MARCEntityQueue {
                     continue;
                 }
                 if ("001".equals(field.tag())) {
-                    state().setRecordIdentifier(data);
+                    getWorkerState().setRecordIdentifier(data);
                 }
                 if (field.isControlField()) {
                     tagResource.add("_", data);
@@ -78,7 +78,7 @@ public class MARCDirectQueue extends MARCEntityQueue {
                     }
                 }
             }
-            state().getResource().add(tag, tagResource);
+            getWorkerState().getResource().add(tag, tagResource);
         }
     }
 

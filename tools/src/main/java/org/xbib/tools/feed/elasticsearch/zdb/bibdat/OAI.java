@@ -46,6 +46,7 @@ import org.xbib.oai.util.RecordHeader;
 import org.xbib.oai.xml.MetadataHandler;
 import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.content.RouteRdfXContentParams;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.tools.convert.Converter;
 import org.xbib.tools.feed.elasticsearch.oai.OAIFeeder;
 import org.xbib.util.URIBuilder;
@@ -58,6 +59,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -85,7 +88,8 @@ public final class OAI extends OAIFeeder {
         Map<String,Object> params = new HashMap<>();
         params.put("identifier", settings.get("identifier", "DE-600"));
         params.put("_prefix", "(" + settings.get("identifier", "DE-600") + ")");
-        final PicaEntityQueue queue = createQueue(params);
+        final URL path = findURL(settings.get("elements", "/org/xbib/analyzer/pica/zdb/bibdat.json"));
+        final PicaEntityQueue queue = createQueue(params, path);
         final Set<String> unmapped = Collections.synchronizedSet(new TreeSet<>());
         queue.setUnmappedKeyListener((id,key) -> {
             if ((settings.getAsBoolean("detect-unknown", false))) {
@@ -110,10 +114,10 @@ public final class OAI extends OAIFeeder {
         }
         do {
             final OAIClient client = OAIClientFactory.newClient(server);
-            client.setTimeout(settings.getAsInt("timeout", 60000));
-            if (settings.get("proxyhost") != null) {
-                client.setProxy(settings.get("proxyhost"), settings.getAsInt("proxyport", 3128));
-            }
+            // TODO
+            // if (settings.get("proxyhost") != null) {
+            //    client.setProxy(settings.get("proxyhost"), settings.getAsInt("proxyport", 3128));
+            //}
             ListRecordsRequest request = client.newListRecordsRequest()
                     .setMetadataPrefix(metadataPrefix)
                     .setSet(set)
@@ -127,7 +131,10 @@ public final class OAI extends OAIFeeder {
                     PicaMetadataHandler handler = new PicaMetadataHandler(marcXchangeStream);
                     request.addHandler(handler);
                     ListRecordsListener listener = new ListRecordsListener(request);
-                    request.prepare().execute(listener).waitFor();
+                    SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                    String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                    listener.onReceive(response);
+                    listener.receivedResponse(simpleHttpResponse);
                     if (listener.getResponse() != null) {
                         StringWriter w = new StringWriter();
                         listener.getResponse().to(w);
@@ -153,17 +160,17 @@ public final class OAI extends OAIFeeder {
         }
     }
 
-    protected PicaEntityQueue createQueue(Map<String,Object> params) throws Exception {
-        return new MyQueue(params);
+    protected PicaEntityQueue createQueue(Map<String,Object> params, URL path) throws Exception {
+        return new MyQueue(params, path);
     }
 
     class MyQueue extends PicaEntityQueue {
 
-        public MyQueue(Map<String,Object> params) throws Exception {
+        public MyQueue(Map<String,Object> params, URL path) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.pica.zdb.bibdat"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements", "/org/xbib/analyzer/pica/zdb/bibdat.json")
+                    path
             );
         }
 

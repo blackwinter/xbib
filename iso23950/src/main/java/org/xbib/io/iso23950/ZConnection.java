@@ -118,7 +118,9 @@ public class ZConnection extends URLConnection implements Connection<ZSession> {
 
     @Override
     public void close() throws IOException {
-        session.close();
+        if (session != null) {
+            session.close();
+        }
         if (isConnected()) {
             try {
                 initClose(0);

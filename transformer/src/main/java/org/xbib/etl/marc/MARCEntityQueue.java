@@ -43,6 +43,7 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEntity, FieldList, String>
+public class MARCEntityQueue<S extends MARCEntityBuilderState, E extends MARCEntity> extends EntityQueue<S, E, FieldList, String>
         implements Closeable {
 
     private final static Logger logger = LogManager.getLogger(MARCEntityQueue.class);
@@ -59,17 +60,13 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
 
     private UnmappedKeyListener<FieldList> listener;
 
-    private final String packageName;
-
-    public MARCEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers,  paths);
+    public MARCEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers,  String... paths)
+    public MARCEntityQueue(String packageName, Map<String, Object> params, int workers, URL path)
             throws Exception {
-        super(new MARCSpecification(new HashMap<>(), params, MARCEntityQueue.class.getClassLoader(),
-                packageName, paths), workers);
-        this.packageName = packageName;
+        super(new MARCSpecification(path != null ? path.openStream() : null, new HashMap<>(), params, packageName), workers);
         logger.info("specification: {} {} entities", getSpecification(), getSpecification().getEntities().size());
     }
 
@@ -88,12 +85,12 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
     }
 
     @Override
-    public void beforeCompletion(MARCEntityBuilderState state) throws IOException {
+    public void beforeCompletion(S state) throws IOException {
         // empty
     }
 
     @Override
-    public void afterCompletion(MARCEntityBuilderState state) throws IOException {
+    public void afterCompletion(S state) throws IOException {
         // empty
     }
 
@@ -105,8 +102,13 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
     public class MARCWorker extends EntityWorker {
 
         @Override
-        public MARCEntityBuilderState newState() {
-            return new MARCEntityBuilderState(packageName, getSpecification(), new MemoryRdfGraph(), contentBuilderProviders());
+        public S newState() {
+            return (S) new MARCEntityBuilderState(new MemoryRdfGraph(), contentBuilderProviders());
+        }
+
+        @Override
+        public S getWorkerState() {
+            return super.getWorkerState();
         }
 
         @Override
@@ -115,16 +117,16 @@ public class MARCEntityQueue extends EntityQueue<MARCEntityBuilderState, MARCEnt
                 return;
             }
             String key = fields.toKey();
-            MARCEntity entity = getSpecification().getEntity(key, getMap());
+            MARCEntity<MARCWorker> entity = getSpecification().getEntity(key, getMap());
             if (entity != null) {
                 boolean done = entity.fields(this, fields);
                 if (done) {
                     return;
                 }
-                addToResource(state().getResource(), fields, entity);
+                addToResource(getWorkerState().getResource(), fields, entity);
             } else {
                 if (listener != null) {
-                    listener.unknown(state().getRecordIdentifier(), fields);
+                    listener.unknown(getWorkerState().getRecordIdentifier(), fields);
                 }
             }
         }

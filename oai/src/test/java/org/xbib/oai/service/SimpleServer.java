@@ -32,6 +32,7 @@
 package org.xbib.oai.service;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
 
@@ -97,9 +98,8 @@ public class SimpleServer implements OAIServer {
     }
 
     @Override
-    public OAISession newSession() {
-        return new DefaultOAIClient()
-                .setURL(getURL());
+    public OAISession newSession() throws URISyntaxException {
+        return new DefaultOAIClient().setURL(getURL());
     }
 
     @Override

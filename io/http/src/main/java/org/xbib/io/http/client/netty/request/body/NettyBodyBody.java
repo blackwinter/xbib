@@ -49,7 +49,7 @@ public class NettyBodyBody implements NettyBody {
 
         Object msg;
         if (body instanceof RandomAccessBody && !ChannelManager.isSslHandlerConfigured(channel.pipeline()) && !config.isDisableZeroCopy()) {
-            msg = new BodyFileRegion((RandomAccessBody) body);
+            msg = new BodyReferenceCounted((RandomAccessBody) body);
 
         } else {
             msg = new BodyChunkedInput(body);

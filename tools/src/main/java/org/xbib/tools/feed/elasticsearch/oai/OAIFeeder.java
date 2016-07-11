@@ -54,6 +54,7 @@ import org.xbib.rdf.RdfContentBuilder;
 import org.xbib.rdf.RdfContentParams;
 import org.xbib.rdf.content.RouteRdfXContentParams;
 import org.xbib.rdf.io.ntriple.NTripleContentParams;
+import org.xbib.service.client.http.SimpleHttpResponse;
 import org.xbib.time.chronic.Chronic;
 import org.xbib.time.chronic.Span;
 import org.xbib.tools.convert.Converter;
@@ -175,13 +176,14 @@ public class OAIFeeder extends Feeder {
         Instant from = Instant.parse(params.get("from"));
         Instant until = Instant.parse(params.get("until"));
         final OAIClient client = OAIClientFactory.newClient(server);
-        client.setTimeout(settings.getAsInt("timeout", 60000));
 
         if (granularity == null) {
             // fetch from Identify
             IdentifyRequest identifyRequest = client.newIdentifyRequest();
             IdentifyResponseListener identifyResponseListener = new IdentifyResponseListener(identifyRequest);
-            identifyRequest.prepare().execute(identifyResponseListener).waitFor();
+            SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(identifyRequest.getHttpRequest()).get();
+            String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+            identifyResponseListener.onReceive(response);
             granularity = identifyResponseListener.getResponse().getGranularity();
         }
         if (granularity == null) {
@@ -216,7 +218,9 @@ public class OAIFeeder extends Feeder {
                 request.addHandler(newMetadataHandler());
                 ListRecordsListener listener = new ListRecordsListener(request);
                 logger.info("OAI request: {}", request);
-                request.prepare().execute(listener).waitFor();
+                SimpleHttpResponse simpleHttpResponse = client.getHttpClient().execute(request.getHttpRequest()).get();
+                String response = new String(simpleHttpResponse.content(), StandardCharsets.UTF_8);
+                listener.onReceive(response);
                 if (listener.getResponse() != null) {
                     logger.debug("got OAI response");
                     StringWriter w = new StringWriter();

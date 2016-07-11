@@ -74,7 +74,7 @@ public class Item extends MABEntity {
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
-        worker.addToResource(worker.state().getNextItemResource(), fields, this);
+        worker.addToResource(worker.getWorkerState().getNextItemResource(), fields, this);
         return true;
     }
 
@@ -85,7 +85,7 @@ public class Item extends MABEntity {
         if (value == null) {
             return null;
         }
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         if ("identifier".equals(property)) {
             IdentifierMapper mapper = worker.identifierMapper();
             if (mapper != null) {

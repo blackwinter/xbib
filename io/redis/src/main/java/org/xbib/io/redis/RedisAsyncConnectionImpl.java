@@ -76,7 +76,7 @@ public class RedisAsyncConnectionImpl<K, V> extends RedisChannelHandler<K, V> im
     @Override
     public String auth(String password) {
         RedisCommand<K, V, String> cmd = dispatch(commandBuilder.auth(password));
-        String status = LettuceFutures.await(cmd, timeout, unit);
+        String status = Futures.await(cmd, timeout, unit);
         if ("OK".equals(status)) {
             this.password = password.toCharArray();
         }
@@ -638,7 +638,7 @@ public class RedisAsyncConnectionImpl<K, V> extends RedisChannelHandler<K, V> im
     @Override
     public String readOnly() {
         RedisCommand<K, V, String> cmd = dispatch(commandBuilder.readOnly());
-        String status = LettuceFutures.await(cmd, timeout, unit);
+        String status = Futures.await(cmd, timeout, unit);
         if ("OK".equals(status)) {
             readOnly = true;
         }
@@ -648,7 +648,7 @@ public class RedisAsyncConnectionImpl<K, V> extends RedisChannelHandler<K, V> im
     @Override
     public String readWrite() {
         RedisCommand<K, V, String> cmd = dispatch(commandBuilder.readWrite());
-        String status = LettuceFutures.await(cmd, timeout, unit);
+        String status = Futures.await(cmd, timeout, unit);
         if ("OK".equals(status)) {
             readOnly = false;
         }
@@ -788,7 +788,7 @@ public class RedisAsyncConnectionImpl<K, V> extends RedisChannelHandler<K, V> im
     @Override
     public String select(int db) {
         RedisCommand<K, V, String> cmd = dispatch(commandBuilder.select(db));
-        String status = LettuceFutures.await(cmd, timeout, unit);
+        String status = Futures.await(cmd, timeout, unit);
         if ("OK".equals(status)) {
             this.db = db;
         }

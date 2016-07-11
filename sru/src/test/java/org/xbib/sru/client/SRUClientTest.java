@@ -31,8 +31,9 @@
  */
 package org.xbib.sru.client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-import org.xbib.io.http.HttpRequest;
 import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
 import org.xbib.sru.searchretrieve.SearchRetrieveListener;
@@ -47,18 +48,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.text.Normalizer;
 import java.util.Arrays;
 
 public class SRUClientTest {
 
+    private final static Logger logger = LogManager.getLogger(SRUClientTest.class);
+
     @Test
     public void testClient() throws Exception {
         try {
-            SRUClient client = new DefaultSRUClient();
+            SRUClient<SearchRetrieveRequest,SearchRetrieveResponse> client = new DefaultSRUClient<>();
             SearchRetrieveRequest request = client
-                    .newSearchRetrieveRequest(new URL("http://pub.uni-bielefeld.de/sru"))
+                    .newSearchRetrieveRequest("h1://pub.uni-bielefeld.de/sru")
                     .setQuery("title=linux")
                     .setStartRecord(0)
                     .setMaximumRecords(10);
@@ -67,11 +69,6 @@ public class SRUClientTest {
             FileOutputStream out = new FileOutputStream(file);
             Writer writer = new OutputStreamWriter(out, "UTF-8");
             SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
-
-                @Override
-                public void onConnect(HttpRequest request) {
-                    //logger.info("connect, request = " + request);
-                }
 
                 @Override
                 public void version(String version) {
@@ -85,7 +82,7 @@ public class SRUClientTest {
 
                 @Override
                 public void beginRecord() {
-                    //logger.info("start record");
+                    logger.info("begin record");
                 }
 
                 @Override
@@ -122,13 +119,9 @@ public class SRUClientTest {
 
                 @Override
                 public void endRecord() {
-                    //logger.info("end record");
+                    logger.debug("end record");
                 }
 
-                @Override
-                public void onDisconnect(HttpRequest request) {
-                    //logger.info("disconnect, request = " + request);
-                }
             };
             request.addListener(listener);
             StylesheetTransformer transformer = new StylesheetTransformer().setPath("src/test/resources/xsl");
@@ -154,7 +147,7 @@ public class SRUClientTest {
             final MarcXchangeContentHandler marcXmlHandler = new MarcXchangeContentHandler()
                     .addListener("Bibliographic", kv);
 
-            for (String clientName : Arrays.asList("http://pub.uni-bielefeld.de/sru",
+            for (String clientName : Arrays.asList("h1://pub.uni-bielefeld.de/sru",
                     "http://biblio.ugent.be/sru",
                     "http://lup.lub.lu.se/sru"
             )) {
@@ -165,11 +158,6 @@ public class SRUClientTest {
                 FileOutputStream out = new FileOutputStream(file);
                 Writer w = new OutputStreamWriter(out, "UTF-8");
                 SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
-
-                    @Override
-                    public void onConnect(HttpRequest request) {
-                       // logger.info("connect, request = " + request);
-                    }
 
                     @Override
                     public void version(String version) {
@@ -183,7 +171,7 @@ public class SRUClientTest {
 
                     @Override
                     public void beginRecord() {
-                        //logger.info("startStream record");
+                        logger.debug("begin record");
                     }
 
                     @Override
@@ -218,29 +206,25 @@ public class SRUClientTest {
 
                     @Override
                     public void endRecord() {
-                        //logger.info("end record");
+                        logger.debug("end record");
                     }
 
-                    @Override
-                    public void onDisconnect(HttpRequest request) {
-                        //logger.info("disconnect, request = " + request);
-                    }
                 };
-                SRUClient client = new DefaultSRUClient();
-                SearchRetrieveRequest request = client.newSearchRetrieveRequest(new URL(clientName))
+                SRUClient<SearchRetrieveRequest, SearchRetrieveResponse> client = new DefaultSRUClient<>();
+                SearchRetrieveRequest request = client.newSearchRetrieveRequest(clientName)
                         .addListener(listener)
                         .setQuery(query)
                         .setStartRecord(from)
                         .setMaximumRecords(size);
                 SearchRetrieveResponse response = client.searchRetrieve(request).to(w);
-                //logger.info("http status = {}", response.httpStatus());
+                logger.info("http status = {}", response.getSimpleHttpResponse().status());
                 client.close();
                 w.close();
                 out.close();
             }
         } catch (Exception e) {
             // we tolerate failures but log them
-            //logger.warn(e.getMessage(), e);
+            logger.warn(e.getMessage(), e);
         }
     }
 }

@@ -32,7 +32,6 @@
 package org.xbib.etl.marc;
 
 import org.xbib.etl.DefaultEntityBuilderState;
-import org.xbib.etl.Specification;
 import org.xbib.iri.IRI;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.RdfGraph;
@@ -46,22 +45,15 @@ import java.util.Map;
 
 public class MARCEntityBuilderState extends DefaultEntityBuilderState {
 
-    private final String packageName;
-
-    private final Specification specification;
-
     private Resource resource;
 
     private String label;
 
     private String recordIdentifier;
 
-    public MARCEntityBuilderState(String packageName, Specification specification,
-                                  RdfGraph<RdfGraphParams> graph,
+    public MARCEntityBuilderState(RdfGraph<RdfGraphParams> graph,
                                   Map<IRI,RdfContentBuilderProvider> providers) {
         super(graph, providers);
-        this.packageName = packageName;
-        this.specification = specification;
     }
 
     public MARCEntityBuilderState setLabel(String label) {

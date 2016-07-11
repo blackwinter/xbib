@@ -71,7 +71,7 @@ public class MABEntitiesTest {
         public MyQueue() throws Exception{
             super("org.xbib.analyzer.mab.titel",
                   Runtime.getRuntime().availableProcessors(),
-                  "org/xbib/analyzer/mab/titel.json");
+                    MyQueue.class.getClassLoader().getResource("org/xbib/analyzer/mab/titel.json"));
         }
 
         @Override

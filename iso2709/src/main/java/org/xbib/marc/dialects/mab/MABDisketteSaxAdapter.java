@@ -31,8 +31,6 @@
  */
 package org.xbib.marc.dialects.mab;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xbib.marc.MarcXchangeListener;
 import org.xbib.marc.event.EventListener;
 import org.xbib.marc.event.FieldEvent;
@@ -41,7 +39,6 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -49,23 +46,19 @@ import java.util.Map;
 
 public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
 
-    private final static Logger logger = LogManager.getLogger(MABDisketteSaxAdapter.class);
-
+    @Override
     public MABDisketteSaxAdapter setBuffersize(int buffersize) {
         super.setBuffersize(buffersize);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setReader(Reader reader) {
         this.reader = reader;
         return this;
     }
 
-    public MABDisketteSaxAdapter setInputStream(InputStream in) throws IOException {
-        this.reader = new InputStreamReader(in, "UTF-8");
-        return this;
-    }
-
+    @Override
     public MABDisketteSaxAdapter setInputSource(final InputSource source) throws IOException {
         if (source.getByteStream() != null) {
             Charset encoding = Charset.forName(source.getEncoding() != null ? source.getEncoding() : "cp850");
@@ -76,78 +69,98 @@ public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setContentHandler(ContentHandler handler) {
         super.setContentHandler(handler);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setMarcXchangeListener(String type, MarcXchangeListener listener) {
         super.setMarcXchangeListener(type, listener);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setMarcXchangeListener(MarcXchangeListener listener) {
         super.setMarcXchangeListener(BIBLIOGRAPHIC, listener);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setFieldEventListener(EventListener<FieldEvent> fieldEventListener) {
         super.setFieldEventListener(fieldEventListener);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setSchema(String schema) {
         super.setSchema(schema);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setFormat(String format) {
         super.setFormat(format);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setType(String type) {
         super.setType(type);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setFatalErrors(Boolean fatalerrors) {
         super.setFatalErrors(fatalerrors);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setCleanTags(Boolean cleanTags) {
         super.setCleanTags(cleanTags);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setScrubData(Boolean scrub) {
         super.setScrubData(scrub);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter setTransformData(Boolean transformData) {
         super.setTransformData(transformData);
         return this;
     }
 
+    @Override
     public MABDisketteSaxAdapter addFieldMap(String fieldMapName, Map<String, Object> map) {
         super.addFieldMap(fieldMapName, map);
         return this;
     }
 
-    public MABDisketteFieldStreamReader mabDisketteFieldStream() {
-        return new MABDisketteFieldStreamReader(reader, new DirectListener());
+    public MABDisketteLineFeedStreamReader mabDisketteFieldStream() {
+        return new MABDisketteLineFeedStreamReader(reader, new DirectListener());
     }
 
-    public MABDisketteFieldStreamReader mabDisketteMappedFieldStream() {
-        return new MABDisketteFieldStreamReader(reader,  new MappedStreamListener());
+    public MABDisketteLineFeedStreamReader mabDisketteMappedFieldStream() {
+        return new MABDisketteLineFeedStreamReader(reader, new MappedStreamListener());
     }
 
-    public void parseCollection(MABDisketteFieldStreamReader reader) throws Exception {
+    public MABDisketteCarriageReturnLineFeedStreamReader mabDisketteCarriageReturnFieldStream() {
+        return new MABDisketteCarriageReturnLineFeedStreamReader(reader, new DirectListener());
+    }
+
+    public MABDisketteCarriageReturnLineFeedStreamReader mabDisketteCarriageReturnMappedFieldStream() {
+        return new MABDisketteCarriageReturnLineFeedStreamReader(reader, new MappedStreamListener());
+    }
+
+    public void parseCollection(MABDisketteLineFeedStreamReader reader) throws Exception {
         beginCollection();
-        String s;
         reader.begin();
+        String s;
         while ((s = reader.readLine ()) != null) {
             reader.processLine(s);
         }
@@ -156,4 +169,15 @@ public class MABDisketteSaxAdapter extends MarcXchangeSaxAdapter {
         endCollection();
     }
 
+    public void parseCollection(MABDisketteCarriageReturnLineFeedStreamReader reader) throws Exception {
+        beginCollection();
+        reader.begin();
+        String s;
+        while ((s = reader.readLine ()) != null) {
+            reader.processLine(s);
+        }
+        reader.end();
+        reader.close();
+        endCollection();
+    }
 }

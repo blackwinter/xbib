@@ -38,7 +38,6 @@ import org.xbib.rdf.RdfGraph;
 import org.xbib.rdf.RdfGraphParams;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.BlankMemoryResource;
-import org.xbib.rdf.memory.MemoryResource;
 
 import java.io.IOException;
 import java.util.Map;

@@ -53,7 +53,7 @@ public class Source extends MABEntity {
 
     @Override
     public MABEntity facetize(MABEntityQueue.MABWorker worker, Field field) {
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         // ugly!
         if (!"595".equals(field.tag())) {
             return this;

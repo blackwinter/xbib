@@ -92,9 +92,9 @@ public class MabCharset extends Charset {
      */
     public static final char TEILFELDTRENNZEICHEN = '\u2021';
 
-    public final static char[] byteToCharTable = newMabCharsetMap();
+    private final static char[] byteToCharTable = newMabCharsetMap();
 
-    public final static Map<Character, Byte> charToByteTable = newMabByteToCharMap();
+    private final static Map<Character, Byte> charToByteTable = newMabByteToCharMap();
 
     private boolean isNFCOutput;
 
@@ -102,25 +102,24 @@ public class MabCharset extends Charset {
         this(true);
     }
 
-    public MabCharset(boolean isNFCOutput) {
+    private MabCharset(boolean isNFCOutput) {
         super("x-MAB", null);
         this.isNFCOutput = isNFCOutput;
     }
 
     private static Map<Character, Byte> newMabByteToCharMap() {
-        Map<Character, Byte> ret = new HashMap<Character, Byte>(
-                byteToCharTable.length);
+        Map<Character, Byte> ret = new HashMap<>(byteToCharTable.length);
         for (int i = 0; i < byteToCharTable.length; i++) {
             if (byteToCharTable[i] != 0) {
-                ret.put(Character.valueOf(byteToCharTable[i]), Byte.valueOf((byte) i));
+                ret.put(byteToCharTable[i], (byte) i);
             }
         }
         return ret;
     }
 
-    class MabDecoder extends SingleByteDecoder {
+    private class MabDecoder extends SingleByteDecoder {
 
-        protected MabDecoder(Charset cs) {
+        MabDecoder(Charset cs) {
             super(cs);
         }
 
@@ -135,9 +134,9 @@ public class MabCharset extends Charset {
         }
     }
 
-    class MabEncoder extends SingleByteEncoder {
+    private class MabEncoder extends SingleByteEncoder {
 
-        protected MabEncoder(Charset cs) {
+        MabEncoder(Charset cs) {
             super(cs);
         }
 
@@ -147,7 +146,7 @@ public class MabCharset extends Charset {
             if (b == null) {
                 return 0;
             }
-            return b.byteValue();
+            return b;
         }
     }
 

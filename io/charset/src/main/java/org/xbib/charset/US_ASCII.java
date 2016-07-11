@@ -117,10 +117,10 @@ final class US_ASCII extends Charset {
             super(cs, 1.0f, 1.0f);
         }
 
+        @Override
         protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
             while (in.hasRemaining()) {
                 byte b = in.get();
-
                 if (b < 0) {
                     in.position(in.position() - 1);
                     return CoderResult.malformedForLength(1);
@@ -129,10 +129,8 @@ final class US_ASCII extends Charset {
                     in.position(in.position() - 1);
                     return CoderResult.OVERFLOW;
                 }
-
                 out.put((char) b);
             }
-
             return CoderResult.UNDERFLOW;
         }
     }
@@ -142,10 +140,10 @@ final class US_ASCII extends Charset {
             super(cs, 1.0f, 1.0f);
         }
 
+        @Override
         protected CoderResult encodeLoop(CharBuffer in, ByteBuffer out) {
             while (in.hasRemaining()) {
                 char c = in.get();
-
                 if (c > Byte.MAX_VALUE) {
                     in.position(in.position() - 1);
                     return CoderResult.unmappableForLength(1);
@@ -154,10 +152,8 @@ final class US_ASCII extends Charset {
                     in.position(in.position() - 1);
                     return CoderResult.OVERFLOW;
                 }
-
                 out.put((byte) c);
             }
-
             return CoderResult.UNDERFLOW;
         }
     }

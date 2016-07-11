@@ -105,6 +105,8 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
 
     private final static String FIELDMAPPER = "field_mapper";
 
+    private final static String CRLF = "crlf";
+
     /**
      * The SaX service
      */
@@ -120,7 +122,7 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
 
     private ErrorHandler errorHandler;
 
-    private Map<String, Boolean> features = new HashMap<String, Boolean>();
+    private Map<String, Boolean> features = new HashMap<>();
 
     /**
      * Properties for this reader
@@ -131,12 +133,9 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
             put(TYPE, BIBLIOGRAPHIC);
             put(FATAL_ERRORS, Boolean.FALSE);
             put(BUFFER_SIZE, 65536);
+            put(CRLF, Boolean.FALSE);
         }
     };
-
-    public MABDisketteReader(InputStream in, String encoding) throws IOException {
-        this(new InputStreamReader(in, encoding));
-    }
 
     public MABDisketteReader(Reader reader) {
         this.reader = reader;
@@ -222,6 +221,11 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
         return this;
     }
 
+    public MABDisketteReader setTransformer(StringTransformer transformer) {
+        this.adapter.setTransformer("_default", transformer);
+        return this;
+    }
+
     public MABDisketteReader setTransformer(String fieldKey, StringTransformer transformer) {
         this.adapter.setTransformer(fieldKey, transformer);
         return this;
@@ -237,6 +241,20 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
 
     public boolean isFieldMapped() {
         return properties.get(FIELDMAPPER) != null;
+    }
+
+    public MABDisketteReader setLineFeed() {
+        properties.put(CRLF, Boolean.FALSE);
+        return this;
+    }
+
+    public MABDisketteReader setCarriageReturnLineFeed() {
+        properties.put(CRLF, Boolean.TRUE);
+        return this;
+    }
+
+    public boolean isCRLF() {
+        return Boolean.TRUE.equals(properties.get(CRLF));
     }
 
     public MABDisketteReader setFieldEventListener(EventListener eventListener) {
@@ -289,8 +307,13 @@ public class MABDisketteReader implements FieldReader, XMLReader, MarcXchangeCon
     @Override
     public void parse(InputSource input) throws IOException {
         try {
-            setup(adapter).setInputSource(input).parseCollection(isFieldMapped() ?
-                            adapter.mabDisketteMappedFieldStream() : adapter.mabDisketteFieldStream());
+            if (isCRLF()) {
+                setup(adapter).setInputSource(input)
+                        .parseCollection(isFieldMapped() ? adapter.mabDisketteCarriageReturnMappedFieldStream() : adapter.mabDisketteCarriageReturnFieldStream());
+            } else {
+                setup(adapter).setInputSource(input)
+                        .parseCollection(isFieldMapped() ? adapter.mabDisketteMappedFieldStream() : adapter.mabDisketteFieldStream());
+            }
         } catch (Exception e) {
             throw new IOException(e);
         }

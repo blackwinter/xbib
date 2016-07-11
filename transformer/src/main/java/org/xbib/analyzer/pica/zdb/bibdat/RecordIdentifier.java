@@ -16,7 +16,7 @@ public class RecordIdentifier extends PicaEntity {
     @Override
     public void fields(PicaEntityQueue.PicaKeyValueWorker worker, FieldList fields) {
         for (Field field : fields) {
-            worker.state().setRecordNumber(field.data());
+            worker.getWorkerState().setRecordNumber(field.data());
         }
     }
 }

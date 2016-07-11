@@ -55,7 +55,7 @@ public class Shelfmark extends MABEntity {
 
     @Override
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
-        worker.addToResource(worker.state().getNextItemResource(), fields, this);
+        worker.addToResource(worker.getWorkerState().getNextItemResource(), fields, this);
         return true;
     }
 
@@ -65,7 +65,7 @@ public class Shelfmark extends MABEntity {
         if (value == null) {
             return null;
         }
-        MABEntityBuilderState state = worker.state();
+        MABEntityBuilderState state = worker.getWorkerState();
         if ("Shelfmark".equals(predicate) && prefix != null && !prefix.isEmpty()) {
             resource.add("identifier", prefix);
             // create synthetic local record identifier

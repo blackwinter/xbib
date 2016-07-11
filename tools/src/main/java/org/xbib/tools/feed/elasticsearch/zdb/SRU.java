@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.marc.MARCEntityBuilderState;
 import org.xbib.etl.marc.MARCEntityQueue;
-import org.xbib.io.http.HttpRequest;
 import org.xbib.marc.MarcXchangeStream;
 import org.xbib.marc.xml.sax.MarcXchangeContentHandler;
 import org.xbib.rdf.RdfContentBuilder;
@@ -54,6 +53,7 @@ import javax.xml.stream.util.XMLEventConsumer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.Set;
@@ -71,39 +71,24 @@ public class SRU extends Feeder {
         return p -> new SRU().setPipeline(p);
     }
 
-    /*@Override
-    protected void prepareInput() throws IOException, InterruptedException {
-        if (settings.get("numbers") != null) {
-            // fetch from SRU by number file, each line is an ID
-            FileInputStream in = new FileInputStream(settings.get("numbers"));
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(in, UTF8))) {
-                String line;
-                while ((line = r.readLine()) != null) {
-                    URIWorkerRequest request = new URIWorkerRequest();
-                    request.set(URI.create(String.format(settings.get("uri"), line)));
-                    getQueue().put(request);
-                }
-            }
-        } else {
-            super.prepareInput();
-        }
-    }*/
-
     @Override
     public void process(URI uri) throws Exception {
         final Set<String> unmappedbib = Collections.synchronizedSet(new TreeSet<>());
-        final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1));
+        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
+
+        final URL bibpath = findURL(settings.get("bibelements"));
+        final MyBibQueue bibqueue = new MyBibQueue("marc/zdb/bib", settings.getAsInt("pipelines", 1), bibpath);
         bibqueue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmappedbib.add("\"" + key + "\"");
             }
         });
 
-        final Set<String> unmappedhol = Collections.synchronizedSet(new TreeSet<>());
-        final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1));
+        final URL holpath = findURL(settings.get("holelements"));
+        final MyHolQueue holqueue = new MyHolQueue("marc/zdb/hol", settings.getAsInt("pipelines", 1), holpath);
         holqueue.setUnmappedKeyListener((id,key) -> {
-            if ((settings.getAsBoolean("detect", false))) {
+            if ((settings.getAsBoolean("detect-unknown", false))) {
                 logger.warn("unmapped field {}", key);
                 unmappedhol.add("\"" + key + "\"");
             }
@@ -123,11 +108,6 @@ public class SRU extends Feeder {
                 .addListener("Holdings", hol);
 
         final SearchRetrieveListener listener = new SearchRetrieveResponseAdapter() {
-
-            @Override
-            public void onConnect(HttpRequest request) {
-                logger.info("connect, request = " + request);
-            }
 
             @Override
             public void version(String version) {
@@ -180,26 +160,22 @@ public class SRU extends Feeder {
             public void endRecord() {
             }
 
-            @Override
-            public void onDisconnect(HttpRequest request) {
-                logger.info("disconnect, request = " + request);
-            }
         };
 
         StringWriter w = new StringWriter();
         SRUClient client = new DefaultSRUClient();
 
-        SearchRetrieveRequest request = client.newSearchRetrieveRequest(uri.toURL())
+        SearchRetrieveRequest request = client.newSearchRetrieveRequest(uri.toString())
                 .addListener(listener);
         client.searchRetrieve(request).to(w);
 
         logger.info("w={}", w);
     }
 
-    class MyBibQueue extends MARCEntityQueue {
+    private class MyBibQueue extends MARCEntityQueue {
 
-        public MyBibQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyBibQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override
@@ -214,10 +190,10 @@ public class SRU extends Feeder {
         }
     }
 
-    class MyHolQueue extends MARCEntityQueue {
+    private class MyHolQueue extends MARCEntityQueue {
 
-        public MyHolQueue(String path, int workers) throws Exception {
-            super(path, workers);
+        MyHolQueue(String packageName, int workers, URL path) throws Exception {
+            super(packageName, workers, path);
         }
 
         @Override

@@ -31,6 +31,8 @@
  */
 package org.xbib.util;
 
+import org.xbib.common.Strings;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;

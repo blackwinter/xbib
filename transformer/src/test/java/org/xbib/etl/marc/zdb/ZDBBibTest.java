@@ -108,7 +108,7 @@ public class ZDBBibTest extends Assert {
         public MyQueue() throws Exception {
             super("org.xbib.analyzer.marc.zdb.bib",
                     Runtime.getRuntime().availableProcessors(),
-                    "org/xbib/analyzer/marc/zdb/bib.json");
+                    MyQueue.class.getClassLoader().getResource("org/xbib/analyzer/marc/zdb/bib.json"));
         }
 
         @Override

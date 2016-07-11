@@ -51,7 +51,7 @@ public class RecordFormat extends MABEntity {
         if (value == null) {
             return false;
         }
-        worker.state().setFormat(value.trim());
+        worker.getWorkerState().setFormat(value.trim());
         return true; // done, no more analysis
     }
 }

@@ -49,7 +49,7 @@ public class Delete extends MABEntity {
         String value = fields.getLast().data();
         // turn deleted records into delete operations
         if ("Y".equals(value)) {
-            worker.state().getResource().setDeleted(true);
+            worker.getWorkerState().getResource().setDeleted(true);
         }
         return true; // done
     }

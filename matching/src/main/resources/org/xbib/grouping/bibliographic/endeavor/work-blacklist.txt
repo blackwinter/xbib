@@ -9,6 +9,7 @@ Acknowledgement of Reviewers
 Author Index
 Back cover
 Back matter
+Bibliographie
 Calendar
 CME Accreditation Page
 Contents
@@ -16,6 +17,7 @@ Contents list
 Contributors
 Correction
 Corrigendum
+Chronique
 Current World Literature
 Doctor thesis
 Discussion
@@ -71,3 +73,6 @@ Table_of_Contents
 test
 Test Test Test Test Test Test Test
 Title Page/Editorial Board
+Unindexed Back Matter
+Unindexed Middle Matter
+Unindexed Front Matter

@@ -52,13 +52,7 @@ public final class ZSRUClientFactory {
         return instance;
     }
 
-    public SRUClient newClient(String name) throws IOException {
-        ZSRUService service = ZSRUServiceFactory.getService(name);
-        return new ZSRUClient(service);
-    }
-
     public SRUClient newClient(Properties properties) throws IOException {
-        ZSRUService service = ZSRUServiceFactory.getService(properties);
-        return new ZSRUClient(service);
+        return new ZSRUClient((ZSRUService) ZSRUServiceFactory.getService(properties));
     }
 }

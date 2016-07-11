@@ -79,6 +79,7 @@ public class MarcXchangeSingleTest extends StreamTester {
         };
 
         File file = File.createTempFile("HT016424175-out.", ".xml");
+        file.deleteOnExit();
         FileWriter sw = new FileWriter(file);
         MarcXchangeWriter writer = new MarcXchangeWriter(sw);
         writer.setFormat("AlephXML").setType("Bibliographic");

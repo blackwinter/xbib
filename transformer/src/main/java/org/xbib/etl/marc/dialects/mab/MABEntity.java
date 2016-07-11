@@ -40,10 +40,9 @@ import org.xbib.marc.FieldList;
 import org.xbib.rdf.Resource;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
-public abstract class MABEntity extends DefaultEntity {
+public abstract class MABEntity extends DefaultEntity<MABEntityQueue.MABWorker> {
 
     protected static final Logger logger = LogManager.getLogger(MABEntity.class.getName());
 
@@ -68,8 +67,7 @@ public abstract class MABEntity extends DefaultEntity {
      * @param value value
      * @return transformed value
      */
-    public String data(MABEntityQueue.MABWorker worker,
-                       String resourcePredicate, Resource resource, String property, String value) {
+    public String data(MABEntityQueue.MABWorker worker, String resourcePredicate, Resource resource, String property, String value) {
         // nothing
         return value;
     }
@@ -94,7 +92,7 @@ public abstract class MABEntity extends DefaultEntity {
     }
 
     public Resource getResource(MABEntityQueue.MABWorker worker) throws IOException {
-        return worker.state().getResource();
+        return worker.getWorkerState().getResource();
     }
 
     public Facet getDefaultFacet() {

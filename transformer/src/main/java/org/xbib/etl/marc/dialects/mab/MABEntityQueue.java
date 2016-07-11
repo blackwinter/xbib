@@ -34,12 +34,10 @@ package org.xbib.etl.marc.dialects.mab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbib.etl.EntityQueue;
+import org.xbib.etl.Specification;
 import org.xbib.etl.UnmappedKeyListener;
 import org.xbib.etl.marc.SubfieldValueMapper;
-import org.xbib.etl.support.IdentifierMapper;
-import org.xbib.etl.support.StatusCodeMapper;
-import org.xbib.etl.support.ConfigurableClassifier;
-import org.xbib.etl.support.ValueMaps;
+import org.xbib.etl.support.*;
 import org.xbib.iri.IRI;
 import org.xbib.marc.Field;
 import org.xbib.marc.FieldList;
@@ -50,7 +48,10 @@ import org.xbib.rdf.memory.MemoryRdfGraph;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,17 +78,18 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
     private ConfigurableClassifier classifier;
 
-    public MABEntityQueue(String packageName, String... paths) throws Exception{
-        this(packageName, new HashMap<>(), 1, paths);
+    private List<Supplement> supplements;
+
+    public MABEntityQueue(String packageName, URL path) throws Exception{
+        this(packageName, new HashMap<>(), 1, path);
     }
 
-    public MABEntityQueue(String packageName, int workers, String... paths) throws Exception {
-        this(packageName, new HashMap<>(), workers, paths);
+    public MABEntityQueue(String packageName, int workers, URL path) throws Exception {
+        this(packageName, new HashMap<>(), workers, path);
     }
 
-    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, String... paths) throws Exception {
-        super(new MABSpecification(new HashMap<>(), params,
-                MABEntityQueue.class.getClassLoader(), packageName, paths), workers);
+    public MABEntityQueue(String packageName, Map<String,Object> params, int workers, URL path) throws Exception {
+        super(new MABSpecification(path != null ? path.openStream() : null, new HashMap<>(), params, packageName), workers);
         this.packageName = packageName;
         this.identifierMapper = setupIdentifierMapper(params);
         this.statusMapper = setupStatusMapper(params);
@@ -165,6 +167,24 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         return this;
     }
 
+    public MABEntityQueue addSupplement(Class<? extends Supplement> clazz, String idKey, String prefix, String isil, String supplementPath) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        if (supplements == null) {
+            supplements = new ArrayList<>();
+        }
+        URL url = new URL(supplementPath);
+        InputStream in = url.openStream();
+        if (in == null) {
+            in = getClass().getResource(supplementPath).openStream();
+        }
+        Constructor<?> conztructor = clazz.getConstructor(String.class);
+        Supplement supplement = (Supplement) conztructor.newInstance(new Object[] { idKey });
+        supplement.load(in, isil, prefix);
+        supplements.add(supplement);
+        logger.info("added supplements for {} with size of {}", isil, supplement.getMap().size());
+        return this;
+    }
+
+
     @Override
     public Map<IRI,RdfContentBuilderProvider> contentBuilderProviders() {
         return providers;
@@ -207,9 +227,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
             if (fields == null) {
                 return;
             }
-            MABEntity entity = null;
+            MABEntity entity;
             try {
-                entity = getSpecification().getEntity(fields.toKey(), getMap());
+                Specification<MABEntity> spec = getSpecification();
+                entity = spec.getEntity(fields.toKey(), getMap());
             } catch (ClassCastException e) {
                 logger.error("can't convert fields {}, entity map problem", fields);
                 return;
@@ -220,7 +241,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 if (done) {
                     return;
                 }
-                addToResource(state().getResource(), fields, entity);
+                addToResource(getWorkerState().getResource(), fields, entity);
                 // build facets and classify
                 String value = fields.getLast().data();
                 if (value != null && !value.isEmpty()) {
@@ -232,7 +253,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
                 }
             } else {
                 if (listener != null) {
-                    listener.unknown(state().getIdentifier(), fields);
+                    listener.unknown(getWorkerState().getIdentifier(), fields);
                 }
             }
         }
@@ -414,6 +435,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
 
         public StatusCodeMapper statusCodeMapper() {
             return statusMapper;
+        }
+
+        public List<Supplement> supplements() {
+            return supplements;
         }
     }
 

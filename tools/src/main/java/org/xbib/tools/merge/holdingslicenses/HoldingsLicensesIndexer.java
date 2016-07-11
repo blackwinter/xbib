@@ -119,7 +119,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                         if (statCounter != null) {
                             statCounter.increase("stat", "holdings", 1);
                         }
-                        String vhid = "(" + volumeHolding.getServiceISIL() + ")" + volume.getExternalID()
+                        String vhid = "(" + volumeHolding.getISIL() + ")" + volume.getExternalID()
                                 + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
                         validateIndex(shelfIndex, shelfIndexType, vhid, builder);
                         if (statCounter != null) {
@@ -157,7 +157,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                         if (holding.isDeleted()) {
                             continue;
                         }
-                        String serviceId = "(" + holding.getServiceISIL() + ")" + holding.getIdentifier();
+                        String serviceId = "(" + holding.getISIL() + ")" + holding.getIdentifier();
                         XContentBuilder serviceBuilder = jsonBuilder();
                         buildService(serviceBuilder, holding);
                         validateIndex(servicesIndex, servicesIndexType, serviceId, serviceBuilder);
@@ -376,8 +376,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 .field("region", holding.getRegion())
                 .field("organization", holding.getOrganization())
                 .field("name", holding.getName())
-                .field("isil", holding.getServiceISIL())
-                .field("serviceisil", holding.getServiceISIL())
+                .field("isil", holding.getISIL())
                 .field("priority", holding.getPriority())
                 .field("type", holding.getServiceType());
         Object o = holding.getServiceMode();
@@ -435,7 +434,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 if (service.isDeleted()) {
                     continue;
                 }
-                builder.value("(" + service.getServiceISIL() + ")" + service.getIdentifier());
+                builder.value("(" + service.getISIL() + ")" + service.getIdentifier());
                 priorities.add(service.getPriority());
             }
             builder.endArray();
@@ -456,7 +455,6 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 .field("isil", holding.getISIL())
                 .field("region", holding.getRegion())
                 .fieldIfNotNull("organization", holding.getOrganization())
-                .field("serviceisil", holding.getServiceISIL())
                 .field("priority", holding.getPriority())
                 .fieldIfNotNull("type", holding.getServiceType());
         Object o = holding.getServiceMode();
@@ -493,7 +491,7 @@ public class HoldingsLicensesIndexer<W extends Worker<Pipeline<W,R>, R>, R exten
                 // to holding index
                 String hid = monograph.getExternalID();
                 validateIndex(holdingsIndex, holdingsIndexType, hid, builder);
-                String vhid = "(" + volumeHolding.getServiceISIL() + ")" + monograph.getExternalID()
+                String vhid = "(" + volumeHolding.getISIL() + ")" + monograph.getExternalID()
                         + (volumeHolding.getFirstDate() != null ? "." + volumeHolding.getFirstDate() : null);
                 validateIndex(shelfIndex, shelfIndexType, vhid, builder);
             }

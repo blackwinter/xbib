@@ -61,7 +61,7 @@ public class RecordCodes extends MABEntity {
             Map<String, Object> q = (Map<String, Object>) codes.get(Integer.toString(i));
             if (q != null) {
                 String code = (String) q.get(value.substring(i, i + 1));
-                worker.state().getResource().add(predicate, code);
+                worker.getWorkerState().getResource().add(predicate, code);
             }
         }
         return true; // done!

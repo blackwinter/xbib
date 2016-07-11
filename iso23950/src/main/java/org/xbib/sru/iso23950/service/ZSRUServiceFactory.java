@@ -31,6 +31,10 @@
  */
 package org.xbib.sru.iso23950.service;
 
+import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveRequest;
+import org.xbib.io.iso23950.searchretrieve.ZSearchRetrieveResponse;
+import org.xbib.sru.service.SRUService;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -45,15 +49,7 @@ public class ZSRUServiceFactory {
     private ZSRUServiceFactory() {
     }
 
-    public static Properties getProperties(String name) throws IOException {
-        Properties properties = new Properties();
-        try (InputStream in = instance.getClass().getResourceAsStream("/org/xbib/sru/iso23950/service/" + name + ".properties")) {
-            properties.load(in);
-        }
-        return properties;
-    }
-
-    public static ZSRUService getService(String name) {
+    public static SRUService<ZSearchRetrieveRequest, ZSearchRetrieveResponse> getService(String name) {
         try {
             return new ZSRUService(getProperties(name));
         } catch (IOException e) {
@@ -61,11 +57,20 @@ public class ZSRUServiceFactory {
         }
     }
 
-    public static ZSRUService getService(Properties properties) {
+    public static SRUService<ZSearchRetrieveRequest, ZSearchRetrieveResponse> getService(Properties properties) {
         try {
             return new ZSRUService(properties);
         } catch (IOException e) {
             return null;
         }
     }
+
+    private static Properties getProperties(String name) throws IOException {
+        Properties properties = new Properties();
+        try (InputStream in = instance.getClass().getResourceAsStream("/org/xbib/sru/iso23950/service/" + name + ".properties")) {
+            properties.load(in);
+        }
+        return properties;
+    }
+
 }

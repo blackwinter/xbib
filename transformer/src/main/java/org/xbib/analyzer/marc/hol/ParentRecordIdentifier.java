@@ -19,7 +19,7 @@ public class ParentRecordIdentifier extends org.xbib.analyzer.marc.bib.Identifie
         if (getParams().containsKey("_predicate")) {
             predicate = (String) getParams().get("_predicate");
         }
-        worker.state().getResource().add(predicate, fields.getLast().data());
+        worker.getWorkerState().getResource().add(predicate, fields.getLast().data());
         return false;
     }
 }

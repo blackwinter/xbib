@@ -67,7 +67,7 @@ public class ElasticsearchOutput {
         for (Map.Entry<String,Settings> entry : map.entrySet()) {
             Settings settings = entry.getValue();
             String indexName = settings.get("name", entry.getKey());
-            String concreteIndexName = indexName;
+            String concreteIndexName;
             String timeWindow = settings.get("timewindow");
             if (timeWindow != null) {
                 String timeWindowStr = DateTimeFormatter.ofPattern(timeWindow)

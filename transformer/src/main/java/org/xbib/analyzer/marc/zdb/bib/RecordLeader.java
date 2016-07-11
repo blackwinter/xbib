@@ -32,7 +32,7 @@ public class RecordLeader extends MARCEntity {
             Map<String,String> v = (Map<String,String>)codes.get(k);
             String code = value.length() > pos ? value.substring(pos,pos+1) : "";
             if (v.containsKey(code)) {
-                worker.state().getResource().add(predicate, v.get(code));
+                worker.getWorkerState().getResource().add(predicate, v.get(code));
             }
         }
         // deleted record?
@@ -44,38 +44,38 @@ public class RecordLeader extends MARCEntity {
         boolean isBook = (ch6 == 'a' || ch6 == 't') &&
                 (ch7 == 'a' || ch7 == 'c' || ch7 == 'd' || ch7 == 'm');
         if (isBook) {
-            worker.state().getResource().add("type", "book");
+            worker.getWorkerState().getResource().add("type", "book");
         }
 
         boolean isComputerFile = ch6 == 'm';
         if (isComputerFile) {
-            worker.state().getResource().add("type", "computerfile");
+            worker.getWorkerState().getResource().add("type", "computerfile");
         }
 
         boolean isMap = (ch6 == 'e' || ch6 == 'f');
         if (isMap) {
-            worker.state().getResource().add("type", "map");
+            worker.getWorkerState().getResource().add("type", "map");
         }
 
         boolean isMusic = (ch6 == 'c' || ch6 == 'd' || ch6 == 'i' || ch6 == 'j');
         if (isMusic) {
-            worker.state().getResource().add("type", "music");
+            worker.getWorkerState().getResource().add("type", "music");
         }
 
         boolean isContinuingResource = ch6 == 'a' &&
                 (ch7 == 'b' || ch7 == 'i' || ch7 == 's');
         if (isContinuingResource) {
-            worker.state().getResource().add("type", "continuingresource");
+            worker.getWorkerState().getResource().add("type", "continuingresource");
         }
 
         boolean isVisualMaterial = (ch6 == 'g' || ch6 == 'k' || ch6 == 'o' || ch6 == 'r');
         if (isVisualMaterial) {
-            worker.state().getResource().add("type", "visualmaterial");
+            worker.getWorkerState().getResource().add("type", "visualmaterial");
         }
 
         boolean isMixedMaterial = ch6 == 'p';
         if (isMixedMaterial) {
-            worker.state().getResource().add("type", "mixedmaterial");
+            worker.getWorkerState().getResource().add("type", "mixedmaterial");
         }
         return true;
     }

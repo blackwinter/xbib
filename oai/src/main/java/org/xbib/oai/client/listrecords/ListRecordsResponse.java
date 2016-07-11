@@ -80,7 +80,7 @@ public class ListRecordsResponse extends ClientOAIResponse {
         return date;
     }
 
-    public void setDelaySeconds(long delaySeconds) {
+    void setDelaySeconds(long delaySeconds) {
         this.delaySeconds = delaySeconds;
     }
 
@@ -88,8 +88,9 @@ public class ListRecordsResponse extends ClientOAIResponse {
         return delaySeconds;
     }
 
-    public void setTransformer(StylesheetTransformer transformer) {
+    void setTransformer(StylesheetTransformer transformer) {
         this.transformer = transformer;
+        logger.debug("got transformer {}", transformer);
     }
 
     public StylesheetTransformer getTransformer() {
@@ -100,6 +101,7 @@ public class ListRecordsResponse extends ClientOAIResponse {
     public ListRecordsResponse to(Writer writer) throws IOException {
         try {
             if (transformer != null) {
+                logger.debug("transforming");
                 transformer.setResult(new StreamResult(writer)).transform();
                 if ("noRecordsMatch".equals(error)) {
                     throw new NoRecordsMatchException("metadataPrefix=" + request.getMetadataPrefix()
@@ -113,6 +115,8 @@ public class ListRecordsResponse extends ClientOAIResponse {
                 } else if (error != null) {
                     throw new OAIException(error);
                 }
+            } else {
+                logger.warn("no transformer set?");
             }
         } catch (TransformerException e) {
             throw new IOException(e);

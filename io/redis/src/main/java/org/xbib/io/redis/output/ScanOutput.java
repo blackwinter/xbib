@@ -1,6 +1,6 @@
 package org.xbib.io.redis.output;
 
-import org.xbib.io.redis.LettuceStrings;
+import org.xbib.io.redis.Strings;
 import org.xbib.io.redis.ScanCursor;
 import org.xbib.io.redis.codec.RedisCodec;
 import org.xbib.io.redis.protocol.CommandOutput;
@@ -25,7 +25,7 @@ public abstract class ScanOutput<K, V, T extends ScanCursor> extends CommandOutp
 
         if (output.getCursor() == null) {
             output.setCursor(decodeAscii(bytes));
-            if (LettuceStrings.isNotEmpty(output.getCursor()) && "0".equals(output.getCursor())) {
+            if (Strings.isNotEmpty(output.getCursor()) && "0".equals(output.getCursor())) {
                 output.setFinished(true);
             }
             return;

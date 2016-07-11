@@ -115,7 +115,7 @@ public class SisisReader implements FieldReader, XMLReader, MarcXchangeConstants
 
     private ErrorHandler errorHandler;
 
-    private Map<String, Boolean> features = new HashMap<String, Boolean>();
+    private Map<String, Boolean> features = new HashMap<>();
 
     /**
      * Properties for this reader
@@ -128,7 +128,6 @@ public class SisisReader implements FieldReader, XMLReader, MarcXchangeConstants
             put(BUFFER_SIZE, 65536);
         }
     };
-
 
     public SisisReader(InputStream in, String encoding) throws IOException {
         this(new InputStreamReader(in, encoding));

@@ -98,8 +98,7 @@ public class Unimarc extends Feeder {
 
         public MyEntityQueue() throws Exception {
             super(settings.get("package", "org.xbib.analyzer.unimarc.bib"),
-                    settings.getAsInt("pipelines", 1),
-                    settings.get("elements",  "/org/xbib/analyzer/unimarc/bib.json")
+                    settings.getAsInt("pipelines", 1)
             );
         }
 

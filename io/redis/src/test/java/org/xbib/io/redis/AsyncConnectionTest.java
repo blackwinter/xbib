@@ -105,7 +105,7 @@ public class AsyncConnectionTest extends AbstractCommandTest {
         Future<String> set = async.set(key, value);
         Future<String> get2 = async.get(key);
         Future<Long> append = async.append(key, value);
-        assertThat(LettuceFutures.awaitAll(1, TimeUnit.SECONDS, get1, set, get2, append)).isEqualTo(true);
+        assertThat(Futures.awaitAll(1, TimeUnit.SECONDS, get1, set, get2, append)).isEqualTo(true);
         assertThat(get1.get()).isEqualTo(null);
         assertThat(set.get()).isEqualTo("OK");
         assertThat(get2.get()).isEqualTo(value);
@@ -115,7 +115,7 @@ public class AsyncConnectionTest extends AbstractCommandTest {
     @Test(timeout = 100)
     public void awaitAllTimeout() throws Exception {
         Future<KeyValue<String, String>> blpop = async.blpop(1, key);
-        assertThat(LettuceFutures.awaitAll(1, TimeUnit.NANOSECONDS, blpop)).isEqualTo(false);
+        assertThat(Futures.awaitAll(1, TimeUnit.NANOSECONDS, blpop)).isEqualTo(false);
     }
 
 }

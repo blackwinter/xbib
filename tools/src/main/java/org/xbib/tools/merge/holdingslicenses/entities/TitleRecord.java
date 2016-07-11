@@ -34,7 +34,7 @@ package org.xbib.tools.merge.holdingslicenses.entities;
 import org.xbib.tools.merge.holdingslicenses.support.NaturalOrderComparator;
 import org.xbib.util.LinkedHashMultiMap;
 import org.xbib.util.MultiMap;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.TreeMultiMap;
 
 import java.time.Year;

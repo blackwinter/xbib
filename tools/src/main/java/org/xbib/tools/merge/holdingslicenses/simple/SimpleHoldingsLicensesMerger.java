@@ -50,10 +50,11 @@ import org.xbib.tools.merge.holdingslicenses.support.BibdatLookup;
 import org.xbib.tools.merge.holdingslicenses.support.BlackListedISIL;
 import org.xbib.tools.merge.holdingslicenses.support.ConsortiaLookup;
 import org.xbib.tools.merge.holdingslicenses.support.MappedISIL;
+import org.xbib.tools.merge.holdingslicenses.support.MappedMainISIL;
 import org.xbib.tools.merge.holdingslicenses.support.TitleRecordRequest;
 import org.xbib.tools.metrics.Metrics;
 import org.xbib.util.IndexDefinition;
-import org.xbib.util.Strings;
+import org.xbib.common.Strings;
 import org.xbib.util.concurrent.Pipeline;
 import org.xbib.util.concurrent.WorkerProvider;
 
@@ -79,7 +80,9 @@ public class SimpleHoldingsLicensesMerger extends Merger {
 
     private BlackListedISIL isilbl;
 
-    private MappedISIL isilMapped;
+    private MappedISIL mappedISIL;
+
+    private MappedMainISIL mappedMainISIL;
 
     private StatusCodeMapper statusCodeMapper;
 
@@ -179,13 +182,22 @@ public class SimpleHoldingsLicensesMerger extends Merger {
         logger.info("ISIL blacklist prepared, size = {}", isilbl.lookup().size());
 
         logger.info("preparing mapped ISIL...");
-        isilMapped = new MappedISIL();
+        mappedISIL = new MappedISIL();
         try (InputStream in = getClass().getResourceAsStream(settings.get("isil.map", "/org/xbib/tools/merge/holdingslicenses/isil.map"))) {
-            isilMapped.buildLookup(in);
+            mappedISIL.buildLookup(in);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
-        logger.info("mapped ISILs prepared, size = {}", isilMapped.lookup().size());
+        logger.info("mapped ISILs prepared, size = {}", mappedISIL.lookup().size());
+
+        logger.info("preparing mapped main ISIL...");
+        mappedMainISIL = new MappedMainISIL();
+        try (InputStream in = getClass().getResourceAsStream(settings.get("mainisil.map", "/org/xbib/tools/merge/holdingslicenses/mainisil.map"))) {
+            mappedMainISIL.buildLookup(in);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        logger.info("mapped ISILs prepared, size = {}", mappedMainISIL.lookup().size());
 
         logger.info("preparing status code mapper...");
         ValueMaps valueMaps = new ValueMaps();
@@ -368,7 +380,11 @@ public class SimpleHoldingsLicensesMerger extends Merger {
     }
 
     MappedISIL mappedISIL() {
-        return isilMapped;
+        return mappedISIL;
+    }
+
+    MappedMainISIL mappedMainISIL() {
+        return mappedMainISIL;
     }
 
     StatusCodeMapper statusCodeMapper() {

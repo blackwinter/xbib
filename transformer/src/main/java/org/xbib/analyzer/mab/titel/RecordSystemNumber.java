@@ -58,8 +58,8 @@ public class RecordSystemNumber extends MABEntity {
     public boolean fields(MABEntityQueue.MABWorker worker, FieldList fields) throws IOException {
         String value = fields.getLast().data();
         String v = prefix + value.trim();
-        worker.state().setIdentifier(v); // overwrite record identifier
-        worker.state().getResource().newResource("xbib").add("uid", v);
+        worker.getWorkerState().setIdentifier(v); // overwrite record identifier
+        worker.getWorkerState().getResource().newResource("xbib").add("uid", v);
         return false; // continue to add to resource
     }
 

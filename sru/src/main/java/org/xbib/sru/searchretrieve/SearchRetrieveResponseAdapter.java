@@ -35,30 +35,11 @@ import java.util.Collection;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.util.XMLEventConsumer;
 
-import org.xbib.io.http.HttpRequest;
-import org.xbib.io.http.HttpResponse;
-
 /**
  *  An adapter class for SearchRetrieve responses
  *
  */
 public class SearchRetrieveResponseAdapter implements SearchRetrieveListener {
-
-    @Override
-    public void onConnect(HttpRequest request) {
-    }
-
-    @Override
-    public void onDisconnect(HttpRequest request) {
-    }
-
-    @Override
-    public void onReceive(HttpRequest request, CharSequence message) {
-    }
-
-    @Override
-    public void onError(HttpRequest request, Throwable error) {
-    }
 
     @Override
     public void version(String version) {
@@ -106,7 +87,4 @@ public class SearchRetrieveResponseAdapter implements SearchRetrieveListener {
     public void endRecord() {
     }
 
-    @Override
-    public void receivedResponse(HttpResponse response) {
-    }
 }

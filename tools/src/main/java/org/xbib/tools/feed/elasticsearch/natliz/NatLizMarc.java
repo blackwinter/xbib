@@ -81,7 +81,7 @@ public class NatLizMarc extends Feeder {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
                     params,
                     settings.getAsInt("pipelines", 1),
-                    settings.get("elements")
+                    findURL(settings.get("elements"))
             );
         }
 
@@ -102,8 +102,7 @@ public class NatLizMarc extends Feeder {
 
         public MyDirectQueue(Map<String,Object> params) throws Exception {
             super(settings.get("package", "org.xbib.analyzer.marc.bib"),
-                    settings.getAsInt("pipelines", 1),
-                    settings.get("elements")
+                    settings.getAsInt("pipelines", 1)
             );
         }
 

@@ -38,8 +38,6 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.xbib.io.CustomURLStreamHandlerFactory;
 import org.xbib.io.iso23950.Diagnostics;
@@ -49,10 +47,10 @@ import org.xbib.xml.transform.StylesheetTransformer;
 
 public class ZClientTest {
 
-    static {
+    //static {
         // TODO find out how to set this reliably in JVM for every test!
-        URL.setURLStreamHandlerFactory(new CustomURLStreamHandlerFactory());
-    }
+    //    URL.setURLStreamHandlerFactory(new CustomURLStreamHandlerFactory());
+    //}
 
     @Test
     public void testClient() {

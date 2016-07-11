@@ -33,6 +33,8 @@ package org.xbib.sru.service;
 
 import org.xbib.sru.SRUProfile;
 import org.xbib.sru.client.SRUClient;
+import org.xbib.sru.searchretrieve.SearchRetrieveRequest;
+import org.xbib.sru.searchretrieve.SearchRetrieveResponse;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -41,10 +43,11 @@ import java.net.URI;
 /**
  *  SRU service
  */
-public interface SRUService extends SRUProfile, Closeable {
+public interface SRUService<Request extends SearchRetrieveRequest, Response extends SearchRetrieveResponse>
+        extends SRUProfile, Closeable {
 
     URI getURI();
 
-    SRUClient newClient() throws IOException;
+    SRUClient<Request, Response> newClient() throws IOException;
 
 }
