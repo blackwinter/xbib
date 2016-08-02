@@ -33,14 +33,14 @@
  */
 package org.xbib.analyzer.mab.titel;
 
-import org.xbib.etl.faceting.TermFacet;
 import org.xbib.etl.marc.dialects.mab.MABEntityBuilderState;
 import org.xbib.etl.marc.dialects.mab.MABEntityQueue;
 import org.xbib.etl.support.Supplement;
 import org.xbib.etl.support.SupplementEntry;
-import org.xbib.rdf.Literal;
+import org.xbib.iri.IRI;
 import org.xbib.rdf.Resource;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -48,28 +48,41 @@ public class RecordIdentifierWithSupplement extends RecordIdentifier {
 
     public RecordIdentifierWithSupplement(Map<String, Object> params) {
         super(params);
+        if (params.containsKey("catalogid")) {
+            this.catalogid = params.get("catalogid").toString();
+            this.prefix = "(" + this.catalogid + ")";
+        }
     }
 
     @Override
     public String data(MABEntityQueue.MABWorker worker,
                        String predicate, Resource resource, String property, String value) {
-        MABEntityBuilderState state = worker.newState();
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        final MABEntityBuilderState state = worker.getWorkerState();
+        final String trimmed = value.trim();
+        final String v = prefix + trimmed;
+        worker.getWorkerState().setRecordIdentifier(v);
         // check for supplements
-        List<Supplement> supplements = worker.supplements();
-        if (supplements != null || !supplements.isEmpty()) {
-            String isil = catalogid;
-            String key = catalogid + "." + state.getRecordIdentifier() + ".";
+        final List<Supplement> supplements = worker.supplements();
+        if (supplements != null && !supplements.isEmpty()) {
             for (Supplement supplement : supplements) {
-                java.util.Collection<SupplementEntry> entries = supplement.lookup(key);
+                final Map<String, String> mappings = supplement.getMappings();
+                java.util.Collection<SupplementEntry> entries = supplement.lookup(trimmed);
                 if (entries != null) {
                     for (SupplementEntry entry : entries) {
-
-                        // TODO: transfer data from entry to state.getFacets properly
-
-                        if (entry.get("") != null && !entry.get("").trim().isEmpty()) {
-                            String facet = taxonomyFacet + "." + isil + ".notation";
-                            state.getFacets().putIfAbsent(facet, new TermFacet().setName(facet).setType(Literal.STRING));
-                            state.getFacets().get(facet).addValue(entry.get(""));
+                        for (Map.Entry<String, String> supplementMapping : mappings.entrySet()) {
+                            final String key = entry.get(supplementMapping.getKey());
+                            final String info = entry.get(key);
+                            try {
+                                final java.util.Collection<Resource> embedded = state.getResource().embeddedResources(new IRI("tmp"));
+                                for (Resource embed : embedded){
+                                    embed.add(supplementMapping.getValue(), info);
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }

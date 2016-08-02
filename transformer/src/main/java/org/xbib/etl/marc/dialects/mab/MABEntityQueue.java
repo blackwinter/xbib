@@ -167,7 +167,12 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         return this;
     }
 
-    public MABEntityQueue addSupplement(Class<? extends Supplement> clazz, String idKey, String prefix, String isil, String supplementPath) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public MABEntityQueue addSupplement(
+            Class<? extends Supplement> clazz, //
+            String idKey, //
+            String isil, //
+            String supplementPath,
+            Map<String, String> mapping) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         if (supplements == null) {
             supplements = new ArrayList<>();
         }
@@ -178,7 +183,7 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         }
         Constructor<?> conztructor = clazz.getConstructor(String.class);
         Supplement supplement = (Supplement) conztructor.newInstance(new Object[] { idKey });
-        supplement.load(in, isil, prefix);
+        supplement.load(in, isil, mapping);
         supplements.add(supplement);
         logger.info("added supplements for {} with size of {}", isil, supplement.getMap().size());
         return this;

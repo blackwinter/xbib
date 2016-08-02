@@ -47,7 +47,7 @@ public class RecordIdentifier extends MABEntity {
 
     protected final static String taxonomyFacet = "xbib.taxonomy";
 
-    private String prefix = "";
+    protected String prefix = "";
 
     protected String catalogid = "";
 

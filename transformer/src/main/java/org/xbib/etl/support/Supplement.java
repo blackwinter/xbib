@@ -36,6 +36,7 @@ package org.xbib.etl.support;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Supplement {
@@ -44,7 +45,9 @@ public abstract class Supplement {
 
     protected String supplementID;
 
-    public abstract Supplement load(InputStream in, String isil, String prefix) throws IOException;
+    protected final Map<String, String> mappings = new HashMap<>();
+
+    public abstract Supplement load(InputStream in, String isil, Map<String, String> mapping) throws IOException;
 
     public Map<String,Collection<SupplementEntry>> getMap() {
         return map;
@@ -52,5 +55,9 @@ public abstract class Supplement {
 
     public Collection<SupplementEntry> lookup(String key) {
         return map.get(key);
+    }
+
+    public Map<String, String> getMappings() {
+        return mappings;
     }
 }
