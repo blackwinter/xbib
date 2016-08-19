@@ -1,6 +1,8 @@
 
 dependencies {
     compile project(':datastructures:metrics')
+    compile project(':iso2709')
+    compile project(':content:common')
 }
 
 test {

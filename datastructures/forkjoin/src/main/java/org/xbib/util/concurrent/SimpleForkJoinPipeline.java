@@ -31,10 +31,11 @@
  */
 package org.xbib.util.concurrent;
 
+import org.xbib.common.settings.Settings;
+import org.xbib.marc.FieldList;
+
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,11 +52,14 @@ public abstract class SimpleForkJoinPipeline<R> {
 
     private final Set<Worker> workers;
 
+    protected final List<FieldFilter> filters;
+
     public SimpleForkJoinPipeline(int workerCount) {
         this.workerCount = workerCount;
         this.queue = new SynchronousQueue<>(true);
         this.service = Executors.newFixedThreadPool(workerCount);
         this.workers = new HashSet<>();
+        this.filters = new ArrayList<>();
     }
 
     protected abstract Worker newWorker();
@@ -97,6 +101,22 @@ public abstract class SimpleForkJoinPipeline<R> {
         void execute(J job) throws IOException;
     }
 
+    public List<FieldFilter> addFieldFilters(Settings settings){
+        Settings filterSettings = settings.getAsSettings("filters");
+        if (filterSettings != null){
+            Settings filterFieldsSettings = filterSettings.getAsSettings("fields");
+            if (filterFieldsSettings != null){
+                Iterator<Map.Entry<String, String>> it = filterFieldsSettings.getAsMap().entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, String> entry = it.next();
+                    String[] fieldAndSubfield = entry.getKey().split(" ", 2);
+                    filters.add(new FieldFilter(fieldAndSubfield[0], fieldAndSubfield[1], entry.getValue()));
+                }
+            }
+        }
+        return filters;
+    }
+
     public class DefaultWorker extends Thread implements Worker<R> {
         @Override
         public void run() {
@@ -106,7 +126,9 @@ public abstract class SimpleForkJoinPipeline<R> {
                     if (job.equals(poison())) {
                         break;
                     }
-                    execute(job);
+                    if (passesFilters((List<FieldList>) job)) {
+                        execute(job);
+                    }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -123,6 +145,19 @@ public abstract class SimpleForkJoinPipeline<R> {
 
         public void onFailure(Throwable t) {
             t.printStackTrace();
+        }
+
+        protected boolean passesFilters(List<FieldList> job) {
+            if (filters == null || filters.isEmpty()){
+                return true;
+            }
+            for (FieldFilter filter : filters) {
+                if (filter.matchesAnyOf(job)){
+                    return true;
+                }
+            }
+            // no match found:
+            return false;
         }
     }
 
