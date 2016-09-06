@@ -44,6 +44,7 @@ import org.xbib.marc.FieldList;
 import org.xbib.rdf.RdfContentBuilderProvider;
 import org.xbib.rdf.Resource;
 import org.xbib.rdf.memory.MemoryRdfGraph;
+import org.xbib.util.concurrent.FieldFilter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -445,6 +446,10 @@ public class MABEntityQueue extends EntityQueue<MABEntityBuilderState, MABEntity
         public List<Supplement> supplements() {
             return supplements;
         }
+
+        public List<FieldFilter> fieldFilters() {return fieldFilters; }
+
+        public List<FieldFilter> titleFilters() {return titleFilters; }
     }
 
 }

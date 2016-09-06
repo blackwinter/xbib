@@ -69,4 +69,12 @@ public class FieldFilter {
         }
         return false;
     }
+
+    public boolean matchesField(String field, String subfield){
+        return this.field.equals(field) && this.subfield.equals(subfield);
+    }
+
+    public String getValue(){
+        return value;
+    }
 }

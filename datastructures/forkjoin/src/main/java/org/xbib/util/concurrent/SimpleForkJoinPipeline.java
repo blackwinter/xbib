@@ -36,6 +36,7 @@ import org.xbib.marc.FieldList;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,14 +53,17 @@ public abstract class SimpleForkJoinPipeline<R> {
 
     private final Set<Worker> workers;
 
-    protected final List<FieldFilter> filters;
+    protected final List<FieldFilter> titleFilters;
+
+    protected final List<FieldFilter> fieldFilters;
 
     public SimpleForkJoinPipeline(int workerCount) {
         this.workerCount = workerCount;
         this.queue = new SynchronousQueue<>(true);
         this.service = Executors.newFixedThreadPool(workerCount);
         this.workers = new HashSet<>();
-        this.filters = new ArrayList<>();
+        this.titleFilters = new ArrayList<>();
+        this.fieldFilters = new ArrayList<>();
     }
 
     protected abstract Worker newWorker();
@@ -101,15 +105,23 @@ public abstract class SimpleForkJoinPipeline<R> {
         void execute(J job) throws IOException;
     }
 
+    public List<FieldFilter> addTitleFilters(Settings settings){
+        return getFilters(settings, "title", titleFilters);
+    }
+
     public List<FieldFilter> addFieldFilters(Settings settings){
+        return getFilters(settings, "fields", fieldFilters);
+    }
+
+    private List<FieldFilter> getFilters(Settings settings, String subgroup, List<FieldFilter> filters) {
         Settings filterSettings = settings.getAsSettings("filters");
         if (filterSettings != null){
-            Settings filterFieldsSettings = filterSettings.getAsSettings("fields");
-            if (filterFieldsSettings != null){
-                Iterator<Map.Entry<String, String>> it = filterFieldsSettings.getAsMap().entrySet().iterator();
+            Settings subfilterSettings = filterSettings.getAsSettings(subgroup);
+            if (subfilterSettings != null){
+                Iterator<Entry<String, String>> it = subfilterSettings.getAsMap().entrySet().iterator();
                 while (it.hasNext()){
-                    Map.Entry<String, String> entry = it.next();
-                    String[] fieldAndSubfield = entry.getKey().split(" ", 2);
+                    Entry<String, String> entry = it.next();
+                    String[] fieldAndSubfield = entry.getKey().split("\\$.{2}\\$", 2);
                     filters.add(new FieldFilter(fieldAndSubfield[0], fieldAndSubfield[1], entry.getValue()));
                 }
             }
@@ -126,7 +138,7 @@ public abstract class SimpleForkJoinPipeline<R> {
                     if (job.equals(poison())) {
                         break;
                     }
-                    if (passesFilters((List<FieldList>) job)) {
+                    if (passesTitleFilters((List<FieldList>) job)) {
                         execute(job);
                     }
                 }
@@ -147,11 +159,11 @@ public abstract class SimpleForkJoinPipeline<R> {
             t.printStackTrace();
         }
 
-        protected boolean passesFilters(List<FieldList> job) {
-            if (filters == null || filters.isEmpty()){
+        protected boolean passesTitleFilters(List<FieldList> job) {
+            if (titleFilters == null || titleFilters.isEmpty()){
                 return true;
             }
-            for (FieldFilter filter : filters) {
+            for (FieldFilter filter : titleFilters) {
                 if (filter.matchesAnyOf(job)){
                     return true;
                 }
