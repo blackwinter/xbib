@@ -99,8 +99,8 @@ public class DOAJClientTest {
                     DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("GMT")) : null;
             ListRecordsRequest listRecordsRequest = client.newListRecordsRequest()
                     .setDateTimeFormatter(dateTimeFormatter)
-                    .setFrom(Instant.parse("2015-01-01T00:00:00Z"))
-                    .setUntil(Instant.parse("2016-07-01T00:00:00Z"))
+                    .setFrom(Instant.parse("2017-01-01T00:00:00Z"))
+                    .setUntil(Instant.parse("2017-07-01T00:00:00Z"))
                     .setMetadataPrefix("oai_dc");
             final AtomicLong count = new AtomicLong(0L);
             SimpleMetadataHandler simpleMetadataHandler = new SimpleMetadataHandler() {
