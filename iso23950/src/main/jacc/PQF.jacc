@@ -70,6 +70,9 @@ RPN queries."
 %}
 %package org.xbib.io.iso23950.pqf
 
+%class PQFParser
+%interface PQFTokens
+
 %token NL          
 %token <String> OR
 %token <String> AND
@@ -185,5 +188,4 @@ expression: AND querystruct querystruct {
     {
         return pqf;
     }
-
 

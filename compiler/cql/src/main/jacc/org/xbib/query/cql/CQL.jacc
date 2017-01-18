@@ -3,6 +3,9 @@ import java.io.StringReader;
 %}
 %package org.xbib.query.cql
 
+%class CQLParser
+%interface CQLTokens
+
 %token NL 
 %token <String> LPAR RPAR SLASH
 %token <String> AND OR NOT PROX
@@ -261,4 +264,3 @@ quotedString: QUOTEDSTRING {
     public SortedQuery getCQLQuery() {
         return cql;
     }
-
